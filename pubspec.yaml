@@ -1,0 +1,15 @@
+name: sqflow_workspace
+publish_to: "none"
+repository: https://github.com/interdev7/sqflow
+issue_tracker: https://github.com/interdev7/sqflow/issues
+
+environment:
+  sdk: ">=3.5.0 <4.0.0"
+
+workspace:
+  - sqflow_core
+  - sqflow_platform_interface
+  - sqflow_generator
+
+dev_dependencies:
+  very_good_analysis: ^9.0.0

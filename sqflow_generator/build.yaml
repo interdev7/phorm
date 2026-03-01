@@ -1,0 +1,18 @@
+targets:
+  $default:
+    builders:
+      sqflow_generator|standalone_sql_schema:
+        generate_for:
+          - lib/**/*.dart
+          - test/**/*.dart
+        options:
+          # header: "// GENERATED CODE - DO NOT MODIFY BY HAND\n"
+
+builders:
+  standalone_sql_schema: # Имя билдера
+    import: "package:sqflow_generator/builder.dart"
+    builder_factories: ["standaloneSqlSchemaBuilder"]
+    build_extensions: { ".dart": [".sql.g.dart"] }
+    auto_apply: dependents
+    build_to: source
+    applies_builders: ["source_gen|combining_builder"]

@@ -1,0 +1,23 @@
+name: sqflow_example
+description: Example app for sqflow.
+publish_to: "none"
+version: 1.0.0+1
+
+environment:
+  sdk: ">=3.5.0 <4.0.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+  uuid: ^4.5.2
+  sqflow_core:
+    path: ../sqflow_core
+  sqflow_platform_interface:
+    path: ../sqflow_platform_interface
+  sqflow_generator:
+    path: ../sqflow_generator
+
+dev_dependencies:
+  build_runner: ^2.0.0
+  flutter_test:
+    sdk: flutter
