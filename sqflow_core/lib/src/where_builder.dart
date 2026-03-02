@@ -331,21 +331,26 @@ class WhereBuilder {
   /// and avoid embedding literals directly into SQL.
   WhereBuilder substrEq(String column, int start, int len, String value) {
     _validate(column);
-    _addCondition('SUBSTR($column, ?, ?) = ?', [_prepareValue(start), _prepareValue(len), _prepareValue(value)], column);
+    _addCondition(
+        'SUBSTR($column, ?, ?) = ?',
+        [_prepareValue(start), _prepareValue(len), _prepareValue(value)],
+        column);
     return this;
   }
 
   /// Adds SUBSTR LIKE condition: `SUBSTR(column, start, len) LIKE ?`
   WhereBuilder substrLike(String column, int start, int len, String pattern) {
     _validate(column);
-    _addCondition('SUBSTR($column, ?, ?) LIKE ?', [_prepareValue(start), _prepareValue(len), pattern], column);
+    _addCondition('SUBSTR($column, ?, ?) LIKE ?',
+        [_prepareValue(start), _prepareValue(len), pattern], column);
     return this;
   }
 
   /// Adds case-insensitive SUBSTR LIKE: `LOWER(SUBSTR(column, start, len)) LIKE LOWER(?)`
   WhereBuilder substrIlike(String column, int start, int len, String pattern) {
     _validate(column);
-    _addCondition('LOWER(SUBSTR($column, ?, ?)) LIKE LOWER(?)', [_prepareValue(start), _prepareValue(len), pattern], column);
+    _addCondition('LOWER(SUBSTR($column, ?, ?)) LIKE LOWER(?)',
+        [_prepareValue(start), _prepareValue(len), pattern], column);
     return this;
   }
 
@@ -489,7 +494,7 @@ class WhereBuilder {
   /// // Args: ['Bulgaria', 18, 65, 1] ← Correct order!
   /// ```
   WhereBuilder andGroup(void Function(WhereBuilder) builder) {
-    final group = WhereBuilder(separator: ' AND ');
+    final group = WhereBuilder();
     builder(group);
 
     if (group._conditions.isEmpty) return this;

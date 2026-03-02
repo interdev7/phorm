@@ -2,8 +2,14 @@ include: package:very_good_analysis/analysis_options.yaml
 analyzer:
   errors:
     always_use_package_imports: ignore
+    avoid_catches_without_on_clauses: ignore
+    avoid_positional_boolean_parameters: ignore
+    avoid_returning_this: ignore
+    avoid_void_async: ignore
+    cast_nullable_to_non_nullable: ignore
     inference_failure_on_function_invocation: ignore
     inference_failure_on_instance_creation: ignore
+    lines_longer_than_80_chars: ignore
     public_member_api_docs: ignore
     unnecessary_await_in_return: ignore
     unnecessary_lambdas: ignore

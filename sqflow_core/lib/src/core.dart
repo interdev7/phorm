@@ -4,6 +4,8 @@ import 'package:sqflite/sqflite.dart';
 import 'package:sqflow_core/sqflow_core.dart';
 import 'package:sqflow_platform_interface/sqflow_platform_interface.dart';
 
+typedef ErrorCallback = void Function(Object, StackTrace);
+
 // =======================================================
 // SQFLOW CORE v1.0 🚀
 // =======================================================
@@ -20,12 +22,6 @@ import 'package:sqflow_platform_interface/sqflow_platform_interface.dart';
 /// - Integration with [WhereBuilder] and [SortBuilder] for complex queries
 /// - Optional indexes and custom onCreate/onUpgrade hooks
 class SqflowCore<T extends Model> {
-  /// The database manager instance for this service.
-  final DB dbManager;
-
-  /// The table configuration (name, schema, fromJson, primary key, soft delete)
-  final Table<T> table;
-
   /// Creates a new SqflowCore instance.
   ///
   /// **Example:**
@@ -33,6 +29,12 @@ class SqflowCore<T extends Model> {
   /// final userService = SqflowCore<User>(table: userTable, dbManager: db);
   /// ```
   SqflowCore({required this.dbManager, required this.table});
+
+  /// The database manager instance for this service.
+  final DB dbManager;
+
+  /// The table configuration (name, schema, fromJson, primary key, soft delete)
+  final Table<T> table;
 
   // -------------------------------------------------------
   // DATABASE
@@ -85,8 +87,7 @@ class SqflowCore<T extends Model> {
   /// Inserts a single item synchronously (fire-and-forget).
   /// Wraps [insertAsync] with callbacks.
   void insert(T item,
-      {void Function(int id)? onSuccess,
-      void Function(Object, StackTrace)? onError}) async {
+      {void Function(int id)? onSuccess, ErrorCallback? onError}) async {
     try {
       final id = await insertAsync(item);
       if (onSuccess != null) onSuccess(id);
@@ -115,8 +116,7 @@ class SqflowCore<T extends Model> {
 
   /// Updates a single item synchronously.
   void update(T item,
-      {void Function(int rows)? onSuccess,
-      void Function(Object, StackTrace)? onError}) async {
+      {void Function(int rows)? onSuccess, ErrorCallback? onError}) async {
     try {
       final rows = await updateAsync(item);
       if (onSuccess != null) onSuccess(rows);
@@ -142,8 +142,7 @@ class SqflowCore<T extends Model> {
 
   /// Upserts a single item synchronously.
   void upsert(T item,
-      {void Function(Object id)? onSuccess,
-      void Function(Object, StackTrace)? onError}) async {
+      {void Function(Object id)? onSuccess, ErrorCallback? onError}) async {
     try {
       await upsertAsync(item);
       if (onSuccess != null) onSuccess(item.id);
@@ -182,7 +181,7 @@ class SqflowCore<T extends Model> {
   void delete(Object id,
       {bool force = false,
       void Function(int rows)? onSuccess,
-      void Function(Object, StackTrace)? onError}) async {
+      ErrorCallback? onError}) async {
     try {
       final rows = await deleteAsync(id, force: force);
       if (onSuccess != null) onSuccess(rows);
@@ -210,8 +209,7 @@ class SqflowCore<T extends Model> {
 
   /// Restores a soft-deleted item synchronously.
   void restore(Object id,
-      {void Function(int rows)? onSuccess,
-      void Function(Object, StackTrace)? onError}) async {
+      {void Function(int rows)? onSuccess, ErrorCallback? onError}) async {
     try {
       final rows = await restoreAsync(id);
       if (onSuccess != null) onSuccess(rows);
@@ -243,8 +241,7 @@ class SqflowCore<T extends Model> {
 
   /// Inserts multiple items in a batch synchronously.
   void insertBatch(List<T> items,
-      {void Function(int count)? onSuccess,
-      void Function(Object, StackTrace)? onError}) async {
+      {void Function(int count)? onSuccess, ErrorCallback? onError}) async {
     try {
       await insertBatchAsync(items);
       if (onSuccess != null) onSuccess(items.length);
@@ -272,8 +269,7 @@ class SqflowCore<T extends Model> {
 
   /// Updates multiple items in a batch synchronously.
   void updateBatch(List<T> items,
-      {void Function(int count)? onSuccess,
-      void Function(Object, StackTrace)? onError}) async {
+      {void Function(int count)? onSuccess, ErrorCallback? onError}) async {
     try {
       await updateBatchAsync(items);
       if (onSuccess != null) onSuccess(items.length);
@@ -313,8 +309,7 @@ class SqflowCore<T extends Model> {
   /// );
   /// ```
   void upsertBatch(List<T> items,
-      {void Function(int count)? onSuccess,
-      void Function(Object, StackTrace)? onError}) async {
+      {void Function(int count)? onSuccess, ErrorCallback? onError}) async {
     try {
       await upsertBatchAsync(items);
       if (onSuccess != null) onSuccess(items.length);
@@ -350,7 +345,7 @@ class SqflowCore<T extends Model> {
   void deleteBatch(List<Object> ids,
       {bool force = false,
       void Function(int count)? onSuccess,
-      void Function(Object, StackTrace)? onError}) async {
+      ErrorCallback? onError}) async {
     try {
       await deleteBatchAsync(ids, force: force);
       if (onSuccess != null) onSuccess(ids.length);
@@ -380,8 +375,7 @@ class SqflowCore<T extends Model> {
 
   /// Restores multiple soft-deleted items in a batch synchronously.
   void restoreBatch(List<Object> ids,
-      {void Function(int count)? onSuccess,
-      void Function(Object, StackTrace)? onError}) async {
+      {void Function(int count)? onSuccess, ErrorCallback? onError}) async {
     try {
       await restoreBatchAsync(ids);
       if (onSuccess != null) onSuccess(ids.length);
@@ -430,7 +424,7 @@ class SqflowCore<T extends Model> {
   void read(Object id,
       {List<String>? columns,
       void Function(T)? onSuccess,
-      void Function(Object, StackTrace)? onError,
+      ErrorCallback? onError,
       bool withDeleted = false}) async {
     try {
       final item =
@@ -475,7 +469,7 @@ class SqflowCore<T extends Model> {
   /// ```
   void exists(Object id,
       {void Function(bool exists)? onResult,
-      void Function(Object, StackTrace)? onError,
+      ErrorCallback? onError,
       bool withDeleted = false}) async {
     try {
       final ex = await existsAsync(id, withDeleted: withDeleted);
