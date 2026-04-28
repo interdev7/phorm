@@ -1,4 +1,4 @@
-import 'data_types.dart';
+import 'data_type.dart';
 
 /// Strategy for naming database columns.
 enum ColumnNamingStrategy {
@@ -19,12 +19,7 @@ enum ColumnNamingStrategy {
 /// and value constraints.
 abstract class ColumnBase {
   /// Database data type of the column.
-  final DataTypes type;
-
-  /// Whether the column allows NULL values.
-  ///
-  /// Defaults to `false`.
-  final bool nullable;
+  final DataType type;
 
   /// Whether the column enforces uniqueness.
   ///
@@ -41,7 +36,6 @@ abstract class ColumnBase {
 
   const ColumnBase({
     required this.type,
-    this.nullable = false,
     this.unique = false,
     this.defaultValue,
     this.check,
@@ -52,28 +46,11 @@ abstract class ColumnBase {
 ///
 /// Used for most non-key fields.
 class Column extends ColumnBase {
-  /// Maximum length of the column.
-  ///
-  /// Typically used for string-based types.
-  final int? length;
-
-  /// Total number of digits.
-  ///
-  /// Used for numeric and decimal types.
-  final int? precision;
-
-  /// Number of digits after the decimal point.
-  final int? scale;
-
   const Column({
     required super.type,
-    super.nullable,
     super.unique,
     super.defaultValue,
     super.check,
-    this.length,
-    this.precision,
-    this.scale,
   });
 }
 
@@ -90,7 +67,7 @@ class ID extends ColumnBase {
     required super.type,
     this.autoIncrement = false,
     super.unique = true,
-  }) : super(nullable: false);
+  });
 }
 
 /// Table-level schema configuration.
@@ -111,11 +88,61 @@ class Schema {
 
   final ColumnNamingStrategy columnNaming;
 
+  /// Relationships defined on the table.
+  final List<HasMany> hasMany;
+  final List<HasOne> hasOne;
+  final List<BelongsTo> belongsTo;
+
   const Schema({
     this.tableName,
     this.indexes = const [],
     this.paranoid = false,
     this.columnNaming = ColumnNamingStrategy.snakeCase,
+    this.hasMany = const [],
+    this.hasOne = const [],
+    this.belongsTo = const [],
+  });
+}
+
+/// Relationship definitions
+class HasMany {
+  final String model;
+  final String foreignKey;
+  final String localKey;
+  const HasMany({
+    required this.model,
+    required this.foreignKey,
+    this.localKey = 'id',
+  });
+}
+
+class HasOne {
+  final String model;
+  final String foreignKey;
+  final String localKey;
+  const HasOne({
+    required this.model,
+    required this.foreignKey,
+    this.localKey = 'id',
+  });
+}
+
+class BelongsTo {
+  final String model;
+  final String foreignKey;
+  final String localKey;
+  const BelongsTo({
+    required this.model,
+    required this.foreignKey,
+    this.localKey = 'id',
+  });
+}
+
+class Join extends BelongsTo {
+  const Join({
+    required super.model,
+    required super.foreignKey,
+    super.localKey = 'id',
   });
 }
 
@@ -138,9 +165,12 @@ class Index {
 /// Restricts column values to a predefined set.
 class CHECK {
   /// Allowed values for the column.
-  final List<dynamic> values;
+  final dynamic checker;
 
-  const CHECK(this.values);
+  /// Custom constraint expression.
+  final String? constraint;
+
+  const CHECK(this.checker, {this.constraint});
 }
 
 /// Foreign key column.
@@ -154,8 +184,6 @@ class ForeignKey extends ColumnBase {
   final String referencesColumn;
 
   /// Action applied when the referenced record is deleted.
-  ///
-  /// Examples: `CASCADE`, `SET NULL`, `RESTRICT`
   final String? onDelete;
 
   /// Action applied when the referenced record is updated.
@@ -165,7 +193,6 @@ class ForeignKey extends ColumnBase {
     required super.type,
     required this.referencesTable,
     required this.referencesColumn,
-    super.nullable,
     this.onDelete,
     this.onUpdate,
   });

@@ -1,6 +1,7 @@
 import '../src/models.dart';
 import '../src/table_migration.dart';
 import '../src/migration_builder.dart';
+import '../src/annotations.dart';
 
 /// Represents a fully generated table schema.
 ///
@@ -41,6 +42,11 @@ class Table<T extends Model> {
   /// instead of being physically removed.
   final bool paranoid;
 
+  /// Relationships
+  final List<HasMany> hasMany;
+  final List<HasOne> hasOne;
+  final List<BelongsTo> belongsTo;
+
   /// Creates a migration builder for this table
   ///
   /// **Example:**
@@ -59,5 +65,8 @@ class Table<T extends Model> {
     this.primaryKey = 'id',
     this.migrations = const [],
     this.paranoid = false,
+    this.hasMany = const [],
+    this.hasOne = const [],
+    this.belongsTo = const [],
   });
 }

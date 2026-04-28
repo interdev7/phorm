@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:sqflow_core/sqflow_core.dart';
+import 'package:sqflow_example/models/user.dart';
 
-import 'models/user.dart';
 import 'pages/users_page.dart';
 
 final database = DB.autoVersion(
   databaseName: 'users.db',
-  tables: [usersTableSchema],
+  tables: [usersTable],
 );
 
 void main() {

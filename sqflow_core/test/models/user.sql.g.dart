@@ -1,7 +1,7 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 
 // **************************************************************************
-// SqlSchemaGenerator
+// SqliteSchemaGenerator
 // **************************************************************************
 
 // GENERATED CODE - DO NOT MODIFY BY HAND
@@ -11,19 +11,19 @@ part of 'user.dart';
 
 const _schema = """
 CREATE TABLE users (
-  id TEXT PRIMARY KEY NOT NULL UNIQUE,
+  id TEXT PRIMARY KEY,
   first_name TEXT NOT NULL,
   last_name TEXT NOT NULL,
   email TEXT NOT NULL UNIQUE,
   phone TEXT NOT NULL,
   birth_date TEXT,
   age INTEGER,
-  gender TEXT NOT NULL CHECK(gender IN ('M', 'F', 'Other')),
+  gender TEXT NOT NULL CONSTRAINT gender_check CHECK (gender IN ('M', 'F', 'Other')),
   city TEXT NOT NULL,
   country TEXT NOT NULL,
   address TEXT,
-  is_active INTEGER NOT NULL DEFAULT 1,
-  is_verified INTEGER NOT NULL DEFAULT 0,
+  is_active INTEGER NOT NULL,
+  is_verified INTEGER NOT NULL,
   created_at TEXT NOT NULL,
   updated_at TEXT,
   deleted_at TEXT
@@ -43,10 +43,12 @@ class _UserTable extends Table<User> {
 
 bool _detectSoftDelete(String schema) {
   final normalized = schema.toLowerCase();
-  return normalized.contains('deleted_at') && normalized.contains('create table');
+  return normalized.contains('deleted_at') &&
+      normalized.contains('create table');
 }
 
-final _$usersTable = _UserTable(
+/// User table schema
+final usersTable = _UserTable(
   schema: _schema,
   name: 'users',
   fromJson: User.fromJson,

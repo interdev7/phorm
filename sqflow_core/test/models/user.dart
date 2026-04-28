@@ -11,56 +11,55 @@ part 'user.sql.g.dart';
   ],
 )
 class User extends Model {
-  @ID(type: DataTypes.TEXT, autoIncrement: false, unique: true)
+  @ID(type: TEXT(), autoIncrement: false, unique: true)
   final String id;
 
-  @Column(type: DataTypes.TEXT)
+  @Column(type: TEXT())
   final String firstName;
 
-  @Column(type: DataTypes.TEXT)
+  @Column(type: TEXT())
   final String lastName;
 
-  @Column(type: DataTypes.TEXT, unique: true)
+  @Column(type: TEXT(), unique: true)
   final String email;
 
-  @Column(type: DataTypes.TEXT)
+  @Column(type: TEXT())
   final String phone;
 
-  @Column(type: DataTypes.TEXT, nullable: true)
+  @Column(type: TEXT())
   final String? birthDate;
 
-  @Column(type: DataTypes.INTEGER, nullable: true)
+  @Column(type: INTEGER())
   final int? age;
 
   @Column(
-    type: DataTypes.TEXT,
-    nullable: false,
-    check: CHECK(['M', 'F', 'Other']),
+    type: TEXT(),
+    check: CHECK(['M', 'F', 'Other'], constraint: 'gender_check'),
   )
   final String gender;
 
-  @Column(type: DataTypes.TEXT)
+  @Column(type: TEXT())
   final String city;
 
-  @Column(type: DataTypes.TEXT)
+  @Column(type: TEXT())
   final String country;
 
-  @Column(type: DataTypes.TEXT, nullable: true)
+  @Column(type: TEXT())
   final String? address;
 
-  @Column(type: DataTypes.BOOLEAN, defaultValue: true)
+  @Column(type: INTEGER(), defaultValue: true)
   final bool isActive;
 
-  @Column(type: DataTypes.BOOLEAN, defaultValue: false)
+  @Column(type: INTEGER(), defaultValue: false)
   final bool isVerified;
 
-  @Column(type: DataTypes.DATETIME)
+  @Column(type: TEXT())
   final DateTime createdAt;
 
-  @Column(type: DataTypes.DATETIME, nullable: true)
+  @Column(type: TEXT())
   final DateTime? updatedAt;
 
-  @Column(type: DataTypes.DATETIME, nullable: true)
+  @Column(type: TEXT())
   final DateTime? deletedAt;
 
   User({
@@ -82,7 +81,7 @@ class User extends Model {
     this.deletedAt,
   });
 
-  Table<User> get table => _$usersTable;
+  Table<User> get table => usersTable;
 
   String get fullName => '$firstName $lastName';
 
