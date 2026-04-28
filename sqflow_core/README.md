@@ -439,6 +439,120 @@ userService.insert(
 );
 ```
 
+### 🔗 ORM Relationships
+
+Sqflow provides a powerful yet simple way to handle relationships between models. Instead of writing complex JOINs, you can define relationships and use **Eager Loading** to fetch related data automatically.
+
+#### Relationship Types
+
+| Annotation | Description | Example |
+| :--- | :--- | :--- |
+| `@HasMany` | One-to-Many relationship | `User` has many `Posts` |
+| `@HasOne` | One-to-One relationship | `User` has one `Profile` |
+| `@BelongsTo` | Many-to-One relationship | `Post` belongs to a `User` |
+| `@Join` | Alias for `BelongsTo` | Semantic alternative for `BelongsTo` |
+
+---
+
+#### 1. Defining Relationships
+
+Relationships can be defined in two ways:
+
+##### A. In the `@Schema` annotation (Class-level)
+Ideal for centralizing relationship logic or when you don't have a specific field for the related object.
+
+```dart
+@Schema(
+  tableName: 'users',
+  hasMany: [
+    HasMany(
+      model: 'posts',       // Target table name
+      foreignKey: 'user_id', // Field in target table pointing to this model
+      localKey: 'id',       // (Optional) Field in this model (default: 'id')
+    ),
+  ],
+)
+class User extends Model { ... }
+```
+
+##### B. Using field annotations (Field-level)
+Recommended for better readability and integration with your model fields.
+
+```dart
+@Schema(tableName: 'posts')
+class Post extends Model {
+  @ID(type: INTEGER(), autoIncrement: true)
+  final int id;
+
+  @Column(type: TEXT())
+  final String title;
+
+  @Column(type: TEXT())
+  final String userId;
+
+  // Defines that this post belongs to a User
+  @Join(model: 'users', foreignKey: 'user_id')
+  final User? author; 
+}
+```
+
+---
+
+#### 2. Handling Data in `fromJson`
+
+When you include a relationship, Sqflow injects the related data into the JSON map before calling your `fromJson` factory. The key in the map will be the **model name** (table name) of the target.
+
+```dart
+factory User.fromJson(Map<String, dynamic> json) {
+  return User(
+    id: json['id'] as String,
+    name: json['name'] as String,
+    // Relationships are injected as lists for HasMany, 
+    // or as a single Map for HasOne/BelongsTo.
+    posts: json['posts'] != null
+        ? (json['posts'] as List)
+            .map((p) => Post.fromJson(p as Map<String, dynamic>))
+            .toList()
+        : const [],
+  );
+}
+```
+
+---
+
+#### 3. Eager Loading with `include`
+
+To fetch related data, pass the target model names to the `include` parameter in `readAsync` or `readAll`.
+
+```dart
+// 1. Fetch a single user with all their posts
+final user = await userService.readAsync('u1', include: ['posts']);
+
+// 2. Fetch a post with its author
+final post = await postService.readAsync(1, include: ['users']);
+print(post?.author?.name);
+
+// 3. Bulk fetch with relationships
+final result = await userService.readAll(
+  where: WhereBuilder().eq('city', 'New York'),
+  include: ['posts'],
+);
+```
+
+#### 🛠 Configuration Details
+
+- **`model`**: The name of the related table (e.g., `'posts'`).
+- **`foreignKey`**: The column that links the tables (e.g., `'user_id'`).
+- **`localKey`**: The column in the current table used for matching. Defaults to `'id'`.
+
+#### 🚀 Performance
+Sqflow uses **Batch Loading** to resolve relationships. If you fetch 20 users with their posts, Sqflow will execute:
+1. One query to fetch 20 users.
+2. One query to fetch all posts for those 20 users (`WHERE user_id IN (...)`).
+3. Automatic in-memory mapping to attach posts to correct users.
+
+This avoids the "N+1 Query Problem" and keeps your app fast.
+
 ### WhereBuilder: Fluent Query Builder
 
 Type-safe, SQL-injection protected WHERE clause builder.

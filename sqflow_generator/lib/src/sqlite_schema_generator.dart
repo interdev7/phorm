@@ -8,7 +8,7 @@ import 'package:_fe_analyzer_shared/src/type_inference/nullability_suffix.dart';
 import 'package:sqflow_platform_interface/sqflow_platform_interface.dart';
 import 'package:sqflow_generator/src/string_schema_builder.dart';
 
-class SqlSchemaGenerator extends GeneratorForAnnotation<Schema> {
+class SqliteSchemaGenerator extends GeneratorForAnnotation<Schema> {
   @override
   FutureOr<String> generateForAnnotatedElement(
     Element element,
@@ -84,6 +84,33 @@ class SqlSchemaGenerator extends GeneratorForAnnotation<Schema> {
 
     final indexSql = _generateIndexes(schemaReader, tableName);
 
+    final hasMany = _extractRelationships(schemaReader, 'hasMany');
+    final hasOne = _extractRelationships(schemaReader, 'hasOne');
+    final belongsTo = _extractRelationships(schemaReader, 'belongsTo');
+
+    // Also scan fields for @BelongsTo, @HasMany, @HasOne, @Join
+    for (final field in fields) {
+      final fieldMeta = field.metadata.where((m) {
+        final name = m.element?.enclosingElement3?.name;
+        return name == 'BelongsTo' ||
+            name == 'HasMany' ||
+            name == 'HasOne' ||
+            name == 'Join';
+      }).firstOrNull;
+
+      if (fieldMeta != null) {
+        final name = fieldMeta.element!.enclosingElement3!.name;
+        final rel = _parseRelationship(fieldMeta);
+        if (name == 'BelongsTo' || name == 'Join') {
+          belongsTo.add(rel);
+        } else if (name == 'HasMany') {
+          hasMany.add(rel);
+        } else if (name == 'HasOne') {
+          hasOne.add(rel);
+        }
+      }
+    }
+
     return stringSchemaBuilder(
       columns: columnSql,
       foreignKeys: foreignKeys,
@@ -91,7 +118,34 @@ class SqlSchemaGenerator extends GeneratorForAnnotation<Schema> {
       tableName: tableName,
       fileName: fileName,
       indexSql: indexSql,
+      hasMany: hasMany,
+      hasOne: hasOne,
+      belongsTo: belongsTo,
     );
+  }
+
+  List<Map<String, dynamic>> _extractRelationships(
+      ConstantReader reader, String fieldName) {
+    final list = reader.peek(fieldName);
+    if (list == null || list.isNull) return [];
+
+    return list.listValue.map((item) {
+      final r = ConstantReader(item);
+      return {
+        'model': r.read('model').stringValue,
+        'foreignKey': r.read('foreignKey').stringValue,
+        'localKey': r.read('localKey').stringValue,
+      };
+    }).toList();
+  }
+
+  Map<String, dynamic> _parseRelationship(ElementAnnotation meta) {
+    final reader = ConstantReader(meta.computeConstantValue());
+    return {
+      'model': reader.read('model').stringValue,
+      'foreignKey': reader.read('foreignKey').stringValue,
+      'localKey': reader.read('localKey').stringValue,
+    };
   }
 
   // ──────────────────────────────────────────────────────────────
@@ -282,10 +336,6 @@ class SqlSchemaGenerator extends GeneratorForAnnotation<Schema> {
         .toLowerCase();
   }
 }
-
-// ─────────────────────────────────────────────────────────────
-// Internal helper
-// ─────────────────────────────────────────────────────────────
 
 class _ColumnResult {
   final String columnSql;
