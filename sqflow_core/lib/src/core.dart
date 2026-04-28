@@ -392,10 +392,12 @@ class SqflowCore<T extends Model> {
   ///
   /// **Example:**
   /// ```dart
-  /// final user = await userService.readAsync('1');
+  /// final user = await userService.readAsync('1', include: ['posts']);
   /// ```
   Future<T?> readAsync(Object id,
-      {List<String>? columns, bool withDeleted = false}) async {
+      {List<String>? columns,
+      bool withDeleted = false,
+      List<String>? include}) async {
     final db = await database;
     final where = WhereBuilder().eq(table.primaryKey, id);
     if (table.paranoid && !withDeleted) where.isNull('deleted_at');
@@ -405,7 +407,13 @@ class SqflowCore<T extends Model> {
         whereArgs: where.args,
         limit: 1);
     if (result.isEmpty) return null;
-    return table.fromJson(result.first);
+
+    final row = Map<String, dynamic>.from(result.first);
+    if (include != null && include.isNotEmpty) {
+      await _eagerLoad([row], include);
+    }
+
+    return table.fromJson(row);
   }
 
   /// Reads a single item synchronously with callbacks.
@@ -425,13 +433,115 @@ class SqflowCore<T extends Model> {
       {List<String>? columns,
       void Function(T)? onSuccess,
       ErrorCallback? onError,
-      bool withDeleted = false}) async {
+      bool withDeleted = false,
+      List<String>? include}) async {
     try {
-      final item =
-          await readAsync(id, columns: columns, withDeleted: withDeleted);
+      final item = await readAsync(id,
+          columns: columns, withDeleted: withDeleted, include: include);
       if (item != null && onSuccess != null) onSuccess(item);
     } catch (e, st) {
       if (onError != null) onError(e, st);
+    }
+  }
+
+  /// Helper to fetch and attach related data to rows.
+  Future<void> _eagerLoad(
+      List<Map<String, dynamic>> rows, List<String> include) async {
+    if (rows.isEmpty) return;
+    final db = await database;
+
+    for (final relName in include) {
+      // 1. Find relationship definition
+      final hasMany = table.hasMany.where((r) => r.model == relName).firstOrNull;
+      final belongsTo =
+          table.belongsTo.where((r) => r.model == relName).firstOrNull;
+      final hasOne = table.hasOne.where((r) => r.model == relName).firstOrNull;
+
+      if (hasMany != null) {
+        await _loadHasMany(rows, hasMany, db);
+      } else if (belongsTo != null) {
+        await _loadBelongsTo(rows, belongsTo, db);
+      } else if (hasOne != null) {
+        await _loadHasOne(rows, hasOne, db);
+      }
+    }
+  }
+
+  Future<void> _loadHasMany(List<Map<String, dynamic>> rows, HasMany rel,
+      DatabaseExecutor db) async {
+    final localKeys = rows.map((r) => r[rel.localKey]).where((e) => e != null).cast<Object>().toList();
+    if (localKeys.isEmpty) return;
+
+    final relatedTable = dbManager.tables.where((t) => t.name == rel.model).firstOrNull;
+    if (relatedTable == null) return;
+
+    final placeholders = List.filled(localKeys.length, '?').join(', ');
+    final relatedRows = await db.query(
+      relatedTable.name,
+      where: '${rel.foreignKey} IN ($placeholders)',
+      whereArgs: localKeys,
+    );
+
+    // Group related rows by foreign key
+    final grouped = <Object, List<Map<String, dynamic>>>{};
+    for (final row in relatedRows) {
+      final fk = row[rel.foreignKey];
+      if (fk != null) {
+        grouped.putIfAbsent(fk, () => []).add(row);
+      }
+    }
+
+    // Attach to main rows
+    for (final row in rows) {
+      final key = row[rel.localKey];
+      row[rel.model] = grouped[key] ?? [];
+    }
+  }
+
+  Future<void> _loadBelongsTo(List<Map<String, dynamic>> rows, BelongsTo rel,
+      DatabaseExecutor db) async {
+    final foreignKeys =
+        rows.map((r) => r[rel.foreignKey]).where((e) => e != null).cast<Object>().toList();
+    if (foreignKeys.isEmpty) return;
+
+    final relatedTable = dbManager.tables.where((t) => t.name == rel.model).firstOrNull;
+    if (relatedTable == null) return;
+
+    final placeholders = List.filled(foreignKeys.length, '?').join(', ');
+    final relatedRows = await db.query(
+      relatedTable.name,
+      where: '${rel.localKey} IN ($placeholders)',
+      whereArgs: foreignKeys,
+    );
+
+    final grouped = {for (final r in relatedRows) r[rel.localKey]: r};
+
+    for (final row in rows) {
+      final fk = row[rel.foreignKey];
+      row[rel.model] = grouped[fk];
+    }
+  }
+
+  Future<void> _loadHasOne(List<Map<String, dynamic>> rows, HasOne rel,
+      DatabaseExecutor db) async {
+    final localKeys = rows.map((r) => r[rel.localKey]).where((e) => e != null).cast<Object>().toList();
+    if (localKeys.isEmpty) return;
+
+    final relatedTable = dbManager.tables.where((t) => t.name == rel.model).firstOrNull;
+    if (relatedTable == null) return;
+
+    final placeholders = List.filled(localKeys.length, '?').join(', ');
+    final relatedRows = await db.query(
+      relatedTable.name,
+      where: '${rel.foreignKey} IN ($placeholders)',
+      whereArgs: localKeys,
+    );
+
+    final grouped = {for (final r in relatedRows) r[rel.foreignKey]: r};
+
+    for (final row in rows) {
+      final key = row[rel.localKey];
+      row[rel.model] = grouped[key];
     }
   }
 
@@ -500,6 +610,7 @@ class SqflowCore<T extends Model> {
     List<String>? columns,
     bool withDeleted = false,
     bool onlyDeleted = false,
+    List<String>? include,
   }) async {
     final db = await database;
     final effectiveWhere = where?.copy() ?? WhereBuilder();
@@ -521,7 +632,13 @@ class SqflowCore<T extends Model> {
       LIMIT $limit OFFSET $offset
     ''', effectiveWhere.args);
 
-    final data = rows.map(table.fromJson).toList();
+    final results = rows.map((r) => Map<String, dynamic>.from(r)).toList();
+
+    if (include != null && include.isNotEmpty) {
+      await _eagerLoad(results, include);
+    }
+
+    final data = results.map(table.fromJson).toList();
     final count = rows.isNotEmpty ? (rows.first['total_count'] as int) : 0;
 
     return DataAndCount(data: data, count: count);

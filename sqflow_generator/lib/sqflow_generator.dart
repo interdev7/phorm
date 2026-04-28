@@ -1,3 +1,3 @@
 library sqflow_generator;
 
-export "src/sql_schema_generator.dart";
+export 'src/sqlite_schema_generator.dart';

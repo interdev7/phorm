@@ -10,8 +10,12 @@ analyzer:
     inference_failure_on_function_invocation: ignore
     inference_failure_on_instance_creation: ignore
     lines_longer_than_80_chars: ignore
+    omit_local_variable_types: ignore
+    prefer_single_quotes: ignore
     public_member_api_docs: ignore
+    sort_constructors_first: ignore
     unnecessary_await_in_return: ignore
     unnecessary_lambdas: ignore
     unnecessary_library_directive: ignore
     unnecessary_library_name: ignore
+    use_to_and_as_if_applicable: ignore

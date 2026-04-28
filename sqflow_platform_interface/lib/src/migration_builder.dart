@@ -3,9 +3,9 @@ import '../src/table.dart';
 import '../src/models.dart';
 import '../src/table_migration.dart';
 
-/// =======================================================
-/// MIGRATION BUILDER (FLUENT API)
-/// =======================================================
+// =======================================================
+// MIGRATION BUILDER (FLUENT API)
+// =======================================================
 ///
 /// Fluent builder for creating migration sequences.
 /// Provides type-safe methods for common migration operations.

@@ -7,19 +7,27 @@
 /// - `id`: Unique identifier (String, int, or Object).
 /// - Timestamps: Optional getters for `createdAt`, `updatedAt`, `deletedAt` (for soft delete).
 /// - `toJson()`: Serializes to Map<String, dynamic> for database insertion.
-abstract class Model {
+/// Base class for all database models.
+///
+/// Models must provide:
+/// - `id`: Unique identifier (String, int, or Object).
+/// - Timestamps: Optional getters for `createdAt`, `updatedAt`, `deletedAt` (for soft delete).
+/// - `toJson()`: Serializes to Map<String, dynamic> for database insertion.
+class Model {
   /// Unique identifier for the model instance.
-  Object get id;
+  Object get id => '';
 
-  /// Timestamp when the item was created (ISO8601 string in DB).
-  DateTime? get createdAt;
+  /// Timestamp when the record was created.
+  DateTime? get createdAt => null;
 
-  /// Timestamp when the item was last updated (ISO8601 string in DB).
-  DateTime? get updatedAt;
+  /// Timestamp when the record was last updated.
+  DateTime? get updatedAt => null;
 
-  /// Timestamp when the item was soft-deleted (null if active; ISO8601 string in DB).
-  DateTime? get deletedAt;
+  /// Timestamp when the record was deleted (for soft delete).
+  DateTime? get deletedAt => null;
 
-  /// Converts the model to a JSON-compatible map for database storage.
-  Map<String, dynamic> toJson();
+  /// Serializes the model to a JSON map.
+  Map<String, dynamic> toJson() {
+    return {};
+  }
 }
