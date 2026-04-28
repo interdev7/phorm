@@ -195,6 +195,9 @@ Defines table-level configuration.
 | `indexes`      | `List<Index>`            | Table indexes                                 |
 | `paranoid`     | `bool`                   | Enables soft delete (`deletedAt`)             |
 | `columnNaming` | `ColumnNamingStrategy`   | Column naming strategy (snake/camel/pascal)   |
+| `hasMany`      | `List<HasMany>`          | One-to-Many relationships                     |
+| `hasOne`       | `List<HasOne>`           | One-to-One relationships                      |
+| `belongsTo`    | `List<BelongsTo>`        | Many-to-One relationships                     |
 
 ---
 
@@ -253,6 +256,50 @@ Defines a foreign key relationship.
   onDelete: 'CASCADE',
 )
 ```
+
+---
+
+### 🔗 Relationship Annotations
+
+These annotations define ORM-style relationships for **Eager Loading**. They can be used inside `@Schema` or directly on class fields.
+
+#### `@HasMany`
+Defines a one-to-many relationship.
+
+```dart
+@HasMany(model: 'posts', foreignKey: 'user_id', localKey: 'id')
+final List<Post> posts;
+```
+
+#### `@HasOne`
+Defines a one-to-one relationship.
+
+```dart
+@HasOne(model: 'profiles', foreignKey: 'user_id')
+final Profile? profile;
+```
+
+#### `@BelongsTo`
+Defines a many-to-one relationship.
+
+```dart
+@BelongsTo(model: 'users', foreignKey: 'user_id')
+final User? author;
+```
+
+#### `@Join`
+A semantic alias for `@BelongsTo`.
+
+```dart
+@Join(model: 'users', foreignKey: 'user_id')
+final User? user;
+```
+
+| Property     | Type     | Description                                      |
+| ------------ | -------- | ------------------------------------------------ |
+| `model`      | `String` | Target table name                                |
+| `foreignKey` | `String` | Field in the related table (or this table)       |
+| `localKey`   | `String` | Field in this table (or related table)           |
 
 ---
 
