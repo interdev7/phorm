@@ -89,53 +89,64 @@ class Schema {
   final ColumnNamingStrategy columnNaming;
 
   /// Relationships defined on the table.
-  final List<HasMany> hasMany;
-  final List<HasOne> hasOne;
-  final List<BelongsTo> belongsTo;
+  final List<Relationship> relationships;
 
   const Schema({
     this.tableName,
     this.indexes = const [],
     this.paranoid = false,
     this.columnNaming = ColumnNamingStrategy.snakeCase,
-    this.hasMany = const [],
-    this.hasOne = const [],
-    this.belongsTo = const [],
+    this.relationships = const [],
   });
+}
+
+abstract class Relationship {
+  final String model;
+  final String foreignKey;
+  final String localKey;
+
+  const Relationship({
+    required this.model,
+    required this.foreignKey,
+    this.localKey = 'id',
+  });
+
+  /// True if the relationship returns a collection of models.
+  bool get isCollection;
 }
 
 /// Relationship definitions
-class HasMany {
-  final String model;
-  final String foreignKey;
-  final String localKey;
+class HasMany extends Relationship {
   const HasMany({
-    required this.model,
-    required this.foreignKey,
-    this.localKey = 'id',
+    required super.model,
+    required super.foreignKey,
+    super.localKey = 'id',
   });
+
+  @override
+  bool get isCollection => true;
 }
 
-class HasOne {
-  final String model;
-  final String foreignKey;
-  final String localKey;
+class HasOne extends Relationship {
   const HasOne({
-    required this.model,
-    required this.foreignKey,
-    this.localKey = 'id',
+    required super.model,
+    required super.foreignKey,
+    super.localKey = 'id',
   });
+
+  @override
+  bool get isCollection => false;
 }
 
-class BelongsTo {
-  final String model;
-  final String foreignKey;
-  final String localKey;
+class BelongsTo extends Relationship {
   const BelongsTo({
-    required this.model,
-    required this.foreignKey,
-    this.localKey = 'id',
+    required super.model,
+    required super.foreignKey,
+    super.localKey = 'id',
   });
+
+  @override
+  bool get isCollection => false;
 }
 
 class Join extends BelongsTo {

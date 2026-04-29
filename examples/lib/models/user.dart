@@ -10,7 +10,7 @@ part 'user.sql.g.dart';
     Index(columns: ['email'], unique: true),
     Index(columns: ['firstName', 'lastName']),
   ],
-  hasMany: [
+  relationships: [
     HasMany(
       model: 'posts',
       foreignKey: 'user_id',

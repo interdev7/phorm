@@ -43,9 +43,7 @@ class Table<T extends Model> {
   final bool paranoid;
 
   /// Relationships
-  final List<HasMany> hasMany;
-  final List<HasOne> hasOne;
-  final List<BelongsTo> belongsTo;
+  final List<Relationship> relationships;
 
   /// Creates a migration builder for this table
   ///
@@ -65,8 +63,6 @@ class Table<T extends Model> {
     this.primaryKey = 'id',
     this.migrations = const [],
     this.paranoid = false,
-    this.hasMany = const [],
-    this.hasOne = const [],
-    this.belongsTo = const [],
+    this.relationships = const [],
   });
 }

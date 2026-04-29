@@ -18,7 +18,7 @@ void main() {
       name: 'users',
       schema: 'CREATE TABLE users (id TEXT PRIMARY KEY, name TEXT)',
       fromJson: (json) => User.fromJson(json),
-      hasMany: const [
+      relationships: const [
         HasMany(model: 'posts', foreignKey: 'user_id', localKey: 'id'),
       ],
     );
@@ -27,7 +27,7 @@ void main() {
       name: 'posts',
       schema: 'CREATE TABLE posts (id INTEGER PRIMARY KEY, title TEXT, user_id TEXT)',
       fromJson: (json) => Post.fromJson(json),
-      belongsTo: const [
+      relationships: const [
         BelongsTo(model: 'users', foreignKey: 'user_id', localKey: 'id'),
       ],
     );
