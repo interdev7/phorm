@@ -1,16 +1,23 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
+
+// **************************************************************************
+// SqliteSchemaGenerator
+// **************************************************************************
+
+// GENERATED CODE - DO NOT MODIFY BY HAND
 // SQL schema for table: posts
 
 part of 'post.dart';
 
 const _schema = """
 CREATE TABLE posts (
-  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  id TEXT PRIMARY KEY AUTOINCREMENT NOT NULL UNIQUE,
   title TEXT NOT NULL,
   content TEXT NOT NULL,
-  user_id TEXT NOT NULL,
-  FOREIGN KEY(user_id) REFERENCES users(id)
+  user_id TEXT NOT NULL
 );
+
+
 """;
 
 class _PostTable extends Table<Post> {
@@ -18,9 +25,7 @@ class _PostTable extends Table<Post> {
     required super.schema,
     required super.name,
     required super.fromJson,
-    super.hasMany = const [],
-    super.hasOne = const [],
-    super.belongsTo = const [],
+    super.relationships = const [],
   }) : super(paranoid: _detectSoftDelete(schema));
 }
 
@@ -35,7 +40,7 @@ final postsTable = _PostTable(
   schema: _schema,
   name: 'posts',
   fromJson: Post.fromJson,
-  belongsTo: const [
-    BelongsTo(model: 'users', foreignKey: 'user_id', localKey: 'id')
+  relationships: const [
+    Join(model: 'users', foreignKey: 'user_id', localKey: 'id')
   ],
 );

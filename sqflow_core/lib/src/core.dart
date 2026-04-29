@@ -452,17 +452,17 @@ class SqflowCore<T extends Model> {
 
     for (final relName in include) {
       // 1. Find relationship definition
-      final hasMany = table.hasMany.where((r) => r.model == relName).firstOrNull;
-      final belongsTo =
-          table.belongsTo.where((r) => r.model == relName).firstOrNull;
-      final hasOne = table.hasOne.where((r) => r.model == relName).firstOrNull;
+      final rel =
+          table.relationships.where((r) => r.model == relName).firstOrNull;
 
-      if (hasMany != null) {
-        await _loadHasMany(rows, hasMany, db);
-      } else if (belongsTo != null) {
-        await _loadBelongsTo(rows, belongsTo, db);
-      } else if (hasOne != null) {
-        await _loadHasOne(rows, hasOne, db);
+      if (rel == null) continue;
+
+      if (rel is HasMany) {
+        await _loadHasMany(rows, rel, db);
+      } else if (rel is BelongsTo) {
+        await _loadBelongsTo(rows, rel, db);
+      } else if (rel is HasOne) {
+        await _loadHasOne(rows, rel, db);
       }
     }
   }

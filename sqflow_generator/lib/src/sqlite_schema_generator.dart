@@ -5,7 +5,7 @@ import 'package:build/build.dart';
 import 'package:path/path.dart' as p;
 import 'package:source_gen/source_gen.dart';
 import 'package:_fe_analyzer_shared/src/type_inference/nullability_suffix.dart';
-import 'package:sqflow_platform_interface/sqflow_platform_interface.dart';
+import 'package:sqflow_platform_interface/src/annotations.dart';
 import 'package:sqflow_generator/src/string_schema_builder.dart';
 
 class SqliteSchemaGenerator extends GeneratorForAnnotation<Schema> {
@@ -84,9 +84,9 @@ class SqliteSchemaGenerator extends GeneratorForAnnotation<Schema> {
 
     final indexSql = _generateIndexes(schemaReader, tableName);
 
-    final hasMany = _extractRelationships(schemaReader, 'hasMany');
-    final hasOne = _extractRelationships(schemaReader, 'hasOne');
-    final belongsTo = _extractRelationships(schemaReader, 'belongsTo');
+    final List<Map<String, dynamic>> relationships = [
+      ..._extractRelationships(schemaReader)
+    ];
 
     // Also scan fields for @BelongsTo, @HasMany, @HasOne, @Join
     for (final field in fields) {
@@ -99,15 +99,7 @@ class SqliteSchemaGenerator extends GeneratorForAnnotation<Schema> {
       }).firstOrNull;
 
       if (fieldMeta != null) {
-        final name = fieldMeta.element!.enclosingElement3!.name;
-        final rel = _parseRelationship(fieldMeta);
-        if (name == 'BelongsTo' || name == 'Join') {
-          belongsTo.add(rel);
-        } else if (name == 'HasMany') {
-          hasMany.add(rel);
-        } else if (name == 'HasOne') {
-          hasOne.add(rel);
-        }
+        relationships.add(_parseRelationship(fieldMeta));
       }
     }
 
@@ -118,20 +110,19 @@ class SqliteSchemaGenerator extends GeneratorForAnnotation<Schema> {
       tableName: tableName,
       fileName: fileName,
       indexSql: indexSql,
-      hasMany: hasMany,
-      hasOne: hasOne,
-      belongsTo: belongsTo,
+      relationships: relationships,
     );
   }
 
-  List<Map<String, dynamic>> _extractRelationships(
-      ConstantReader reader, String fieldName) {
-    final list = reader.peek(fieldName);
+  List<Map<String, dynamic>> _extractRelationships(ConstantReader reader) {
+    final list = reader.peek('relationships');
     if (list == null || list.isNull) return [];
 
     return list.listValue.map((item) {
       final r = ConstantReader(item);
+      final type = item.type!.element!.name;
       return {
+        'type': type,
         'model': r.read('model').stringValue,
         'foreignKey': r.read('foreignKey').stringValue,
         'localKey': r.read('localKey').stringValue,
@@ -141,7 +132,9 @@ class SqliteSchemaGenerator extends GeneratorForAnnotation<Schema> {
 
   Map<String, dynamic> _parseRelationship(ElementAnnotation meta) {
     final reader = ConstantReader(meta.computeConstantValue());
+    final type = meta.element!.enclosingElement3!.name!;
     return {
+      'type': type,
       'model': reader.read('model').stringValue,
       'foreignKey': reader.read('foreignKey').stringValue,
       'localKey': reader.read('localKey').stringValue,
@@ -243,15 +236,22 @@ class SqliteSchemaGenerator extends GeneratorForAnnotation<Schema> {
     }
 
     if (check != null && !check.isNull) {
-      final values = check.read('values').listValue.map((v) {
-        if (v.toTypeValue() != null) return v.toTypeValue().toString();
-        if (v.toBoolValue() != null) return v.toBoolValue()! ? '1' : '0';
-        if (v.toIntValue() != null) return v.toIntValue().toString();
-        if (v.toDoubleValue() != null) return v.toDoubleValue().toString();
-        if (v.toStringValue() != null) return "'${v.toStringValue()}'";
-        return v.toString();
-      }).join(', ');
-      buffer.write(' CHECK($columnName IN ($values))');
+      final checker = check.peek('checker');
+      final constraint = check.peek('constraint')?.stringValue;
+
+      if (constraint != null) {
+        buffer.write(' CHECK($constraint)');
+      } else if (checker != null && checker.isList) {
+        final values = checker.listValue.map((v) {
+          final r = ConstantReader(v);
+          if (r.isBool) return r.boolValue ? '1' : '0';
+          if (r.isInt) return r.intValue.toString();
+          if (r.isDouble) return r.doubleValue.toString();
+          if (r.isString) return "'${r.stringValue}'";
+          return v.toString();
+        }).join(', ');
+        buffer.write(' CHECK($columnName IN ($values))');
+      }
     }
 
     String? foreignKeySql;

@@ -452,6 +452,22 @@ Sqflow provides a powerful yet simple way to handle relationships between models
 | `@BelongsTo` | Many-to-One relationship | `Post` belongs to a `User` |
 | `@Join` | Alias for `BelongsTo` | Semantic alternative for `BelongsTo` |
 
+#### 💡 Key Rules for Relationships
+
+To ensure relationships work correctly, keep these rules in mind:
+
+1.  **Foreign Key Mapping**: The `foreignKey` parameter must match the **SQL column name** in the database.
+    *   If your Dart field is `userId` and you use `snake_case` (default), the `foreignKey` should be `'user_id'`.
+    *   In `fromJson`, you must read this ID using the same SQL column name: `userId: json['user_id']`.
+
+2.  **JSON Key for Related Objects**: When using `include`, the related data is injected into the JSON map using the **`model` name** (table name) as the key.
+    *   `HasMany(model: 'posts', ...)` -> Data is in `json['posts']` as a `List`.
+    *   `HasOne(model: 'profiles', ...)` -> Data is in `json['profiles']` as a `Map`.
+
+3.  **Data Types**: 
+    *   `HasMany` always returns a `List` (empty if no matches).
+    *   `HasOne` and `BelongsTo` return a `Map?` (null if no match).
+
 ---
 
 #### 1. Defining Relationships
