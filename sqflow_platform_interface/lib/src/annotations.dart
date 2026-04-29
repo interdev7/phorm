@@ -211,17 +211,42 @@ class ForeignKey extends ColumnBase {
   });
 }
 
-abstract interface class Includable {}
+/// Base interface for specifying relationships to include in a query.
+///
+/// Use [Includable.table] to include by table name (String)
+/// or [Includable.model] to include by model type (Type).
+abstract interface class Includable {
+  /// Resolves the table name for the relationship.
+  ///
+  /// Takes a list of available tables to perform type-to-name lookup.
+  String getTableName(List<dynamic> availableTables);
 
-abstract interface class IString implements Includable {
-  String get value;
+  /// Includes a relationship by its explicit table name.
+  static Includable table(String name) => _TableIncludable(name);
+
+  /// Includes a relationship by its model class type.
+  ///
+  /// Provides compile-time safety and refactoring support.
+  static Includable model<T>() => _ModelIncludable<T>();
 }
 
-abstract interface class IModel<T> implements Includable {
-  Object get id;
-  T get model;
-  Map<String, dynamic> toJson();
-  DateTime get createdAt;
-  DateTime get updatedAt;
-  DateTime get deletedAt;
+class _TableIncludable implements Includable {
+  final String name;
+  _TableIncludable(this.name);
+
+  @override
+  String getTableName(List<dynamic> _) => name;
+}
+
+class _ModelIncludable<T> implements Includable {
+  @override
+  String getTableName(List<dynamic> availableTables) {
+    for (final table in availableTables) {
+      // Use dynamic access because we don't want to depend on Table class here
+      // to avoid circular dependencies in platform interface if any.
+      // But in practice, we know it's a list of Table objects.
+      if (table.type == T) return table.name as String;
+    }
+    throw ArgumentError('Table for model type $T not found in registered tables.');
+  }
 }

@@ -44,8 +44,10 @@ void main() {
     final userService = SqflowCore<User>(dbManager: db, table: usersTable);
 
     // Test readAsync with both relationships
-    final user =
-        await userService.readAsync('u1', include: ['posts', 'profiles']);
+    final user = await userService.readAsync('u1', include: [
+      Includable.model<Post>(),
+      Includable.model<Profile>(),
+    ]);
 
     expect(user, isNotNull);
     expect(user!.name, 'John Doe');
@@ -59,6 +61,88 @@ void main() {
     expect(user.profile, isNotNull);
     expect(user.profile!.bio, 'Software Engineer');
     expect(user.profile!.userId, 'u1');
+  });
+
+  test('Batch load with readAll: Multiple Users with Posts and Profile',
+      () async {
+    final database = await db.database;
+
+    // Seed User 1
+    await database.insert('users', {'id': 'u1', 'name': 'John'});
+    await database.insert('posts', {'id': 1, 'title': 'P1', 'user_id': 'u1'});
+    await database.insert('profiles', {'id': 10, 'bio': 'B1', 'user_id': 'u1'});
+
+    // Seed User 2
+    await database.insert('users', {'id': 'u2', 'name': 'Jane'});
+    await database.insert('posts', {'id': 2, 'title': 'P2', 'user_id': 'u2'});
+    await database.insert('posts', {'id': 3, 'title': 'P3', 'user_id': 'u2'});
+    // User 2 has no profile (test null handling)
+
+    final userService = SqflowCore<User>(dbManager: db, table: usersTable);
+
+    final result = await userService.readAll(include: [
+      Includable.model<Post>(),
+      Includable.model<Profile>(),
+    ]);
+
+    expect(result.data, hasLength(2));
+
+    final john = result.data.firstWhere((u) => u.id == 'u1');
+    final jane = result.data.firstWhere((u) => u.id == 'u2');
+
+    // John
+    expect(john.posts, hasLength(1));
+    expect(john.posts[0].title, 'P1');
+    expect(john.profile, isNotNull);
+    expect(john.profile!.bio, 'B1');
+
+    // Jane
+    expect(jane.posts, hasLength(2));
+    expect(jane.posts.map((p) => p.title), containsAll(['P2', 'P3']));
+    expect(jane.profile, isNull);
+  });
+
+  test('BelongsTo eager loading: Post with User', () async {
+    final database = await db.database;
+
+    await database.insert('users', {'id': 'u1', 'name': 'Author One'});
+    await database.insert('posts', {'id': 100, 'title': 'Hello World', 'user_id': 'u1'});
+
+    final postService = SqflowCore<Post>(dbManager: db, table: postsTable);
+
+    final post = await postService.readAsync(100, include: [Includable.model<User>()]);
+
+    expect(post, isNotNull);
+    expect(post!.title, 'Hello World');
+    expect(post.user, isNotNull);
+    expect(post.user!.name, 'Author One');
+    expect(post.userId, 'u1');
+  });
+
+  test('BelongsTo batch loading: Many Posts with Users', () async {
+    final database = await db.database;
+
+    await database.insert('users', {'id': 'u1', 'name': 'Admin'});
+    await database.insert('users', {'id': 'u2', 'name': 'Editor'});
+
+    await database.insert('posts', {'id': 1, 'title': 'News 1', 'user_id': 'u1'});
+    await database.insert('posts', {'id': 2, 'title': 'News 2', 'user_id': 'u1'});
+    await database.insert('posts', {'id': 3, 'title': 'News 3', 'user_id': 'u2'});
+
+    final postService = SqflowCore<Post>(dbManager: db, table: postsTable);
+
+    final result = await postService.readAll(include: [Includable.model<User>()]);
+
+    expect(result.data, hasLength(3));
+
+    for (final post in result.data) {
+      expect(post.user, isNotNull);
+      if (post.id == 3) {
+        expect(post.user!.name, 'Editor');
+      } else {
+        expect(post.user!.name, 'Admin');
+      }
+    }
   });
 }
 
