@@ -45,6 +45,9 @@ class Table<T extends Model> {
   /// Relationships
   final List<Relationship> relationships;
 
+  /// Associated model type
+  final Type type;
+
   /// Creates a migration builder for this table
   ///
   /// **Example:**
@@ -60,6 +63,7 @@ class Table<T extends Model> {
     required this.schema,
     required this.name,
     required this.fromJson,
+    required this.type,
     this.primaryKey = 'id',
     this.migrations = const [],
     this.paranoid = false,

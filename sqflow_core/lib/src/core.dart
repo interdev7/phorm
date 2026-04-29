@@ -452,27 +452,40 @@ class SqflowCore<T extends Model> {
 
     for (final relName in include) {
       // 1. Find relationship definition
-      final rel =
-          table.relationships.where((r) => r.model == relName).firstOrNull;
+      final rel = table.relationships.where((r) {
+        final model = r.model;
+        if (model is String) return model == relName;
+        if (model is Type) {
+          // Find table by type
+          final relatedTable =
+              dbManager.tables.where((t) => t.type == model).firstOrNull;
+          return relatedTable?.name == relName;
+        }
+        return false;
+      }).firstOrNull;
 
       if (rel == null) continue;
 
       if (rel is HasMany) {
-        await _loadHasMany(rows, rel, db);
+        await _loadHasMany(rows, rel, db, relName);
       } else if (rel is BelongsTo) {
-        await _loadBelongsTo(rows, rel, db);
+        await _loadBelongsTo(rows, rel, db, relName);
       } else if (rel is HasOne) {
-        await _loadHasOne(rows, rel, db);
+        await _loadHasOne(rows, rel, db, relName);
       }
     }
   }
 
   Future<void> _loadHasMany(List<Map<String, dynamic>> rows, HasMany rel,
-      DatabaseExecutor db) async {
-    final localKeys = rows.map((r) => r[rel.localKey]).where((e) => e != null).cast<Object>().toList();
+      DatabaseExecutor db, String relName) async {
+    final localKeys = rows
+        .map((r) => r[rel.localKey])
+        .where((e) => e != null)
+        .cast<Object>()
+        .toList();
     if (localKeys.isEmpty) return;
 
-    final relatedTable = dbManager.tables.where((t) => t.name == rel.model).firstOrNull;
+    final relatedTable = _findTable(rel.model);
     if (relatedTable == null) return;
 
     final placeholders = List.filled(localKeys.length, '?').join(', ');
@@ -494,17 +507,20 @@ class SqflowCore<T extends Model> {
     // Attach to main rows
     for (final row in rows) {
       final key = row[rel.localKey];
-      row[rel.model] = grouped[key] ?? [];
+      row[relName] = grouped[key] ?? [];
     }
   }
 
   Future<void> _loadBelongsTo(List<Map<String, dynamic>> rows, BelongsTo rel,
-      DatabaseExecutor db) async {
-    final foreignKeys =
-        rows.map((r) => r[rel.foreignKey]).where((e) => e != null).cast<Object>().toList();
+      DatabaseExecutor db, String relName) async {
+    final foreignKeys = rows
+        .map((r) => r[rel.foreignKey])
+        .where((e) => e != null)
+        .cast<Object>()
+        .toList();
     if (foreignKeys.isEmpty) return;
 
-    final relatedTable = dbManager.tables.where((t) => t.name == rel.model).firstOrNull;
+    final relatedTable = _findTable(rel.model);
     if (relatedTable == null) return;
 
     final placeholders = List.filled(foreignKeys.length, '?').join(', ');
@@ -518,16 +534,20 @@ class SqflowCore<T extends Model> {
 
     for (final row in rows) {
       final fk = row[rel.foreignKey];
-      row[rel.model] = grouped[fk];
+      row[relName] = grouped[fk];
     }
   }
 
   Future<void> _loadHasOne(List<Map<String, dynamic>> rows, HasOne rel,
-      DatabaseExecutor db) async {
-    final localKeys = rows.map((r) => r[rel.localKey]).where((e) => e != null).cast<Object>().toList();
+      DatabaseExecutor db, String relName) async {
+    final localKeys = rows
+        .map((r) => r[rel.localKey])
+        .where((e) => e != null)
+        .cast<Object>()
+        .toList();
     if (localKeys.isEmpty) return;
 
-    final relatedTable = dbManager.tables.where((t) => t.name == rel.model).firstOrNull;
+    final relatedTable = _findTable(rel.model);
     if (relatedTable == null) return;
 
     final placeholders = List.filled(localKeys.length, '?').join(', ');
@@ -541,8 +561,18 @@ class SqflowCore<T extends Model> {
 
     for (final row in rows) {
       final key = row[rel.localKey];
-      row[rel.model] = grouped[key];
+      row[relName] = grouped[key];
     }
+  }
+
+  Table? _findTable(dynamic model) {
+    if (model is String) {
+      return dbManager.tables.where((t) => t.name == model).firstOrNull;
+    }
+    if (model is Type) {
+      return dbManager.tables.where((t) => t.type == model).firstOrNull;
+    }
+    return null;
   }
 
   /// Checks existence by primary key.

@@ -13,13 +13,12 @@ String stringSchemaBuilder({
           "${r['type']}(model: '${r['model']}', foreignKey: '${r['foreignKey']}', localKey: '${r['localKey']}')")
       .join(', ');
 
+  final schemaVarName = '_\$${className}Schema';
+  final tableClassName = '_\$${className}Table';
+  final tableVarName = '${tableName}Table';
+
   return '''
-// GENERATED CODE - DO NOT MODIFY BY HAND
-// SQL schema for table: $tableName
-
-part of '$fileName';
-
-const _schema = """
+const $schemaVarName = """
 CREATE TABLE $tableName (
 ${[
     ...columns,
@@ -29,27 +28,21 @@ ${[
 ${indexSql != null ? '\n$indexSql' : ''}
 """;
 
-class _${className}Table extends Table<$className> {
-  _${className}Table({
+class $tableClassName extends Table<$className> {
+  $tableClassName({
     required super.schema,
     required super.name,
     required super.fromJson,
     super.relationships = const [],
-  }):super(paranoid: _detectSoftDelete(schema));
-}
-
-
-bool _detectSoftDelete(String schema) {
-  final normalized = schema.toLowerCase();
-  return normalized.contains('deleted_at') && normalized.contains('create table');
+  }):super(type: $className, paranoid: _detectSoftDelete(schema));
 }
 
 /// $className table schema
-final ${tableName}Table = _${className}Table(
-  schema: _schema,
+final $tableVarName = $tableClassName(
+  schema: $schemaVarName,
   name: '$tableName',
   fromJson: $className.fromJson,
-  relationships: const [$relationshipsCode],
+  relationships: ${relationshipsCode.isNotEmpty ? "const " : ""} [$relationshipsCode],
 );
 ''';
 }

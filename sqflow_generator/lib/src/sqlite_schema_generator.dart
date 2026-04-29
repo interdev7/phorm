@@ -1,12 +1,14 @@
 import 'dart:async';
 
+import 'package:_fe_analyzer_shared/src/type_inference/nullability_suffix.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:build/build.dart';
 import 'package:path/path.dart' as p;
 import 'package:source_gen/source_gen.dart';
-import 'package:_fe_analyzer_shared/src/type_inference/nullability_suffix.dart';
-import 'package:sqflow_platform_interface/src/annotations.dart';
 import 'package:sqflow_generator/src/string_schema_builder.dart';
+import 'package:sqflow_platform_interface/sqflow_platform_interface.dart';
+
+import 'metadata_extractor.dart';
 
 class SqliteSchemaGenerator extends GeneratorForAnnotation<Schema> {
   @override
@@ -103,6 +105,25 @@ class SqliteSchemaGenerator extends GeneratorForAnnotation<Schema> {
       }
     }
 
+    // Synthesize missing foreign key columns
+    for (final rel in relationships) {
+      if (rel['type'] == 'BelongsTo') {
+        final fkSqlName = rel['foreignKey'];
+        bool mapped = false;
+        for (final field in fields) {
+          final sqlName = MetadataExtractor.getSqlColumnName(field, strategy);
+          if (sqlName == fkSqlName) {
+            mapped = true;
+            break;
+          }
+        }
+        if (!mapped) {
+          final sqlType = rel['idType'] as String? ?? 'TEXT';
+          columnSql.add('  $fkSqlName $sqlType');
+        }
+      }
+    }
+
     return stringSchemaBuilder(
       columns: columnSql,
       foreignKeys: foreignKeys,
@@ -121,9 +142,11 @@ class SqliteSchemaGenerator extends GeneratorForAnnotation<Schema> {
     return list.listValue.map((item) {
       final r = ConstantReader(item);
       final type = item.type!.element!.name;
+      final modelReader = r.read('model');
       return {
         'type': type,
-        'model': r.read('model').stringValue,
+        'model': _resolveModelName(modelReader),
+        'idType': MetadataExtractor.resolveIdSqlType(modelReader),
         'foreignKey': r.read('foreignKey').stringValue,
         'localKey': r.read('localKey').stringValue,
       };
@@ -133,12 +156,48 @@ class SqliteSchemaGenerator extends GeneratorForAnnotation<Schema> {
   Map<String, dynamic> _parseRelationship(ElementAnnotation meta) {
     final reader = ConstantReader(meta.computeConstantValue());
     final type = meta.element!.enclosingElement3!.name!;
+    final modelReader = reader.read('model');
     return {
       'type': type,
-      'model': reader.read('model').stringValue,
+      'model': _resolveModelName(modelReader),
+      'idType': MetadataExtractor.resolveIdSqlType(modelReader),
       'foreignKey': reader.read('foreignKey').stringValue,
       'localKey': reader.read('localKey').stringValue,
     };
+  }
+
+  String _resolveModelName(ConstantReader modelReader) {
+    if (modelReader.isString) {
+      return modelReader.stringValue;
+    }
+
+    try {
+      final type = modelReader.typeValue;
+      final element = type.element;
+      if (element is ClassElement) {
+        // Try to find @Schema annotation on the class
+        final schemaMeta = element.metadata
+            .where((m) => m.element?.enclosingElement3?.name == 'Schema')
+            .firstOrNull;
+
+        if (schemaMeta != null) {
+          final schemaReader =
+              ConstantReader(schemaMeta.computeConstantValue());
+          final tableName = schemaReader.peek('tableName')?.stringValue;
+          if (tableName != null) return tableName;
+        }
+
+        // Fallback to class name (usually tables are snake_case of class name)
+        return element.name;
+      }
+    } catch (_) {
+      // Not a type or could not resolve
+    }
+
+    throw InvalidGenerationSourceError(
+      'Relationship model must be a String (table name) or a Model class Type.',
+      element: modelReader.objectValue.type?.element,
+    );
   }
 
   // ──────────────────────────────────────────────────────────────
@@ -203,8 +262,10 @@ class SqliteSchemaGenerator extends GeneratorForAnnotation<Schema> {
       }
     }
 
-    final typeEnum = reader.read('type').revive();
-    final typeName = typeEnum.accessor.split('.').last;
+    final typeReader = reader.read('type');
+    final typeName = typeReader.peek('name')?.stringValue ??
+        typeReader.objectValue.type?.element?.name ??
+        typeReader.revive().accessor.split('.').last;
 
     final nullable = reader.peek('nullable')?.boolValue ??
         field.type.nullabilitySuffix == NullabilitySuffix.question;

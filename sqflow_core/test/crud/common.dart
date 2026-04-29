@@ -20,6 +20,7 @@ void initSqflite() {
 
 Table<User> createUsersTable() {
   return Table<User>(
+    type: User,
     name: 'users',
     schema: '''
       CREATE TABLE users (

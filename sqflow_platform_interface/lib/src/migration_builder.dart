@@ -1,7 +1,7 @@
-import 'package:sqflite/sqflite.dart';
 import '../src/table.dart';
 import '../src/models.dart';
 import '../src/table_migration.dart';
+import '../src/executor.dart';
 
 // =======================================================
 // MIGRATION BUILDER (FLUENT API)
@@ -205,7 +205,7 @@ class MigrationBuilder<T extends Model> {
   MigrationBuilder<T> custom({
     required String description,
     required int version,
-    required Future<void> Function(DatabaseExecutor db, Table<T> table) migrate,
+    required Future<void> Function(SqflowDatabaseExecutor db, Table<T> table) migrate,
   }) {
     _migrations.add(TableMigration<T>(
       table: _table,
@@ -276,7 +276,7 @@ class MigrationBuilder<T extends Model> {
 
   /// Workaround for dropping columns in SQLite
   Future<void> _dropColumnWorkaround(
-    DatabaseExecutor db,
+    SqflowDatabaseExecutor db,
     Table<T> table,
     String columnName,
   ) async {
@@ -307,9 +307,11 @@ class MigrationBuilder<T extends Model> {
       name: _table.name,
       schema: _table.schema,
       fromJson: _table.fromJson,
+      type: _table.type,
       primaryKey: _table.primaryKey,
+      migrations: List.unmodifiable(_migrations.cast<TableMigration<T>>()),
       paranoid: _table.paranoid,
-      migrations: List.unmodifiable(_migrations),
+      relationships: _table.relationships,
     );
   }
 }

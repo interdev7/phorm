@@ -31,6 +31,7 @@ import 'package:path/path.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:sqflow_platform_interface/src/table.dart';
 import 'package:sqflow_platform_interface/src/table_migration.dart';
+import 'package:sqflow_platform_interface/src/executor.dart';
 
 /// Main database manager that handles connection lifecycle,
 /// version management, and smart migration tracking.
@@ -399,7 +400,7 @@ class DB {
 
     try {
       // Execute migration
-      await migration.migrate(db, table);
+      await migration.migrate(SqfliteExecutorWrapper(db), table);
 
       // Record as applied
       await db.insert(_migrationsTable, {
@@ -528,10 +529,63 @@ class DB {
   }
 }
 
+
 /// Helper class for tracking pending migrations
 class _PendingMigration {
   final Table table;
   final TableMigration migration;
 
   _PendingMigration(this.table, this.migration);
+}
+
+/// Wrapper for sqflite's [DatabaseExecutor] to satisfy [SqflowDatabaseExecutor].
+class SqfliteExecutorWrapper implements SqflowDatabaseExecutor {
+  final DatabaseExecutor _executor;
+  SqfliteExecutorWrapper(this._executor);
+
+  @override
+  Future<void> execute(String sql, [List<Object?>? arguments]) =>
+      _executor.execute(sql, arguments);
+
+  @override
+  Future<List<Map<String, Object?>>> query(String table,
+          {bool? distinct,
+          List<String>? columns,
+          String? where,
+          List<Object?>? whereArgs,
+          String? groupBy,
+          String? having,
+          String? orderBy,
+          int? limit,
+          int? offset}) =>
+      _executor.query(table,
+          distinct: distinct,
+          columns: columns,
+          where: where,
+          whereArgs: whereArgs,
+          groupBy: groupBy,
+          having: having,
+          orderBy: orderBy,
+          limit: limit,
+          offset: offset);
+
+  @override
+  Future<int> delete(String table, {String? where, List<Object?>? whereArgs}) =>
+      _executor.delete(table, where: where, whereArgs: whereArgs);
+
+  @override
+  Future<int> update(String table, Map<String, Object?> values,
+          {String? where, List<Object?>? whereArgs}) =>
+      _executor.update(table, values, where: where, whereArgs: whereArgs);
+
+  @override
+  Future<int> insert(String table, Map<String, Object?> values,
+          {String? nullColumnHack, String? conflictAlgorithm}) =>
+      _executor.insert(table, values,
+          nullColumnHack: nullColumnHack,
+          conflictAlgorithm: conflictAlgorithm != null
+              ? ConflictAlgorithm.values.firstWhere(
+                  (e) => e.name == conflictAlgorithm,
+                  orElse: () => ConflictAlgorithm.abort)
+              : null);
 }

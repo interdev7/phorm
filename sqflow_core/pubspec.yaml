@@ -21,6 +21,9 @@ dev_dependencies:
     sdk: flutter
   flutter_lints: ^3.0.0
   sqflite_common_ffi: ^2.3.2+1
+  sqflow_generator:
+    path: ../sqflow_generator
+  build_runner: ^2.4.9
 
 # Publication to pub.dev
 publish_to: none
