@@ -397,7 +397,7 @@ class SqflowCore<T extends Model> {
   Future<T?> readAsync(Object id,
       {List<String>? columns,
       bool withDeleted = false,
-      List<String>? include}) async {
+      List<Includable>? include}) async {
     final db = await database;
     final where = WhereBuilder().eq(table.primaryKey, id);
     if (table.paranoid && !withDeleted) where.isNull('deleted_at');
@@ -434,7 +434,7 @@ class SqflowCore<T extends Model> {
       void Function(T)? onSuccess,
       ErrorCallback? onError,
       bool withDeleted = false,
-      List<String>? include}) async {
+      List<Includable>? include}) async {
     try {
       final item = await readAsync(id,
           columns: columns, withDeleted: withDeleted, include: include);
@@ -446,11 +446,14 @@ class SqflowCore<T extends Model> {
 
   /// Helper to fetch and attach related data to rows.
   Future<void> _eagerLoad(
-      List<Map<String, dynamic>> rows, List<String> include) async {
+      List<Map<String, dynamic>> rows, List<Includable> include) async {
     if (rows.isEmpty) return;
     final db = await database;
 
-    for (final relName in include) {
+    final includeNames =
+        include.map((inc) => inc.getTableName(dbManager.tables)).toList();
+
+    for (final relName in includeNames) {
       // 1. Find relationship definition
       final rel = table.relationships.where((r) {
         final model = r.model;
@@ -640,7 +643,7 @@ class SqflowCore<T extends Model> {
     List<String>? columns,
     bool withDeleted = false,
     bool onlyDeleted = false,
-    List<String>? include,
+    List<Includable>? include,
   }) async {
     final db = await database;
     final effectiveWhere = where?.copy() ?? WhereBuilder();

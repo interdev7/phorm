@@ -17,7 +17,7 @@ void main() async {
 
   // 4. Usage example: Eager load posts for a user
   print('--- Fetching user with posts ---');
-  final userWithPosts = await userService.readAsync('user-1', include: ['posts']);
+  final userWithPosts = await userService.readAsync('user-1', include: [Includable.model<Post>()]);
   
   if (userWithPosts != null) {
     print('User: ${userWithPosts.firstName} ${userWithPosts.lastName}');
@@ -29,7 +29,7 @@ void main() async {
 
   // 5. Usage example: Eager load user for a post
   print('\n--- Fetching post with user ---');
-  final postWithUser = await postService.readAsync(1, include: ['users']);
+  final postWithUser = await postService.readAsync(1, include: [Includable.table('users')]);
   
   if (postWithUser != null) {
     print('Post: ${postWithUser.title}');
@@ -38,7 +38,7 @@ void main() async {
 
   // 6. Bulk fetching with relationships
   print('\n--- Fetching all users with posts ---');
-  final result = await userService.readAll(include: ['posts']);
+  final result = await userService.readAll(include: [Includable.model<Post>()]);
   print('Total users: ${result.count}');
   for (final u in result.data) {
     print('User ${u.id} has ${u.posts.length} posts');
