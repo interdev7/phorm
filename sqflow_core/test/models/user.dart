@@ -13,7 +13,7 @@ part 'user.sql.g.dart';
     HasMany(model: Order, foreignKey: 'user_id'),
   ],
 )
-class User extends Model with _$UserMixin {
+class User extends Model with _$SQFlowUserMixin {
   @ID(type: TEXT(), autoIncrement: false, unique: true)
   final String id;
 
@@ -90,9 +90,10 @@ class User extends Model with _$UserMixin {
   String get fullName => '$firstName $lastName';
 
   @override
-  Map<String, dynamic> toJson() => _$UserToJson();
+  Map<String, dynamic> toJson() => _$SQFlowUserToJson();
 
-  factory User.fromJson(Map<String, dynamic> json) => _$UserFromJson(json);
+  factory User.fromJson(Map<String, dynamic> json) =>
+      _$SQFlowUserFromJson(json);
 
   User copyWith({
     String? id,
@@ -140,7 +141,7 @@ class User extends Model with _$UserMixin {
     BelongsTo(model: User, foreignKey: 'user_id'),
   ],
 )
-class Order extends Model with _$OrderMixin {
+class Order extends Model with _$SQFlowOrderMixin {
   @ID(type: INTEGER(), autoIncrement: true)
   final int id;
 
@@ -168,7 +169,8 @@ class Order extends Model with _$OrderMixin {
   });
 
   @override
-  Map<String, dynamic> toJson() => _$OrderToJson();
+  Map<String, dynamic> toJson() => _$SQFlowOrderToJson();
 
-  factory Order.fromJson(Map<String, dynamic> json) => _$OrderFromJson(json);
+  factory Order.fromJson(Map<String, dynamic> json) =>
+      _$SQFlowOrderFromJson(json);
 }

@@ -67,31 +67,31 @@ part 'user.sql.g.dart';
   ],
 )
 class User {
-  @ID(type: DataTypes.TEXT)
+  @ID(type: TEXT())
   final String id;
 
-  @Column(type: DataTypes.TEXT)
+  @Column(type: TEXT())
   final String firstName;
 
-  @Column(type: DataTypes.TEXT)
+  @Column(type: TEXT())
   final String lastName;
 
-  @Column(type: DataTypes.TEXT, unique: true)
+  @Column(type: TEXT(), unique: true)
   final String email;
 
-  @Column(type: DataTypes.TEXT, nullable: true)
+  @Column(type: TEXT(), nullable: true)
   final String? phone;
 
   @Column(
-    type: DataTypes.TEXT,
+    type: TEXT(),
     check: CHECK(['M', 'F', 'Other']),
   )
   final String gender;
 
-  @Column(type: DataTypes.DATETIME)
+  @Column(type: TEXT())
   final DateTime createdAt;
 
-  @Column(type: DataTypes.DATETIME, nullable: true)
+  @Column(type: TEXT(), nullable: true)
   final DateTime? deletedAt;
 
   User({
@@ -190,7 +190,7 @@ Standard column definition.
 
 ```dart
 @Column(
-  type: DataTypes.TEXT,
+  type: TEXT(),
   nullable: false,
   unique: false,
   defaultValue: 'N/A',
@@ -201,12 +201,10 @@ Standard column definition.
 Supported options:
 
 - `type` (required)
+- `columnName` (explicit override)
 - `nullable`
 - `unique`
 - `defaultValue`
-- `length`
-- `precision`
-- `scale`
 - `check`
 
 ---
@@ -217,7 +215,7 @@ Primary key column.
 
 ```dart
 @ID(
-  type: DataTypes.INTEGER,
+  type: INTEGER(),
   autoIncrement: true,
 )
 ```
@@ -233,7 +231,7 @@ Defines a foreign key relationship.
 
 ```dart
 @ForeignKey(
-  type: DataTypes.INTEGER,
+  type: INTEGER(),
   referencesTable: 'users',
   referencesColumn: 'id',
   onDelete: 'CASCADE',
@@ -242,51 +240,34 @@ Defines a foreign key relationship.
 
 ---
 
-## SQLite Type Mapping
+### `Includable`
 
-`sqflow_annotations` uses **logical data types**, which are mapped by `sqflow_generator` to concrete SQLite types.
+Abstract interface for relationship inclusion in queries.
 
-SQLite uses dynamic typing, so the mapping is pragmatic and predictable.
+```dart
+// Factory methods
+Includable.model<T>()    // Resolves table name from model type T
+Includable.table('name') // Direct table name inclusion
+```
 
-| DataTypes      | SQLite Type            | Notes                                  |
-| -------------- | ---------------------- | -------------------------------------- |
-| `INTEGER`      | `INTEGER`              | Used for ids, counters                 |
-| `BIGINT`       | `INTEGER`              | SQLite stores 64-bit ints              |
-| `REAL`         | `REAL`                 | Floating point                         |
-| `TEXT`         | `TEXT`                 | Arbitrary length string                |
-| `VARCHAR(n)`   | `VARCHAR(n)` or `TEXT` | Falls back to `TEXT` if length omitted |
-| `CHAR(n)`      | `CHAR(n)`              | Defaults to `CHAR(1)`                  |
-| `DECIMAL(p,s)` | `DECIMAL(p,s)`         | Stored as numeric/text internally      |
-| `BOOLEAN`      | `INTEGER`              | `1` = true, `0` = false                |
-| `DATE`         | `TEXT`                 | ISO-8601 recommended                   |
-| `DATETIME`     | `TEXT`                 | ISO-8601 recommended                   |
-| `TIME`         | `TEXT`                 | ISO-8601 recommended                   |
-| `BLOB`         | `BLOB`                 | Binary data                            |
-| `JSON`         | `TEXT`                 | No native JSON in SQLite               |
-
-> ⚠️ SQLite does **not** enforce strict column types. Validation is mostly application-level.
+Usage in CRUD services:
+```dart
+service.readAsync('id', include: [Includable.model<Order>()]);
+```
 
 ---
 
-## DataTypes
+## Supported Data Types
 
-Logical column types (database-agnostic):
+Sqflow provides a set of classes representing standard SQLite data types.
 
-- `INTEGER`
-- `BIGINT`
-- `REAL`
-- `TEXT`
-- `VARCHAR`
-- `CHAR`
-- `DECIMAL`
-- `BOOLEAN`
-- `DATE`
-- `DATETIME`
-- `TIME`
-- `BLOB`
-- `JSON`
-
-The generator maps these to concrete SQL types (e.g. SQLite, PostgreSQL).
+| Type        | Description              | Example     |
+| ----------- | ------------------------ | ----------- |
+| `INTEGER()` | Integer values           | `@ID(type: INTEGER())` |
+| `TEXT()`    | String values            | `@Column(type: TEXT())` |
+| `REAL()`    | Floating point values    | `@Column(type: REAL())` |
+| `BLOB()`    | Binary data              | `@Column(type: BLOB())` |
+| `NUMERIC()` | Any numeric/text value   | `@Column(type: NUMERIC())` |
 
 ---
 
@@ -295,7 +276,6 @@ The generator maps these to concrete SQL types (e.g. SQLite, PostgreSQL).
 ### 1. SQLite is weakly typed
 
 - SQLite does **not** strictly enforce column types
-- `VARCHAR`, `CHAR`, `DECIMAL` are mostly semantic
 - Validation should be done at the application layer
 
 ---
@@ -303,7 +283,7 @@ The generator maps these to concrete SQL types (e.g. SQLite, PostgreSQL).
 ### 2. BOOLEAN is stored as INTEGER
 
 ```dart
-@Column(type: DataTypes.BOOLEAN, defaultValue: true)
+@Column(type: INTEGER(), defaultValue: 1)
 final bool isActive;
 ```
 

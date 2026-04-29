@@ -327,9 +327,11 @@ class DB {
         );
 
         if (exists.isEmpty) {
+          final hash = _calculateMigrationHash(migration);
           await txn.insert(_migrationsTable, {
             'table_name': migration.table.name,
             'migration_version': migration.targetVersion,
+            'migration_hash': hash,
             'description': '${migration.description} (Synced)',
             'applied_at': DateTime.now().toIso8601String(),
           });

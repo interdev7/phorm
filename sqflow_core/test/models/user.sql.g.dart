@@ -6,7 +6,7 @@
 
 part of 'user.dart';
 
-const _$UserSchema = """
+const _$SQFlowUserSchema = """
 CREATE TABLE users (
   id TEXT PRIMARY KEY NOT NULL UNIQUE,
   first_name TEXT NOT NULL,
@@ -30,18 +30,18 @@ CREATE UNIQUE INDEX users_email_idx ON users(email);
 CREATE INDEX users_first_name_last_name_idx ON users(first_name, last_name);
 """;
 
-class _$UserTable extends Table<User> {
-  _$UserTable({
+class _$SQFlowUserTable extends Table<User> {
+  _$SQFlowUserTable({
     required super.schema,
     required super.name,
     required super.fromJson,
     super.relationships = const [],
-  }) : super(type: User, paranoid: _detectSoftDelete(schema));
+  }) : super(type: User, paranoid: Table.detectSoftDelete(schema));
 }
 
 /// User table schema
-final usersTable = _$UserTable(
-  schema: _$UserSchema,
+final usersTable = _$SQFlowUserTable(
+  schema: _$SQFlowUserSchema,
   name: 'users',
   fromJson: User.fromJson,
   relationships: const [
@@ -49,35 +49,35 @@ final usersTable = _$UserTable(
   ],
 );
 
-mixin _$UserMixin {
+mixin _$SQFlowUserMixin {
   final List<Order> _$orders = [];
   List<Order> get orders => _$orders;
 }
 
-extension _$UserSqlExt on User {
-  Map<String, dynamic> _$UserToJson() {
+extension _$SQFlowUserSqlExt on User {
+  Map<String, dynamic> _$SQFlowUserToJson() {
     return {
-      'id': _$toJsonValue(id),
-      'first_name': _$toJsonValue(firstName),
-      'last_name': _$toJsonValue(lastName),
-      'email': _$toJsonValue(email),
-      'phone': _$toJsonValue(phone),
-      'birth_date': _$toJsonValue(birthDate),
-      'age': _$toJsonValue(age),
-      'gender': _$toJsonValue(gender),
-      'city': _$toJsonValue(city),
-      'country': _$toJsonValue(country),
-      'address': _$toJsonValue(address),
-      'is_active': _$toJsonValue(isActive),
-      'is_verified': _$toJsonValue(isVerified),
-      'created_at': _$toJsonValue(createdAt),
-      'updated_at': _$toJsonValue(updatedAt),
-      'deleted_at': _$toJsonValue(deletedAt),
+      'id': _$SQFlowToJsonValue(id),
+      'first_name': _$SQFlowToJsonValue(firstName),
+      'last_name': _$SQFlowToJsonValue(lastName),
+      'email': _$SQFlowToJsonValue(email),
+      'phone': _$SQFlowToJsonValue(phone),
+      'birth_date': _$SQFlowToJsonValue(birthDate),
+      'age': _$SQFlowToJsonValue(age),
+      'gender': _$SQFlowToJsonValue(gender),
+      'city': _$SQFlowToJsonValue(city),
+      'country': _$SQFlowToJsonValue(country),
+      'address': _$SQFlowToJsonValue(address),
+      'is_active': _$SQFlowToJsonValue(isActive),
+      'is_verified': _$SQFlowToJsonValue(isVerified),
+      'created_at': _$SQFlowToJsonValue(createdAt),
+      'updated_at': _$SQFlowToJsonValue(updatedAt),
+      'deleted_at': _$SQFlowToJsonValue(deletedAt),
     };
   }
 }
 
-User _$UserFromJson(Map<String, dynamic> json) {
+User _$SQFlowUserFromJson(Map<String, dynamic> json) {
   final instance = User(
     id: json['id'] as String,
     firstName: json['first_name'] as String,
@@ -112,7 +112,7 @@ User _$UserFromJson(Map<String, dynamic> json) {
   return instance;
 }
 
-const _$OrderSchema = """
+const _$SQFlowOrderSchema = """
 CREATE TABLE orders (
   id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL UNIQUE,
   total INTEGER NOT NULL,
@@ -125,18 +125,18 @@ CREATE TABLE orders (
 
 """;
 
-class _$OrderTable extends Table<Order> {
-  _$OrderTable({
+class _$SQFlowOrderTable extends Table<Order> {
+  _$SQFlowOrderTable({
     required super.schema,
     required super.name,
     required super.fromJson,
     super.relationships = const [],
-  }) : super(type: Order, paranoid: _detectSoftDelete(schema));
+  }) : super(type: Order, paranoid: Table.detectSoftDelete(schema));
 }
 
 /// Order table schema
-final ordersTable = _$OrderTable(
-  schema: _$OrderSchema,
+final ordersTable = _$SQFlowOrderTable(
+  schema: _$SQFlowOrderSchema,
   name: 'orders',
   fromJson: Order.fromJson,
   relationships: const [
@@ -144,7 +144,7 @@ final ordersTable = _$OrderTable(
   ],
 );
 
-mixin _$OrderMixin {
+mixin _$SQFlowOrderMixin {
   User? _$user;
   User? get user => _$user;
   var _$userId;
@@ -152,20 +152,20 @@ mixin _$OrderMixin {
   set userId(dynamic value) => _$userId = value;
 }
 
-extension _$OrderSqlExt on Order {
-  Map<String, dynamic> _$OrderToJson() {
+extension _$SQFlowOrderSqlExt on Order {
+  Map<String, dynamic> _$SQFlowOrderToJson() {
     return {
-      'id': _$toJsonValue(id),
-      'total': _$toJsonValue(total),
-      'created_at': _$toJsonValue(createdAt),
-      'updated_at': _$toJsonValue(updatedAt),
-      'deleted_at': _$toJsonValue(deletedAt),
-      'user_id': _$toJsonValue(userId),
+      'id': _$SQFlowToJsonValue(id),
+      'total': _$SQFlowToJsonValue(total),
+      'created_at': _$SQFlowToJsonValue(createdAt),
+      'updated_at': _$SQFlowToJsonValue(updatedAt),
+      'deleted_at': _$SQFlowToJsonValue(deletedAt),
+      'user_id': _$SQFlowToJsonValue(userId),
     };
   }
 }
 
-Order _$OrderFromJson(Map<String, dynamic> json) {
+Order _$SQFlowOrderFromJson(Map<String, dynamic> json) {
   final instance = Order(
     id: json['id'] as int,
     total: json['total'] as int,
@@ -184,15 +184,9 @@ Order _$OrderFromJson(Map<String, dynamic> json) {
   return instance;
 }
 
-dynamic _$toJsonValue(dynamic value) {
+dynamic _$SQFlowToJsonValue(dynamic value) {
   if (value == null) return null;
   if (value is DateTime) return value.toIso8601String();
   if (value is bool) return value ? 1 : 0;
   return value;
-}
-
-bool _detectSoftDelete(String schema) {
-  final normalized = schema.toLowerCase();
-  return normalized.contains('deleted_at') &&
-      normalized.contains('create table');
 }

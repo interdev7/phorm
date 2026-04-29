@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:sqflow_core/sqflow_core.dart';
+import 'package:sqflow_core/sqflow_core.dart' hide Column, Row;
 import 'package:sqflow_platform_interface/sqflow_platform_interface.dart' as pi;
 import 'package:uuid/uuid.dart';
 

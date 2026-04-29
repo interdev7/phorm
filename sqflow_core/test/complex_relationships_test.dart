@@ -106,11 +106,13 @@ void main() {
     final database = await db.database;
 
     await database.insert('users', {'id': 'u1', 'name': 'Author One'});
-    await database.insert('posts', {'id': 100, 'title': 'Hello World', 'user_id': 'u1'});
+    await database
+        .insert('posts', {'id': 100, 'title': 'Hello World', 'user_id': 'u1'});
 
     final postService = SqflowCore<Post>(dbManager: db, table: postsTable);
 
-    final post = await postService.readAsync(100, include: [Includable.model<User>()]);
+    final post =
+        await postService.readAsync(100, include: [Includable.model<User>()]);
 
     expect(post, isNotNull);
     expect(post!.title, 'Hello World');
@@ -125,13 +127,17 @@ void main() {
     await database.insert('users', {'id': 'u1', 'name': 'Admin'});
     await database.insert('users', {'id': 'u2', 'name': 'Editor'});
 
-    await database.insert('posts', {'id': 1, 'title': 'News 1', 'user_id': 'u1'});
-    await database.insert('posts', {'id': 2, 'title': 'News 2', 'user_id': 'u1'});
-    await database.insert('posts', {'id': 3, 'title': 'News 3', 'user_id': 'u2'});
+    await database
+        .insert('posts', {'id': 1, 'title': 'News 1', 'user_id': 'u1'});
+    await database
+        .insert('posts', {'id': 2, 'title': 'News 2', 'user_id': 'u1'});
+    await database
+        .insert('posts', {'id': 3, 'title': 'News 3', 'user_id': 'u2'});
 
     final postService = SqflowCore<Post>(dbManager: db, table: postsTable);
 
-    final result = await postService.readAll(include: [Includable.model<User>()]);
+    final result =
+        await postService.readAll(include: [Includable.model<User>()]);
 
     expect(result.data, hasLength(3));
 
@@ -145,11 +151,15 @@ void main() {
     }
   });
 
-  test('Complex WhereBuilder with relationships: nested groups and functions', () async {
+  test('Complex WhereBuilder with relationships: nested groups and functions',
+      () async {
     final database = await db.database;
 
     // Seed Data
-    await database.insert('users', {'id': 'u1', 'name': 'Alice Admin'}); // Age check will be manual column in a real app, here we use 'name' length or other tricks since User model in this test is simple
+    await database.insert('users', {
+      'id': 'u1',
+      'name': 'Alice Admin'
+    }); // Age check will be manual column in a real app, here we use 'name' length or other tricks since User model in this test is simple
     await database.insert('users', {'id': 'u2', 'name': 'Bob Editor'});
     await database.insert('users', {'id': 'u3', 'name': 'Charlie Guest'});
 
@@ -160,8 +170,8 @@ void main() {
 
     final userService = SqflowCore<User>(dbManager: db, table: usersTable);
 
-    // Complex filter: 
-    // (Name contains 'Alice' OR Name contains 'Bob') 
+    // Complex filter:
+    // (Name contains 'Alice' OR Name contains 'Bob')
     // AND (Name length > 5)
     final where = WhereBuilder().andGroup((ag) {
       ag.orGroup((og) {
@@ -188,22 +198,24 @@ void main() {
     expect(result.data[1].posts[0].title, 'B1');
   });
 
-  test('Complex filtering with BelongsTo: filtering posts by multiple criteria', () async {
+  test('Complex filtering with BelongsTo: filtering posts by multiple criteria',
+      () async {
     final database = await db.database;
 
     await database.insert('users', {'id': 'u1', 'name': 'Author A'});
     await database.insert('users', {'id': 'u2', 'name': 'Author B'});
 
-    await database.insert('posts', {'id': 1, 'title': 'Tech News', 'user_id': 'u1'});
-    await database.insert('posts', {'id': 2, 'title': 'Tech Review', 'user_id': 'u2'});
-    await database.insert('posts', {'id': 3, 'title': 'Food Blog', 'user_id': 'u1'});
+    await database
+        .insert('posts', {'id': 1, 'title': 'Tech News', 'user_id': 'u1'});
+    await database
+        .insert('posts', {'id': 2, 'title': 'Tech Review', 'user_id': 'u2'});
+    await database
+        .insert('posts', {'id': 3, 'title': 'Food Blog', 'user_id': 'u1'});
 
     final postService = SqflowCore<Post>(dbManager: db, table: postsTable);
 
     // Filter: title starts with 'Tech' AND user_id is 'u2'
-    final where = WhereBuilder()
-        .like('title', 'Tech%')
-        .eq('user_id', 'u2');
+    final where = WhereBuilder().like('title', 'Tech%').eq('user_id', 'u2');
 
     final result = await postService.readAll(
       where: where,
@@ -226,7 +238,7 @@ void main() {
     HasOne(model: Profile, foreignKey: 'user_id', localKey: 'id'),
   ],
 )
-class User extends Model with _$UserMixin {
+class User extends Model with _$SQFlowUserMixin {
   @ID(type: TEXT())
   @override
   final String id;
@@ -239,10 +251,11 @@ class User extends Model with _$UserMixin {
     required this.name,
   });
 
-  factory User.fromJson(Map<String, dynamic> json) => _$UserFromJson(json);
+  factory User.fromJson(Map<String, dynamic> json) =>
+      _$SQFlowUserFromJson(json);
 
   @override
-  Map<String, dynamic> toJson() => _$UserToJson();
+  Map<String, dynamic> toJson() => _$SQFlowUserToJson();
 }
 
 @Schema(
@@ -251,7 +264,7 @@ class User extends Model with _$UserMixin {
     BelongsTo(model: User, foreignKey: 'user_id', localKey: 'id')
   ],
 )
-class Post extends Model with _$PostMixin {
+class Post extends Model with _$SQFlowPostMixin {
   @ID(type: INTEGER(), autoIncrement: true)
   @override
   final int id;
@@ -261,16 +274,17 @@ class Post extends Model with _$PostMixin {
 
   Post({required this.id, required this.title});
 
-  factory Post.fromJson(Map<String, dynamic> json) => _$PostFromJson(json);
+  factory Post.fromJson(Map<String, dynamic> json) =>
+      _$SQFlowPostFromJson(json);
 
   @override
-  Map<String, dynamic> toJson() => _$PostToJson();
+  Map<String, dynamic> toJson() => _$SQFlowPostToJson();
 }
 
 @Schema(tableName: 'profiles', relationships: [
   BelongsTo(model: User, foreignKey: 'user_id', localKey: 'id')
 ])
-class Profile extends Model with _$ProfileMixin {
+class Profile extends Model with _$SQFlowProfileMixin {
   @ID(type: INTEGER(), autoIncrement: true)
   @override
   final int id;
@@ -281,8 +295,8 @@ class Profile extends Model with _$ProfileMixin {
   Profile({required this.id, required this.bio});
 
   factory Profile.fromJson(Map<String, dynamic> json) =>
-      _$ProfileFromJson(json);
+      _$SQFlowProfileFromJson(json);
 
   @override
-  Map<String, dynamic> toJson() => _$ProfileToJson();
+  Map<String, dynamic> toJson() => _$SQFlowProfileToJson();
 }

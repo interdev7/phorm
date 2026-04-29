@@ -51,16 +51,11 @@ class _SqflowCombinedGenerator extends Generator {
     }
     
     buffer.writeln(r'''
-dynamic _$toJsonValue(dynamic value) {
+dynamic _$SQFlowToJsonValue(dynamic value) {
   if (value == null) return null;
   if (value is DateTime) return value.toIso8601String();
   if (value is bool) return value ? 1 : 0;
   return value;
-}
-
-bool _detectSoftDelete(String schema) {
-  final normalized = schema.toLowerCase();
-  return normalized.contains('deleted_at') && normalized.contains('create table');
 }
 ''');
 

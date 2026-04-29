@@ -13,8 +13,8 @@ String stringSchemaBuilder({
           "${r['type']}(model: '${r['model']}', foreignKey: '${r['foreignKey']}', localKey: '${r['localKey']}')")
       .join(', ');
 
-  final schemaVarName = '_\$${className}Schema';
-  final tableClassName = '_\$${className}Table';
+  final schemaVarName = '_\$SQFlow${className}Schema';
+  final tableClassName = '_\$SQFlow${className}Table';
   final tableVarName = '${tableName}Table';
 
   return '''
@@ -34,7 +34,7 @@ class $tableClassName extends Table<$className> {
     required super.name,
     required super.fromJson,
     super.relationships = const [],
-  }):super(type: $className, paranoid: _detectSoftDelete(schema));
+  }) : super(type: $className, paranoid: Table.detectSoftDelete(schema));
 }
 
 /// $className table schema
