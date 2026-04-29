@@ -17,6 +17,7 @@ void main() {
 
     setUp(() {
       usersTable = Table<User>(
+        type: User,
         name: 'users',
         schema: '''
           CREATE TABLE users (
@@ -74,6 +75,7 @@ void main() {
 
     test('Migrations are applied on creation', () async {
       final usersTable = Table<User>(
+        type: User,
         name: 'users',
         schema: '''
           CREATE TABLE users (
@@ -108,6 +110,7 @@ void main() {
       final migrationsApplied = <String>[];
 
       final trackedTable = Table<User>(
+        type: User,
         name: 'tracked',
         schema: 'CREATE TABLE tracked (id TEXT)',
         fromJson: (json) => User.fromJson(json),
@@ -155,6 +158,7 @@ void main() {
 
     test('Migration with same version from different tables', () async {
       final usersTable = Table<User>(
+        type: User,
         name: 'users',
         schema: 'CREATE TABLE users (id TEXT)',
         fromJson: (json) => User.fromJson(json),
@@ -169,6 +173,7 @@ void main() {
           .build();
 
       final postsTable = Table<Post>(
+        type: User,
         name: 'posts',
         schema: 'CREATE TABLE posts (id TEXT)',
         fromJson: (json) => Post.fromJson(json),
@@ -208,6 +213,7 @@ void main() {
 
     test('addColumn generates correct SQL', () async {
       final table = Table<User>(
+        type: User,
         name: 'test',
         schema: 'CREATE TABLE test (id TEXT)',
         fromJson: (json) => User.fromJson(json),
@@ -235,6 +241,7 @@ void main() {
 
     test('createIndex generates correct SQL', () async {
       final table = Table<User>(
+        type: User,
         name: 'test',
         schema: 'CREATE TABLE test (id TEXT, email TEXT)',
         fromJson: (json) => User.fromJson(json),
@@ -271,6 +278,7 @@ void main() {
     test('Simple table evolution', () async {
       // Create table with migrations
       final usersTable = Table<User>(
+        type: User,
         name: 'users',
         schema: '''
           CREATE TABLE users (
@@ -334,6 +342,7 @@ void main() {
     test('Data persists and migrations apply when app updates (v1 -> v2)',
         () async {
       final usersV1 = Table<User>(
+        type: User,
         name: 'users',
         schema:
             'CREATE TABLE users (id TEXT PRIMARY KEY, name TEXT, created_at TEXT)',
@@ -379,6 +388,7 @@ void main() {
         'Transaction rollback: If migration fails, version should NOT increase',
         () async {
       final brokenTable = Table<User>(
+        type: User,
         name: 'users',
         schema: 'CREATE TABLE users (id TEXT PRIMARY KEY, name TEXT)',
         fromJson: (json) => User.fromJson(json),

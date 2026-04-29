@@ -445,28 +445,90 @@ Sqflow provides a powerful yet simple way to handle relationships between models
 
 #### Relationship Types
 
-| Annotation | Description | Example |
-| :--- | :--- | :--- |
-| `@HasMany` | One-to-Many relationship | `User` has many `Posts` |
-| `@HasOne` | One-to-One relationship | `User` has one `Profile` |
-| `@BelongsTo` | Many-to-One relationship | `Post` belongs to a `User` |
-| `@Join` | Alias for `BelongsTo` | Semantic alternative for `BelongsTo` |
+| Annotation   | Description              | Example                              |
+| :----------- | :----------------------- | :----------------------------------- |
+| `@HasMany`   | One-to-Many relationship | `User` has many `Posts`              |
+| `@HasOne`    | One-to-One relationship  | `User` has one `Profile`             |
+| `@BelongsTo` | Many-to-One relationship | `Post` belongs to a `User`           |
+| `@Join`      | Alias for `BelongsTo`    | Semantic alternative for `BelongsTo` |
+
+### 🚀 Automated Model Generation (New!)
+
+Sqflow now supports automated generation of SQL schemas, `toJson`, `fromJson`, and relationship fields using `build_runner`.
+
+#### 1. Setup
+
+Add `sqflow_generator` and `build_runner` to your `dev_dependencies`:
+
+```yaml
+dev_dependencies:
+  sqflow_generator:
+    path: path/to/sqflow_generator
+  build_runner: ^2.4.0
+```
+
+#### 2. Annotate your Model
+
+Use `@Schema` and `with _$ClassNameMixin`.
+
+```dart
+import 'package:sqflow_core/sqflow_core.dart';
+
+part 'user.sql.g.dart'; // Generated file
+
+@Schema(
+  tableName: 'users',
+  relationships: [
+    HasMany(model: Post, foreignKey: 'user_id'),
+  ],
+)
+class User extends Model with _$UserMixin {
+  @ID(type: TEXT())
+  @override
+  final String id;
+
+  @Column(type: TEXT())
+  final String name;
+
+  // These fields are populated via eager loading
+  @override
+  final List<Post> posts;
+
+  User({required this.id, required this.name, this.posts = const []});
+
+  factory User.fromJson(Map<String, dynamic> json) => _$UserFromJson(json);
+}
+```
+
+#### 3. Run Build Runner
+
+```bash
+dart run build_runner build
+```
+
+The generator will automatically:
+
+- Create the SQL `CREATE TABLE` statement.
+- Generate `toJson()` (in the mixin).
+- Generate `_$ClassNameFromJson(json)` helper.
+- Generate relationship fields (like `user` for a `BelongsTo` field).
+- Handle type-safe collection mapping for `HasMany`.
 
 #### 💡 Key Rules for Relationships
 
 To ensure relationships work correctly, keep these rules in mind:
 
 1.  **Foreign Key Mapping**: The `foreignKey` parameter must match the **SQL column name** in the database.
-    *   If your Dart field is `userId` and you use `snake_case` (default), the `foreignKey` should be `'user_id'`.
-    *   In `fromJson`, you must read this ID using the same SQL column name: `userId: json['user_id']`.
+    - If your Dart field is `userId` and you use `snake_case` (default), the `foreignKey` should be `'user_id'`.
+    - In `fromJson`, you must read this ID using the same SQL column name: `userId: json['user_id']`.
 
 2.  **JSON Key for Related Objects**: When using `include`, the related data is injected into the JSON map using the **`model` name** (table name) as the key.
-    *   `HasMany(model: 'posts', ...)` -> Data is in `json['posts']` as a `List`.
-    *   `HasOne(model: 'profiles', ...)` -> Data is in `json['profiles']` as a `Map`.
+    - `HasMany(model: 'posts', ...)` -> Data is in `json['posts']` as a `List`.
+    - `HasOne(model: 'profiles', ...)` -> Data is in `json['profiles']` as a `Map`.
 
-3.  **Data Types**: 
-    *   `HasMany` always returns a `List` (empty if no matches).
-    *   `HasOne` and `BelongsTo` return a `Map?` (null if no match).
+3.  **Data Types**:
+    - `HasMany` always returns a `List` (empty if no matches).
+    - `HasOne` and `BelongsTo` return a `Map?` (null if no match).
 
 ---
 
@@ -475,6 +537,7 @@ To ensure relationships work correctly, keep these rules in mind:
 Relationships can be defined in two ways:
 
 ##### A. In the `@Schema` annotation (Class-level)
+
 Ideal for centralizing relationship logic or when you don't have a specific field for the related object.
 
 ```dart
@@ -492,6 +555,7 @@ class User extends Model { ... }
 ```
 
 ##### B. Using field annotations (Field-level)
+
 Recommended for better readability and integration with your model fields.
 
 ```dart
@@ -508,7 +572,7 @@ class Post extends Model {
 
   // Defines that this post belongs to a User
   @Join(model: 'users', foreignKey: 'user_id')
-  final User? author; 
+  final User? author;
 }
 ```
 
@@ -523,7 +587,7 @@ factory User.fromJson(Map<String, dynamic> json) {
   return User(
     id: json['id'] as String,
     name: json['name'] as String,
-    // Relationships are injected as lists for HasMany, 
+    // Relationships are injected as lists for HasMany,
     // or as a single Map for HasOne/BelongsTo.
     posts: json['posts'] != null
         ? (json['posts'] as List)
@@ -562,7 +626,9 @@ final result = await userService.readAll(
 - **`localKey`**: The column in the current table used for matching. Defaults to `'id'`.
 
 #### 🚀 Performance
+
 Sqflow uses **Batch Loading** to resolve relationships. If you fetch 20 users with their posts, Sqflow will execute:
+
 1. One query to fetch 20 users.
 2. One query to fetch all posts for those 20 users (`WHERE user_id IN (...)`).
 3. Automatic in-memory mapping to attach posts to correct users.

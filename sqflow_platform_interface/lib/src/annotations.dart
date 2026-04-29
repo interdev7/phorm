@@ -101,7 +101,9 @@ class Schema {
 }
 
 abstract class Relationship {
-  final String model;
+  /// The target model for the relationship.
+  /// Can be a [String] (table name) or a [Type] (Model class).
+  final dynamic model;
   final String foreignKey;
   final String localKey;
 
@@ -207,4 +209,19 @@ class ForeignKey extends ColumnBase {
     this.onDelete,
     this.onUpdate,
   });
+}
+
+abstract interface class Includable {}
+
+abstract interface class IString implements Includable {
+  String get value;
+}
+
+abstract interface class IModel<T> implements Includable {
+  Object get id;
+  T get model;
+  Map<String, dynamic> toJson();
+  DateTime get createdAt;
+  DateTime get updatedAt;
+  DateTime get deletedAt;
 }

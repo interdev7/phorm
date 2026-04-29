@@ -15,6 +15,7 @@ void main() {
 
   setUp(() {
     usersTable = Table<User>(
+      type: User,
       name: 'users',
       schema: 'CREATE TABLE users (id TEXT PRIMARY KEY, name TEXT)',
       fromJson: (json) => User.fromJson(json),
@@ -24,8 +25,10 @@ void main() {
     );
 
     postsTable = Table<Post>(
+      type: Post,
       name: 'posts',
-      schema: 'CREATE TABLE posts (id INTEGER PRIMARY KEY, title TEXT, user_id TEXT)',
+      schema:
+          'CREATE TABLE posts (id INTEGER PRIMARY KEY, title TEXT, user_id TEXT)',
       fromJson: (json) => Post.fromJson(json),
       relationships: const [
         BelongsTo(model: 'users', foreignKey: 'user_id', localKey: 'id'),
@@ -45,18 +48,21 @@ void main() {
 
   test('Eager load hasMany: User with Posts', () async {
     final database = await db.database;
-    
+
     // Seed data
     await database.insert('users', {'id': 'u1', 'name': 'John'});
-    await database.insert('posts', {'id': 1, 'title': 'Post 1', 'user_id': 'u1'});
-    await database.insert('posts', {'id': 2, 'title': 'Post 2', 'user_id': 'u1'});
-    await database.insert('posts', {'id': 3, 'title': 'Post 3', 'user_id': 'other'});
+    await database
+        .insert('posts', {'id': 1, 'title': 'Post 1', 'user_id': 'u1'});
+    await database
+        .insert('posts', {'id': 2, 'title': 'Post 2', 'user_id': 'u1'});
+    await database
+        .insert('posts', {'id': 3, 'title': 'Post 3', 'user_id': 'other'});
 
     final userService = SqflowCore<User>(dbManager: db, table: usersTable);
-    
+
     // Test readAsync with include
     final user = await userService.readAsync('u1', include: ['posts']);
-    
+
     expect(user, isNotNull);
     expect(user!.name, 'John');
     expect(user.posts, hasLength(2));
@@ -66,16 +72,17 @@ void main() {
 
   test('Eager load belongsTo: Post with User', () async {
     final database = await db.database;
-    
+
     // Seed data
     await database.insert('users', {'id': 'u1', 'name': 'John'});
-    await database.insert('posts', {'id': 1, 'title': 'Post 1', 'user_id': 'u1'});
+    await database
+        .insert('posts', {'id': 1, 'title': 'Post 1', 'user_id': 'u1'});
 
     final postService = SqflowCore<Post>(dbManager: db, table: postsTable);
-    
+
     // Test readAsync with include
     final post = await postService.readAsync(1, include: ['users']);
-    
+
     expect(post, isNotNull);
     expect(post!.title, 'Post 1');
     expect(post.user, isNotNull);
@@ -84,20 +91,20 @@ void main() {
 
   test('Eager load in readAll', () async {
     final database = await db.database;
-    
+
     await database.insert('users', {'id': 'u1', 'name': 'John'});
     await database.insert('users', {'id': 'u2', 'name': 'Jane'});
     await database.insert('posts', {'id': 1, 'title': 'P1', 'user_id': 'u1'});
     await database.insert('posts', {'id': 2, 'title': 'P2', 'user_id': 'u2'});
 
     final userService = SqflowCore<User>(dbManager: db, table: usersTable);
-    
+
     final result = await userService.readAll(include: ['posts']);
-    
+
     expect(result.data, hasLength(2));
     final john = result.data.firstWhere((u) => u.id == 'u1');
     final jane = result.data.firstWhere((u) => u.id == 'u2');
-    
+
     expect(john.posts, hasLength(1));
     expect(john.posts[0].title, 'P1');
     expect(jane.posts, hasLength(1));
@@ -119,7 +126,9 @@ class User extends Model {
       id: json['id'] as String,
       name: json['name'] as String,
       posts: json['posts'] != null
-          ? (json['posts'] as List).map((p) => Post.fromJson(p as Map<String, dynamic>)).toList()
+          ? (json['posts'] as List)
+              .map((p) => Post.fromJson(p as Map<String, dynamic>))
+              .toList()
           : const [],
     );
   }
@@ -135,17 +144,21 @@ class Post extends Model {
   final String userId;
   final User? user;
 
-  Post({required this.id, required this.title, required this.userId, this.user});
+  Post(
+      {required this.id, required this.title, required this.userId, this.user});
 
   factory Post.fromJson(Map<String, dynamic> json) {
     return Post(
       id: json['id'] as int,
       title: json['title'] as String,
       userId: json['user_id'] as String,
-      user: json['users'] != null ? User.fromJson(json['users'] as Map<String, dynamic>) : null,
+      user: json['users'] != null
+          ? User.fromJson(json['users'] as Map<String, dynamic>)
+          : null,
     );
   }
 
   @override
-  Map<String, dynamic> toJson() => {'id': id, 'title': title, 'user_id': userId};
+  Map<String, dynamic> toJson() =>
+      {'id': id, 'title': title, 'user_id': userId};
 }

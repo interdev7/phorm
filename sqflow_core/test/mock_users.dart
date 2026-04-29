@@ -1,6 +1,6 @@
 import 'models/user.dart';
 
-final mockUsers = [
+final mockUsers = <Map<String, dynamic>>[
   {
     "id": "u001",
     "first_name": "James",

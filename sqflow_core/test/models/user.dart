@@ -9,8 +9,11 @@ part 'user.sql.g.dart';
     Index(columns: ['email'], unique: true),
     Index(columns: ['first_name', 'last_name']),
   ],
+  relationships: [
+    HasMany(model: Order, foreignKey: 'user_id'),
+  ],
 )
-class User extends Model {
+class User extends Model with _$UserMixin {
   @ID(type: TEXT(), autoIncrement: false, unique: true)
   final String id;
 
@@ -54,12 +57,15 @@ class User extends Model {
   final bool isVerified;
 
   @Column(type: TEXT())
+  @override
   final DateTime createdAt;
 
   @Column(type: TEXT())
+  @override
   final DateTime? updatedAt;
 
   @Column(type: TEXT())
+  @override
   final DateTime? deletedAt;
 
   User({
@@ -81,56 +87,12 @@ class User extends Model {
     this.deletedAt,
   });
 
-  Table<User> get table => usersTable;
-
   String get fullName => '$firstName $lastName';
 
-  Map<String, dynamic> toJson() {
-    return {
-      'id': id,
-      'first_name': firstName,
-      'last_name': lastName,
-      'email': email,
-      'phone': phone,
-      'birth_date': birthDate,
-      'age': age,
-      'gender': gender,
-      'city': city,
-      'country': country,
-      'address': address,
-      'is_active': isActive ? 1 : 0, // SQLite BOOLEAN as INTEGER
-      'is_verified': isVerified ? 1 : 0,
-      'created_at': createdAt.toIso8601String(),
-      'updated_at': updatedAt?.toIso8601String(),
-      'deleted_at': deletedAt?.toIso8601String(),
-    };
-  }
+  @override
+  Map<String, dynamic> toJson() => _$UserToJson();
 
-  factory User.fromJson(Map<String, dynamic> json) {
-    return User(
-      id: json['id'] as String,
-      firstName: json['first_name'] as String,
-      lastName: json['last_name'] as String,
-      email: json['email'] as String,
-      phone: json['phone'] as String,
-      birthDate: json['birth_date'] as String?,
-      age: json['age'] != null ? (json['age'] as num).toInt() : null,
-      gender: json['gender'] as String? ?? 'Other', // Default value
-      city: json['city'] as String? ?? '', // Default value
-      country: json['country'] as String? ?? '', // Default value
-      address: json['address'] as String?,
-      isActive: json['is_active'] == 1 || json['is_active'] == true,
-      isVerified: json['is_verified'] == 1 || json['is_verified'] == true,
-      createdAt: DateTime.parse(
-          json['created_at'] as String? ?? DateTime.now().toIso8601String()),
-      updatedAt: json['updated_at'] != null
-          ? DateTime.parse(json['updated_at'] as String)
-          : null,
-      deletedAt: json['deleted_at'] != null
-          ? DateTime.parse(json['deleted_at'] as String)
-          : null,
-    );
-  }
+  factory User.fromJson(Map<String, dynamic> json) => _$UserFromJson(json);
 
   User copyWith({
     String? id,
@@ -169,4 +131,44 @@ class User extends Model {
       deletedAt: deletedAt ?? this.deletedAt,
     );
   }
+}
+
+@Schema(
+  tableName: 'orders',
+  paranoid: true,
+  relationships: [
+    BelongsTo(model: User, foreignKey: 'user_id'),
+  ],
+)
+class Order extends Model with _$OrderMixin {
+  @ID(type: INTEGER(), autoIncrement: true)
+  final int id;
+
+  @Column(type: INTEGER())
+  final int total;
+
+  @Column(type: TEXT())
+  @override
+  final DateTime createdAt;
+
+  @Column(type: TEXT())
+  @override
+  final DateTime? updatedAt;
+
+  @Column(type: TEXT())
+  @override
+  final DateTime? deletedAt;
+
+  Order({
+    required this.id,
+    required this.total,
+    required this.createdAt,
+    this.updatedAt,
+    this.deletedAt,
+  });
+
+  @override
+  Map<String, dynamic> toJson() => _$OrderToJson();
+
+  factory Order.fromJson(Map<String, dynamic> json) => _$OrderFromJson(json);
 }
