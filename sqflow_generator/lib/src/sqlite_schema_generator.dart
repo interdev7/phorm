@@ -241,7 +241,7 @@ class SqliteSchemaGenerator extends GeneratorForAnnotation<Schema> {
     final reader = ConstantReader(meta.computeConstantValue());
     final annotationName = meta.element!.enclosingElement3!.name;
 
-    final explicitName = reader.peek('name')?.stringValue;
+    final explicitName = reader.peek('columnName')?.stringValue;
 
     String columnName;
 
@@ -357,33 +357,17 @@ class SqliteSchemaGenerator extends GeneratorForAnnotation<Schema> {
   ) {
     switch (type) {
       case 'INTEGER':
-      case 'BIGINT':
         return 'INTEGER';
       case 'REAL':
         return 'REAL';
       case 'TEXT':
-      case 'JSON':
-        return 'TEXT';
-      case 'VARCHAR':
-        return length != null ? 'VARCHAR($length)' : 'TEXT';
-      case 'CHAR':
-        return length != null ? 'CHAR($length)' : 'CHAR(1)';
-      case 'DECIMAL':
-        if (precision != null && scale != null) {
-          return 'DECIMAL($precision,$scale)';
-        } else if (precision != null) {
-          return 'DECIMAL($precision)';
-        }
-        return 'DECIMAL';
-      case 'BOOLEAN':
-        return 'INTEGER';
-      case 'DATE':
-      case 'DATETIME':
-      case 'TIME':
         return 'TEXT';
       case 'BLOB':
         return 'BLOB';
+      case 'NUMERIC':
+        return 'NUMERIC';
       default:
+        // Default to TEXT for unknown types (safe SQLite fallback)
         return 'TEXT';
     }
   }

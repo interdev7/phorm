@@ -18,6 +18,11 @@ enum ColumnNamingStrategy {
 /// such as type, nullability, uniqueness, defaults,
 /// and value constraints.
 abstract class ColumnBase {
+  /// Explicit name of the column in the database.
+  ///
+  /// If provided, overrides the [ColumnNamingStrategy] set on the [Schema].
+  final String? columnName;
+
   /// Database data type of the column.
   final DataType type;
 
@@ -36,6 +41,7 @@ abstract class ColumnBase {
 
   const ColumnBase({
     required this.type,
+    this.columnName,
     this.unique = false,
     this.defaultValue,
     this.check,
@@ -48,6 +54,7 @@ abstract class ColumnBase {
 class Column extends ColumnBase {
   const Column({
     required super.type,
+    super.columnName,
     super.unique,
     super.defaultValue,
     super.check,
@@ -65,6 +72,7 @@ class ID extends ColumnBase {
 
   const ID({
     required super.type,
+    super.columnName,
     this.autoIncrement = false,
     super.unique = true,
   });
@@ -91,12 +99,20 @@ class Schema {
   /// Relationships defined on the table.
   final List<Relationship> relationships;
 
+  /// Whether to generate the SQFlowClassNameToJson method.
+  final bool useToJson;
+
+  /// Whether to generate the SQFlowClassNameFromJson method.
+  final bool useFromJson;
+
   const Schema({
     this.tableName,
     this.indexes = const [],
     this.paranoid = false,
     this.columnNaming = ColumnNamingStrategy.snakeCase,
     this.relationships = const [],
+    this.useToJson = true,
+    this.useFromJson = true,
   });
 }
 

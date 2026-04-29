@@ -9,11 +9,15 @@ analyzer:
     cast_nullable_to_non_nullable: ignore
     inference_failure_on_function_invocation: ignore
     inference_failure_on_instance_creation: ignore
+    inference_failure_on_uninitialized_variable: ignore
     lines_longer_than_80_chars: ignore
     omit_local_variable_types: ignore
     prefer_single_quotes: ignore
+    prefer_typing_uninitialized_variables: ignore
     public_member_api_docs: ignore
     sort_constructors_first: ignore
+    specify_nonobvious_property_types: ignore
+    strict_top_level_inference: ignore
     unnecessary_await_in_return: ignore
     unnecessary_lambdas: ignore
     unnecessary_library_directive: ignore

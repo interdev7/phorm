@@ -6,7 +6,7 @@
 
 part of 'complex_relationships_test.dart';
 
-const _$UserSchema = """
+const _$SQFlowUserSchema = """
 CREATE TABLE users (
   id TEXT PRIMARY KEY NOT NULL UNIQUE,
   name TEXT NOT NULL
@@ -15,18 +15,18 @@ CREATE TABLE users (
 
 """;
 
-class _$UserTable extends Table<User> {
-  _$UserTable({
+class _$SQFlowUserTable extends Table<User> {
+  _$SQFlowUserTable({
     required super.schema,
     required super.name,
     required super.fromJson,
     super.relationships = const [],
-  }) : super(type: User, paranoid: _detectSoftDelete(schema));
+  }) : super(type: User, paranoid: Table.detectSoftDelete(schema));
 }
 
 /// User table schema
-final usersTable = _$UserTable(
-  schema: _$UserSchema,
+final usersTable = _$SQFlowUserTable(
+  schema: _$SQFlowUserSchema,
   name: 'users',
   fromJson: User.fromJson,
   relationships: const [
@@ -35,23 +35,23 @@ final usersTable = _$UserTable(
   ],
 );
 
-mixin _$UserMixin {
+mixin _$SQFlowUserMixin {
   final List<Post> _$posts = [];
   List<Post> get posts => _$posts;
   Profile? _$profile;
   Profile? get profile => _$profile;
 }
 
-extension _$UserSqlExt on User {
-  Map<String, dynamic> _$UserToJson() {
+extension _$SQFlowUserSqlExt on User {
+  Map<String, dynamic> _$SQFlowUserToJson() {
     return {
-      'id': _$toJsonValue(id),
-      'name': _$toJsonValue(name),
+      'id': _$SQFlowToJsonValue(id),
+      'name': _$SQFlowToJsonValue(name),
     };
   }
 }
 
-User _$UserFromJson(Map<String, dynamic> json) {
+User _$SQFlowUserFromJson(Map<String, dynamic> json) {
   final instance = User(
     id: json['id'] as String,
     name: json['name'] as String,
@@ -67,7 +67,7 @@ User _$UserFromJson(Map<String, dynamic> json) {
   return instance;
 }
 
-const _$PostSchema = """
+const _$SQFlowPostSchema = """
 CREATE TABLE posts (
   id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL UNIQUE,
   title TEXT NOT NULL,
@@ -77,18 +77,18 @@ CREATE TABLE posts (
 
 """;
 
-class _$PostTable extends Table<Post> {
-  _$PostTable({
+class _$SQFlowPostTable extends Table<Post> {
+  _$SQFlowPostTable({
     required super.schema,
     required super.name,
     required super.fromJson,
     super.relationships = const [],
-  }) : super(type: Post, paranoid: _detectSoftDelete(schema));
+  }) : super(type: Post, paranoid: Table.detectSoftDelete(schema));
 }
 
 /// Post table schema
-final postsTable = _$PostTable(
-  schema: _$PostSchema,
+final postsTable = _$SQFlowPostTable(
+  schema: _$SQFlowPostSchema,
   name: 'posts',
   fromJson: Post.fromJson,
   relationships: const [
@@ -96,7 +96,7 @@ final postsTable = _$PostTable(
   ],
 );
 
-mixin _$PostMixin {
+mixin _$SQFlowPostMixin {
   User? _$user;
   User? get user => _$user;
   var _$userId;
@@ -104,17 +104,17 @@ mixin _$PostMixin {
   set userId(dynamic value) => _$userId = value;
 }
 
-extension _$PostSqlExt on Post {
-  Map<String, dynamic> _$PostToJson() {
+extension _$SQFlowPostSqlExt on Post {
+  Map<String, dynamic> _$SQFlowPostToJson() {
     return {
-      'id': _$toJsonValue(id),
-      'title': _$toJsonValue(title),
-      'user_id': _$toJsonValue(userId),
+      'id': _$SQFlowToJsonValue(id),
+      'title': _$SQFlowToJsonValue(title),
+      'user_id': _$SQFlowToJsonValue(userId),
     };
   }
 }
 
-Post _$PostFromJson(Map<String, dynamic> json) {
+Post _$SQFlowPostFromJson(Map<String, dynamic> json) {
   final instance = Post(
     id: json['id'] as int,
     title: json['title'] as String,
@@ -126,7 +126,7 @@ Post _$PostFromJson(Map<String, dynamic> json) {
   return instance;
 }
 
-const _$ProfileSchema = """
+const _$SQFlowProfileSchema = """
 CREATE TABLE profiles (
   id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL UNIQUE,
   bio TEXT NOT NULL,
@@ -136,18 +136,18 @@ CREATE TABLE profiles (
 
 """;
 
-class _$ProfileTable extends Table<Profile> {
-  _$ProfileTable({
+class _$SQFlowProfileTable extends Table<Profile> {
+  _$SQFlowProfileTable({
     required super.schema,
     required super.name,
     required super.fromJson,
     super.relationships = const [],
-  }) : super(type: Profile, paranoid: _detectSoftDelete(schema));
+  }) : super(type: Profile, paranoid: Table.detectSoftDelete(schema));
 }
 
 /// Profile table schema
-final profilesTable = _$ProfileTable(
-  schema: _$ProfileSchema,
+final profilesTable = _$SQFlowProfileTable(
+  schema: _$SQFlowProfileSchema,
   name: 'profiles',
   fromJson: Profile.fromJson,
   relationships: const [
@@ -155,7 +155,7 @@ final profilesTable = _$ProfileTable(
   ],
 );
 
-mixin _$ProfileMixin {
+mixin _$SQFlowProfileMixin {
   User? _$user;
   User? get user => _$user;
   var _$userId;
@@ -163,17 +163,17 @@ mixin _$ProfileMixin {
   set userId(dynamic value) => _$userId = value;
 }
 
-extension _$ProfileSqlExt on Profile {
-  Map<String, dynamic> _$ProfileToJson() {
+extension _$SQFlowProfileSqlExt on Profile {
+  Map<String, dynamic> _$SQFlowProfileToJson() {
     return {
-      'id': _$toJsonValue(id),
-      'bio': _$toJsonValue(bio),
-      'user_id': _$toJsonValue(userId),
+      'id': _$SQFlowToJsonValue(id),
+      'bio': _$SQFlowToJsonValue(bio),
+      'user_id': _$SQFlowToJsonValue(userId),
     };
   }
 }
 
-Profile _$ProfileFromJson(Map<String, dynamic> json) {
+Profile _$SQFlowProfileFromJson(Map<String, dynamic> json) {
   final instance = Profile(
     id: json['id'] as int,
     bio: json['bio'] as String,
@@ -185,15 +185,9 @@ Profile _$ProfileFromJson(Map<String, dynamic> json) {
   return instance;
 }
 
-dynamic _$toJsonValue(dynamic value) {
+dynamic _$SQFlowToJsonValue(dynamic value) {
   if (value == null) return null;
   if (value is DateTime) return value.toIso8601String();
   if (value is bool) return value ? 1 : 0;
   return value;
-}
-
-bool _detectSoftDelete(String schema) {
-  final normalized = schema.toLowerCase();
-  return normalized.contains('deleted_at') &&
-      normalized.contains('create table');
 }

@@ -69,4 +69,11 @@ class Table<T extends Model> {
     this.paranoid = false,
     this.relationships = const [],
   });
+
+  /// Helper to detect if a schema string contains soft-delete capability.
+  static bool detectSoftDelete(String schema) {
+    final normalized = schema.toLowerCase();
+    return normalized.contains('deleted_at') &&
+        normalized.contains('create table');
+  }
 }

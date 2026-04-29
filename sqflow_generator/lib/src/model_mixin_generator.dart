@@ -23,6 +23,8 @@ class ModelMixinGenerator extends GeneratorForAnnotation<Schema> {
             (e) => e.name == strategyReader.revive().accessor.split('.').last,
             orElse: () => ColumnNamingStrategy.snakeCase,
           );
+    final useToJson = annotation.peek('useToJson')?.boolValue ?? true;
+    final useFromJson = annotation.peek('useFromJson')?.boolValue ?? true;
 
     final fields = element.fields.where((f) => !f.isStatic).toList();
     final relationships = <Map<String, dynamic>>[];
@@ -109,161 +111,163 @@ class ModelMixinGenerator extends GeneratorForAnnotation<Schema> {
 
     final buffer = StringBuffer();
 
-    if (relationships.isNotEmpty) {
-      // 1. Mixin
-      buffer.writeln('mixin _\$${className}Mixin {');
+    // 1. Mixin
+    buffer.writeln('mixin _\$SQFlow${className}Mixin {');
 
-      // Relationship fields
+    // Relationship fields
+    for (final rel in relationships) {
+      final modelClass = rel['modelClass'];
+      final fieldName = rel['fieldName'];
+      final isCollection = rel['isCollection'] as bool;
+
+      final exists = fields.any((f) => f.name == fieldName);
+      if (!exists) {
+        if (isCollection) {
+          buffer
+            ..writeln('  final List<$modelClass> _\$$fieldName = [];')
+            ..writeln('  List<$modelClass> get $fieldName => _\$$fieldName;');
+        } else {
+          buffer
+            ..writeln('  $modelClass? _\$$fieldName;')
+            ..writeln('  $modelClass? get $fieldName => _\$$fieldName;');
+        }
+      }
+
+      if (rel['type'] == 'BelongsTo') {
+        final fkName = rel['foreignKeyName'];
+        final existsFk = fields.any((f) => f.name == fkName);
+        if (!existsFk) {
+          buffer
+            ..writeln('  var _\$$fkName;')
+            ..writeln('  dynamic get $fkName => $fieldName?.id ?? _\$$fkName;')
+            ..writeln('  set $fkName(dynamic value) => _\$$fkName = value;');
+        }
+      }
+    }
+
+    // Close the mixin
+    buffer.writeln('}');
+
+    // 2. Extension for toJson
+    if (useToJson) {
+      buffer
+        ..writeln()
+        ..writeln('extension _\$SQFlow${className}SqlExt on $className {')
+        ..writeln('  Map<String, dynamic> _\$SQFlow${className}ToJson() {')
+        ..writeln('    return {');
+      for (final field in fields.where((f) => _isColumn(f))) {
+        final sqlName = MetadataExtractor.getSqlColumnName(field, strategy);
+        buffer.writeln("      '$sqlName': _\$SQFlowToJsonValue(${field.name}),");
+      }
+
+      // Output synthesized foreign keys in toJson
       for (final rel in relationships) {
-        final modelClass = rel['modelClass'];
-        final fieldName = rel['fieldName'];
-        final isCollection = rel['isCollection'] as bool;
+        if (rel['type'] == 'BelongsTo') {
+          final fkName = rel['foreignKeyName'];
+          final fkSqlName = rel['foreignKey'];
+          final existsFk = fields.any((f) => f.name == fkName);
+          if (!existsFk) {
+            buffer.writeln(
+                "      '$fkSqlName': _\$SQFlowToJsonValue($fkName),");
+          }
+        }
+      }
 
-        final exists = fields.any((f) => f.name == fieldName);
-        if (!exists) {
+      buffer
+        ..writeln('    };')
+        ..writeln('  }')
+        ..writeln('}');
+    }
+
+    // 3. fromJson Function
+    if (useFromJson) {
+      buffer
+        ..writeln(
+            '\n$className _\$SQFlow${className}FromJson(Map<String, dynamic> json) {')
+        ..writeln('  final instance = $className(');
+
+      final constructor =
+          element.unnamedConstructor ?? element.constructors.first;
+      for (final param in constructor.parameters) {
+        final FieldElement? field =
+            fields.where((f) => f.name == param.name).firstOrNull;
+
+        final rel =
+            relationships.where((r) => r['fieldName'] == param.name).firstOrNull;
+        if (rel != null) {
+          final modelClass = rel['modelClass'];
+          final modelTable = rel['model'];
+          if (rel['isCollection'] as bool) {
+            buffer.writeln(
+                "    ${param.name}: json['$modelTable'] != null ? (json['$modelTable'] as List).map((e) => $modelClass.fromJson(e as Map<String, dynamic>)).toList() : [],");
+          } else {
+            buffer.writeln(
+                "    ${param.name}: json['$modelTable'] != null ? $modelClass.fromJson(json['$modelTable'] as Map<String, dynamic>) : null,");
+          }
+        } else if (field != null && _isColumn(field)) {
+          final sqlName = MetadataExtractor.getSqlColumnName(field, strategy);
+          final type = param.type.getDisplayString();
+          final isNullable =
+              param.type.nullabilitySuffix == NullabilitySuffix.question;
+
+          if (type.startsWith('DateTime')) {
+            if (isNullable) {
+              buffer.writeln(
+                  "    ${param.name}: json['$sqlName'] != null ? DateTime.parse(json['$sqlName'] as String) : null,");
+            } else {
+              buffer.writeln(
+                  "    ${param.name}: DateTime.parse(json['$sqlName'] as String),");
+            }
+          } else if (type == 'bool' || type == 'bool?') {
+            // Handle both int (SQLite: 0/1) and bool (in-memory JSON) values
+            buffer.writeln(
+                "    ${param.name}: json['$sqlName'] is bool ? json['$sqlName'] as bool : (json['$sqlName'] as int?) == 1,");
+          } else {
+            buffer.writeln("    ${param.name}: json['$sqlName'] as $type,");
+          }
+        } else {
+          buffer.writeln("    ${param.name}: null,");
+        }
+      }
+      buffer.writeln('  );');
+
+      // Assign synthesized properties
+      for (final rel in relationships) {
+        final isCollection = rel['isCollection'] as bool;
+        final fieldName = rel['fieldName'];
+        final modelTable = rel['model'];
+        final modelClass = rel['modelClass'];
+
+        final existsRel = fields.any((f) => f.name == fieldName);
+        final paramRel = constructor.parameters.any((p) => p.name == fieldName);
+        if (!existsRel && !paramRel) {
           if (isCollection) {
             buffer
-              ..writeln('  final List<$modelClass> _\$$fieldName = [];')
-              ..writeln('  List<$modelClass> get $fieldName => _\$$fieldName;');
+              ..writeln("  if (json['$modelTable'] != null) {")
+              ..writeln(
+                  "    instance.$fieldName.addAll((json['$modelTable'] as List).map((e) => $modelClass.fromJson(e as Map<String, dynamic>)).toList());")
+              ..writeln("  }");
           } else {
-            buffer
-              ..writeln('  $modelClass? _\$$fieldName;')
-              ..writeln('  $modelClass? get $fieldName => _\$$fieldName;');
+            buffer.writeln(
+                "  instance._\$$fieldName = json['$modelTable'] != null ? $modelClass.fromJson(json['$modelTable'] as Map<String, dynamic>) : null;");
           }
         }
 
         if (rel['type'] == 'BelongsTo') {
           final fkName = rel['foreignKeyName'];
+          final fkSqlName = rel['foreignKey'];
           final existsFk = fields.any((f) => f.name == fkName);
-          if (!existsFk) {
-            buffer
-              ..writeln('  var _\$$fkName;')
-              ..writeln(
-                  '  dynamic get $fkName => $fieldName?.id ?? _\$$fkName;')
-              ..writeln('  set $fkName(dynamic value) => _\$$fkName = value;');
+          final paramFk = constructor.parameters.any((p) => p.name == fkName);
+          if (!existsFk && !paramFk) {
+            buffer.writeln("  instance.$fkName = json['$fkSqlName'];");
           }
         }
       }
 
-      // Close the mixin
-      buffer.writeln('}');
+      buffer
+        ..writeln('  return instance;')
+        ..writeln('}');
     }
-
-    // 2. Extension for toJson
-
-    buffer
-      ..writeln()
-      ..writeln('extension _\$${className}SqlExt on $className {')
-      ..writeln('  Map<String, dynamic> _\$${className}ToJson() {')
-      ..writeln('    return {');
-    for (final field in fields.where((f) => _isColumn(f))) {
-      final sqlName = MetadataExtractor.getSqlColumnName(field, strategy);
-      buffer.writeln("      '$sqlName': _\$toJsonValue(${field.name}),");
-    }
-
-    // Output synthesized foreign keys in toJson
-    for (final rel in relationships) {
-      if (rel['type'] == 'BelongsTo') {
-        final fkName = rel['foreignKeyName'];
-        final fkSqlName = rel['foreignKey'];
-        final existsFk = fields.any((f) => f.name == fkName);
-        if (!existsFk) {
-          buffer.writeln("      '$fkSqlName': _\$toJsonValue($fkName),");
-        }
-      }
-    }
-
-    buffer
-      ..writeln('    };')
-      ..writeln('  }')
-      ..writeln('}')
-
-      // 2. fromJson Function
-      ..writeln(
-          '\n$className _\$${className}FromJson(Map<String, dynamic> json) {')
-      ..writeln('  final instance = $className(');
-
-    final constructor =
-        element.unnamedConstructor ?? element.constructors.first;
-    for (final param in constructor.parameters) {
-      final FieldElement? field =
-          fields.where((f) => f.name == param.name).firstOrNull;
-
-      final rel =
-          relationships.where((r) => r['fieldName'] == param.name).firstOrNull;
-      if (rel != null) {
-        final modelClass = rel['modelClass'];
-        final modelTable = rel['model'];
-        if (rel['isCollection'] as bool) {
-          buffer.writeln(
-              "    ${param.name}: json['$modelTable'] != null ? (json['$modelTable'] as List).map((e) => $modelClass.fromJson(e as Map<String, dynamic>)).toList() : [],");
-        } else {
-          buffer.writeln(
-              "    ${param.name}: json['$modelTable'] != null ? $modelClass.fromJson(json['$modelTable'] as Map<String, dynamic>) : null,");
-        }
-      } else if (field != null && _isColumn(field)) {
-        final sqlName = MetadataExtractor.getSqlColumnName(field, strategy);
-        final type = param.type.getDisplayString();
-        final isNullable =
-            param.type.nullabilitySuffix == NullabilitySuffix.question;
-
-        if (type.startsWith('DateTime')) {
-          if (isNullable) {
-            buffer.writeln(
-                "    ${param.name}: json['$sqlName'] != null ? DateTime.parse(json['$sqlName'] as String) : null,");
-          } else {
-            buffer.writeln(
-                "    ${param.name}: DateTime.parse(json['$sqlName'] as String),");
-          }
-        } else if (type == 'bool' || type == 'bool?') {
-          // Handle both int (SQLite: 0/1) and bool (in-memory JSON) values
-          buffer.writeln(
-              "    ${param.name}: json['$sqlName'] is bool ? json['$sqlName'] as bool : (json['$sqlName'] as int?) == 1,");
-        } else {
-          buffer.writeln("    ${param.name}: json['$sqlName'] as $type,");
-        }
-      } else {
-        buffer.writeln("    ${param.name}: null,");
-      }
-    }
-    buffer.writeln('  );');
-
-    // Assign synthesized properties
-    for (final rel in relationships) {
-      final isCollection = rel['isCollection'] as bool;
-      final fieldName = rel['fieldName'];
-      final modelTable = rel['model'];
-      final modelClass = rel['modelClass'];
-
-      final existsRel = fields.any((f) => f.name == fieldName);
-      final paramRel = constructor.parameters.any((p) => p.name == fieldName);
-      if (!existsRel && !paramRel) {
-        if (isCollection) {
-          buffer
-            ..writeln("  if (json['$modelTable'] != null) {")
-            ..writeln(
-                "    instance.$fieldName.addAll((json['$modelTable'] as List).map((e) => $modelClass.fromJson(e as Map<String, dynamic>)).toList());")
-            ..writeln("  }");
-        } else {
-          buffer.writeln(
-              "  instance._\$$fieldName = json['$modelTable'] != null ? $modelClass.fromJson(json['$modelTable'] as Map<String, dynamic>) : null;");
-        }
-      }
-
-      if (rel['type'] == 'BelongsTo') {
-        final fkName = rel['foreignKeyName'];
-        final fkSqlName = rel['foreignKey'];
-        final existsFk = fields.any((f) => f.name == fkName);
-        final paramFk = constructor.parameters.any((p) => p.name == fkName);
-        if (!existsFk && !paramFk) {
-          buffer.writeln("  instance.$fkName = json['$fkSqlName'];");
-        }
-      }
-    }
-
-    buffer
-      ..writeln('  return instance;')
-      ..writeln('}');
 
     return buffer.toString();
   }

@@ -20,7 +20,8 @@ A production-ready, flexible, generic CRUD service for SQLite databases in Flutt
 - **🔍 Advanced Querying** - Fluent `WhereBuilder` for complex WHERE clauses, `SortBuilder` for ORDER BY
 - **📊 Pagination with Total Count** - Built-in support for limit/offset with window function optimization
 - **🔄 Schema Management** - Automatic table creation and migration tracking via migrations table + `MigrationBuilder`
-- **⚡ Optional Code Generation** - Use annotations (`@Schema`, `@Column`, `@ID`) for auto-generated schemas (Integrated directly!)
+- **⚡ Automated Generation** - Annotations (`@Schema`, `@Column`, `@ID`) for zero-boilerplate schemas and models
+- **🔗 Type-Safe Eager Loading** - Fluent `Includable` API for resolving relationships without `dynamic` strings
 - **🧪 Type Safety** - Generic over your models (`T extends Model`) with compile-time checks
 - **🛡️ SQL Injection Protection** - Parameterized queries and column name validation
 - **🎯 Performance Optimized** - Single query for pagination with COUNT(\*) OVER()
@@ -452,6 +453,23 @@ Sqflow provides a powerful yet simple way to handle relationships between models
 | `@BelongsTo` | Many-to-One relationship | `Post` belongs to a `User`           |
 | `@Join`      | Alias for `BelongsTo`    | Semantic alternative for `BelongsTo` |
 
+#### Eager Loading (Type-Safe)
+
+Sqflow uses a fluent `Includable` API to fetch related data. This provides compile-time safety and IDE autocompletion.
+
+```dart
+// 1. Fetch by table name or/and model type (Recommended)
+final user = await userService.readAsync('u1', include: [
+  Includable.table('posts'),
+  Includable.model<Profile>(),
+]);
+
+// 2. Fetch by model type (Backward compatibility)
+final post = await postService.readAsync(1, include: [
+  Includable.model<User>(),
+]);
+```
+
 ### 🚀 Automated Model Generation (New!)
 
 Sqflow now supports automated generation of SQL schemas, `toJson`, `fromJson`, and relationship fields using `build_runner`.
@@ -490,11 +508,10 @@ class User extends Model with _$UserMixin {
   @Column(type: TEXT())
   final String name;
 
-  // These fields are populated via eager loading
-  @override
-  final List<Post> posts;
+  // Relationship fields are now managed by the mixin for better immutability
+  // List<Post> get posts => ... (from mixin)
 
-  User({required this.id, required this.name, this.posts = const []});
+  User({required this.id, required this.name});
 
   factory User.fromJson(Map<String, dynamic> json) => _$UserFromJson(json);
 }
@@ -600,22 +617,20 @@ factory User.fromJson(Map<String, dynamic> json) {
 
 ---
 
-#### 3. Eager Loading with `include`
-
-To fetch related data, pass the target model names to the `include` parameter in `readAsync` or `readAll`.
+To fetch related data, use the `Includable` API in `readAsync` or `readAll`.
 
 ```dart
-// 1. Fetch a single user with all their posts
-final user = await userService.readAsync('u1', include: ['posts']);
+// 1. Fetch a single user with all their posts (Type-safe)
+final user = await userService.readAsync('u1', include: [Includable.model<Post>()]);
 
 // 2. Fetch a post with its author
-final post = await postService.readAsync(1, include: ['users']);
-print(post?.author?.name);
+final post = await postService.readAsync(1, include: [Includable.model<User>()]);
+print(post?.user?.name);
 
 // 3. Bulk fetch with relationships
 final result = await userService.readAll(
   where: WhereBuilder().eq('city', 'New York'),
-  include: ['posts'],
+  include: [Includable.model<Post>()],
 );
 ```
 
@@ -842,31 +857,32 @@ part 'user.sql.g.dart';  // Generated file
   columnNaming: ColumnNamingStrategy.snakeCase, // or camelCase / pascalCase
 )
 class User extends Model {
-  @ID(type: DataTypes.TEXT, autoIncrement: false, unique: true)
+  @ID(type: TEXT(), autoIncrement: false, unique: true)
+  @override
   final String id;
 
-  @Column(type: DataTypes.TEXT)
+  @Column(type: TEXT())
   final String firstName;
 
-  @Column(type: DataTypes.TEXT)
+  @Column(type: TEXT())
   final String lastName;
 
-  @Column(type: DataTypes.TEXT, unique: true)
+  @Column(type: TEXT(), unique: true)
   final String email;
 
-  @Column(type: DataTypes.INTEGER, nullable: true)
+  @Column(type: INTEGER(), nullable: true)
   final int? age;
 
-  @Column(type: DataTypes.BOOLEAN, defaultValue: true)
+  @Column(type: INTEGER(), defaultValue: 1)
   final bool isActive;
 
-  @Column(type: DataTypes.DATETIME)
+  @Column(type: TEXT())
   final DateTime createdAt;
 
-  @Column(type: DataTypes.DATETIME, nullable: true)
+  @Column(type: TEXT(), nullable: true)
   final DateTime? updatedAt;
 
-  @Column(type: DataTypes.DATETIME, nullable: true)
+  @Column(type: TEXT(), nullable: true)
   final DateTime? deletedAt;
 
   // Constructor, toJson, fromJson, etc.
@@ -919,10 +935,10 @@ Control column naming in generated SQL with `ColumnNamingStrategy`:
   columnNaming: ColumnNamingStrategy.snakeCase,
 )
 class User extends Model {
-  @Column(type: DataTypes.TEXT)
+  @Column(type: TEXT())
   final String firstName;  // SQL: first_name
 
-  @Column(type: DataTypes.TEXT)
+  @Column(type: TEXT())
   final String lastName;   // SQL: last_name
 }
 ```
@@ -939,9 +955,9 @@ class User extends Model {
   ],
 )
 class User extends Model {
-  @Column(type: DataTypes.TEXT)
+  @Column(type: TEXT())
   final String firstName;  // SQL: firstName
-  @Column(type: DataTypes.TEXT)
+  @Column(type: TEXT())
   final String lastName;   // SQL: lastName
 }
 ```
@@ -954,30 +970,31 @@ class User extends Model {
   columnNaming: ColumnNamingStrategy.pascalCase,
 )
 class User extends Model {
-  @Column(type: DataTypes.TEXT)
+  @Column(type: TEXT())
   final String firstName;  // SQL: FirstName
-  @Column(type: DataTypes.TEXT)
+  @Column(type: TEXT())
   final String lastName;   // SQL: LastName
 }
 ```
 
-#### custom (Explicit Naming)
+#### Explicit Naming
 
-When you need full control over column names, use `custom` strategy with explicit column names:
+Individual column names can be overridden regardless of the strategy:
 
 ```dart
 @Schema(
   tableName: 'users',
-  columnNaming: ColumnNamingStrategy.custom,
+  columnNaming: ColumnNamingStrategy.snakeCase,
 )
 class User extends Model {
-  @Column(type: DataTypes.TEXT, columnName: 'user_first_name')
+  @Column(type: TEXT(), columnName: 'user_first_name')
   final String firstName;  // SQL: user_first_name
 
-  @Column(type: DataTypes.TEXT, columnName: 'user_last_name')
+  @Column(type: TEXT(), columnName: 'user_last_name')
   final String lastName;   // SQL: user_last_name
 
-  @ID(type: DataTypes.TEXT, columnName: 'user_id')
+  @ID(type: TEXT(), columnName: 'user_id')
+  @override
   final String id;         // SQL: user_id
 }
 ```

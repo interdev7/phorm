@@ -56,12 +56,15 @@ class MetadataExtractor {
       if (element is ClassElement) {
         final idField = element.fields.firstWhere((f) => f.metadata.any((m) => m.element?.enclosingElement3?.name == 'ID'));
         final idMeta = idField.metadata.firstWhere((m) => m.element?.enclosingElement3?.name == 'ID');
-        final reader = ConstantReader(idMeta.computeConstantValue());
-        final typeReader = reader.read('type');
+        final typeReader = ConstantReader(idMeta.computeConstantValue()).read('type');
         final typeName = typeReader.peek('name')?.stringValue ?? 
                         typeReader.objectValue.type?.element?.name ??
                         typeReader.revive().accessor.split('.').last;
-        if (typeName == 'INTEGER' || typeName == 'BIGINT') return 'INTEGER';
+        
+        if (typeName == 'INTEGER') return 'INTEGER';
+        if (typeName == 'REAL') return 'REAL';
+        if (typeName == 'BLOB') return 'BLOB';
+        if (typeName == 'NUMERIC') return 'NUMERIC';
         return 'TEXT';
       }
     } catch (_) {}
@@ -94,7 +97,7 @@ class MetadataExtractor {
     if (meta == null) return camelToSnake(field.name);
 
     final reader = ConstantReader(meta.computeConstantValue());
-    final explicitName = reader.peek('name')?.stringValue;
+    final explicitName = reader.peek('columnName')?.stringValue;
     if (explicitName != null) return explicitName;
 
     switch (strategy) {
