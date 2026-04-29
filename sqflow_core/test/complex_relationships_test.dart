@@ -144,6 +144,77 @@ void main() {
       }
     }
   });
+
+  test('Complex WhereBuilder with relationships: nested groups and functions', () async {
+    final database = await db.database;
+
+    // Seed Data
+    await database.insert('users', {'id': 'u1', 'name': 'Alice Admin'}); // Age check will be manual column in a real app, here we use 'name' length or other tricks since User model in this test is simple
+    await database.insert('users', {'id': 'u2', 'name': 'Bob Editor'});
+    await database.insert('users', {'id': 'u3', 'name': 'Charlie Guest'});
+
+    // Posts
+    await database.insert('posts', {'id': 1, 'title': 'A1', 'user_id': 'u1'});
+    await database.insert('posts', {'id': 2, 'title': 'B1', 'user_id': 'u2'});
+    await database.insert('posts', {'id': 3, 'title': 'C1', 'user_id': 'u3'});
+
+    final userService = SqflowCore<User>(dbManager: db, table: usersTable);
+
+    // Complex filter: 
+    // (Name contains 'Alice' OR Name contains 'Bob') 
+    // AND (Name length > 5)
+    final where = WhereBuilder().andGroup((ag) {
+      ag.orGroup((og) {
+        og.like('name', '%Alice%').like('name', '%Bob%');
+      });
+      ag.lengthGt('name', 5);
+    });
+
+    final result = await userService.readAll(
+      where: where,
+      include: [Includable.model<Post>()],
+      sort: SortBuilder().asc('name'),
+    );
+
+    // Expected: Alice and Bob (Charlie is excluded by orGroup)
+    expect(result.data, hasLength(2));
+    expect(result.data[0].name, contains('Alice'));
+    expect(result.data[1].name, contains('Bob'));
+
+    // Verify relationships were still loaded for the filtered set
+    expect(result.data[0].posts, hasLength(1));
+    expect(result.data[0].posts[0].title, 'A1');
+    expect(result.data[1].posts, hasLength(1));
+    expect(result.data[1].posts[0].title, 'B1');
+  });
+
+  test('Complex filtering with BelongsTo: filtering posts by multiple criteria', () async {
+    final database = await db.database;
+
+    await database.insert('users', {'id': 'u1', 'name': 'Author A'});
+    await database.insert('users', {'id': 'u2', 'name': 'Author B'});
+
+    await database.insert('posts', {'id': 1, 'title': 'Tech News', 'user_id': 'u1'});
+    await database.insert('posts', {'id': 2, 'title': 'Tech Review', 'user_id': 'u2'});
+    await database.insert('posts', {'id': 3, 'title': 'Food Blog', 'user_id': 'u1'});
+
+    final postService = SqflowCore<Post>(dbManager: db, table: postsTable);
+
+    // Filter: title starts with 'Tech' AND user_id is 'u2'
+    final where = WhereBuilder()
+        .like('title', 'Tech%')
+        .eq('user_id', 'u2');
+
+    final result = await postService.readAll(
+      where: where,
+      include: [Includable.model<User>()],
+    );
+
+    expect(result.data, hasLength(1));
+    expect(result.data[0].title, 'Tech Review');
+    expect(result.data[0].user, isNotNull);
+    expect(result.data[0].user!.name, 'Author B');
+  });
 }
 
 // Test Models
