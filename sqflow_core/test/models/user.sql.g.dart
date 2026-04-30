@@ -44,9 +44,7 @@ final usersTable = _$SQFlowUserTable(
   schema: _$SQFlowUserSchema,
   name: 'users',
   fromJson: User.fromJson,
-  relationships: const [
-    HasMany(model: 'orders', foreignKey: 'user_id', localKey: 'id')
-  ],
+  relationships: const [HasMany(model: 'orders', foreignKey: 'user_id')],
 );
 
 mixin _$SQFlowUserMixin {
@@ -146,12 +144,12 @@ User _$SQFlowUserFromJson(Map<String, dynamic> json) {
         : null
     ..deletedAt = json['deleted_at'] != null
         ? DateTime.parse(json['deleted_at'] as String)
-        : null;
-  if (json['orders'] != null) {
-    instance.orders.addAll((json['orders'] as List)
-        .map((e) => Order.fromJson(e as Map<String, dynamic>))
-        .toList());
-  }
+        : null
+    ..orders.addAll(json['orders'] != null
+        ? (json['orders'] as List)
+            .map((e) => Order.fromJson(e as Map<String, dynamic>))
+            .toList()
+        : []);
   return instance;
 }
 
@@ -182,9 +180,7 @@ final ordersTable = _$SQFlowOrderTable(
   schema: _$SQFlowOrderSchema,
   name: 'orders',
   fromJson: Order.fromJson,
-  relationships: const [
-    BelongsTo(model: 'users', foreignKey: 'user_id', localKey: 'id')
-  ],
+  relationships: const [BelongsTo(model: 'users', foreignKey: 'user_id')],
 );
 
 mixin _$SQFlowOrderMixin {
@@ -240,11 +236,11 @@ Order _$SQFlowOrderFromJson(Map<String, dynamic> json) {
         : null
     ..deletedAt = json['deleted_at'] != null
         ? DateTime.parse(json['deleted_at'] as String)
-        : null;
-  instance._$user = json['users'] != null
-      ? User.fromJson(json['users'] as Map<String, dynamic>)
-      : null;
-  instance.userId = json['user_id'];
+        : null
+    .._$user = json['users'] != null
+        ? User.fromJson(json['users'] as Map<String, dynamic>)
+        : null
+    ..userId = json['user_id'];
   return instance;
 }
 

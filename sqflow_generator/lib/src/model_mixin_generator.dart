@@ -328,7 +328,6 @@ class ModelMixinGenerator extends GeneratorForAnnotation<Schema> {
         buffer.write(
             "\n    ..deletedAt = json['deleted_at'] != null ? DateTime.parse(json['deleted_at'] as String) : null");
       }
-      buffer.writeln(';');
 
       for (final rel in relationships) {
         final isCollection = rel['isCollection'] as bool;
@@ -340,14 +339,11 @@ class ModelMixinGenerator extends GeneratorForAnnotation<Schema> {
         final paramRel = constructor.parameters.any((p) => p.name == fieldName);
         if (!existsRel && !paramRel) {
           if (isCollection) {
-            buffer
-              ..writeln("  if (json['$modelTable'] != null) {")
-              ..writeln(
-                  "    instance.$fieldName.addAll((json['$modelTable'] as List).map((e) => $modelClass.fromJson(e as Map<String, dynamic>)).toList());")
-              ..writeln("  }");
+            buffer.write(
+                "\n    ..$fieldName.addAll(json['$modelTable'] != null ? (json['$modelTable'] as List).map((e) => $modelClass.fromJson(e as Map<String, dynamic>)).toList() : [])");
           } else {
-            buffer.writeln(
-                "  instance._\$$fieldName = json['$modelTable'] != null ? $modelClass.fromJson(json['$modelTable'] as Map<String, dynamic>) : null;");
+            buffer.write(
+                "\n    .._\$$fieldName = json['$modelTable'] != null ? $modelClass.fromJson(json['$modelTable'] as Map<String, dynamic>) : null");
           }
         }
 
@@ -357,10 +353,12 @@ class ModelMixinGenerator extends GeneratorForAnnotation<Schema> {
           final existsFk = fields.any((f) => f.name == fkName);
           final paramFk = constructor.parameters.any((p) => p.name == fkName);
           if (!existsFk && !paramFk) {
-            buffer.writeln("  instance.$fkName = json['$fkSqlName'];");
+            buffer.write("\n    ..$fkName = json['$fkSqlName']");
           }
         }
       }
+
+      buffer.writeln(';');
 
       buffer
         ..writeln('  return instance;')
