@@ -56,8 +56,6 @@ class User extends Model with _$SQFlowUserMixin {
   @Column(type: INTEGER(), defaultValue: false)
   final bool isVerified;
 
-
-
   User({
     required this.id,
     required this.firstName,
@@ -86,6 +84,9 @@ class User extends Model with _$SQFlowUserMixin {
 @Schema(
   tableName: 'orders',
   paranoid: true,
+  indexes: [
+    Index(columns: ['user_id']),
+  ],
   relationships: [
     BelongsTo(model: User, foreignKey: 'user_id'),
   ],
@@ -96,8 +97,6 @@ class Order extends Model with _$SQFlowOrderMixin {
 
   @Column(type: INTEGER())
   final int total;
-
-
 
   Order({
     required this.id,

@@ -5,6 +5,7 @@ String stringSchemaBuilder({
   required String className,
   required String tableName,
   required String fileName,
+  required List<String> columnNames,
   String? indexSql,
   List<Map<String, dynamic>> relationships = const [],
 }) {
@@ -35,6 +36,7 @@ class $tableClassName extends Table<$className> {
     required super.name,
     required super.fromJson,
     super.relationships = const [],
+    super.columns = const [],
   }) : super(type: $className, paranoid: Table.detectSoftDelete(schema));
 }
 
@@ -44,6 +46,7 @@ final $tableVarName = $tableClassName(
   name: '$tableName',
   fromJson: $className.fromJson,
   relationships: ${relationshipsCode.isNotEmpty ? "const " : ""} [$relationshipsCode],
+  columns: const [${columnNames.map((c) => "'$c'").join(', ')}],
 );
 ''';
 }

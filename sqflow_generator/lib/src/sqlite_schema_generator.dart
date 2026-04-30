@@ -47,6 +47,7 @@ class SqliteSchemaGenerator extends GeneratorForAnnotation<Schema> {
     final fields = element.fields.where((f) => !f.isStatic).toList();
 
     final columnSql = <String>[];
+    final columnNames = <String>[];
     final foreignKeys = <String>[];
 
     bool hasCreatedAt = false;
@@ -68,6 +69,7 @@ class SqliteSchemaGenerator extends GeneratorForAnnotation<Schema> {
 
       final result = _generateColumn(field, annotationMeta, strategy);
       columnSql.add(result.columnSql);
+      columnNames.add(result.columnName);
 
       if (result.foreignKeySql != null) {
         foreignKeys.add(result.foreignKeySql!);
@@ -75,12 +77,19 @@ class SqliteSchemaGenerator extends GeneratorForAnnotation<Schema> {
     }
 
     if (timestamps) {
-      if (!hasCreatedAt) columnSql.add('  created_at TEXT NOT NULL');
-      if (!hasUpdatedAt) columnSql.add('  updated_at TEXT NOT NULL');
+      if (!hasCreatedAt) {
+        columnSql.add('  created_at TEXT NOT NULL');
+        columnNames.add('created_at');
+      }
+      if (!hasUpdatedAt) {
+        columnSql.add('  updated_at TEXT NOT NULL');
+        columnNames.add('updated_at');
+      }
     }
 
     if (paranoid && !hasDeletedAt) {
       columnSql.add('  deleted_at TEXT');
+      columnNames.add('deleted_at');
     }
     if (columnSql.isEmpty) {
       throw InvalidGenerationSourceError(
@@ -113,7 +122,7 @@ class SqliteSchemaGenerator extends GeneratorForAnnotation<Schema> {
     // Synthesize missing foreign key columns
     for (final rel in relationships) {
       if (rel['type'] == 'BelongsTo') {
-        final fkSqlName = rel['foreignKey'];
+        final fkSqlName = rel['foreignKey'] as String;
         bool mapped = false;
         for (final field in fields) {
           final sqlName = MetadataExtractor.getSqlColumnName(field, strategy);
@@ -125,6 +134,7 @@ class SqliteSchemaGenerator extends GeneratorForAnnotation<Schema> {
         if (!mapped) {
           final sqlType = rel['idType'] as String? ?? 'TEXT';
           columnSql.add('  $fkSqlName $sqlType');
+          columnNames.add(fkSqlName);
         }
       }
     }
@@ -135,6 +145,7 @@ class SqliteSchemaGenerator extends GeneratorForAnnotation<Schema> {
       className: className,
       tableName: tableName,
       fileName: fileName,
+      columnNames: columnNames,
       indexSql: indexSql,
       relationships: relationships,
     );
@@ -305,18 +316,32 @@ class SqliteSchemaGenerator extends GeneratorForAnnotation<Schema> {
       final checker = check.peek('checker');
       final constraint = check.peek('constraint')?.stringValue;
 
-      if (constraint != null) {
+      String? checkExpr;
+      if (checker != null && !checker.isNull) {
+        if (checker.isList) {
+          final values = checker.listValue.map((v) {
+            final r = ConstantReader(v);
+            if (r.isBool) return r.boolValue ? '1' : '0';
+            if (r.isInt) return r.intValue.toString();
+            if (r.isDouble) return r.doubleValue.toString();
+            if (r.isString) return "'${r.stringValue}'";
+            return v.toString();
+          }).join(', ');
+          checkExpr = '$columnName IN ($values)';
+        } else if (checker.isString) {
+          checkExpr = checker.stringValue;
+        }
+      }
+
+      if (checkExpr != null) {
+        if (constraint != null) {
+          buffer.write(' CONSTRAINT $constraint CHECK($checkExpr)');
+        } else {
+          buffer.write(' CHECK($checkExpr)');
+        }
+      } else if (constraint != null) {
+        // If no checker, treat constraint as the expression
         buffer.write(' CHECK($constraint)');
-      } else if (checker != null && checker.isList) {
-        final values = checker.listValue.map((v) {
-          final r = ConstantReader(v);
-          if (r.isBool) return r.boolValue ? '1' : '0';
-          if (r.isInt) return r.intValue.toString();
-          if (r.isDouble) return r.doubleValue.toString();
-          if (r.isString) return "'${r.stringValue}'";
-          return v.toString();
-        }).join(', ');
-        buffer.write(' CHECK($columnName IN ($values))');
       }
     }
 
@@ -337,6 +362,7 @@ class SqliteSchemaGenerator extends GeneratorForAnnotation<Schema> {
     }
 
     return _ColumnResult(
+      columnName: columnName,
       columnSql: buffer.toString(),
       foreignKeySql: foreignKeySql,
     );
@@ -388,10 +414,12 @@ class SqliteSchemaGenerator extends GeneratorForAnnotation<Schema> {
 }
 
 class _ColumnResult {
+  final String columnName;
   final String columnSql;
   final String? foreignKeySql;
 
   _ColumnResult({
+    required this.columnName,
     required this.columnSql,
     this.foreignKeySql,
   });

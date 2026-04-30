@@ -22,6 +22,7 @@ void main() {
       relationships: const [
         HasMany(model: 'posts', foreignKey: 'user_id', localKey: 'id'),
       ],
+      columns: const ['id', 'name'],
     );
 
     postsTable = Table<Post>(
@@ -33,6 +34,7 @@ void main() {
       relationships: const [
         BelongsTo(model: 'users', foreignKey: 'user_id', localKey: 'id'),
       ],
+      columns: const ['id', 'title', 'user_id'],
     );
 
     db = DB(

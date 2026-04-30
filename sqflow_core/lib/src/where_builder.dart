@@ -44,8 +44,9 @@ class WhereBuilder {
   /// Tracks which columns have been used in conditions
   final Set<String> _usedColumns = {};
 
-  /// Column name validation regex (letters, numbers, underscores)
-  static final RegExp _columnRegExp = RegExp(r'^[a-zA-Z_][a-zA-Z0-9_]*$');
+  /// Column name validation regex (letters, numbers, underscores, and dots for joined tables)
+  static final RegExp _columnRegExp =
+      RegExp(r'^[a-zA-Z_][a-zA-Z0-9_]*(\.[a-zA-Z_][a-zA-Z0-9_]*)*$');
 
   /// Creates a new WhereBuilder instance
   ///
@@ -70,7 +71,7 @@ class WhereBuilder {
     if (!_columnRegExp.hasMatch(column)) {
       throw ArgumentError('Invalid column name: "$column". '
           'Must contain only letters, numbers, underscores, '
-          'and start with a letter or underscore.');
+          'and dots, and parts must start with a letter or underscore.');
     }
   }
 
@@ -88,7 +89,7 @@ class WhereBuilder {
   /// Extracts column names from raw SQL for tracking
   void _extractColumnsFromRaw(String condition) {
     final columnRegex = RegExp(
-      r'\b([a-zA-Z_][a-zA-Z0-9_]*)\s*(?:=|!=|>|<|>=|<=|LIKE|NOT\s+LIKE|IS|IS\s+NOT|IN|NOT\s+IN|BETWEEN|REGEXP)\b',
+      r'\b([a-zA-Z_][a-zA-Z0-9_]*(?:\.[a-zA-Z_][a-zA-Z0-9_]*)*)\s*(?:=|!=|>|<|>=|<=|LIKE|NOT\s+LIKE|IS|IS\s+NOT|IN|NOT\s+IN|BETWEEN|REGEXP)\b',
       caseSensitive: false,
     );
 
@@ -782,7 +783,7 @@ class WhereBuilder {
   bool get isEmpty => _conditions.isEmpty;
 
   /// Checks if builder has conditions
-  bool get isNotEmpty => _conditions.isEmpty;
+  bool get isNotEmpty => _conditions.isNotEmpty;
 
   // =======================================================
   // DEBUG UTILITIES

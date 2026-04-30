@@ -300,7 +300,11 @@ class DB {
   Future<void> _createTable(Database db, Table table) async {
     try {
       print('  📦 Creating table: ${table.name}');
-      await db.execute(table.schema);
+      final statements =
+          table.schema.split(';').map((s) => s.trim()).where((s) => s.isNotEmpty);
+      for (final statement in statements) {
+        await db.execute(statement);
+      }
     } catch (e, stackTrace) {
       print('  ❌ Failed to create table ${table.name}: $e');
       print('  Schema: ${table.schema}');

@@ -642,13 +642,27 @@ final result = await userService.readAll(
 
 #### 🚀 Performance
 
-Sqflow uses **Batch Loading** to resolve relationships. If you fetch 20 users with their posts, Sqflow will execute:
+Sqflow uses **Single-Query Relationship Loading** to resolve relationships efficiently. When you fetch records with their relations, Sqflow executes **exactly one SQL query** using:
 
-1. One query to fetch 20 users.
-2. One query to fetch all posts for those 20 users (`WHERE user_id IN (...)`).
-3. Automatic in-memory mapping to attach posts to correct users.
+1. **LEFT JOINs** for 1:1 relationships (`HasOne`, `BelongsTo`).
+2. **JSON Aggregation** (`json_group_array` and `json_object`) for 1:N relationships (`HasMany`).
 
-This avoids the "N+1 Query Problem" and keeps your app fast.
+This approach provides several benefits:
+- **Zero N+1 Queries**: All data is retrieved in a single round-trip to the database.
+- **No Cartesian Products**: JSON aggregation prevents row duplication when joining multiple collections.
+- **Atomic Results**: You get a consistent snapshot of all related data at once.
+
+> [!IMPORTANT]
+> **Use Indexes for Maximum Speed!**
+> To ensure `JOIN` operations remain fast as your data grows, always add indexes to your foreign key columns. Without indexes, SQLite must scan entire tables to find matches, which leads to performance degradation.
+> ```dart
+> @Schema(
+>   tableName: 'posts',
+>   indexes: [
+>     Index(columns: ['user_id']), // Crucial for performance!
+>   ],
+> )
+> ```
 
 ### WhereBuilder: Fluent Query Builder
 
