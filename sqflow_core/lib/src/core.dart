@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 
+import 'package:meta/meta.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:sqflow_core/sqflow_core.dart';
 import 'package:sqflow_platform_interface/sqflow_platform_interface.dart';
@@ -403,14 +404,16 @@ class SqflowCore<T extends Model> {
   /// ```
   Future<T?> readAsync(Object id,
       {List<String>? columns,
+      IAttributes? attributes,
       bool withDeleted = false,
       List<Includable>? include}) async {
     final db = await database;
     final where = WhereBuilder().eq(table.primaryKey, id);
     if (table.paranoid && !withDeleted) where.isNull('deleted_at');
 
-    final sql = _buildJoinQuery(
+    final sql = buildJoinQuery(
       columns: columns,
+      attributes: attributes,
       include: include,
       where: where,
       limit: 1,
@@ -439,13 +442,17 @@ class SqflowCore<T extends Model> {
   /// ```
   void read(Object id,
       {List<String>? columns,
+      IAttributes? attributes,
       void Function(T)? onSuccess,
       ErrorCallback? onError,
       bool withDeleted = false,
       List<Includable>? include}) async {
     try {
       final item = await readAsync(id,
-          columns: columns, withDeleted: withDeleted, include: include);
+          columns: columns,
+          attributes: attributes,
+          withDeleted: withDeleted,
+          include: include);
       if (item != null && onSuccess != null) onSuccess(item);
     } catch (e, st) {
       if (onError != null) onError(e, st);
@@ -494,9 +501,12 @@ class SqflowCore<T extends Model> {
     return value;
   }
 
+  @visibleForTesting
+
   /// Builds a single SQL query for relationships using JOINs and JSON aggregation.
-  String _buildJoinQuery({
+  String buildJoinQuery({
     List<String>? columns,
+    IAttributes? attributes,
     List<Includable>? include,
     WhereBuilder? where,
     SortBuilder? sort,
@@ -507,10 +517,20 @@ class SqflowCore<T extends Model> {
     final selectFields = <String>[];
 
     // Main table fields
-    if (columns == null || columns.isEmpty) {
+    List<String> effectiveColumns;
+    if (attributes != null) {
+      effectiveColumns = attributes.apply(table.columns);
+    } else if (columns != null && columns.isNotEmpty) {
+      effectiveColumns = columns;
+    } else {
+      effectiveColumns = table.columns;
+    }
+
+    if (effectiveColumns.isEmpty) {
+      // Fallback to * if no columns specified (though table.columns should have them)
       selectFields.add('${table.name}.*');
     } else {
-      selectFields.addAll(columns.map((c) => '${table.name}.$c'));
+      selectFields.addAll(effectiveColumns.map((c) => '${table.name}.$c'));
     }
 
     if (includeTotalCount) {
@@ -538,10 +558,12 @@ class SqflowCore<T extends Model> {
 
         if (rel is HasMany) {
           // JSON Aggregation for HasMany
-          final fields = relatedTable.columns.isNotEmpty
-              ? relatedTable.columns
-                  .map((c) => "'$c', ${relatedTable.name}.$c")
-                  .join(', ')
+          final relCols = inc.attributes != null
+              ? inc.attributes!.apply(relatedTable.columns)
+              : relatedTable.columns;
+
+          final fields = relCols.isNotEmpty
+              ? relCols.map((c) => "'$c', ${relatedTable.name}.$c").join(', ')
               : "'id', ${relatedTable.name}.${relatedTable.primaryKey}";
 
           selectFields.add('''
@@ -552,10 +574,12 @@ class SqflowCore<T extends Model> {
           ''');
         } else {
           // BelongsTo or HasOne
-          final fields = relatedTable.columns.isNotEmpty
-              ? relatedTable.columns
-                  .map((c) => "'$c', ${relatedTable.name}.$c")
-                  .join(', ')
+          final relCols = inc.attributes != null
+              ? inc.attributes!.apply(relatedTable.columns)
+              : relatedTable.columns;
+
+          final fields = relCols.isNotEmpty
+              ? relCols.map((c) => "'$c', ${relatedTable.name}.$c").join(', ')
               : "'id', ${relatedTable.name}.${relatedTable.primaryKey}";
 
           selectFields.add('''
@@ -648,6 +672,7 @@ class SqflowCore<T extends Model> {
     WhereBuilder? where,
     SortBuilder? sort,
     List<String>? columns,
+    IAttributes? attributes,
     bool withDeleted = false,
     bool onlyDeleted = false,
     List<Includable>? include,
@@ -663,8 +688,9 @@ class SqflowCore<T extends Model> {
       }
     }
 
-    final sql = _buildJoinQuery(
+    final sql = buildJoinQuery(
       columns: columns,
+      attributes: attributes,
       include: include,
       where: effectiveWhere,
       sort: sort,
