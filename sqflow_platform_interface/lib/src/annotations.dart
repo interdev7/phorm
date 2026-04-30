@@ -105,6 +105,9 @@ class Schema {
   /// Whether to generate the SQFlowClassNameFromJson method.
   final bool useFromJson;
 
+  /// Whether to automatically manage createdAt and updatedAt timestamps.
+  final bool timestamps;
+
   const Schema({
     this.tableName,
     this.indexes = const [],
@@ -113,6 +116,7 @@ class Schema {
     this.relationships = const [],
     this.useToJson = true,
     this.useFromJson = true,
+    this.timestamps = true,
   });
 }
 
@@ -263,6 +267,7 @@ class _ModelIncludable<T> implements Includable {
       // But in practice, we know it's a list of Table objects.
       if (table.type == T) return table.name as String;
     }
-    throw ArgumentError('Table for model type $T not found in registered tables.');
+    throw ArgumentError(
+        'Table for model type $T not found in registered tables.');
   }
 }

@@ -59,6 +59,9 @@ class Table<T extends Model> {
   /// ```
   MigrationBuilder<T> migrate() => MigrationBuilder<T>(this);
 
+  /// Enables automatic timestamps (created_at, updated_at).
+  final bool timestamps;
+
   Table({
     required this.schema,
     required this.name,
@@ -67,6 +70,7 @@ class Table<T extends Model> {
     this.primaryKey = 'id',
     this.migrations = const [],
     this.paranoid = false,
+    this.timestamps = true,
     this.relationships = const [],
   });
 

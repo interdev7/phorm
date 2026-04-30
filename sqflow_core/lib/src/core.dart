@@ -49,15 +49,21 @@ class SqflowCore<T extends Model> {
   // TIMESTAMPS ⏰
   // -------------------------------------------------------
 
-  /// Adds automatic timestamps (`created_at` / `updated_at`) to data
+  /// Adds automatic timestamps (`created_at` / `updated_at`) to data if supported.
   Map<String, dynamic> _withTimestamps(
     Map<String, dynamic> json, {
     bool isInsert = false,
   }) {
+    if (!table.timestamps) return json;
+
     final now = DateTime.now().toIso8601String();
     final result = Map<String, dynamic>.from(json);
-    if (isInsert && !result.containsKey('created_at')) {
-      result['created_at'] = now;
+    if (isInsert) {
+      if (result['created_at'] == null) {
+        result['created_at'] = now;
+      }
+    } else {
+      result.remove('created_at');
     }
     result['updated_at'] = now;
     return result;

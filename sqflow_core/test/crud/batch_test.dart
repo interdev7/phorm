@@ -28,7 +28,7 @@ void main() {
           gender: 'M',
           city: 'City1',
           country: 'Country1',
-          createdAt: DateTime.now(),
+
         ),
         User(
           id: 'batch002',
@@ -39,7 +39,7 @@ void main() {
           gender: 'F',
           city: 'City2',
           country: 'Country2',
-          createdAt: DateTime.now(),
+
         ),
       ];
 
@@ -65,7 +65,7 @@ void main() {
           gender: 'M',
           city: 'Old City',
           country: 'Country',
-          createdAt: DateTime.now(),
+
         ),
         User(
           id: 'batch_update2',
@@ -76,7 +76,7 @@ void main() {
           gender: 'F',
           city: 'Old City',
           country: 'Country',
-          createdAt: DateTime.now(),
+
         ),
       ];
 
@@ -112,7 +112,7 @@ void main() {
           gender: 'M',
           city: 'City',
           country: 'Country',
-          createdAt: DateTime.now(),
+
         ),
         User(
           id: 'batch_del2',
@@ -123,7 +123,7 @@ void main() {
           gender: 'F',
           city: 'City',
           country: 'Country',
-          createdAt: DateTime.now(),
+
         ),
       ];
 

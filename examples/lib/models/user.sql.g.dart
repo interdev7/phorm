@@ -6,7 +6,7 @@
 
 part of 'user.dart';
 
-const _$UserSchema = """
+const _$SQFlowUserSchema = """
 CREATE TABLE users (
   id TEXT PRIMARY KEY NOT NULL UNIQUE,
   first_name TEXT NOT NULL,
@@ -21,7 +21,7 @@ CREATE TABLE users (
   address TEXT NOT NULL,
   is_active INTEGER NOT NULL DEFAULT 1,
   is_verified INTEGER NOT NULL DEFAULT 0,
-  created_at TEXT NOT NULL,
+  created_at TEXT,
   updated_at TEXT,
   deleted_at TEXT
 );
@@ -30,18 +30,18 @@ CREATE UNIQUE INDEX users_email_idx ON users(email);
 CREATE INDEX users_firstName_lastName_idx ON users(firstName, lastName);
 """;
 
-class _$UserTable extends Table<User> {
-  _$UserTable({
+class _$SQFlowUserTable extends Table<User> {
+  _$SQFlowUserTable({
     required super.schema,
     required super.name,
     required super.fromJson,
     super.relationships = const [],
-  }) : super(type: User, paranoid: _detectSoftDelete(schema));
+  }) : super(type: User, paranoid: Table.detectSoftDelete(schema));
 }
 
 /// User table schema
-final usersTable = _$UserTable(
-  schema: _$UserSchema,
+final usersTable = _$SQFlowUserTable(
+  schema: _$SQFlowUserSchema,
   name: 'users',
   fromJson: User.fromJson,
   relationships: const [
@@ -49,32 +49,36 @@ final usersTable = _$UserTable(
   ],
 );
 
-mixin _$UserMixin {}
+mixin _$SQFlowUserMixin {
+  DateTime? createdAt;
+  DateTime? updatedAt;
+  DateTime? deletedAt;
+}
 
-extension _$UserSqlExt on User {
-  Map<String, dynamic> _$UserToJson() {
+extension _$SQFlowUserSqlExt on User {
+  Map<String, dynamic> _$SQFlowUserToJson() {
     return {
-      'id': _$toJsonValue(id),
-      'first_name': _$toJsonValue(firstName),
-      'last_name': _$toJsonValue(lastName),
-      'email': _$toJsonValue(email),
-      'phone': _$toJsonValue(phone),
-      'birth_date': _$toJsonValue(birthDate),
-      'age': _$toJsonValue(age),
-      'gender': _$toJsonValue(gender),
-      'city': _$toJsonValue(city),
-      'country': _$toJsonValue(country),
-      'address': _$toJsonValue(address),
-      'is_active': _$toJsonValue(isActive),
-      'is_verified': _$toJsonValue(isVerified),
-      'created_at': _$toJsonValue(createdAt),
-      'updated_at': _$toJsonValue(updatedAt),
-      'deleted_at': _$toJsonValue(deletedAt),
+      'id': _$SQFlowToJsonValue(id),
+      'first_name': _$SQFlowToJsonValue(firstName),
+      'last_name': _$SQFlowToJsonValue(lastName),
+      'email': _$SQFlowToJsonValue(email),
+      'phone': _$SQFlowToJsonValue(phone),
+      'birth_date': _$SQFlowToJsonValue(birthDate),
+      'age': _$SQFlowToJsonValue(age),
+      'gender': _$SQFlowToJsonValue(gender),
+      'city': _$SQFlowToJsonValue(city),
+      'country': _$SQFlowToJsonValue(country),
+      'address': _$SQFlowToJsonValue(address),
+      'is_active': _$SQFlowToJsonValue(isActive),
+      'is_verified': _$SQFlowToJsonValue(isVerified),
+      'created_at': _$SQFlowToJsonValue(createdAt),
+      'updated_at': _$SQFlowToJsonValue(updatedAt),
+      'deleted_at': _$SQFlowToJsonValue(deletedAt),
     };
   }
 }
 
-User _$UserFromJson(Map<String, dynamic> json) {
+User _$SQFlowUserFromJson(Map<String, dynamic> json) {
   final instance = User(
     id: json['id'] as String,
     firstName: json['first_name'] as String,
@@ -85,35 +89,35 @@ User _$UserFromJson(Map<String, dynamic> json) {
     city: json['city'] as String,
     country: json['country'] as String,
     address: json['address'] as String,
-    createdAt: DateTime.parse(json['created_at'] as String),
     birthDate: json['birth_date'] as String?,
     age: json['age'] as int?,
-    isActive: (json['is_active'] as int?) == 1,
-    isVerified: (json['is_verified'] as int?) == 1,
-    updatedAt: json['updated_at'] != null
-        ? DateTime.parse(json['updated_at'] as String)
-        : null,
-    deletedAt: json['deleted_at'] != null
-        ? DateTime.parse(json['deleted_at'] as String)
-        : null,
+    isActive: json['is_active'] is bool
+        ? json['is_active'] as bool
+        : (json['is_active'] as int?) == 1,
+    isVerified: json['is_verified'] is bool
+        ? json['is_verified'] as bool
+        : (json['is_verified'] as int?) == 1,
     posts: json['posts'] != null
         ? (json['posts'] as List)
             .map((e) => Post.fromJson(e as Map<String, dynamic>))
             .toList()
         : [],
   );
+  instance.createdAt = json['created_at'] != null
+      ? DateTime.parse(json['created_at'] as String)
+      : null;
+  instance.updatedAt = json['updated_at'] != null
+      ? DateTime.parse(json['updated_at'] as String)
+      : null;
+  instance.deletedAt = json['deleted_at'] != null
+      ? DateTime.parse(json['deleted_at'] as String)
+      : null;
   return instance;
 }
 
-dynamic _$toJsonValue(dynamic value) {
+dynamic _$SQFlowToJsonValue(dynamic value) {
   if (value == null) return null;
   if (value is DateTime) return value.toIso8601String();
   if (value is bool) return value ? 1 : 0;
   return value;
-}
-
-bool _detectSoftDelete(String schema) {
-  final normalized = schema.toLowerCase();
-  return normalized.contains('deleted_at') &&
-      normalized.contains('create table');
 }

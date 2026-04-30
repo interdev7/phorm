@@ -39,6 +39,7 @@ class SqliteSchemaGenerator extends GeneratorForAnnotation<Schema> {
             ),
           );
 
+    final timestamps = schemaReader.peek('timestamps')?.boolValue ?? true;
     final paranoid = schemaReader.peek('paranoid')?.boolValue ?? false;
 
     final fileName = p.basename(buildStep.inputId.path);
@@ -48,12 +49,15 @@ class SqliteSchemaGenerator extends GeneratorForAnnotation<Schema> {
     final columnSql = <String>[];
     final foreignKeys = <String>[];
 
+    bool hasCreatedAt = false;
+    bool hasUpdatedAt = false;
     bool hasDeletedAt = false;
 
     for (final field in fields) {
-      if (field.name == 'deletedAt') {
-        hasDeletedAt = true;
-      }
+      final sqlName = MetadataExtractor.getSqlColumnName(field, strategy);
+      if (sqlName == 'created_at') hasCreatedAt = true;
+      if (sqlName == 'updated_at') hasUpdatedAt = true;
+      if (sqlName == 'deleted_at') hasDeletedAt = true;
 
       final annotationMeta = field.metadata.where((m) {
         final name = m.element?.enclosingElement3?.name;
@@ -70,13 +74,14 @@ class SqliteSchemaGenerator extends GeneratorForAnnotation<Schema> {
       }
     }
 
-    if (paranoid && !hasDeletedAt) {
-      throw InvalidGenerationSourceError(
-        'Schema is paranoid but no `deletedAt` field found in $className',
-        element: element,
-      );
+    if (timestamps) {
+      if (!hasCreatedAt) columnSql.add('  created_at TEXT');
+      if (!hasUpdatedAt) columnSql.add('  updated_at TEXT');
     }
 
+    if (paranoid && !hasDeletedAt) {
+      columnSql.add('  deleted_at TEXT');
+    }
     if (columnSql.isEmpty) {
       throw InvalidGenerationSourceError(
         'Class $className has no columns',

@@ -1,28 +1,41 @@
 import 'package:flutter/material.dart';
 import 'package:sqflow_core/sqflow_core.dart';
-import 'package:sqflow_example/models/user.dart';
+import 'package:sqflow_example/models/todo.dart';
+import 'package:sqflow_example/pages/todo_page.dart';
 
-import 'pages/users_page.dart';
-
-final database = DB.autoVersion(
-  databaseName: 'users.db',
-  tables: [usersTable],
+// Initialize database with new Todo tables
+final todoDatabase = DB.autoVersion(
+  databaseName: 'todo_app.db',
+  tables: [categoriesTable, tasksTable],
 );
 
-void main() {
-  runApp(const MyApp());
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  runApp(const TodoApp());
 }
 
-class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+class TodoApp extends StatelessWidget {
+  const TodoApp({super.key});
 
-  // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-        title: 'Database Test',
-        theme: ThemeData(
-            colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple)),
-        home: const UsersPage());
+      title: 'SQFlow Todo',
+      debugShowCheckedModeBanner: false,
+      theme: ThemeData(
+        useMaterial3: true,
+        colorScheme: ColorScheme.fromSeed(
+          seedColor: const Color(0xFF6366F1),
+          brightness: Brightness.light,
+        ),
+        textTheme: const TextTheme(
+          headlineMedium: TextStyle(
+            fontWeight: FontWeight.bold,
+            letterSpacing: -0.5,
+          ),
+        ),
+      ),
+      home: const TodoPage(),
+    );
   }
 }

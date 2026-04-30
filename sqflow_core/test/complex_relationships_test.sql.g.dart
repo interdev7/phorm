@@ -9,7 +9,9 @@ part of 'complex_relationships_test.dart';
 const _$SQFlowUserSchema = """
 CREATE TABLE users (
   id TEXT PRIMARY KEY NOT NULL UNIQUE,
-  name TEXT NOT NULL
+  name TEXT NOT NULL,
+  created_at TEXT,
+  updated_at TEXT
 );
 
 
@@ -36,6 +38,8 @@ final usersTable = _$SQFlowUserTable(
 );
 
 mixin _$SQFlowUserMixin {
+  DateTime? createdAt;
+  DateTime? updatedAt;
   final List<Post> _$posts = [];
   List<Post> get posts => _$posts;
   Profile? _$profile;
@@ -47,6 +51,8 @@ extension _$SQFlowUserSqlExt on User {
     return {
       'id': _$SQFlowToJsonValue(id),
       'name': _$SQFlowToJsonValue(name),
+      'created_at': _$SQFlowToJsonValue(createdAt),
+      'updated_at': _$SQFlowToJsonValue(updatedAt),
     };
   }
 }
@@ -56,6 +62,12 @@ User _$SQFlowUserFromJson(Map<String, dynamic> json) {
     id: json['id'] as String,
     name: json['name'] as String,
   );
+  instance.createdAt = json['created_at'] != null
+      ? DateTime.parse(json['created_at'] as String)
+      : null;
+  instance.updatedAt = json['updated_at'] != null
+      ? DateTime.parse(json['updated_at'] as String)
+      : null;
   if (json['posts'] != null) {
     instance.posts.addAll((json['posts'] as List)
         .map((e) => Post.fromJson(e as Map<String, dynamic>))
@@ -71,6 +83,8 @@ const _$SQFlowPostSchema = """
 CREATE TABLE posts (
   id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL UNIQUE,
   title TEXT NOT NULL,
+  created_at TEXT,
+  updated_at TEXT,
   user_id TEXT
 );
 
@@ -97,6 +111,8 @@ final postsTable = _$SQFlowPostTable(
 );
 
 mixin _$SQFlowPostMixin {
+  DateTime? createdAt;
+  DateTime? updatedAt;
   User? _$user;
   User? get user => _$user;
   var _$userId;
@@ -109,6 +125,8 @@ extension _$SQFlowPostSqlExt on Post {
     return {
       'id': _$SQFlowToJsonValue(id),
       'title': _$SQFlowToJsonValue(title),
+      'created_at': _$SQFlowToJsonValue(createdAt),
+      'updated_at': _$SQFlowToJsonValue(updatedAt),
       'user_id': _$SQFlowToJsonValue(userId),
     };
   }
@@ -119,6 +137,12 @@ Post _$SQFlowPostFromJson(Map<String, dynamic> json) {
     id: json['id'] as int,
     title: json['title'] as String,
   );
+  instance.createdAt = json['created_at'] != null
+      ? DateTime.parse(json['created_at'] as String)
+      : null;
+  instance.updatedAt = json['updated_at'] != null
+      ? DateTime.parse(json['updated_at'] as String)
+      : null;
   instance._$user = json['users'] != null
       ? User.fromJson(json['users'] as Map<String, dynamic>)
       : null;
@@ -130,6 +154,8 @@ const _$SQFlowProfileSchema = """
 CREATE TABLE profiles (
   id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL UNIQUE,
   bio TEXT NOT NULL,
+  created_at TEXT,
+  updated_at TEXT,
   user_id TEXT
 );
 
@@ -156,6 +182,8 @@ final profilesTable = _$SQFlowProfileTable(
 );
 
 mixin _$SQFlowProfileMixin {
+  DateTime? createdAt;
+  DateTime? updatedAt;
   User? _$user;
   User? get user => _$user;
   var _$userId;
@@ -168,6 +196,8 @@ extension _$SQFlowProfileSqlExt on Profile {
     return {
       'id': _$SQFlowToJsonValue(id),
       'bio': _$SQFlowToJsonValue(bio),
+      'created_at': _$SQFlowToJsonValue(createdAt),
+      'updated_at': _$SQFlowToJsonValue(updatedAt),
       'user_id': _$SQFlowToJsonValue(userId),
     };
   }
@@ -178,6 +208,12 @@ Profile _$SQFlowProfileFromJson(Map<String, dynamic> json) {
     id: json['id'] as int,
     bio: json['bio'] as String,
   );
+  instance.createdAt = json['created_at'] != null
+      ? DateTime.parse(json['created_at'] as String)
+      : null;
+  instance.updatedAt = json['updated_at'] != null
+      ? DateTime.parse(json['updated_at'] as String)
+      : null;
   instance._$user = json['users'] != null
       ? User.fromJson(json['users'] as Map<String, dynamic>)
       : null;

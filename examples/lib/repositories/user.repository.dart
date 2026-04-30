@@ -6,7 +6,7 @@ import '../main.dart';
 class UserRepository extends SqflowCore<User> {
   UserRepository()
       : super(
-          dbManager: database,
+          dbManager: todoDatabase,
           table: usersTable,
         );
 }
