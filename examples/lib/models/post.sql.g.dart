@@ -12,8 +12,8 @@ CREATE TABLE posts (
   title TEXT NOT NULL,
   content TEXT NOT NULL,
   user_id TEXT NOT NULL,
-  created_at TEXT,
-  updated_at TEXT
+  created_at TEXT NOT NULL,
+  updated_at TEXT NOT NULL
 );
 
 
@@ -33,9 +33,7 @@ final postsTable = _$SQFlowPostTable(
   schema: _$SQFlowPostSchema,
   name: 'posts',
   fromJson: Post.fromJson,
-  relationships: const [
-    Join(model: 'users', foreignKey: 'user_id', localKey: 'id')
-  ],
+  relationships: const [Join(model: 'users', foreignKey: 'user_id')],
 );
 
 mixin _$SQFlowPostMixin {
@@ -43,7 +41,7 @@ mixin _$SQFlowPostMixin {
   DateTime? updatedAt;
 }
 
-extension _$SQFlowPostSqlExt on Post {
+extension SQFlowPostSqlExt on Post {
   Map<String, dynamic> _$SQFlowPostToJson() {
     return {
       'id': _$SQFlowToJsonValue(id),
@@ -53,6 +51,26 @@ extension _$SQFlowPostSqlExt on Post {
       'created_at': _$SQFlowToJsonValue(createdAt),
       'updated_at': _$SQFlowToJsonValue(updatedAt),
     };
+  }
+
+  Post copyWith({
+    int? id,
+    String? title,
+    String? content,
+    String? userId,
+    User? user,
+    DateTime? createdAt,
+    DateTime? updatedAt,
+  }) {
+    return Post(
+      id: id ?? this.id,
+      title: title ?? this.title,
+      content: content ?? this.content,
+      userId: userId ?? this.userId,
+      user: user ?? this.user,
+    )
+      ..createdAt = createdAt ?? this.createdAt
+      ..updatedAt = updatedAt ?? this.updatedAt;
   }
 }
 
@@ -65,13 +83,13 @@ Post _$SQFlowPostFromJson(Map<String, dynamic> json) {
     user: json['users'] != null
         ? User.fromJson(json['users'] as Map<String, dynamic>)
         : null,
-  );
-  instance.createdAt = json['created_at'] != null
-      ? DateTime.parse(json['created_at'] as String)
-      : null;
-  instance.updatedAt = json['updated_at'] != null
-      ? DateTime.parse(json['updated_at'] as String)
-      : null;
+  )
+    ..createdAt = json['created_at'] != null
+        ? DateTime.parse(json['created_at'] as String)
+        : null
+    ..updatedAt = json['updated_at'] != null
+        ? DateTime.parse(json['updated_at'] as String)
+        : null;
   return instance;
 }
 

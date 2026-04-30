@@ -21,8 +21,8 @@ CREATE TABLE users (
   address TEXT NOT NULL,
   is_active INTEGER NOT NULL DEFAULT 1,
   is_verified INTEGER NOT NULL DEFAULT 0,
-  created_at TEXT,
-  updated_at TEXT,
+  created_at TEXT NOT NULL,
+  updated_at TEXT NOT NULL,
   deleted_at TEXT
 );
 
@@ -44,9 +44,7 @@ final usersTable = _$SQFlowUserTable(
   schema: _$SQFlowUserSchema,
   name: 'users',
   fromJson: User.fromJson,
-  relationships: const [
-    HasMany(model: 'posts', foreignKey: 'user_id', localKey: 'id')
-  ],
+  relationships: const [HasMany(model: 'posts', foreignKey: 'user_id')],
 );
 
 mixin _$SQFlowUserMixin {
@@ -55,7 +53,7 @@ mixin _$SQFlowUserMixin {
   DateTime? deletedAt;
 }
 
-extension _$SQFlowUserSqlExt on User {
+extension SQFlowUserSqlExt on User {
   Map<String, dynamic> _$SQFlowUserToJson() {
     return {
       'id': _$SQFlowToJsonValue(id),
@@ -75,6 +73,46 @@ extension _$SQFlowUserSqlExt on User {
       'updated_at': _$SQFlowToJsonValue(updatedAt),
       'deleted_at': _$SQFlowToJsonValue(deletedAt),
     };
+  }
+
+  User copyWith({
+    String? id,
+    String? firstName,
+    String? lastName,
+    String? email,
+    String? phone,
+    String? gender,
+    String? city,
+    String? country,
+    String? address,
+    String? birthDate,
+    int? age,
+    bool? isActive,
+    bool? isVerified,
+    List<Post>? posts,
+    DateTime? createdAt,
+    DateTime? updatedAt,
+    DateTime? deletedAt,
+  }) {
+    return User(
+      id: id ?? this.id,
+      firstName: firstName ?? this.firstName,
+      lastName: lastName ?? this.lastName,
+      email: email ?? this.email,
+      phone: phone ?? this.phone,
+      gender: gender ?? this.gender,
+      city: city ?? this.city,
+      country: country ?? this.country,
+      address: address ?? this.address,
+      birthDate: birthDate ?? this.birthDate,
+      age: age ?? this.age,
+      isActive: isActive ?? this.isActive,
+      isVerified: isVerified ?? this.isVerified,
+      posts: posts ?? this.posts,
+    )
+      ..createdAt = createdAt ?? this.createdAt
+      ..updatedAt = updatedAt ?? this.updatedAt
+      ..deletedAt = deletedAt ?? this.deletedAt;
   }
 }
 
@@ -102,16 +140,16 @@ User _$SQFlowUserFromJson(Map<String, dynamic> json) {
             .map((e) => Post.fromJson(e as Map<String, dynamic>))
             .toList()
         : [],
-  );
-  instance.createdAt = json['created_at'] != null
-      ? DateTime.parse(json['created_at'] as String)
-      : null;
-  instance.updatedAt = json['updated_at'] != null
-      ? DateTime.parse(json['updated_at'] as String)
-      : null;
-  instance.deletedAt = json['deleted_at'] != null
-      ? DateTime.parse(json['deleted_at'] as String)
-      : null;
+  )
+    ..createdAt = json['created_at'] != null
+        ? DateTime.parse(json['created_at'] as String)
+        : null
+    ..updatedAt = json['updated_at'] != null
+        ? DateTime.parse(json['updated_at'] as String)
+        : null
+    ..deletedAt = json['deleted_at'] != null
+        ? DateTime.parse(json['deleted_at'] as String)
+        : null;
   return instance;
 }
 
