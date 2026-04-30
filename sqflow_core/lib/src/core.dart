@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:convert';
 
 import 'package:sqflite/sqflite.dart';
 import 'package:sqflow_core/sqflow_core.dart';
@@ -407,17 +408,18 @@ class SqflowCore<T extends Model> {
     final db = await database;
     final where = WhereBuilder().eq(table.primaryKey, id);
     if (table.paranoid && !withDeleted) where.isNull('deleted_at');
-    final result = await db.query(table.name,
-        columns: columns,
-        where: where.build(),
-        whereArgs: where.args,
-        limit: 1);
+
+    final sql = _buildJoinQuery(
+      columns: columns,
+      include: include,
+      where: where,
+      limit: 1,
+    );
+
+    final result = await db.rawQuery(sql, where.args);
     if (result.isEmpty) return null;
 
-    final row = Map<String, dynamic>.from(result.first);
-    if (include != null && include.isNotEmpty) {
-      await _eagerLoad([row], include);
-    }
+    final row = _unflattenRow(Map<String, dynamic>.from(result.first));
 
     return table.fromJson(row);
   }
@@ -450,130 +452,6 @@ class SqflowCore<T extends Model> {
     }
   }
 
-  /// Helper to fetch and attach related data to rows.
-  Future<void> _eagerLoad(
-      List<Map<String, dynamic>> rows, List<Includable> include) async {
-    if (rows.isEmpty) return;
-    final db = await database;
-
-    final includeNames =
-        include.map((inc) => inc.getTableName(dbManager.tables)).toList();
-
-    for (final relName in includeNames) {
-      // 1. Find relationship definition
-      final rel = table.relationships.where((r) {
-        final model = r.model;
-        if (model is String) return model == relName;
-        if (model is Type) {
-          // Find table by type
-          final relatedTable =
-              dbManager.tables.where((t) => t.type == model).firstOrNull;
-          return relatedTable?.name == relName;
-        }
-        return false;
-      }).firstOrNull;
-
-      if (rel == null) continue;
-
-      if (rel is HasMany) {
-        await _loadHasMany(rows, rel, db, relName);
-      } else if (rel is BelongsTo) {
-        await _loadBelongsTo(rows, rel, db, relName);
-      } else if (rel is HasOne) {
-        await _loadHasOne(rows, rel, db, relName);
-      }
-    }
-  }
-
-  Future<void> _loadHasMany(List<Map<String, dynamic>> rows, HasMany rel,
-      DatabaseExecutor db, String relName) async {
-    final localKeys = rows
-        .map((r) => r[rel.localKey])
-        .where((e) => e != null)
-        .cast<Object>()
-        .toList();
-    if (localKeys.isEmpty) return;
-
-    final relatedTable = _findTable(rel.model);
-    if (relatedTable == null) return;
-
-    final placeholders = List.filled(localKeys.length, '?').join(', ');
-    final relatedRows = await db.query(
-      relatedTable.name,
-      where: '${rel.foreignKey} IN ($placeholders)',
-      whereArgs: localKeys,
-    );
-
-    // Group related rows by foreign key
-    final grouped = <Object, List<Map<String, dynamic>>>{};
-    for (final row in relatedRows) {
-      final fk = row[rel.foreignKey];
-      if (fk != null) {
-        grouped.putIfAbsent(fk, () => []).add(row);
-      }
-    }
-
-    // Attach to main rows
-    for (final row in rows) {
-      final key = row[rel.localKey];
-      row[relName] = grouped[key] ?? [];
-    }
-  }
-
-  Future<void> _loadBelongsTo(List<Map<String, dynamic>> rows, BelongsTo rel,
-      DatabaseExecutor db, String relName) async {
-    final foreignKeys = rows
-        .map((r) => r[rel.foreignKey])
-        .where((e) => e != null)
-        .cast<Object>()
-        .toList();
-    if (foreignKeys.isEmpty) return;
-
-    final relatedTable = _findTable(rel.model);
-    if (relatedTable == null) return;
-
-    final placeholders = List.filled(foreignKeys.length, '?').join(', ');
-    final relatedRows = await db.query(
-      relatedTable.name,
-      where: '${rel.localKey} IN ($placeholders)',
-      whereArgs: foreignKeys,
-    );
-
-    final grouped = {for (final r in relatedRows) r[rel.localKey]: r};
-
-    for (final row in rows) {
-      final fk = row[rel.foreignKey];
-      row[relName] = grouped[fk];
-    }
-  }
-
-  Future<void> _loadHasOne(List<Map<String, dynamic>> rows, HasOne rel,
-      DatabaseExecutor db, String relName) async {
-    final localKeys = rows
-        .map((r) => r[rel.localKey])
-        .where((e) => e != null)
-        .cast<Object>()
-        .toList();
-    if (localKeys.isEmpty) return;
-
-    final relatedTable = _findTable(rel.model);
-    if (relatedTable == null) return;
-
-    final placeholders = List.filled(localKeys.length, '?').join(', ');
-    final relatedRows = await db.query(
-      relatedTable.name,
-      where: '${rel.foreignKey} IN ($placeholders)',
-      whereArgs: localKeys,
-    );
-
-    final grouped = {for (final r in relatedRows) r[rel.foreignKey]: r};
-
-    for (final row in rows) {
-      final key = row[rel.localKey];
-      row[relName] = grouped[key];
-    }
-  }
-
   Table? _findTable(dynamic model) {
     if (model is String) {
       return dbManager.tables.where((t) => t.name == model).firstOrNull;
@@ -582,6 +460,129 @@ class SqflowCore<T extends Model> {
       return dbManager.tables.where((t) => t.type == model).firstOrNull;
     }
     return null;
+  }
+
+  /// Unflattens a database row that contains aliased columns from JOINs.
+  /// Converts 'table__column' into {'table': {'column': value}}.
+  Map<String, dynamic> _unflattenRow(Map<String, dynamic> row) {
+    final result = <String, dynamic>{};
+    row.forEach((key, value) {
+      if (key.contains('__')) {
+        final parts = key.split('__');
+        var current = result;
+        for (var i = 0; i < parts.length - 1; i++) {
+          final part = parts[i];
+          current = current.putIfAbsent(part, () => <String, dynamic>{})
+              as Map<String, dynamic>;
+        }
+        current[parts.last] = _tryParseJson(value);
+      } else {
+        result[key] = _tryParseJson(value);
+      }
+    });
+    return result;
+  }
+
+  dynamic _tryParseJson(dynamic value) {
+    if (value is String && (value.startsWith('[') || value.startsWith('{'))) {
+      try {
+        return jsonDecode(value);
+      } catch (_) {
+        return value;
+      }
+    }
+    return value;
+  }
+
+  /// Builds a single SQL query for relationships using JOINs and JSON aggregation.
+  String _buildJoinQuery({
+    List<String>? columns,
+    List<Includable>? include,
+    WhereBuilder? where,
+    SortBuilder? sort,
+    int? limit,
+    int? offset,
+    bool includeTotalCount = false,
+  }) {
+    final selectFields = <String>[];
+
+    // Main table fields
+    if (columns == null || columns.isEmpty) {
+      selectFields.add('${table.name}.*');
+    } else {
+      selectFields.addAll(columns.map((c) => '${table.name}.$c'));
+    }
+
+    if (includeTotalCount) {
+      selectFields.add('COUNT(*) OVER() AS total_count');
+    }
+
+    if (include != null) {
+      for (final inc in include) {
+        final relName = inc.getTableName(dbManager.tables);
+        final rel = table.relationships.where((r) {
+          final model = r.model;
+          if (model is String) return model == relName;
+          if (model is Type) {
+            final relatedTable =
+                dbManager.tables.where((t) => t.type == model).firstOrNull;
+            return relatedTable?.name == relName;
+          }
+          return false;
+        }).firstOrNull;
+
+        if (rel == null) continue;
+
+        final relatedTable = _findTable(rel.model);
+        if (relatedTable == null) continue;
+
+        if (rel is HasMany) {
+          // JSON Aggregation for HasMany
+          final fields = relatedTable.columns.isNotEmpty
+              ? relatedTable.columns
+                  .map((c) => "'$c', ${relatedTable.name}.$c")
+                  .join(', ')
+              : "'id', ${relatedTable.name}.${relatedTable.primaryKey}";
+
+          selectFields.add('''
+            (SELECT json_group_array(json_object($fields)) 
+             FROM ${relatedTable.name} 
+             WHERE ${relatedTable.name}.${rel.foreignKey} = ${table.name}.${rel.localKey}
+            ) AS $relName
+          ''');
+        } else {
+          // BelongsTo or HasOne
+          final fields = relatedTable.columns.isNotEmpty
+              ? relatedTable.columns
+                  .map((c) => "'$c', ${relatedTable.name}.$c")
+                  .join(', ')
+              : "'id', ${relatedTable.name}.${relatedTable.primaryKey}";
+
+          selectFields.add('''
+            (SELECT json_object($fields) 
+             FROM ${relatedTable.name} 
+             WHERE ${relatedTable.name}.${rel is BelongsTo ? rel.localKey : rel.foreignKey} = ${table.name}.${rel is BelongsTo ? rel.foreignKey : rel.localKey}
+            ) AS $relName
+          ''');
+        }
+      }
+    }
+
+    var query = 'SELECT ${selectFields.join(', ')} FROM ${table.name}';
+    if (where != null && where.isNotEmpty) {
+      query += ' WHERE ${where.build()}';
+    }
+    if (sort != null) {
+      query += ' ORDER BY ${sort.build()}';
+    }
+    if (limit != null) {
+      query += ' LIMIT $limit';
+      if (offset != null) {
+        query += ' OFFSET $offset';
+      }
+    }
+
+    return query;
   }
 
   /// Checks existence by primary key.
@@ -662,20 +663,20 @@ class SqflowCore<T extends Model> {
       }
     }
 
-    // Build a single query with COUNT(*) OVER()
-    final rows = await db.rawQuery('''
-      SELECT ${columns?.join(', ') ?? '*'}, COUNT(*) OVER() AS total_count
-      FROM ${table.name}
-      ${effectiveWhere.isEmpty ? '' : 'WHERE ${effectiveWhere.build()}'}
-      ${sort != null ? 'ORDER BY ${sort.build()}' : ''}
-      LIMIT $limit OFFSET $offset
-    ''', effectiveWhere.args);
+    final sql = _buildJoinQuery(
+      columns: columns,
+      include: include,
+      where: effectiveWhere,
+      sort: sort,
+      limit: limit,
+      offset: offset,
+      includeTotalCount: true,
+    );
 
-    final results = rows.map((r) => Map<String, dynamic>.from(r)).toList();
+    final rows = await db.rawQuery(sql, effectiveWhere.args);
 
-    if (include != null && include.isNotEmpty) {
-      await _eagerLoad(results, include);
-    }
+    final results =
+        rows.map((r) => _unflattenRow(Map<String, dynamic>.from(r))).toList();
 
     final data = results.map(table.fromJson).toList();
     final count = rows.isNotEmpty ? (rows.first['total_count'] as int) : 0;

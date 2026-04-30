@@ -25,6 +25,7 @@ class _$SQFlowExplicitNamingTable extends Table<ExplicitNaming> {
     required super.name,
     required super.fromJson,
     super.relationships = const [],
+    super.columns = const [],
   }) : super(type: ExplicitNaming, paranoid: Table.detectSoftDelete(schema));
 }
 
@@ -34,6 +35,14 @@ final explicit_tableTable = _$SQFlowExplicitNamingTable(
   name: 'explicit_table',
   fromJson: ExplicitNaming.fromJson,
   relationships: [],
+  columns: const [
+    'custom_id',
+    'custom_name',
+    'custom_age',
+    'is_verified',
+    'created_at',
+    'updated_at'
+  ],
 );
 
 mixin _$SQFlowExplicitNamingMixin {

@@ -25,6 +25,7 @@ class _$SQFlowMigrationPostTable extends Table<MigrationPost> {
     required super.name,
     required super.fromJson,
     super.relationships = const [],
+    super.columns = const [],
   }) : super(type: MigrationPost, paranoid: Table.detectSoftDelete(schema));
 }
 
@@ -34,6 +35,14 @@ final migration_postsTable = _$SQFlowMigrationPostTable(
   name: 'migration_posts',
   fromJson: MigrationPost.fromJson,
   relationships: [],
+  columns: const [
+    'id',
+    'title',
+    'content',
+    'user_id',
+    'created_at',
+    'updated_at'
+  ],
 );
 
 mixin _$SQFlowMigrationPostMixin {

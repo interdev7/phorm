@@ -23,6 +23,7 @@ class _$SQFlowUserTable extends Table<User> {
     required super.name,
     required super.fromJson,
     super.relationships = const [],
+    super.columns = const [],
   }) : super(type: User, paranoid: Table.detectSoftDelete(schema));
 }
 
@@ -35,6 +36,7 @@ final usersTable = _$SQFlowUserTable(
     HasMany(model: 'posts', foreignKey: 'user_id'),
     HasOne(model: 'profiles', foreignKey: 'user_id')
   ],
+  columns: const ['id', 'name', 'created_at', 'updated_at'],
 );
 
 mixin _$SQFlowUserMixin {
@@ -102,7 +104,7 @@ CREATE TABLE posts (
   user_id TEXT
 );
 
-
+CREATE INDEX posts_user_id_idx ON posts(user_id);
 """;
 
 class _$SQFlowPostTable extends Table<Post> {
@@ -111,6 +113,7 @@ class _$SQFlowPostTable extends Table<Post> {
     required super.name,
     required super.fromJson,
     super.relationships = const [],
+    super.columns = const [],
   }) : super(type: Post, paranoid: Table.detectSoftDelete(schema));
 }
 
@@ -120,6 +123,7 @@ final postsTable = _$SQFlowPostTable(
   name: 'posts',
   fromJson: Post.fromJson,
   relationships: const [BelongsTo(model: 'users', foreignKey: 'user_id')],
+  columns: const ['id', 'title', 'created_at', 'updated_at', 'user_id'],
 );
 
 mixin _$SQFlowPostMixin {
@@ -185,7 +189,7 @@ CREATE TABLE profiles (
   user_id TEXT
 );
 
-
+CREATE INDEX profiles_user_id_idx ON profiles(user_id);
 """;
 
 class _$SQFlowProfileTable extends Table<Profile> {
@@ -194,6 +198,7 @@ class _$SQFlowProfileTable extends Table<Profile> {
     required super.name,
     required super.fromJson,
     super.relationships = const [],
+    super.columns = const [],
   }) : super(type: Profile, paranoid: Table.detectSoftDelete(schema));
 }
 
@@ -203,6 +208,7 @@ final profilesTable = _$SQFlowProfileTable(
   name: 'profiles',
   fromJson: Profile.fromJson,
   relationships: const [BelongsTo(model: 'users', foreignKey: 'user_id')],
+  columns: const ['id', 'bio', 'created_at', 'updated_at', 'user_id'],
 );
 
 mixin _$SQFlowProfileMixin {

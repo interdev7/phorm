@@ -29,17 +29,34 @@ void main() {
     final database = await db.database;
 
     // Seed data
-    await database.insert('users', {'id': 'u1', 'name': 'John Doe'});
+    final now = DateTime.now().toIso8601String();
+    await database.insert('users',
+        {'id': 'u1', 'name': 'John Doe', 'created_at': now, 'updated_at': now});
 
     // Posts
-    await database
-        .insert('posts', {'id': 1, 'title': 'First Post', 'user_id': 'u1'});
-    await database
-        .insert('posts', {'id': 2, 'title': 'Second Post', 'user_id': 'u1'});
+    await database.insert('posts', {
+      'id': 1,
+      'title': 'First Post',
+      'user_id': 'u1',
+      'created_at': now,
+      'updated_at': now
+    });
+    await database.insert('posts', {
+      'id': 2,
+      'title': 'Second Post',
+      'user_id': 'u1',
+      'created_at': now,
+      'updated_at': now
+    });
 
     // Profile
-    await database.insert(
-        'profiles', {'id': 100, 'bio': 'Software Engineer', 'user_id': 'u1'});
+    await database.insert('profiles', {
+      'id': 100,
+      'bio': 'Software Engineer',
+      'user_id': 'u1',
+      'created_at': now,
+      'updated_at': now
+    });
 
     final userService = SqflowCore<User>(dbManager: db, table: usersTable);
 
@@ -67,15 +84,42 @@ void main() {
       () async {
     final database = await db.database;
 
+    final now = DateTime.now().toIso8601String();
     // Seed User 1
-    await database.insert('users', {'id': 'u1', 'name': 'John'});
-    await database.insert('posts', {'id': 1, 'title': 'P1', 'user_id': 'u1'});
-    await database.insert('profiles', {'id': 10, 'bio': 'B1', 'user_id': 'u1'});
+    await database.insert('users',
+        {'id': 'u1', 'name': 'John', 'created_at': now, 'updated_at': now});
+    await database.insert('posts', {
+      'id': 1,
+      'title': 'P1',
+      'user_id': 'u1',
+      'created_at': now,
+      'updated_at': now
+    });
+    await database.insert('profiles', {
+      'id': 10,
+      'bio': 'B1',
+      'user_id': 'u1',
+      'created_at': now,
+      'updated_at': now
+    });
 
     // Seed User 2
-    await database.insert('users', {'id': 'u2', 'name': 'Jane'});
-    await database.insert('posts', {'id': 2, 'title': 'P2', 'user_id': 'u2'});
-    await database.insert('posts', {'id': 3, 'title': 'P3', 'user_id': 'u2'});
+    await database.insert('users',
+        {'id': 'u2', 'name': 'Jane', 'created_at': now, 'updated_at': now});
+    await database.insert('posts', {
+      'id': 2,
+      'title': 'P2',
+      'user_id': 'u2',
+      'created_at': now,
+      'updated_at': now
+    });
+    await database.insert('posts', {
+      'id': 3,
+      'title': 'P3',
+      'user_id': 'u2',
+      'created_at': now,
+      'updated_at': now
+    });
     // User 2 has no profile (test null handling)
 
     final userService = SqflowCore<User>(dbManager: db, table: usersTable);
@@ -105,9 +149,16 @@ void main() {
   test('BelongsTo eager loading: Post with User', () async {
     final database = await db.database;
 
-    await database.insert('users', {'id': 'u1', 'name': 'Author One'});
-    await database
-        .insert('posts', {'id': 100, 'title': 'Hello World', 'user_id': 'u1'});
+    final now = DateTime.now().toIso8601String();
+    await database.insert('users',
+        {'id': 'u1', 'name': 'Author One', 'created_at': now, 'updated_at': now});
+    await database.insert('posts', {
+      'id': 100,
+      'title': 'Hello World',
+      'user_id': 'u1',
+      'created_at': now,
+      'updated_at': now
+    });
 
     final postService = SqflowCore<Post>(dbManager: db, table: postsTable);
 
@@ -124,15 +175,33 @@ void main() {
   test('BelongsTo batch loading: Many Posts with Users', () async {
     final database = await db.database;
 
-    await database.insert('users', {'id': 'u1', 'name': 'Admin'});
-    await database.insert('users', {'id': 'u2', 'name': 'Editor'});
+    final now = DateTime.now().toIso8601String();
+    await database.insert('users',
+        {'id': 'u1', 'name': 'Admin', 'created_at': now, 'updated_at': now});
+    await database.insert('users',
+        {'id': 'u2', 'name': 'Editor', 'created_at': now, 'updated_at': now});
 
-    await database
-        .insert('posts', {'id': 1, 'title': 'News 1', 'user_id': 'u1'});
-    await database
-        .insert('posts', {'id': 2, 'title': 'News 2', 'user_id': 'u1'});
-    await database
-        .insert('posts', {'id': 3, 'title': 'News 3', 'user_id': 'u2'});
+    await database.insert('posts', {
+      'id': 1,
+      'title': 'News 1',
+      'user_id': 'u1',
+      'created_at': now,
+      'updated_at': now
+    });
+    await database.insert('posts', {
+      'id': 2,
+      'title': 'News 2',
+      'user_id': 'u1',
+      'created_at': now,
+      'updated_at': now
+    });
+    await database.insert('posts', {
+      'id': 3,
+      'title': 'News 3',
+      'user_id': 'u2',
+      'created_at': now,
+      'updated_at': now
+    });
 
     final postService = SqflowCore<Post>(dbManager: db, table: postsTable);
 
@@ -155,18 +224,49 @@ void main() {
       () async {
     final database = await db.database;
 
+    final now = DateTime.now().toIso8601String();
     // Seed Data
     await database.insert('users', {
       'id': 'u1',
-      'name': 'Alice Admin'
-    }); // Age check will be manual column in a real app, here we use 'name' length or other tricks since User model in this test is simple
-    await database.insert('users', {'id': 'u2', 'name': 'Bob Editor'});
-    await database.insert('users', {'id': 'u3', 'name': 'Charlie Guest'});
+      'name': 'Alice Admin',
+      'created_at': now,
+      'updated_at': now
+    });
+    await database.insert('users', {
+      'id': 'u2',
+      'name': 'Bob Editor',
+      'created_at': now,
+      'updated_at': now
+    });
+    await database.insert('users', {
+      'id': 'u3',
+      'name': 'Charlie Guest',
+      'created_at': now,
+      'updated_at': now
+    });
 
     // Posts
-    await database.insert('posts', {'id': 1, 'title': 'A1', 'user_id': 'u1'});
-    await database.insert('posts', {'id': 2, 'title': 'B1', 'user_id': 'u2'});
-    await database.insert('posts', {'id': 3, 'title': 'C1', 'user_id': 'u3'});
+    await database.insert('posts', {
+      'id': 1,
+      'title': 'A1',
+      'user_id': 'u1',
+      'created_at': now,
+      'updated_at': now
+    });
+    await database.insert('posts', {
+      'id': 2,
+      'title': 'B1',
+      'user_id': 'u2',
+      'created_at': now,
+      'updated_at': now
+    });
+    await database.insert('posts', {
+      'id': 3,
+      'title': 'C1',
+      'user_id': 'u3',
+      'created_at': now,
+      'updated_at': now
+    });
 
     final userService = SqflowCore<User>(dbManager: db, table: usersTable);
 
@@ -202,15 +302,33 @@ void main() {
       () async {
     final database = await db.database;
 
-    await database.insert('users', {'id': 'u1', 'name': 'Author A'});
-    await database.insert('users', {'id': 'u2', 'name': 'Author B'});
+    final now = DateTime.now().toIso8601String();
+    await database.insert('users',
+        {'id': 'u1', 'name': 'Author A', 'created_at': now, 'updated_at': now});
+    await database.insert('users',
+        {'id': 'u2', 'name': 'Author B', 'created_at': now, 'updated_at': now});
 
-    await database
-        .insert('posts', {'id': 1, 'title': 'Tech News', 'user_id': 'u1'});
-    await database
-        .insert('posts', {'id': 2, 'title': 'Tech Review', 'user_id': 'u2'});
-    await database
-        .insert('posts', {'id': 3, 'title': 'Food Blog', 'user_id': 'u1'});
+    await database.insert('posts', {
+      'id': 1,
+      'title': 'Tech News',
+      'user_id': 'u1',
+      'created_at': now,
+      'updated_at': now
+    });
+    await database.insert('posts', {
+      'id': 2,
+      'title': 'Tech Review',
+      'user_id': 'u2',
+      'created_at': now,
+      'updated_at': now
+    });
+    await database.insert('posts', {
+      'id': 3,
+      'title': 'Food Blog',
+      'user_id': 'u1',
+      'created_at': now,
+      'updated_at': now
+    });
 
     final postService = SqflowCore<Post>(dbManager: db, table: postsTable);
 
@@ -260,6 +378,9 @@ class User extends Model with _$SQFlowUserMixin {
 
 @Schema(
   tableName: 'posts',
+  indexes: [
+    Index(columns: ['user_id']),
+  ],
   relationships: [
     BelongsTo(model: User, foreignKey: 'user_id', localKey: 'id')
   ],
@@ -281,9 +402,15 @@ class Post extends Model with _$SQFlowPostMixin {
   Map<String, dynamic> toJson() => _$SQFlowPostToJson();
 }
 
-@Schema(tableName: 'profiles', relationships: [
-  BelongsTo(model: User, foreignKey: 'user_id', localKey: 'id')
-])
+@Schema(
+  tableName: 'profiles',
+  indexes: [
+    Index(columns: ['user_id']),
+  ],
+  relationships: [
+    BelongsTo(model: User, foreignKey: 'user_id', localKey: 'id')
+  ]
+)
 class Profile extends Model with _$SQFlowProfileMixin {
   @ID(type: INTEGER(), autoIncrement: true)
   @override

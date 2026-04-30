@@ -15,7 +15,7 @@ CREATE TABLE users (
   phone TEXT NOT NULL,
   birth_date TEXT,
   age INTEGER,
-  gender TEXT NOT NULL CHECK(gender_check),
+  gender TEXT NOT NULL CONSTRAINT gender_check CHECK(gender IN ('M', 'F', 'Other')),
   city TEXT NOT NULL,
   country TEXT NOT NULL,
   address TEXT,
@@ -36,6 +36,7 @@ class _$SQFlowUserTable extends Table<User> {
     required super.name,
     required super.fromJson,
     super.relationships = const [],
+    super.columns = const [],
   }) : super(type: User, paranoid: Table.detectSoftDelete(schema));
 }
 
@@ -45,6 +46,24 @@ final usersTable = _$SQFlowUserTable(
   name: 'users',
   fromJson: User.fromJson,
   relationships: const [HasMany(model: 'orders', foreignKey: 'user_id')],
+  columns: const [
+    'id',
+    'first_name',
+    'last_name',
+    'email',
+    'phone',
+    'birth_date',
+    'age',
+    'gender',
+    'city',
+    'country',
+    'address',
+    'is_active',
+    'is_verified',
+    'created_at',
+    'updated_at',
+    'deleted_at'
+  ],
 );
 
 mixin _$SQFlowUserMixin {
@@ -163,7 +182,7 @@ CREATE TABLE orders (
   user_id TEXT
 );
 
-
+CREATE INDEX orders_user_id_idx ON orders(user_id);
 """;
 
 class _$SQFlowOrderTable extends Table<Order> {
@@ -172,6 +191,7 @@ class _$SQFlowOrderTable extends Table<Order> {
     required super.name,
     required super.fromJson,
     super.relationships = const [],
+    super.columns = const [],
   }) : super(type: Order, paranoid: Table.detectSoftDelete(schema));
 }
 
@@ -181,6 +201,14 @@ final ordersTable = _$SQFlowOrderTable(
   name: 'orders',
   fromJson: Order.fromJson,
   relationships: const [BelongsTo(model: 'users', foreignKey: 'user_id')],
+  columns: const [
+    'id',
+    'total',
+    'created_at',
+    'updated_at',
+    'deleted_at',
+    'user_id'
+  ],
 );
 
 mixin _$SQFlowOrderMixin {
