@@ -11,7 +11,9 @@ CREATE TABLE explicit_table (
   custom_id TEXT PRIMARY KEY NOT NULL UNIQUE,
   custom_name TEXT NOT NULL,
   custom_age INTEGER NOT NULL,
-  is_verified INTEGER NOT NULL
+  is_verified INTEGER NOT NULL,
+  created_at TEXT,
+  updated_at TEXT
 );
 
 
@@ -34,7 +36,10 @@ final explicit_tableTable = _$SQFlowExplicitNamingTable(
   relationships: [],
 );
 
-mixin _$SQFlowExplicitNamingMixin {}
+mixin _$SQFlowExplicitNamingMixin {
+  DateTime? createdAt;
+  DateTime? updatedAt;
+}
 
 extension _$SQFlowExplicitNamingSqlExt on ExplicitNaming {
   Map<String, dynamic> _$SQFlowExplicitNamingToJson() {
@@ -43,6 +48,8 @@ extension _$SQFlowExplicitNamingSqlExt on ExplicitNaming {
       'custom_name': _$SQFlowToJsonValue(name),
       'custom_age': _$SQFlowToJsonValue(age),
       'is_verified': _$SQFlowToJsonValue(isVerified),
+      'created_at': _$SQFlowToJsonValue(createdAt),
+      'updated_at': _$SQFlowToJsonValue(updatedAt),
     };
   }
 }
@@ -56,6 +63,12 @@ ExplicitNaming _$SQFlowExplicitNamingFromJson(Map<String, dynamic> json) {
         ? json['is_verified'] as bool
         : (json['is_verified'] as int?) == 1,
   );
+  instance.createdAt = json['created_at'] != null
+      ? DateTime.parse(json['created_at'] as String)
+      : null;
+  instance.updatedAt = json['updated_at'] != null
+      ? DateTime.parse(json['updated_at'] as String)
+      : null;
   return instance;
 }
 

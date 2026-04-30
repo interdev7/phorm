@@ -27,7 +27,7 @@ void main() {
         gender: 'M',
         city: 'Test City',
         country: 'Test Country',
-        createdAt: DateTime.now(),
+
       );
 
       final id = await userService.insertAsync(newUser);

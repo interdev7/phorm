@@ -33,7 +33,7 @@ void main() {
         gender: 'X', // invalid per CHECK
         city: 'Nowhere',
         country: 'Bulgaria',
-        createdAt: DateTime.now(),
+
       );
 
       expect(

@@ -4,7 +4,7 @@ import 'user.dart';
 part 'post.sql.g.dart';
 
 @Schema(tableName: 'posts')
-class Post extends Model {
+class Post extends Model with _$SQFlowPostMixin {
   Post({
     required this.id,
     required this.title,
@@ -13,15 +13,7 @@ class Post extends Model {
     this.user,
   });
 
-  factory Post.fromJson(Map<String, dynamic> json) {
-    return Post(
-      id: json['id'] as int,
-      title: json['title'] as String,
-      content: json['content'] as String,
-      userId: json['user_id'] as String,
-      user: json['users'] != null ? User.fromJson(json['users'] as Map<String, dynamic>) : null,
-    );
-  }
+  factory Post.fromJson(Map<String, dynamic> json) => _$SQFlowPostFromJson(json);
 
   @ID(type: INTEGER(), autoIncrement: true)
   @override
@@ -40,12 +32,5 @@ class Post extends Model {
   final User? user;
 
   @override
-  Map<String, dynamic> toJson() {
-    return {
-      'id': id,
-      'title': title,
-      'content': content,
-      'user_id': userId,
-    };
-  }
+  Map<String, dynamic> toJson() => _$SQFlowPostToJson();
 }

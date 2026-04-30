@@ -21,7 +21,7 @@ CREATE TABLE users (
   address TEXT,
   is_active INTEGER NOT NULL DEFAULT 1,
   is_verified INTEGER NOT NULL DEFAULT 0,
-  created_at TEXT NOT NULL,
+  created_at TEXT,
   updated_at TEXT,
   deleted_at TEXT
 );
@@ -50,6 +50,9 @@ final usersTable = _$SQFlowUserTable(
 );
 
 mixin _$SQFlowUserMixin {
+  DateTime? createdAt;
+  DateTime? updatedAt;
+  DateTime? deletedAt;
   final List<Order> _$orders = [];
   List<Order> get orders => _$orders;
 }
@@ -96,14 +99,16 @@ User _$SQFlowUserFromJson(Map<String, dynamic> json) {
     isVerified: json['is_verified'] is bool
         ? json['is_verified'] as bool
         : (json['is_verified'] as int?) == 1,
-    createdAt: DateTime.parse(json['created_at'] as String),
-    updatedAt: json['updated_at'] != null
-        ? DateTime.parse(json['updated_at'] as String)
-        : null,
-    deletedAt: json['deleted_at'] != null
-        ? DateTime.parse(json['deleted_at'] as String)
-        : null,
   );
+  instance.createdAt = json['created_at'] != null
+      ? DateTime.parse(json['created_at'] as String)
+      : null;
+  instance.updatedAt = json['updated_at'] != null
+      ? DateTime.parse(json['updated_at'] as String)
+      : null;
+  instance.deletedAt = json['deleted_at'] != null
+      ? DateTime.parse(json['deleted_at'] as String)
+      : null;
   if (json['orders'] != null) {
     instance.orders.addAll((json['orders'] as List)
         .map((e) => Order.fromJson(e as Map<String, dynamic>))
@@ -116,7 +121,7 @@ const _$SQFlowOrderSchema = """
 CREATE TABLE orders (
   id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL UNIQUE,
   total INTEGER NOT NULL,
-  created_at TEXT NOT NULL,
+  created_at TEXT,
   updated_at TEXT,
   deleted_at TEXT,
   user_id TEXT
@@ -145,6 +150,9 @@ final ordersTable = _$SQFlowOrderTable(
 );
 
 mixin _$SQFlowOrderMixin {
+  DateTime? createdAt;
+  DateTime? updatedAt;
+  DateTime? deletedAt;
   User? _$user;
   User? get user => _$user;
   var _$userId;
@@ -169,14 +177,16 @@ Order _$SQFlowOrderFromJson(Map<String, dynamic> json) {
   final instance = Order(
     id: json['id'] as int,
     total: json['total'] as int,
-    createdAt: DateTime.parse(json['created_at'] as String),
-    updatedAt: json['updated_at'] != null
-        ? DateTime.parse(json['updated_at'] as String)
-        : null,
-    deletedAt: json['deleted_at'] != null
-        ? DateTime.parse(json['deleted_at'] as String)
-        : null,
   );
+  instance.createdAt = json['created_at'] != null
+      ? DateTime.parse(json['created_at'] as String)
+      : null;
+  instance.updatedAt = json['updated_at'] != null
+      ? DateTime.parse(json['updated_at'] as String)
+      : null;
+  instance.deletedAt = json['deleted_at'] != null
+      ? DateTime.parse(json['deleted_at'] as String)
+      : null;
   instance._$user = json['users'] != null
       ? User.fromJson(json['users'] as Map<String, dynamic>)
       : null;

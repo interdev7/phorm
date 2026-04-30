@@ -2,6 +2,8 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:path/path.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 import 'package:sqflow_core/sqflow_core.dart';
+import 'models/migration_user.dart';
+import 'models/migration_post.dart';
 import 'package:sqflow_platform_interface/sqflow_platform_interface.dart';
 
 void main() {
@@ -13,11 +15,11 @@ void main() {
   late DB db;
 
   group('Database Initialization Tests:', () {
-    late Table<User> usersTable;
+    late Table<MigrationUser> usersTable;
 
     setUp(() {
-      usersTable = Table<User>(
-        type: User,
+      usersTable = Table<MigrationUser>(
+        type: MigrationUser,
         name: 'users',
         schema: '''
           CREATE TABLE users (
@@ -26,7 +28,7 @@ void main() {
             created_at TEXT NOT NULL
           )
         ''',
-        fromJson: (json) => User.fromJson(json),
+        fromJson: (json) => MigrationUser.fromJson(json),
       );
     });
 
@@ -74,8 +76,8 @@ void main() {
     });
 
     test('Migrations are applied on creation', () async {
-      final usersTable = Table<User>(
-        type: User,
+      final usersTable = Table<MigrationUser>(
+        type: MigrationUser,
         name: 'users',
         schema: '''
           CREATE TABLE users (
@@ -84,7 +86,7 @@ void main() {
             created_at TEXT NOT NULL
           )
         ''',
-        fromJson: (json) => User.fromJson(json),
+        fromJson: (json) => MigrationUser.fromJson(json),
       )
           .migrate()
           .custom(
@@ -109,11 +111,11 @@ void main() {
     test('Migration order is correct', () async {
       final migrationsApplied = <String>[];
 
-      final trackedTable = Table<User>(
-        type: User,
+      final trackedTable = Table<MigrationUser>(
+        type: MigrationUser,
         name: 'tracked',
         schema: 'CREATE TABLE tracked (id TEXT)',
-        fromJson: (json) => User.fromJson(json),
+        fromJson: (json) => MigrationUser.fromJson(json),
       )
           .migrate()
           .custom(
@@ -157,11 +159,11 @@ void main() {
     });
 
     test('Migration with same version from different tables', () async {
-      final usersTable = Table<User>(
-        type: User,
+      final usersTable = Table<MigrationUser>(
+        type: MigrationUser,
         name: 'users',
         schema: 'CREATE TABLE users (id TEXT)',
-        fromJson: (json) => User.fromJson(json),
+        fromJson: (json) => MigrationUser.fromJson(json),
       )
           .migrate()
           .addColumn(
@@ -172,11 +174,11 @@ void main() {
           )
           .build();
 
-      final postsTable = Table<Post>(
-        type: User,
+      final postsTable = Table<MigrationPost>(
+        type: MigrationPost,
         name: 'posts',
         schema: 'CREATE TABLE posts (id TEXT)',
-        fromJson: (json) => Post.fromJson(json),
+        fromJson: (json) => MigrationPost.fromJson(json),
       )
           .migrate()
           .addColumn(
@@ -212,11 +214,11 @@ void main() {
     });
 
     test('addColumn generates correct SQL', () async {
-      final table = Table<User>(
-        type: User,
+      final table = Table<MigrationUser>(
+        type: MigrationUser,
         name: 'test',
         schema: 'CREATE TABLE test (id TEXT)',
-        fromJson: (json) => User.fromJson(json),
+        fromJson: (json) => MigrationUser.fromJson(json),
       )
           .migrate()
           .addColumn(
@@ -240,11 +242,11 @@ void main() {
     });
 
     test('createIndex generates correct SQL', () async {
-      final table = Table<User>(
-        type: User,
+      final table = Table<MigrationUser>(
+        type: MigrationUser,
         name: 'test',
         schema: 'CREATE TABLE test (id TEXT, email TEXT)',
-        fromJson: (json) => User.fromJson(json),
+        fromJson: (json) => MigrationUser.fromJson(json),
       )
           .migrate()
           .createIndex(
@@ -277,8 +279,8 @@ void main() {
 
     test('Simple table evolution', () async {
       // Create table with migrations
-      final usersTable = Table<User>(
-        type: User,
+      final usersTable = Table<MigrationUser>(
+        type: MigrationUser,
         name: 'users',
         schema: '''
           CREATE TABLE users (
@@ -287,7 +289,7 @@ void main() {
             created_at TEXT NOT NULL
           )
         ''',
-        fromJson: (json) => User.fromJson(json),
+        fromJson: (json) => MigrationUser.fromJson(json),
       )
           .migrate()
           .addColumn(
@@ -341,12 +343,12 @@ void main() {
 
     test('Data persists and migrations apply when app updates (v1 -> v2)',
         () async {
-      final usersV1 = Table<User>(
-        type: User,
+      final usersV1 = Table<MigrationUser>(
+        type: MigrationUser,
         name: 'users',
         schema:
             'CREATE TABLE users (id TEXT PRIMARY KEY, name TEXT, created_at TEXT)',
-        fromJson: (json) => User.fromJson(json),
+        fromJson: (json) => MigrationUser.fromJson(json),
       );
 
       // --- v1 ---
@@ -387,11 +389,11 @@ void main() {
     test(
         'Transaction rollback: If migration fails, version should NOT increase',
         () async {
-      final brokenTable = Table<User>(
-        type: User,
+      final brokenTable = Table<MigrationUser>(
+        type: MigrationUser,
         name: 'users',
         schema: 'CREATE TABLE users (id TEXT PRIMARY KEY, name TEXT)',
-        fromJson: (json) => User.fromJson(json),
+        fromJson: (json) => MigrationUser.fromJson(json),
       )
           .migrate()
           .custom(
@@ -423,105 +425,4 @@ void main() {
       expect(version, 0);
     });
   });
-}
-
-// Test models
-class User extends Model {
-  @override
-  final String id;
-  final String name;
-  final String? email;
-  final int? age;
-  final bool isActive;
-  final DateTime createdAt;
-  final DateTime? updatedAt;
-  final DateTime? deletedAt;
-
-  User({
-    required this.id,
-    required this.name,
-    this.email,
-    this.age,
-    this.isActive = true,
-    required this.createdAt,
-    this.updatedAt,
-    this.deletedAt,
-  });
-
-  @override
-  Map<String, dynamic> toJson() {
-    return {
-      'id': id,
-      'name': name,
-      'email': email,
-      'age': age,
-      'is_active': isActive ? 1 : 0,
-      'created_at': createdAt.toIso8601String(),
-      'updated_at': updatedAt?.toIso8601String(),
-      'deleted_at': deletedAt?.toIso8601String(),
-    };
-  }
-
-  factory User.fromJson(Map<String, dynamic> json) {
-    return User(
-      id: json['id'] as String,
-      name: json['name'] as String,
-      email: json['email'] as String?,
-      age: json['age'] as int?,
-      isActive: (json['is_active'] as int?) == 1,
-      createdAt: DateTime.parse(json['created_at'] as String),
-      updatedAt: json['updated_at'] != null
-          ? DateTime.parse(json['updated_at'] as String)
-          : null,
-      deletedAt: json['deleted_at'] != null
-          ? DateTime.parse(json['deleted_at'] as String)
-          : null,
-    );
-  }
-}
-
-class Post extends Model {
-  @override
-  final String id;
-  final String title;
-  final String content;
-  final String userId;
-
-  Post({
-    required this.id,
-    required this.title,
-    required this.content,
-    required this.userId,
-  });
-
-  @override
-  Map<String, dynamic> toJson() {
-    return {
-      'id': id,
-      'title': title,
-      'content': content,
-      'user_id': userId,
-    };
-  }
-
-  factory Post.fromJson(Map<String, dynamic> json) {
-    return Post(
-      id: json['id'] as String,
-      title: json['title'] as String,
-      content: json['content'] as String,
-      userId: json['user_id'] as String,
-    );
-  }
-
-  @override
-  // TODO: implement createdAt
-  DateTime? get createdAt => null;
-
-  @override
-  // TODO: implement deletedAt
-  DateTime? get deletedAt => null;
-
-  @override
-  // TODO: implement updatedAt
-  DateTime? get updatedAt => null;
 }

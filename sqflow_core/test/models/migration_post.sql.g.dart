@@ -4,11 +4,11 @@
 // _SqflowCombinedGenerator
 // **************************************************************************
 
-part of 'post.dart';
+part of 'migration_post.dart';
 
-const _$SQFlowPostSchema = """
-CREATE TABLE posts (
-  id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL UNIQUE,
+const _$SQFlowMigrationPostSchema = """
+CREATE TABLE migration_posts (
+  id TEXT PRIMARY KEY NOT NULL UNIQUE,
   title TEXT NOT NULL,
   content TEXT NOT NULL,
   user_id TEXT NOT NULL,
@@ -19,32 +19,30 @@ CREATE TABLE posts (
 
 """;
 
-class _$SQFlowPostTable extends Table<Post> {
-  _$SQFlowPostTable({
+class _$SQFlowMigrationPostTable extends Table<MigrationPost> {
+  _$SQFlowMigrationPostTable({
     required super.schema,
     required super.name,
     required super.fromJson,
     super.relationships = const [],
-  }) : super(type: Post, paranoid: Table.detectSoftDelete(schema));
+  }) : super(type: MigrationPost, paranoid: Table.detectSoftDelete(schema));
 }
 
-/// Post table schema
-final postsTable = _$SQFlowPostTable(
-  schema: _$SQFlowPostSchema,
-  name: 'posts',
-  fromJson: Post.fromJson,
-  relationships: const [
-    Join(model: 'users', foreignKey: 'user_id', localKey: 'id')
-  ],
+/// MigrationPost table schema
+final migration_postsTable = _$SQFlowMigrationPostTable(
+  schema: _$SQFlowMigrationPostSchema,
+  name: 'migration_posts',
+  fromJson: MigrationPost.fromJson,
+  relationships: [],
 );
 
-mixin _$SQFlowPostMixin {
+mixin _$SQFlowMigrationPostMixin {
   DateTime? createdAt;
   DateTime? updatedAt;
 }
 
-extension _$SQFlowPostSqlExt on Post {
-  Map<String, dynamic> _$SQFlowPostToJson() {
+extension _$SQFlowMigrationPostSqlExt on MigrationPost {
+  Map<String, dynamic> _$SQFlowMigrationPostToJson() {
     return {
       'id': _$SQFlowToJsonValue(id),
       'title': _$SQFlowToJsonValue(title),
@@ -56,15 +54,12 @@ extension _$SQFlowPostSqlExt on Post {
   }
 }
 
-Post _$SQFlowPostFromJson(Map<String, dynamic> json) {
-  final instance = Post(
-    id: json['id'] as int,
+MigrationPost _$SQFlowMigrationPostFromJson(Map<String, dynamic> json) {
+  final instance = MigrationPost(
+    id: json['id'] as String,
     title: json['title'] as String,
     content: json['content'] as String,
     userId: json['user_id'] as String,
-    user: json['users'] != null
-        ? User.fromJson(json['users'] as Map<String, dynamic>)
-        : null,
   );
   instance.createdAt = json['created_at'] != null
       ? DateTime.parse(json['created_at'] as String)

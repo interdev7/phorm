@@ -28,7 +28,7 @@ void main() {
         gender: 'F',
         city: 'Old City',
         country: 'Old Country',
-        createdAt: DateTime.now(),
+
       );
 
       await userService.insertAsync(user);
@@ -57,7 +57,7 @@ void main() {
         gender: 'M',
         city: 'City',
         country: 'Country',
-        createdAt: DateTime.now(),
+
       );
 
       // First time - insert
@@ -82,7 +82,7 @@ void main() {
         gender: 'M',
         city: 'City',
         country: 'Country',
-        createdAt: DateTime.now(),
+
       );
 
       final rows = await userService.updateAsync(nonExistentUser);

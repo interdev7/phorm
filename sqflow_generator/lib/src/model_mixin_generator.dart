@@ -25,6 +25,8 @@ class ModelMixinGenerator extends GeneratorForAnnotation<Schema> {
           );
     final useToJson = annotation.peek('useToJson')?.boolValue ?? true;
     final useFromJson = annotation.peek('useFromJson')?.boolValue ?? true;
+    final timestamps = annotation.peek('timestamps')?.boolValue ?? true;
+    final paranoid = annotation.peek('paranoid')?.boolValue ?? false;
 
     final fields = element.fields.where((f) => !f.isStatic).toList();
     final relationships = <Map<String, dynamic>>[];
@@ -114,6 +116,19 @@ class ModelMixinGenerator extends GeneratorForAnnotation<Schema> {
     // 1. Mixin
     buffer.writeln('mixin _\$SQFlow${className}Mixin {');
 
+    // Timestamps fields
+    final existsCreatedAt = fields.any((f) => f.name == 'createdAt');
+    final existsUpdatedAt = fields.any((f) => f.name == 'updatedAt');
+    final existsDeletedAt = fields.any((f) => f.name == 'deletedAt');
+
+    if (timestamps) {
+      if (!existsCreatedAt) buffer.writeln('  DateTime? createdAt;');
+      if (!existsUpdatedAt) buffer.writeln('  DateTime? updatedAt;');
+    }
+    if (paranoid && !existsDeletedAt) {
+      buffer.writeln('  DateTime? deletedAt;');
+    }
+
     // Relationship fields
     for (final rel in relationships) {
       final modelClass = rel['modelClass'];
@@ -158,6 +173,14 @@ class ModelMixinGenerator extends GeneratorForAnnotation<Schema> {
       for (final field in fields.where((f) => _isColumn(f))) {
         final sqlName = MetadataExtractor.getSqlColumnName(field, strategy);
         buffer.writeln("      '$sqlName': _\$SQFlowToJsonValue(${field.name}),");
+      }
+
+      if (timestamps) {
+        if (!existsCreatedAt) buffer.writeln("      'created_at': _\$SQFlowToJsonValue(createdAt),");
+        if (!existsUpdatedAt) buffer.writeln("      'updated_at': _\$SQFlowToJsonValue(updatedAt),");
+      }
+      if (paranoid && !existsDeletedAt) {
+        buffer.writeln("      'deleted_at': _\$SQFlowToJsonValue(deletedAt),");
       }
 
       // Output synthesized foreign keys in toJson
@@ -232,6 +255,14 @@ class ModelMixinGenerator extends GeneratorForAnnotation<Schema> {
       buffer.writeln('  );');
 
       // Assign synthesized properties
+      if (timestamps) {
+        if (!existsCreatedAt) buffer.writeln("  instance.createdAt = json['created_at'] != null ? DateTime.parse(json['created_at'] as String) : null;");
+        if (!existsUpdatedAt) buffer.writeln("  instance.updatedAt = json['updated_at'] != null ? DateTime.parse(json['updated_at'] as String) : null;");
+      }
+      if (paranoid && !existsDeletedAt) {
+        buffer.writeln("  instance.deletedAt = json['deleted_at'] != null ? DateTime.parse(json['deleted_at'] as String) : null;");
+      }
+
       for (final rel in relationships) {
         final isCollection = rel['isCollection'] as bool;
         final fieldName = rel['fieldName'];

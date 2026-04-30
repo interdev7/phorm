@@ -17,15 +17,6 @@ class Model {
   /// Unique identifier for the model instance.
   Object get id => '';
 
-  /// Timestamp when the record was created.
-  DateTime? get createdAt => null;
-
-  /// Timestamp when the record was last updated.
-  DateTime? get updatedAt => null;
-
-  /// Timestamp when the record was deleted (for soft delete).
-  DateTime? get deletedAt => null;
-
   /// Serializes the model to a JSON map.
   Map<String, dynamic> toJson() {
     return {};

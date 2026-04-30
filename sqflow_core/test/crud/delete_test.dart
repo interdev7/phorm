@@ -27,7 +27,7 @@ void main() {
         gender: 'F',
         city: 'City',
         country: 'Country',
-        createdAt: DateTime.now(),
+
       );
 
       await userService.insertAsync(user);
@@ -67,7 +67,7 @@ void main() {
         gender: 'M',
         city: 'City',
         country: 'Country',
-        createdAt: DateTime.now(),
+
       );
 
       await userService.insertAsync(user);

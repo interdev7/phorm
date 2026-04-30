@@ -56,17 +56,7 @@ class User extends Model with _$SQFlowUserMixin {
   @Column(type: INTEGER(), defaultValue: false)
   final bool isVerified;
 
-  @Column(type: TEXT())
-  @override
-  final DateTime createdAt;
 
-  @Column(type: TEXT())
-  @override
-  final DateTime? updatedAt;
-
-  @Column(type: TEXT())
-  @override
-  final DateTime? deletedAt;
 
   User({
     required this.id,
@@ -82,9 +72,6 @@ class User extends Model with _$SQFlowUserMixin {
     this.address,
     this.isActive = true,
     this.isVerified = false,
-    required this.createdAt,
-    this.updatedAt,
-    this.deletedAt,
   });
 
   String get fullName => '$firstName $lastName';
@@ -109,9 +96,6 @@ class User extends Model with _$SQFlowUserMixin {
     String? address,
     bool? isActive,
     bool? isVerified,
-    DateTime? createdAt,
-    DateTime? updatedAt,
-    DateTime? deletedAt,
   }) {
     return User(
       id: id ?? this.id,
@@ -127,9 +111,6 @@ class User extends Model with _$SQFlowUserMixin {
       address: address ?? this.address,
       isActive: isActive ?? this.isActive,
       isVerified: isVerified ?? this.isVerified,
-      createdAt: createdAt ?? this.createdAt,
-      updatedAt: updatedAt ?? this.updatedAt,
-      deletedAt: deletedAt ?? this.deletedAt,
     );
   }
 }
@@ -148,24 +129,11 @@ class Order extends Model with _$SQFlowOrderMixin {
   @Column(type: INTEGER())
   final int total;
 
-  @Column(type: TEXT())
-  @override
-  final DateTime createdAt;
 
-  @Column(type: TEXT())
-  @override
-  final DateTime? updatedAt;
-
-  @Column(type: TEXT())
-  @override
-  final DateTime? deletedAt;
 
   Order({
     required this.id,
     required this.total,
-    required this.createdAt,
-    this.updatedAt,
-    this.deletedAt,
   });
 
   @override
