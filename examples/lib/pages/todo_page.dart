@@ -37,7 +37,7 @@ class _TodoPageState extends State<TodoPage> {
     final result = await _categoryService.readAll(
       include: [pi.Includable.model<Task>()],
     );
-    
+
     // If no categories, seed some
     if (result.data.isEmpty) {
       await _seedData();
@@ -170,11 +170,13 @@ class _TodoPageState extends State<TodoPage> {
   }
 
   void _openTasks(Category category) {
-    Navigator.of(context).push(
-      MaterialPageRoute(
-        builder: (_) => TasksPage(category: category),
-      ),
-    ).then((_) => _refreshData());
+    Navigator.of(context)
+        .push(
+          MaterialPageRoute(
+            builder: (_) => TasksPage(category: category),
+          ),
+        )
+        .then((_) => _refreshData());
   }
 }
 
@@ -279,7 +281,7 @@ class _TasksPageState extends State<TasksPage> {
     setState(() => _isLoading = true);
     final result = await _taskService.readAll(
       where: WhereBuilder().eq('category_id', widget.category.id),
-      sort: SortBuilder().desc('createdAt'),
+      sort: SortBuilder().desc('created_at'),
     );
     _tasks = result.data;
     setState(() => _isLoading = false);
@@ -330,7 +332,8 @@ class _TasksPageState extends State<TasksPage> {
                           ),
                         ),
                         trailing: IconButton(
-                          icon: const Icon(Icons.delete_outline, color: Colors.redAccent),
+                          icon: const Icon(Icons.delete_outline,
+                              color: Colors.redAccent),
                           onPressed: () => _deleteTask(task),
                         ),
                       ),
@@ -351,7 +354,6 @@ class _TasksPageState extends State<TasksPage> {
       title: task.title,
       categoryId: task.categoryId,
       isCompleted: completed,
-
     ));
     _loadTasks();
   }
