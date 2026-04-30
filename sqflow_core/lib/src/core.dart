@@ -515,6 +515,43 @@ class SqflowCore<T extends Model> {
     bool includeTotalCount = false,
   }) {
     final selectFields = <String>[];
+    final joins = <String>{};
+
+    // Analyze WhereBuilder for automatic LEFT JOINs (for filtering)
+    if (where != null) {
+      final joinTableNames = <String>{};
+      for (final col in where.usedColumns) {
+        if (col.contains('.')) {
+          joinTableNames.add(col.split('.').first);
+        }
+      }
+
+      for (final relName in joinTableNames) {
+        final rel = table.relationships.where((r) {
+          final model = r.model;
+          if (model is String) return model == relName;
+          if (model is Type) {
+            final relatedTable =
+                dbManager.tables.where((t) => t.type == model).firstOrNull;
+            return relatedTable?.name == relName;
+          }
+          return false;
+        }).firstOrNull;
+
+        if (rel != null) {
+          final relatedTable = _findTable(rel.model);
+          if (relatedTable != null) {
+            if (rel is HasMany || rel is HasOne) {
+              joins.add(
+                  'LEFT JOIN ${relatedTable.name} ON ${relatedTable.name}.${rel.foreignKey} = ${table.name}.${rel.localKey}');
+            } else if (rel is BelongsTo) {
+              joins.add(
+                  'LEFT JOIN ${relatedTable.name} ON ${relatedTable.name}.${rel.localKey} = ${table.name}.${rel.foreignKey}');
+            }
+          }
+        }
+      }
+    }
 
     // Main table fields
     List<String> effectiveColumns;
@@ -593,9 +630,17 @@ class SqflowCore<T extends Model> {
     }
 
     var query = 'SELECT ${selectFields.join(', ')} FROM ${table.name}';
+    if (joins.isNotEmpty) {
+      query += ' ${joins.toList().join(' ')}';
+    }
     if (where != null && where.isNotEmpty) {
       query += ' WHERE ${where.build()}';
     }
+
+    if (joins.isNotEmpty) {
+      query += ' GROUP BY ${table.name}.${table.primaryKey}';
+    }
+
     if (sort != null) {
       query += ' ORDER BY ${sort.build()}';
     }
