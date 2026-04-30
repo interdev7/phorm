@@ -105,6 +105,9 @@ class Schema {
   /// Whether to generate the SQFlowClassNameFromJson method.
   final bool useFromJson;
 
+  /// Whether to generate the copyWith method.
+  final bool useCopyWith;
+
   /// Whether to automatically manage createdAt and updatedAt timestamps.
   final bool timestamps;
 
@@ -116,6 +119,7 @@ class Schema {
     this.relationships = const [],
     this.useToJson = true,
     this.useFromJson = true,
+    this.useCopyWith = true,
     this.timestamps = true,
   });
 }

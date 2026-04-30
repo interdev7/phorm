@@ -25,6 +25,7 @@ class ModelMixinGenerator extends GeneratorForAnnotation<Schema> {
           );
     final useToJson = annotation.peek('useToJson')?.boolValue ?? true;
     final useFromJson = annotation.peek('useFromJson')?.boolValue ?? true;
+    final useCopyWith = annotation.peek('useCopyWith')?.boolValue ?? true;
     final timestamps = annotation.peek('timestamps')?.boolValue ?? true;
     final paranoid = annotation.peek('paranoid')?.boolValue ?? false;
 
@@ -163,43 +164,101 @@ class ModelMixinGenerator extends GeneratorForAnnotation<Schema> {
     // Close the mixin
     buffer.writeln('}');
 
-    // 2. Extension for toJson
-    if (useToJson) {
+    // 2. Extension for SQL and Copy utilities
+    if (useToJson || useCopyWith) {
       buffer
         ..writeln()
-        ..writeln('extension _\$SQFlow${className}SqlExt on $className {')
-        ..writeln('  Map<String, dynamic> _\$SQFlow${className}ToJson() {')
-        ..writeln('    return {');
-      for (final field in fields.where((f) => _isColumn(f))) {
-        final sqlName = MetadataExtractor.getSqlColumnName(field, strategy);
-        buffer.writeln("      '$sqlName': _\$SQFlowToJsonValue(${field.name}),");
-      }
+        ..writeln('extension SQFlow${className}SqlExt on $className {');
 
-      if (timestamps) {
-        if (!existsCreatedAt) buffer.writeln("      'created_at': _\$SQFlowToJsonValue(createdAt),");
-        if (!existsUpdatedAt) buffer.writeln("      'updated_at': _\$SQFlowToJsonValue(updatedAt),");
-      }
-      if (paranoid && !existsDeletedAt) {
-        buffer.writeln("      'deleted_at': _\$SQFlowToJsonValue(deletedAt),");
-      }
+      if (useToJson) {
+        buffer
+          ..writeln('  Map<String, dynamic> _\$SQFlow${className}ToJson() {')
+          ..writeln('    return {');
+        for (final field in fields.where((f) => _isColumn(f))) {
+          final sqlName = MetadataExtractor.getSqlColumnName(field, strategy);
+          buffer
+              .writeln("      '$sqlName': _\$SQFlowToJsonValue(${field.name}),");
+        }
 
-      // Output synthesized foreign keys in toJson
-      for (final rel in relationships) {
-        if (rel['type'] == 'BelongsTo') {
-          final fkName = rel['foreignKeyName'];
-          final fkSqlName = rel['foreignKey'];
-          final existsFk = fields.any((f) => f.name == fkName);
-          if (!existsFk) {
-            buffer.writeln(
-                "      '$fkSqlName': _\$SQFlowToJsonValue($fkName),");
+        if (timestamps) {
+          if (!existsCreatedAt) {
+            buffer.writeln("      'created_at': _\$SQFlowToJsonValue(createdAt),");
+          }
+          if (!existsUpdatedAt) {
+            buffer.writeln("      'updated_at': _\$SQFlowToJsonValue(updatedAt),");
           }
         }
+        if (paranoid && !existsDeletedAt) {
+          buffer.writeln("      'deleted_at': _\$SQFlowToJsonValue(deletedAt),");
+        }
+
+        // Output synthesized foreign keys in toJson
+        for (final rel in relationships) {
+          if (rel['type'] == 'BelongsTo') {
+            final fkName = rel['foreignKeyName'];
+            final fkSqlName = rel['foreignKey'];
+            final existsFk = fields.any((f) => f.name == fkName);
+            if (!existsFk) {
+              buffer.writeln(
+                  "      '$fkSqlName': _\$SQFlowToJsonValue($fkName),");
+            }
+          }
+        }
+
+        buffer
+          ..writeln('    };')
+          ..writeln('  }');
       }
 
-      buffer
-        ..writeln('    };')
-        ..writeln('  }')
-        ..writeln('}');
+      if (useCopyWith) {
+        final constructor =
+            element.unnamedConstructor ?? element.constructors.first;
+        if (useToJson) buffer.writeln();
+        buffer..writeln('  $className copyWith({');
+
+        for (final param in constructor.parameters) {
+          final type = param.type.getDisplayString();
+          final copyType = type.endsWith('?') ? type : '$type?';
+          buffer.writeln('    $copyType ${param.name},');
+        }
+
+        if (timestamps) {
+          if (!existsCreatedAt) buffer.writeln('    DateTime? createdAt,');
+          if (!existsUpdatedAt) buffer.writeln('    DateTime? updatedAt,');
+        }
+        if (paranoid && !existsDeletedAt) {
+          buffer.writeln('    DateTime? deletedAt,');
+        }
+
+        buffer
+          ..writeln('  }) {')
+          ..writeln('    return $className(');
+
+        for (final param in constructor.parameters) {
+          buffer.writeln(
+              '      ${param.name}: ${param.name} ?? this.${param.name},');
+        }
+
+        buffer.write('    )');
+
+        if (timestamps) {
+          if (!existsCreatedAt) {
+            buffer.write('\n      ..createdAt = createdAt ?? this.createdAt');
+          }
+          if (!existsUpdatedAt) {
+            buffer.write('\n      ..updatedAt = updatedAt ?? this.updatedAt');
+          }
+        }
+        if (paranoid && !existsDeletedAt) {
+          buffer.write('\n      ..deletedAt = deletedAt ?? this.deletedAt');
+        }
+
+        buffer
+          ..writeln(';')
+          ..writeln('  }');
+      }
+
+      buffer.writeln('}');
     }
 
     // 3. fromJson Function
@@ -252,16 +311,24 @@ class ModelMixinGenerator extends GeneratorForAnnotation<Schema> {
           buffer.writeln("    ${param.name}: null,");
         }
       }
-      buffer.writeln('  );');
+      buffer.write('  )');
 
-      // Assign synthesized properties
+      // Assign synthesized properties with cascade
       if (timestamps) {
-        if (!existsCreatedAt) buffer.writeln("  instance.createdAt = json['created_at'] != null ? DateTime.parse(json['created_at'] as String) : null;");
-        if (!existsUpdatedAt) buffer.writeln("  instance.updatedAt = json['updated_at'] != null ? DateTime.parse(json['updated_at'] as String) : null;");
+        if (!existsCreatedAt) {
+          buffer.write(
+              "\n    ..createdAt = json['created_at'] != null ? DateTime.parse(json['created_at'] as String) : null");
+        }
+        if (!existsUpdatedAt) {
+          buffer.write(
+              "\n    ..updatedAt = json['updated_at'] != null ? DateTime.parse(json['updated_at'] as String) : null");
+        }
       }
       if (paranoid && !existsDeletedAt) {
-        buffer.writeln("  instance.deletedAt = json['deleted_at'] != null ? DateTime.parse(json['deleted_at'] as String) : null;");
+        buffer.write(
+            "\n    ..deletedAt = json['deleted_at'] != null ? DateTime.parse(json['deleted_at'] as String) : null");
       }
+      buffer.writeln(';');
 
       for (final rel in relationships) {
         final isCollection = rel['isCollection'] as bool;

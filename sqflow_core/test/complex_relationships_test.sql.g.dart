@@ -10,8 +10,8 @@ const _$SQFlowUserSchema = """
 CREATE TABLE users (
   id TEXT PRIMARY KEY NOT NULL UNIQUE,
   name TEXT NOT NULL,
-  created_at TEXT,
-  updated_at TEXT
+  created_at TEXT NOT NULL,
+  updated_at TEXT NOT NULL
 );
 
 
@@ -46,7 +46,7 @@ mixin _$SQFlowUserMixin {
   Profile? get profile => _$profile;
 }
 
-extension _$SQFlowUserSqlExt on User {
+extension SQFlowUserSqlExt on User {
   Map<String, dynamic> _$SQFlowUserToJson() {
     return {
       'id': _$SQFlowToJsonValue(id),
@@ -55,19 +55,33 @@ extension _$SQFlowUserSqlExt on User {
       'updated_at': _$SQFlowToJsonValue(updatedAt),
     };
   }
+
+  User copyWith({
+    String? id,
+    String? name,
+    DateTime? createdAt,
+    DateTime? updatedAt,
+  }) {
+    return User(
+      id: id ?? this.id,
+      name: name ?? this.name,
+    )
+      ..createdAt = createdAt ?? this.createdAt
+      ..updatedAt = updatedAt ?? this.updatedAt;
+  }
 }
 
 User _$SQFlowUserFromJson(Map<String, dynamic> json) {
   final instance = User(
     id: json['id'] as String,
     name: json['name'] as String,
-  );
-  instance.createdAt = json['created_at'] != null
-      ? DateTime.parse(json['created_at'] as String)
-      : null;
-  instance.updatedAt = json['updated_at'] != null
-      ? DateTime.parse(json['updated_at'] as String)
-      : null;
+  )
+    ..createdAt = json['created_at'] != null
+        ? DateTime.parse(json['created_at'] as String)
+        : null
+    ..updatedAt = json['updated_at'] != null
+        ? DateTime.parse(json['updated_at'] as String)
+        : null;
   if (json['posts'] != null) {
     instance.posts.addAll((json['posts'] as List)
         .map((e) => Post.fromJson(e as Map<String, dynamic>))
@@ -83,8 +97,8 @@ const _$SQFlowPostSchema = """
 CREATE TABLE posts (
   id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL UNIQUE,
   title TEXT NOT NULL,
-  created_at TEXT,
-  updated_at TEXT,
+  created_at TEXT NOT NULL,
+  updated_at TEXT NOT NULL,
   user_id TEXT
 );
 
@@ -120,7 +134,7 @@ mixin _$SQFlowPostMixin {
   set userId(dynamic value) => _$userId = value;
 }
 
-extension _$SQFlowPostSqlExt on Post {
+extension SQFlowPostSqlExt on Post {
   Map<String, dynamic> _$SQFlowPostToJson() {
     return {
       'id': _$SQFlowToJsonValue(id),
@@ -130,19 +144,33 @@ extension _$SQFlowPostSqlExt on Post {
       'user_id': _$SQFlowToJsonValue(userId),
     };
   }
+
+  Post copyWith({
+    int? id,
+    String? title,
+    DateTime? createdAt,
+    DateTime? updatedAt,
+  }) {
+    return Post(
+      id: id ?? this.id,
+      title: title ?? this.title,
+    )
+      ..createdAt = createdAt ?? this.createdAt
+      ..updatedAt = updatedAt ?? this.updatedAt;
+  }
 }
 
 Post _$SQFlowPostFromJson(Map<String, dynamic> json) {
   final instance = Post(
     id: json['id'] as int,
     title: json['title'] as String,
-  );
-  instance.createdAt = json['created_at'] != null
-      ? DateTime.parse(json['created_at'] as String)
-      : null;
-  instance.updatedAt = json['updated_at'] != null
-      ? DateTime.parse(json['updated_at'] as String)
-      : null;
+  )
+    ..createdAt = json['created_at'] != null
+        ? DateTime.parse(json['created_at'] as String)
+        : null
+    ..updatedAt = json['updated_at'] != null
+        ? DateTime.parse(json['updated_at'] as String)
+        : null;
   instance._$user = json['users'] != null
       ? User.fromJson(json['users'] as Map<String, dynamic>)
       : null;
@@ -154,8 +182,8 @@ const _$SQFlowProfileSchema = """
 CREATE TABLE profiles (
   id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL UNIQUE,
   bio TEXT NOT NULL,
-  created_at TEXT,
-  updated_at TEXT,
+  created_at TEXT NOT NULL,
+  updated_at TEXT NOT NULL,
   user_id TEXT
 );
 
@@ -191,7 +219,7 @@ mixin _$SQFlowProfileMixin {
   set userId(dynamic value) => _$userId = value;
 }
 
-extension _$SQFlowProfileSqlExt on Profile {
+extension SQFlowProfileSqlExt on Profile {
   Map<String, dynamic> _$SQFlowProfileToJson() {
     return {
       'id': _$SQFlowToJsonValue(id),
@@ -201,19 +229,33 @@ extension _$SQFlowProfileSqlExt on Profile {
       'user_id': _$SQFlowToJsonValue(userId),
     };
   }
+
+  Profile copyWith({
+    int? id,
+    String? bio,
+    DateTime? createdAt,
+    DateTime? updatedAt,
+  }) {
+    return Profile(
+      id: id ?? this.id,
+      bio: bio ?? this.bio,
+    )
+      ..createdAt = createdAt ?? this.createdAt
+      ..updatedAt = updatedAt ?? this.updatedAt;
+  }
 }
 
 Profile _$SQFlowProfileFromJson(Map<String, dynamic> json) {
   final instance = Profile(
     id: json['id'] as int,
     bio: json['bio'] as String,
-  );
-  instance.createdAt = json['created_at'] != null
-      ? DateTime.parse(json['created_at'] as String)
-      : null;
-  instance.updatedAt = json['updated_at'] != null
-      ? DateTime.parse(json['updated_at'] as String)
-      : null;
+  )
+    ..createdAt = json['created_at'] != null
+        ? DateTime.parse(json['created_at'] as String)
+        : null
+    ..updatedAt = json['updated_at'] != null
+        ? DateTime.parse(json['updated_at'] as String)
+        : null;
   instance._$user = json['users'] != null
       ? User.fromJson(json['users'] as Map<String, dynamic>)
       : null;
