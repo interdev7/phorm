@@ -345,6 +345,42 @@ void main() {
     expect(result.data[0].user, isNotNull);
     expect(result.data[0].user!.name, 'Author B');
   });
+
+  test('Filter main table (Users) by related table (Posts) columns', () async {
+    final database = await db.database;
+    final now = DateTime.now().toIso8601String();
+
+    await database.insert('users',
+        {'id': 'ua', 'name': 'Author A', 'created_at': now, 'updated_at': now});
+    await database.insert('users',
+        {'id': 'ub', 'name': 'Author B', 'created_at': now, 'updated_at': now});
+
+    await database.insert('posts', {
+      'id': 101,
+      'title': 'Dart News',
+      'user_id': 'ua',
+      'created_at': now,
+      'updated_at': now
+    });
+    await database.insert('posts', {
+      'id': 102,
+      'title': 'Java News',
+      'user_id': 'ub',
+      'created_at': now,
+      'updated_at': now
+    });
+
+    final userService = SqflowCore<User>(dbManager: db, table: usersTable);
+
+    // Query: Users who have a post with 'Dart' in title
+    // 'posts' is the tableName/relationship name
+    final where = WhereBuilder().like('posts.title', 'Dart%');
+
+    final result = await userService.readAll(where: where);
+
+    expect(result.data, hasLength(1));
+    expect(result.data[0].name, 'Author A');
+  });
 }
 
 // Test Models
