@@ -11,8 +11,8 @@ CREATE TABLE categories (
   id TEXT PRIMARY KEY NOT NULL UNIQUE,
   name TEXT NOT NULL,
   color TEXT NOT NULL,
-  created_at TEXT,
-  updated_at TEXT
+  created_at TEXT NOT NULL,
+  updated_at TEXT NOT NULL
 );
 
 
@@ -32,9 +32,7 @@ final categoriesTable = _$SQFlowCategoryTable(
   schema: _$SQFlowCategorySchema,
   name: 'categories',
   fromJson: Category.fromJson,
-  relationships: const [
-    HasMany(model: 'tasks', foreignKey: 'category_id', localKey: 'id')
-  ],
+  relationships: const [HasMany(model: 'tasks', foreignKey: 'category_id')],
 );
 
 mixin _$SQFlowCategoryMixin {
@@ -44,7 +42,7 @@ mixin _$SQFlowCategoryMixin {
   List<Task> get tasks => _$tasks;
 }
 
-extension _$SQFlowCategorySqlExt on Category {
+extension SQFlowCategorySqlExt on Category {
   Map<String, dynamic> _$SQFlowCategoryToJson() {
     return {
       'id': _$SQFlowToJsonValue(id),
@@ -54,6 +52,22 @@ extension _$SQFlowCategorySqlExt on Category {
       'updated_at': _$SQFlowToJsonValue(updatedAt),
     };
   }
+
+  Category copyWith({
+    String? id,
+    String? name,
+    String? color,
+    DateTime? createdAt,
+    DateTime? updatedAt,
+  }) {
+    return Category(
+      id: id ?? this.id,
+      name: name ?? this.name,
+      color: color ?? this.color,
+    )
+      ..createdAt = createdAt ?? this.createdAt
+      ..updatedAt = updatedAt ?? this.updatedAt;
+  }
 }
 
 Category _$SQFlowCategoryFromJson(Map<String, dynamic> json) {
@@ -61,18 +75,18 @@ Category _$SQFlowCategoryFromJson(Map<String, dynamic> json) {
     id: json['id'] as String,
     name: json['name'] as String,
     color: json['color'] as String,
-  );
-  instance.createdAt = json['created_at'] != null
-      ? DateTime.parse(json['created_at'] as String)
-      : null;
-  instance.updatedAt = json['updated_at'] != null
-      ? DateTime.parse(json['updated_at'] as String)
-      : null;
-  if (json['tasks'] != null) {
-    instance.tasks.addAll((json['tasks'] as List)
-        .map((e) => Task.fromJson(e as Map<String, dynamic>))
-        .toList());
-  }
+  )
+    ..createdAt = json['created_at'] != null
+        ? DateTime.parse(json['created_at'] as String)
+        : null
+    ..updatedAt = json['updated_at'] != null
+        ? DateTime.parse(json['updated_at'] as String)
+        : null
+    ..tasks.addAll(json['tasks'] != null
+        ? (json['tasks'] as List)
+            .map((e) => Task.fromJson(e as Map<String, dynamic>))
+            .toList()
+        : []);
   return instance;
 }
 
@@ -82,8 +96,8 @@ CREATE TABLE tasks (
   title TEXT NOT NULL,
   is_completed INTEGER NOT NULL DEFAULT 0,
   category_id TEXT NOT NULL,
-  created_at TEXT,
-  updated_at TEXT,
+  created_at TEXT NOT NULL,
+  updated_at TEXT NOT NULL,
   deleted_at TEXT
 );
 
@@ -105,7 +119,7 @@ final tasksTable = _$SQFlowTaskTable(
   name: 'tasks',
   fromJson: Task.fromJson,
   relationships: const [
-    BelongsTo(model: 'categories', foreignKey: 'category_id', localKey: 'id')
+    BelongsTo(model: 'categories', foreignKey: 'category_id')
   ],
 );
 
@@ -117,7 +131,7 @@ mixin _$SQFlowTaskMixin {
   Category? get category => _$category;
 }
 
-extension _$SQFlowTaskSqlExt on Task {
+extension SQFlowTaskSqlExt on Task {
   Map<String, dynamic> _$SQFlowTaskToJson() {
     return {
       'id': _$SQFlowToJsonValue(id),
@@ -129,6 +143,26 @@ extension _$SQFlowTaskSqlExt on Task {
       'deleted_at': _$SQFlowToJsonValue(deletedAt),
     };
   }
+
+  Task copyWith({
+    int? id,
+    String? title,
+    bool? isCompleted,
+    String? categoryId,
+    DateTime? createdAt,
+    DateTime? updatedAt,
+    DateTime? deletedAt,
+  }) {
+    return Task(
+      id: id ?? this.id,
+      title: title ?? this.title,
+      isCompleted: isCompleted ?? this.isCompleted,
+      categoryId: categoryId ?? this.categoryId,
+    )
+      ..createdAt = createdAt ?? this.createdAt
+      ..updatedAt = updatedAt ?? this.updatedAt
+      ..deletedAt = deletedAt ?? this.deletedAt;
+  }
 }
 
 Task _$SQFlowTaskFromJson(Map<String, dynamic> json) {
@@ -139,19 +173,19 @@ Task _$SQFlowTaskFromJson(Map<String, dynamic> json) {
         ? json['is_completed'] as bool
         : (json['is_completed'] as int?) == 1,
     categoryId: json['category_id'] as String,
-  );
-  instance.createdAt = json['created_at'] != null
-      ? DateTime.parse(json['created_at'] as String)
-      : null;
-  instance.updatedAt = json['updated_at'] != null
-      ? DateTime.parse(json['updated_at'] as String)
-      : null;
-  instance.deletedAt = json['deleted_at'] != null
-      ? DateTime.parse(json['deleted_at'] as String)
-      : null;
-  instance._$category = json['categories'] != null
-      ? Category.fromJson(json['categories'] as Map<String, dynamic>)
-      : null;
+  )
+    ..createdAt = json['created_at'] != null
+        ? DateTime.parse(json['created_at'] as String)
+        : null
+    ..updatedAt = json['updated_at'] != null
+        ? DateTime.parse(json['updated_at'] as String)
+        : null
+    ..deletedAt = json['deleted_at'] != null
+        ? DateTime.parse(json['deleted_at'] as String)
+        : null
+    .._$category = json['categories'] != null
+        ? Category.fromJson(json['categories'] as Map<String, dynamic>)
+        : null;
   return instance;
 }
 
