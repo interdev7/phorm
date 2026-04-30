@@ -81,38 +81,6 @@ class User extends Model with _$SQFlowUserMixin {
 
   factory User.fromJson(Map<String, dynamic> json) =>
       _$SQFlowUserFromJson(json);
-
-  User copyWith({
-    String? id,
-    String? firstName,
-    String? lastName,
-    String? email,
-    String? phone,
-    String? birthDate,
-    int? age,
-    String? gender,
-    String? city,
-    String? country,
-    String? address,
-    bool? isActive,
-    bool? isVerified,
-  }) {
-    return User(
-      id: id ?? this.id,
-      firstName: firstName ?? this.firstName,
-      lastName: lastName ?? this.lastName,
-      email: email ?? this.email,
-      phone: phone ?? this.phone,
-      birthDate: birthDate ?? this.birthDate,
-      age: age ?? this.age,
-      gender: gender ?? this.gender,
-      city: city ?? this.city,
-      country: country ?? this.country,
-      address: address ?? this.address,
-      isActive: isActive ?? this.isActive,
-      isVerified: isVerified ?? this.isVerified,
-    );
-  }
 }
 
 @Schema(

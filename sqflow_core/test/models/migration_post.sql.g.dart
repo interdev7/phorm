@@ -12,8 +12,8 @@ CREATE TABLE migration_posts (
   title TEXT NOT NULL,
   content TEXT NOT NULL,
   user_id TEXT NOT NULL,
-  created_at TEXT,
-  updated_at TEXT
+  created_at TEXT NOT NULL,
+  updated_at TEXT NOT NULL
 );
 
 
@@ -41,7 +41,7 @@ mixin _$SQFlowMigrationPostMixin {
   DateTime? updatedAt;
 }
 
-extension _$SQFlowMigrationPostSqlExt on MigrationPost {
+extension SQFlowMigrationPostSqlExt on MigrationPost {
   Map<String, dynamic> _$SQFlowMigrationPostToJson() {
     return {
       'id': _$SQFlowToJsonValue(id),
@@ -52,6 +52,24 @@ extension _$SQFlowMigrationPostSqlExt on MigrationPost {
       'updated_at': _$SQFlowToJsonValue(updatedAt),
     };
   }
+
+  MigrationPost copyWith({
+    String? id,
+    String? title,
+    String? content,
+    String? userId,
+    DateTime? createdAt,
+    DateTime? updatedAt,
+  }) {
+    return MigrationPost(
+      id: id ?? this.id,
+      title: title ?? this.title,
+      content: content ?? this.content,
+      userId: userId ?? this.userId,
+    )
+      ..createdAt = createdAt ?? this.createdAt
+      ..updatedAt = updatedAt ?? this.updatedAt;
+  }
 }
 
 MigrationPost _$SQFlowMigrationPostFromJson(Map<String, dynamic> json) {
@@ -60,13 +78,13 @@ MigrationPost _$SQFlowMigrationPostFromJson(Map<String, dynamic> json) {
     title: json['title'] as String,
     content: json['content'] as String,
     userId: json['user_id'] as String,
-  );
-  instance.createdAt = json['created_at'] != null
-      ? DateTime.parse(json['created_at'] as String)
-      : null;
-  instance.updatedAt = json['updated_at'] != null
-      ? DateTime.parse(json['updated_at'] as String)
-      : null;
+  )
+    ..createdAt = json['created_at'] != null
+        ? DateTime.parse(json['created_at'] as String)
+        : null
+    ..updatedAt = json['updated_at'] != null
+        ? DateTime.parse(json['updated_at'] as String)
+        : null;
   return instance;
 }
 

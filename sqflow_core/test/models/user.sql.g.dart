@@ -21,8 +21,8 @@ CREATE TABLE users (
   address TEXT,
   is_active INTEGER NOT NULL DEFAULT 1,
   is_verified INTEGER NOT NULL DEFAULT 0,
-  created_at TEXT,
-  updated_at TEXT,
+  created_at TEXT NOT NULL,
+  updated_at TEXT NOT NULL,
   deleted_at TEXT
 );
 
@@ -57,7 +57,7 @@ mixin _$SQFlowUserMixin {
   List<Order> get orders => _$orders;
 }
 
-extension _$SQFlowUserSqlExt on User {
+extension SQFlowUserSqlExt on User {
   Map<String, dynamic> _$SQFlowUserToJson() {
     return {
       'id': _$SQFlowToJsonValue(id),
@@ -77,6 +77,44 @@ extension _$SQFlowUserSqlExt on User {
       'updated_at': _$SQFlowToJsonValue(updatedAt),
       'deleted_at': _$SQFlowToJsonValue(deletedAt),
     };
+  }
+
+  User copyWith({
+    String? id,
+    String? firstName,
+    String? lastName,
+    String? email,
+    String? phone,
+    String? birthDate,
+    int? age,
+    String? gender,
+    String? city,
+    String? country,
+    String? address,
+    bool? isActive,
+    bool? isVerified,
+    DateTime? createdAt,
+    DateTime? updatedAt,
+    DateTime? deletedAt,
+  }) {
+    return User(
+      id: id ?? this.id,
+      firstName: firstName ?? this.firstName,
+      lastName: lastName ?? this.lastName,
+      email: email ?? this.email,
+      phone: phone ?? this.phone,
+      birthDate: birthDate ?? this.birthDate,
+      age: age ?? this.age,
+      gender: gender ?? this.gender,
+      city: city ?? this.city,
+      country: country ?? this.country,
+      address: address ?? this.address,
+      isActive: isActive ?? this.isActive,
+      isVerified: isVerified ?? this.isVerified,
+    )
+      ..createdAt = createdAt ?? this.createdAt
+      ..updatedAt = updatedAt ?? this.updatedAt
+      ..deletedAt = deletedAt ?? this.deletedAt;
   }
 }
 
@@ -99,16 +137,16 @@ User _$SQFlowUserFromJson(Map<String, dynamic> json) {
     isVerified: json['is_verified'] is bool
         ? json['is_verified'] as bool
         : (json['is_verified'] as int?) == 1,
-  );
-  instance.createdAt = json['created_at'] != null
-      ? DateTime.parse(json['created_at'] as String)
-      : null;
-  instance.updatedAt = json['updated_at'] != null
-      ? DateTime.parse(json['updated_at'] as String)
-      : null;
-  instance.deletedAt = json['deleted_at'] != null
-      ? DateTime.parse(json['deleted_at'] as String)
-      : null;
+  )
+    ..createdAt = json['created_at'] != null
+        ? DateTime.parse(json['created_at'] as String)
+        : null
+    ..updatedAt = json['updated_at'] != null
+        ? DateTime.parse(json['updated_at'] as String)
+        : null
+    ..deletedAt = json['deleted_at'] != null
+        ? DateTime.parse(json['deleted_at'] as String)
+        : null;
   if (json['orders'] != null) {
     instance.orders.addAll((json['orders'] as List)
         .map((e) => Order.fromJson(e as Map<String, dynamic>))
@@ -121,8 +159,8 @@ const _$SQFlowOrderSchema = """
 CREATE TABLE orders (
   id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL UNIQUE,
   total INTEGER NOT NULL,
-  created_at TEXT,
-  updated_at TEXT,
+  created_at TEXT NOT NULL,
+  updated_at TEXT NOT NULL,
   deleted_at TEXT,
   user_id TEXT
 );
@@ -160,7 +198,7 @@ mixin _$SQFlowOrderMixin {
   set userId(dynamic value) => _$userId = value;
 }
 
-extension _$SQFlowOrderSqlExt on Order {
+extension SQFlowOrderSqlExt on Order {
   Map<String, dynamic> _$SQFlowOrderToJson() {
     return {
       'id': _$SQFlowToJsonValue(id),
@@ -171,22 +209,38 @@ extension _$SQFlowOrderSqlExt on Order {
       'user_id': _$SQFlowToJsonValue(userId),
     };
   }
+
+  Order copyWith({
+    int? id,
+    int? total,
+    DateTime? createdAt,
+    DateTime? updatedAt,
+    DateTime? deletedAt,
+  }) {
+    return Order(
+      id: id ?? this.id,
+      total: total ?? this.total,
+    )
+      ..createdAt = createdAt ?? this.createdAt
+      ..updatedAt = updatedAt ?? this.updatedAt
+      ..deletedAt = deletedAt ?? this.deletedAt;
+  }
 }
 
 Order _$SQFlowOrderFromJson(Map<String, dynamic> json) {
   final instance = Order(
     id: json['id'] as int,
     total: json['total'] as int,
-  );
-  instance.createdAt = json['created_at'] != null
-      ? DateTime.parse(json['created_at'] as String)
-      : null;
-  instance.updatedAt = json['updated_at'] != null
-      ? DateTime.parse(json['updated_at'] as String)
-      : null;
-  instance.deletedAt = json['deleted_at'] != null
-      ? DateTime.parse(json['deleted_at'] as String)
-      : null;
+  )
+    ..createdAt = json['created_at'] != null
+        ? DateTime.parse(json['created_at'] as String)
+        : null
+    ..updatedAt = json['updated_at'] != null
+        ? DateTime.parse(json['updated_at'] as String)
+        : null
+    ..deletedAt = json['deleted_at'] != null
+        ? DateTime.parse(json['deleted_at'] as String)
+        : null;
   instance._$user = json['users'] != null
       ? User.fromJson(json['users'] as Map<String, dynamic>)
       : null;

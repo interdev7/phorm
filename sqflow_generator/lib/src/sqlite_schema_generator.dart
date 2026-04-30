@@ -75,8 +75,8 @@ class SqliteSchemaGenerator extends GeneratorForAnnotation<Schema> {
     }
 
     if (timestamps) {
-      if (!hasCreatedAt) columnSql.add('  created_at TEXT');
-      if (!hasUpdatedAt) columnSql.add('  updated_at TEXT');
+      if (!hasCreatedAt) columnSql.add('  created_at TEXT NOT NULL');
+      if (!hasUpdatedAt) columnSql.add('  updated_at TEXT NOT NULL');
     }
 
     if (paranoid && !hasDeletedAt) {

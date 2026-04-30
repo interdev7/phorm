@@ -13,8 +13,8 @@ CREATE TABLE migration_users (
   email TEXT,
   age INTEGER,
   is_active INTEGER NOT NULL DEFAULT 1,
-  created_at TEXT,
-  updated_at TEXT
+  created_at TEXT NOT NULL,
+  updated_at TEXT NOT NULL
 );
 
 
@@ -42,7 +42,7 @@ mixin _$SQFlowMigrationUserMixin {
   DateTime? updatedAt;
 }
 
-extension _$SQFlowMigrationUserSqlExt on MigrationUser {
+extension SQFlowMigrationUserSqlExt on MigrationUser {
   Map<String, dynamic> _$SQFlowMigrationUserToJson() {
     return {
       'id': _$SQFlowToJsonValue(id),
@@ -53,6 +53,26 @@ extension _$SQFlowMigrationUserSqlExt on MigrationUser {
       'created_at': _$SQFlowToJsonValue(createdAt),
       'updated_at': _$SQFlowToJsonValue(updatedAt),
     };
+  }
+
+  MigrationUser copyWith({
+    String? id,
+    String? name,
+    String? email,
+    int? age,
+    bool? isActive,
+    DateTime? createdAt,
+    DateTime? updatedAt,
+  }) {
+    return MigrationUser(
+      id: id ?? this.id,
+      name: name ?? this.name,
+      email: email ?? this.email,
+      age: age ?? this.age,
+      isActive: isActive ?? this.isActive,
+    )
+      ..createdAt = createdAt ?? this.createdAt
+      ..updatedAt = updatedAt ?? this.updatedAt;
   }
 }
 
@@ -65,13 +85,13 @@ MigrationUser _$SQFlowMigrationUserFromJson(Map<String, dynamic> json) {
     isActive: json['is_active'] is bool
         ? json['is_active'] as bool
         : (json['is_active'] as int?) == 1,
-  );
-  instance.createdAt = json['created_at'] != null
-      ? DateTime.parse(json['created_at'] as String)
-      : null;
-  instance.updatedAt = json['updated_at'] != null
-      ? DateTime.parse(json['updated_at'] as String)
-      : null;
+  )
+    ..createdAt = json['created_at'] != null
+        ? DateTime.parse(json['created_at'] as String)
+        : null
+    ..updatedAt = json['updated_at'] != null
+        ? DateTime.parse(json['updated_at'] as String)
+        : null;
   return instance;
 }
 
