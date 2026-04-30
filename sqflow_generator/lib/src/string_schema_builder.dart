@@ -8,10 +8,11 @@ String stringSchemaBuilder({
   String? indexSql,
   List<Map<String, dynamic>> relationships = const [],
 }) {
-  final relationshipsCode = relationships
-      .map((r) =>
-          "${r['type']}(model: '${r['model']}', foreignKey: '${r['foreignKey']}', localKey: '${r['localKey']}')")
-      .join(', ');
+  final relationshipsCode = relationships.map((r) {
+    final lk = r['localKey'];
+    final lkCode = lk == 'id' ? '' : ", localKey: '$lk'";
+    return "${r['type']}(model: '${r['model']}', foreignKey: '${r['foreignKey']}'$lkCode)";
+  }).join(', ');
 
   final schemaVarName = '_\$SQFlow${className}Schema';
   final tableClassName = '_\$SQFlow${className}Table';

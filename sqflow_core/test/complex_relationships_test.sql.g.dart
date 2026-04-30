@@ -32,8 +32,8 @@ final usersTable = _$SQFlowUserTable(
   name: 'users',
   fromJson: User.fromJson,
   relationships: const [
-    HasMany(model: 'posts', foreignKey: 'user_id', localKey: 'id'),
-    HasOne(model: 'profiles', foreignKey: 'user_id', localKey: 'id')
+    HasMany(model: 'posts', foreignKey: 'user_id'),
+    HasOne(model: 'profiles', foreignKey: 'user_id')
   ],
 );
 
@@ -81,15 +81,15 @@ User _$SQFlowUserFromJson(Map<String, dynamic> json) {
         : null
     ..updatedAt = json['updated_at'] != null
         ? DateTime.parse(json['updated_at'] as String)
+        : null
+    ..posts.addAll(json['posts'] != null
+        ? (json['posts'] as List)
+            .map((e) => Post.fromJson(e as Map<String, dynamic>))
+            .toList()
+        : [])
+    .._$profile = json['profiles'] != null
+        ? Profile.fromJson(json['profiles'] as Map<String, dynamic>)
         : null;
-  if (json['posts'] != null) {
-    instance.posts.addAll((json['posts'] as List)
-        .map((e) => Post.fromJson(e as Map<String, dynamic>))
-        .toList());
-  }
-  instance._$profile = json['profiles'] != null
-      ? Profile.fromJson(json['profiles'] as Map<String, dynamic>)
-      : null;
   return instance;
 }
 
@@ -119,9 +119,7 @@ final postsTable = _$SQFlowPostTable(
   schema: _$SQFlowPostSchema,
   name: 'posts',
   fromJson: Post.fromJson,
-  relationships: const [
-    BelongsTo(model: 'users', foreignKey: 'user_id', localKey: 'id')
-  ],
+  relationships: const [BelongsTo(model: 'users', foreignKey: 'user_id')],
 );
 
 mixin _$SQFlowPostMixin {
@@ -170,11 +168,11 @@ Post _$SQFlowPostFromJson(Map<String, dynamic> json) {
         : null
     ..updatedAt = json['updated_at'] != null
         ? DateTime.parse(json['updated_at'] as String)
-        : null;
-  instance._$user = json['users'] != null
-      ? User.fromJson(json['users'] as Map<String, dynamic>)
-      : null;
-  instance.userId = json['user_id'];
+        : null
+    .._$user = json['users'] != null
+        ? User.fromJson(json['users'] as Map<String, dynamic>)
+        : null
+    ..userId = json['user_id'];
   return instance;
 }
 
@@ -204,9 +202,7 @@ final profilesTable = _$SQFlowProfileTable(
   schema: _$SQFlowProfileSchema,
   name: 'profiles',
   fromJson: Profile.fromJson,
-  relationships: const [
-    BelongsTo(model: 'users', foreignKey: 'user_id', localKey: 'id')
-  ],
+  relationships: const [BelongsTo(model: 'users', foreignKey: 'user_id')],
 );
 
 mixin _$SQFlowProfileMixin {
@@ -255,11 +251,11 @@ Profile _$SQFlowProfileFromJson(Map<String, dynamic> json) {
         : null
     ..updatedAt = json['updated_at'] != null
         ? DateTime.parse(json['updated_at'] as String)
-        : null;
-  instance._$user = json['users'] != null
-      ? User.fromJson(json['users'] as Map<String, dynamic>)
-      : null;
-  instance.userId = json['user_id'];
+        : null
+    .._$user = json['users'] != null
+        ? User.fromJson(json['users'] as Map<String, dynamic>)
+        : null
+    ..userId = json['user_id'];
   return instance;
 }
 
