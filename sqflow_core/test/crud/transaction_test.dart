@@ -70,6 +70,7 @@ void main() {
           'is_active': 1,
           'is_verified': 1,
           'created_at': DateTime.now().toIso8601String(),
+          'updated_at': DateTime.now().toIso8601String(),
         });
 
         // Update an existing user

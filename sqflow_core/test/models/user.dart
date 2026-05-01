@@ -11,6 +11,8 @@ part 'user.sql.g.dart';
   ],
   relationships: [
     HasMany(model: Order, foreignKey: 'user_id'),
+    HasMany(model: Post, foreignKey: 'user_id'),
+    HasOne(model: Profile, foreignKey: 'user_id'),
   ],
 )
 class User extends Model with _$SQFlowUserMixin {
@@ -83,6 +85,73 @@ class User extends Model with _$SQFlowUserMixin {
 }
 
 @Schema(
+  tableName: 'posts',
+  paranoid: true,
+  indexes: [
+    Index(columns: ['user_id']),
+  ],
+  relationships: [
+    BelongsTo(model: User, foreignKey: 'user_id'),
+  ],
+)
+class Post extends Model with _$SQFlowPostMixin {
+  @ID(type: INTEGER(), autoIncrement: true)
+  @override
+  final int id;
+
+  @Column(type: TEXT())
+  final String title;
+
+  @Column(type: TEXT(), columnName: 'user_id')
+  final String userId;
+
+  Post({
+    required this.id,
+    required this.title,
+    required this.userId,
+  });
+
+  @override
+  Map<String, dynamic> toJson() => _$SQFlowPostToJson();
+
+  factory Post.fromJson(Map<String, dynamic> json) =>
+      _$SQFlowPostFromJson(json);
+}
+
+@Schema(
+  tableName: 'profiles',
+  indexes: [
+    Index(columns: ['user_id'], unique: true),
+  ],
+  relationships: [
+    BelongsTo(model: User, foreignKey: 'user_id'),
+  ],
+)
+class Profile extends Model with _$SQFlowProfileMixin {
+  @ID(type: INTEGER(), autoIncrement: true)
+  @override
+  final int id;
+
+  @Column(type: TEXT())
+  final String bio;
+
+  @Column(type: TEXT(), columnName: 'user_id')
+  final String userId;
+
+  Profile({
+    required this.id,
+    required this.bio,
+    required this.userId,
+  });
+
+  @override
+  Map<String, dynamic> toJson() => _$SQFlowProfileToJson();
+
+  factory Profile.fromJson(Map<String, dynamic> json) =>
+      _$SQFlowProfileFromJson(json);
+}
+
+@Schema(
   tableName: 'orders',
   paranoid: true,
   indexes: [
@@ -94,14 +163,19 @@ class User extends Model with _$SQFlowUserMixin {
 )
 class Order extends Model with _$SQFlowOrderMixin {
   @ID(type: INTEGER(), autoIncrement: true)
+  @override
   final int id;
 
   @Column(type: INTEGER())
   final int total;
 
+  @Column(type: TEXT(), columnName: 'user_id')
+  final String userId;
+
   Order({
     required this.id,
     required this.total,
+    required this.userId,
   });
 
   @override

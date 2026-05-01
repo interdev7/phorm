@@ -300,8 +300,10 @@ class DB {
   Future<void> _createTable(Database db, Table table) async {
     try {
       print('  📦 Creating table: ${table.name}');
-      final statements =
-          table.schema.split(';').map((s) => s.trim()).where((s) => s.isNotEmpty);
+      final statements = table.schema
+          .split(';')
+          .map((s) => s.trim())
+          .where((s) => s.isNotEmpty);
       for (final statement in statements) {
         await db.execute(statement);
       }
@@ -534,7 +536,6 @@ class DB {
     }
   }
 }
-
 
 /// Helper class for tracking pending migrations
 class _PendingMigration {
