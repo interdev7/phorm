@@ -84,8 +84,8 @@ class SqflowCore<T extends Model> {
   /// final id = await userService.insertAsync(User(id: '1', name: 'John'));
   /// print('Inserted ID: $id');
   /// ```
-  Future<int> insertAsync(T item) async {
-    final db = await database;
+  Future<int> insertAsync(T item, {DatabaseExecutor? executor}) async {
+    final db = executor ?? await database;
     return db.insert(
       table.name,
       _withTimestamps(item.toJson(), isInsert: true),
@@ -95,9 +95,11 @@ class SqflowCore<T extends Model> {
   /// Inserts a single item synchronously (fire-and-forget).
   /// Wraps [insertAsync] with callbacks.
   void insert(T item,
-      {void Function(int id)? onSuccess, ErrorCallback? onError}) async {
+      {void Function(int id)? onSuccess,
+      ErrorCallback? onError,
+      DatabaseExecutor? executor}) async {
     try {
-      final id = await insertAsync(item);
+      final id = await insertAsync(item, executor: executor);
       if (onSuccess != null) onSuccess(id);
     } catch (e, st) {
       if (onError != null) onError(e, st);
@@ -112,8 +114,8 @@ class SqflowCore<T extends Model> {
   /// final rows = await userService.updateAsync(User(id: '1', name: 'John Updated'));
   /// print('Updated rows: $rows');
   /// ```
-  Future<int> updateAsync(T item) async {
-    final db = await database;
+  Future<int> updateAsync(T item, {DatabaseExecutor? executor}) async {
+    final db = executor ?? await database;
     return db.update(
       table.name,
       _withTimestamps(item.toJson()),
@@ -124,9 +126,11 @@ class SqflowCore<T extends Model> {
 
   /// Updates a single item synchronously.
   void update(T item,
-      {void Function(int rows)? onSuccess, ErrorCallback? onError}) async {
+      {void Function(int rows)? onSuccess,
+      ErrorCallback? onError,
+      DatabaseExecutor? executor}) async {
     try {
-      final rows = await updateAsync(item);
+      final rows = await updateAsync(item, executor: executor);
       if (onSuccess != null) onSuccess(rows);
     } catch (e, st) {
       if (onError != null) onError(e, st);
@@ -139,8 +143,8 @@ class SqflowCore<T extends Model> {
   /// ```dart
   /// await userService.upsertAsync(User(id: '1', name: 'John'));
   /// ```
-  Future<void> upsertAsync(T item) async {
-    final db = await database;
+  Future<void> upsertAsync(T item, {DatabaseExecutor? executor}) async {
+    final db = executor ?? await database;
     await db.insert(
       table.name,
       _withTimestamps(item.toJson(), isInsert: true),
@@ -150,9 +154,11 @@ class SqflowCore<T extends Model> {
 
   /// Upserts a single item synchronously.
   void upsert(T item,
-      {void Function(Object id)? onSuccess, ErrorCallback? onError}) async {
+      {void Function(Object id)? onSuccess,
+      ErrorCallback? onError,
+      DatabaseExecutor? executor}) async {
     try {
-      await upsertAsync(item);
+      await upsertAsync(item, executor: executor);
       if (onSuccess != null) onSuccess(item.id);
     } catch (e, st) {
       if (onError != null) onError(e, st);
@@ -170,8 +176,9 @@ class SqflowCore<T extends Model> {
   /// ```dart
   /// await userService.deleteAsync('1'); // soft delete
   /// ```
-  Future<int> deleteAsync(Object id, {bool force = false}) async {
-    final db = await database;
+  Future<int> deleteAsync(Object id,
+      {bool force = false, DatabaseExecutor? executor}) async {
+    final db = executor ?? await database;
     if (!table.paranoid || force) {
       return db.delete(table.name,
           where: '${table.primaryKey} = ?', whereArgs: [id]);
@@ -189,9 +196,10 @@ class SqflowCore<T extends Model> {
   void delete(Object id,
       {bool force = false,
       void Function(int rows)? onSuccess,
-      ErrorCallback? onError}) async {
+      ErrorCallback? onError,
+      DatabaseExecutor? executor}) async {
     try {
-      final rows = await deleteAsync(id, force: force);
+      final rows = await deleteAsync(id, force: force, executor: executor);
       if (onSuccess != null) onSuccess(rows);
     } catch (e, st) {
       if (onError != null) onError(e, st);
@@ -204,9 +212,9 @@ class SqflowCore<T extends Model> {
   /// ```dart
   /// await userService.restoreAsync('1');
   /// ```
-  Future<int> restoreAsync(Object id) async {
+  Future<int> restoreAsync(Object id, {DatabaseExecutor? executor}) async {
     if (!table.paranoid) throw StateError('Soft delete not enabled');
-    final db = await database;
+    final db = executor ?? await database;
     return db.update(
       table.name,
       {'deleted_at': null, 'updated_at': DateTime.now().toIso8601String()},
@@ -217,9 +225,11 @@ class SqflowCore<T extends Model> {
 
   /// Restores a soft-deleted item synchronously.
   void restore(Object id,
-      {void Function(int rows)? onSuccess, ErrorCallback? onError}) async {
+      {void Function(int rows)? onSuccess,
+      ErrorCallback? onError,
+      DatabaseExecutor? executor}) async {
     try {
-      final rows = await restoreAsync(id);
+      final rows = await restoreAsync(id, executor: executor);
       if (onSuccess != null) onSuccess(rows);
     } catch (e, st) {
       if (onError != null) onError(e, st);
@@ -236,9 +246,10 @@ class SqflowCore<T extends Model> {
   /// ```dart
   /// await userService.insertBatchAsync([User(id: '1', name: 'John'), User(id: '2', name: 'Jane')]);
   /// ```
-  Future<void> insertBatchAsync(List<T> items) async {
+  Future<void> insertBatchAsync(List<T> items,
+      {DatabaseExecutor? executor}) async {
     if (items.isEmpty) return;
-    final db = await database;
+    final db = executor ?? await database;
     final batch = db.batch();
     for (final item in items) {
       batch.insert(table.name, _withTimestamps(item.toJson(), isInsert: true),
@@ -249,9 +260,11 @@ class SqflowCore<T extends Model> {
 
   /// Inserts multiple items in a batch synchronously.
   void insertBatch(List<T> items,
-      {void Function(int count)? onSuccess, ErrorCallback? onError}) async {
+      {void Function(int count)? onSuccess,
+      ErrorCallback? onError,
+      DatabaseExecutor? executor}) async {
     try {
-      await insertBatchAsync(items);
+      await insertBatchAsync(items, executor: executor);
       if (onSuccess != null) onSuccess(items.length);
     } catch (e, st) {
       if (onError != null) onError(e, st);
@@ -264,9 +277,10 @@ class SqflowCore<T extends Model> {
   /// ```dart
   /// await userService.updateBatchAsync([User(id: '1', name: 'John'), User(id: '2', name: 'Jane')]);
   /// ```
-  Future<void> updateBatchAsync(List<T> items) async {
+  Future<void> updateBatchAsync(List<T> items,
+      {DatabaseExecutor? executor}) async {
     if (items.isEmpty) return;
-    final db = await database;
+    final db = executor ?? await database;
     final batch = db.batch();
     for (final item in items) {
       batch.update(table.name, _withTimestamps(item.toJson()),
@@ -277,9 +291,11 @@ class SqflowCore<T extends Model> {
 
   /// Updates multiple items in a batch synchronously.
   void updateBatch(List<T> items,
-      {void Function(int count)? onSuccess, ErrorCallback? onError}) async {
+      {void Function(int count)? onSuccess,
+      ErrorCallback? onError,
+      DatabaseExecutor? executor}) async {
     try {
-      await updateBatchAsync(items);
+      await updateBatchAsync(items, executor: executor);
       if (onSuccess != null) onSuccess(items.length);
     } catch (e, st) {
       if (onError != null) onError(e, st);
@@ -292,9 +308,10 @@ class SqflowCore<T extends Model> {
   /// ```dart
   /// await userService.upsertBatchAsync([User(id: '1', name: 'John'), User(id: '2', name: 'Jane')]);
   /// ```
-  Future<void> upsertBatchAsync(List<T> items) async {
+  Future<void> upsertBatchAsync(List<T> items,
+      {DatabaseExecutor? executor}) async {
     if (items.isEmpty) return;
-    final db = await database;
+    final db = executor ?? await database;
     final batch = db.batch();
     for (final item in items) {
       batch.insert(table.name, _withTimestamps(item.toJson(), isInsert: true),
@@ -317,9 +334,11 @@ class SqflowCore<T extends Model> {
   /// );
   /// ```
   void upsertBatch(List<T> items,
-      {void Function(int count)? onSuccess, ErrorCallback? onError}) async {
+      {void Function(int count)? onSuccess,
+      ErrorCallback? onError,
+      DatabaseExecutor? executor}) async {
     try {
-      await upsertBatchAsync(items);
+      await upsertBatchAsync(items, executor: executor);
       if (onSuccess != null) onSuccess(items.length);
     } catch (e, st) {
       if (onError != null) onError(e, st);
@@ -332,9 +351,10 @@ class SqflowCore<T extends Model> {
   /// ```dart
   /// await userService.deleteBatchAsync(['1', '2']);
   /// ```
-  Future<void> deleteBatchAsync(List<Object> ids, {bool force = false}) async {
+  Future<void> deleteBatchAsync(List<Object> ids,
+      {bool force = false, DatabaseExecutor? executor}) async {
     if (ids.isEmpty) return;
-    final db = await database;
+    final db = executor ?? await database;
     final batch = db.batch();
     final now = DateTime.now().toIso8601String();
     for (final id in ids) {
@@ -353,9 +373,10 @@ class SqflowCore<T extends Model> {
   void deleteBatch(List<Object> ids,
       {bool force = false,
       void Function(int count)? onSuccess,
-      ErrorCallback? onError}) async {
+      ErrorCallback? onError,
+      DatabaseExecutor? executor}) async {
     try {
-      await deleteBatchAsync(ids, force: force);
+      await deleteBatchAsync(ids, force: force, executor: executor);
       if (onSuccess != null) onSuccess(ids.length);
     } catch (e, st) {
       if (onError != null) onError(e, st);
@@ -368,10 +389,11 @@ class SqflowCore<T extends Model> {
   /// ```dart
   /// await userService.restoreBatchAsync(['1', '2']);
   /// ```
-  Future<void> restoreBatchAsync(List<Object> ids) async {
+  Future<void> restoreBatchAsync(List<Object> ids,
+      {DatabaseExecutor? executor}) async {
     if (!table.paranoid) throw StateError('Soft delete not enabled');
     if (ids.isEmpty) return;
-    final db = await database;
+    final db = executor ?? await database;
     final batch = db.batch();
     final now = DateTime.now().toIso8601String();
     for (final id in ids) {
@@ -383,9 +405,11 @@ class SqflowCore<T extends Model> {
 
   /// Restores multiple soft-deleted items in a batch synchronously.
   void restoreBatch(List<Object> ids,
-      {void Function(int count)? onSuccess, ErrorCallback? onError}) async {
+      {void Function(int count)? onSuccess,
+      ErrorCallback? onError,
+      DatabaseExecutor? executor}) async {
     try {
-      await restoreBatchAsync(ids);
+      await restoreBatchAsync(ids, executor: executor);
       if (onSuccess != null) onSuccess(ids.length);
     } catch (e, st) {
       if (onError != null) onError(e, st);
@@ -406,10 +430,12 @@ class SqflowCore<T extends Model> {
       {List<String>? columns,
       Attributes? attributes,
       bool withDeleted = false,
-      List<Includable>? include}) async {
-    final db = await database;
+      List<Includable>? include,
+      DatabaseExecutor? executor}) async {
+    final db = executor ?? await database;
     final where = WhereBuilder().eq(table.primaryKey, id);
-    if (table.paranoid && !withDeleted) where.isNull('deleted_at');
+    if (table.paranoid && !withDeleted)
+      where.isNull('${table.name}.deleted_at');
 
     final sql = buildJoinQuery(
       columns: columns,
@@ -446,13 +472,17 @@ class SqflowCore<T extends Model> {
       void Function(T)? onSuccess,
       ErrorCallback? onError,
       bool withDeleted = false,
-      List<Includable>? include}) async {
+      List<Includable>? include,
+      DatabaseExecutor? executor}) async {
     try {
-      final item = await readAsync(id,
-          columns: columns,
-          attributes: attributes,
-          withDeleted: withDeleted,
-          include: include);
+      final item = await readAsync(
+        id,
+        columns: columns,
+        attributes: attributes,
+        withDeleted: withDeleted,
+        include: include,
+        executor: executor,
+      );
       if (item != null && onSuccess != null) onSuccess(item);
     } catch (e, st) {
       if (onError != null) onError(e, st);
@@ -663,10 +693,12 @@ class SqflowCore<T extends Model> {
   /// ```dart
   /// final exists = await userService.existsAsync('1');
   /// ```
-  Future<bool> existsAsync(Object id, {bool withDeleted = false}) async {
-    final db = await database;
+  Future<bool> existsAsync(Object id,
+      {bool withDeleted = false, DatabaseExecutor? executor}) async {
+    final db = executor ?? await database;
     final where = WhereBuilder().eq(table.primaryKey, id);
-    if (table.paranoid && !withDeleted) where.isNull('deleted_at');
+    if (table.paranoid && !withDeleted)
+      where.isNull('${table.name}.deleted_at');
     final result = await db.query(table.name,
         columns: [table.primaryKey],
         where: where.build(),
@@ -691,9 +723,11 @@ class SqflowCore<T extends Model> {
   void exists(Object id,
       {void Function(bool exists)? onResult,
       ErrorCallback? onError,
-      bool withDeleted = false}) async {
+      bool withDeleted = false,
+      DatabaseExecutor? executor}) async {
     try {
-      final ex = await existsAsync(id, withDeleted: withDeleted);
+      final ex =
+          await existsAsync(id, withDeleted: withDeleted, executor: executor);
       if (onResult != null) onResult(ex);
     } catch (e, st) {
       if (onError != null) onError(e, st);
@@ -716,15 +750,16 @@ class SqflowCore<T extends Model> {
     bool withDeleted = false,
     bool onlyDeleted = false,
     List<Includable>? include,
+    DatabaseExecutor? executor,
   }) async {
-    final db = await database;
+    final db = executor ?? await database;
     final effectiveWhere = where?.copy() ?? WhereBuilder();
 
     if (table.paranoid) {
       if (onlyDeleted) {
-        effectiveWhere.isNotNull('deleted_at');
+        effectiveWhere.isNotNull('${table.name}.deleted_at');
       } else if (!withDeleted && !effectiveWhere.hasConditionOn('deleted_at')) {
-        effectiveWhere.isNull('deleted_at');
+        effectiveWhere.isNull('${table.name}.deleted_at');
       }
     }
 
@@ -773,6 +808,7 @@ class SqflowCore<T extends Model> {
     bool withDeleted = false,
     bool onlyDeleted = false,
     List<Includable>? include,
+    DatabaseExecutor? executor,
   }) async {
     final fetched = await _fetchRows(
       includeTotalCount: false,
@@ -785,6 +821,7 @@ class SqflowCore<T extends Model> {
       withDeleted: withDeleted,
       onlyDeleted: onlyDeleted,
       include: include,
+      executor: executor,
     );
     return Result(data: fetched.data);
   }
@@ -814,6 +851,7 @@ class SqflowCore<T extends Model> {
     bool withDeleted = false,
     bool onlyDeleted = false,
     List<Includable>? include,
+    DatabaseExecutor? executor,
   }) async {
     final fetched = await _fetchRows(
       includeTotalCount: true,
@@ -826,6 +864,7 @@ class SqflowCore<T extends Model> {
       withDeleted: withDeleted,
       onlyDeleted: onlyDeleted,
       include: include,
+      executor: executor,
     );
     return ResultWithCount(data: fetched.data, count: fetched.count);
   }
