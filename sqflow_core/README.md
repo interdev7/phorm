@@ -1,7 +1,7 @@
 # SQFlow Core
 
 [![Dart](https://img.shields.io/badge/Dart-3.0%2B-blue)](https://dart.dev/)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![License: Apache 2.0](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 
 The runtime engine of the SQFlow ORM — CRUD, batch operations, pagination, eager loading, soft deletes, transactions, and schema migrations. Built on top of [sqflite](https://pub.dev/packages/sqflite).
 
@@ -121,4 +121,4 @@ Full documentation is in the [`docs/`](../docs) folder:
 
 ## License
 
-MIT
+Apache 2.0

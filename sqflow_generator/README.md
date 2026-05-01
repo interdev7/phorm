@@ -62,3 +62,10 @@ dart run build_runner watch --delete-conflicting-outputs
 
 - For annotation details, see [sqflow_platform_interface](../sqflow_platform_interface/README.md).
 - For runtime usage, see [sqflow_core](../sqflow_core/README.md).
+
+---
+
+## License
+
+Apache 2.0
+

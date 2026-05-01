@@ -4,10 +4,10 @@ Annotation library for declarative SQL table and schema definitions in **Dart**,
 
 These annotations are designed to work together with code generators (most notably [`sqflow_generator`](https://github.com/interdev7/sqflow_generator)) to produce:
 
-* SQL `CREATE TABLE` schemas
-* Index definitions
-* Foreign keys
-* Runtime table configuration (`Table<T>`)
+- SQL `CREATE TABLE` schemas
+- Index definitions
+- Foreign keys
+- Runtime table configuration (`Table<T>`)
 
 The library itself **does not generate SQL** — it only provides annotations and base classes that generators can understand.
 
@@ -15,14 +15,14 @@ The library itself **does not generate SQL** — it only provides annotations an
 
 ## Features
 
-* Declarative table definitions via annotations
-* Strongly-typed column definitions
-* Primary keys & foreign keys
-* Indexes (unique & non-unique)
-* CHECK constraints
-* Default values
-* Soft delete ("paranoid") support
-* Database-agnostic logical data types
+- Declarative table definitions via annotations
+- Strongly-typed column definitions
+- Primary keys & foreign keys
+- Indexes (unique & non-unique)
+- CHECK constraints
+- Default values
+- Soft delete ("paranoid") support
+- Native SQLite data types
 
 ---
 
@@ -32,19 +32,15 @@ Add the dependency:
 
 ```yaml
 dependencies:
-  sqflow_core:
-    git:
-      url: https://github.com/interdev7/sqflow_core
+  sqflow_core: ^latest
 ```
 
 Then add the generator:
 
 ```yaml
 dev_dependencies:
-  sqflow_generator:
-    git:
-      url: https://github.com/interdev7/sqflow_generator
-  build_runner: ^2.4.0
+  sqflow_generator: ^latest
+  build_runner: ^latest
 ```
 
 ---
@@ -69,32 +65,33 @@ part 'user.sql.g.dart';
     Index(columns: ['first_name', 'last_name']),
   ],
 )
-class User {
-  @ID(type: DataTypes.TEXT)
+class User extends Model with _$SQFlowUserMixin {
+  @ID(type: TEXT(), autoIncrement: false, unique: true)
+  @override
   final String id;
 
-  @Column(type: DataTypes.TEXT)
+  @Column(type: TEXT())
   final String firstName;
 
-  @Column(type: DataTypes.TEXT)
+  @Column(type: TEXT())
   final String lastName;
 
-  @Column(type: DataTypes.TEXT, unique: true)
+  @Column(type: TEXT(), unique: true)
   final String email;
 
-  @Column(type: DataTypes.TEXT, nullable: true)
+  @Column(type: TEXT(), nullable: true)
   final String? phone;
 
   @Column(
-    type: DataTypes.TEXT,
+    type: TEXT(),
     check: CHECK(['M', 'F', 'Other']),
   )
   final String gender;
 
-  @Column(type: DataTypes.DATETIME)
+  @Column(type: TEXT())
   final DateTime createdAt;
 
-  @Column(type: DataTypes.DATETIME, nullable: true)
+  @Column(type: TEXT(), nullable: true)
   final DateTime? deletedAt;
 
   User({
@@ -108,67 +105,8 @@ class User {
     this.deletedAt,
   });
 
-  factory User.fromJson(Map<String, dynamic> json) => User(
-        id: json['id'],
-        firstName: json['firstName'],
-        lastName: json['lastName'],
-        email: json['email'],
-        phone: json['phone'],
-        gender: json['gender'],
-        createdAt: DateTime.parse(json['createdAt']),
-        deletedAt: json['deletedAt'] != null
-            ? DateTime.parse(json['deletedAt'])
-            : null,
-      );
+  factory User.fromJson(Map<String, dynamic> json) => _$SQFlowUserFromJson(json);
 }
-```
-
----
-
-### 2. Run the generator
-
-```bash
-flutter pub run build_runner build
-```
-
-This will generate a `.sql.g.dart` file containing the SQL schema and a `Table<T>` instance.
-
----
-
-## Generated Output (Example)
-
-```sql
-CREATE TABLE users (
-  id TEXT PRIMARY KEY NOT NULL UNIQUE,
-  first_name TEXT NOT NULL,
-  last_name TEXT NOT NULL,
-  email TEXT NOT NULL UNIQUE,
-  phone TEXT,
-  gender TEXT NOT NULL CHECK(gender IN ('M', 'F', 'Other')),
-  created_at TEXT NOT NULL,
-  deleted_at TEXT
-);
-
-CREATE UNIQUE INDEX users_email_idx ON users(email);
-CREATE INDEX users_first_name_last_name_idx ON users(first_name, last_name);
-```
-
-And a runtime schema object:
-
-```dart
-class _UserTable extends Table<User> {
-  _UserTable({
-    required super.schema,
-    required super.name,
-    required super.fromJson,
-  }) : super(paranoid: _detectSoftDelete(schema));
-}
-
-final _$usersTable = _UserTable(
-  schema: _schema,
-  name: 'users',
-  fromJson: User.fromJson,
-);
 ```
 
 ---
@@ -189,15 +127,13 @@ Defines table-level configuration.
 )
 ```
 
-| Property       | Type                     | Description                                   |
-| -------------- | ------------------------ | --------------------------------------------- |
-| `tableName`    | `String?`                | Explicit table name                           |
-| `indexes`      | `List<Index>`            | Table indexes                                 |
-| `paranoid`     | `bool`                   | Enables soft delete (`deletedAt`)             |
-| `columnNaming` | `ColumnNamingStrategy`   | Column naming strategy (snake/camel/pascal)   |
-| `hasMany`      | `List<HasMany>`          | One-to-Many relationships                     |
-| `hasOne`       | `List<HasOne>`           | One-to-One relationships                      |
-| `belongsTo`    | `List<BelongsTo>`        | Many-to-One relationships                     |
+| Property        | Type                   | Description                                 |
+| --------------- | ---------------------- | ------------------------------------------- |
+| `tableName`     | `String?`              | Explicit table name                         |
+| `indexes`       | `List<Index>`          | Table indexes                               |
+| `paranoid`      | `bool`                 | Enables soft delete (`deletedAt`)           |
+| `columnNaming`  | `ColumnNamingStrategy` | Column naming strategy (snake/camel/pascal) |
+| `relationships` | `List<Relationship>`   | `HasMany`, `HasOne`, `BelongsTo`            |
 
 ---
 
@@ -207,7 +143,7 @@ Standard column definition.
 
 ```dart
 @Column(
-  type: DataTypes.TEXT,
+  type: TEXT(),
   nullable: false,
   unique: false,
   defaultValue: 'N/A',
@@ -217,14 +153,12 @@ Standard column definition.
 
 Supported options:
 
-* `type` (required)
-* `nullable`
-* `unique`
-* `defaultValue`
-* `length`
-* `precision`
-* `scale`
-* `check`
+- `type` (required)
+- `columnName` (override)
+- `nullable`
+- `unique`
+- `defaultValue`
+- `check`
 
 ---
 
@@ -234,60 +168,51 @@ Primary key column.
 
 ```dart
 @ID(
-  type: DataTypes.INTEGER,
+  type: INTEGER(),
   autoIncrement: true,
 )
 ```
 
-* Always `NOT NULL`
-* Automatically marked as `PRIMARY KEY`
+- Always `NOT NULL`
+- Automatically marked as `PRIMARY KEY`
 
 ---
 
-### `@ForeignKey`
-
-Defines a foreign key relationship.
-
-```dart
-@ForeignKey(
-  type: DataTypes.INTEGER,
-  referencesTable: 'users',
-  referencesColumn: 'id',
-  onDelete: 'CASCADE',
-)
-```
-
----
-
-### 🔗 Relationship Annotations
+## 🔗 Relationship Annotations
 
 These annotations define ORM-style relationships for **Eager Loading**. They can be used inside `@Schema` or directly on class fields.
 
 #### `@HasMany`
+
 Defines a one-to-many relationship.
 
 ```dart
 @HasMany(model: 'posts', foreignKey: 'user_id', localKey: 'id')
+// or
+// @HasMany(model: Post, foreignKey: 'user_id') // localKey is inferred
 final List<Post> posts;
 ```
 
 #### `@HasOne`
+
 Defines a one-to-one relationship.
 
 ```dart
-@HasOne(model: 'profiles', foreignKey: 'user_id')
+@HasOne(model: Profile, foreignKey: 'user_id')
 final Profile? profile;
 ```
 
 #### `@BelongsTo`
+
 Defines a many-to-one relationship.
 
 ```dart
-@BelongsTo(model: 'users', foreignKey: 'user_id')
+@BelongsTo(model: User, foreignKey: 'user_id')
 final User? author;
 ```
 
 #### `@Join`
+
 A semantic alias for `@BelongsTo`.
 
 ```dart
@@ -295,59 +220,28 @@ A semantic alias for `@BelongsTo`.
 final User? user;
 ```
 
-| Property     | Type     | Description                                      |
-| ------------ | -------- | ------------------------------------------------ |
-| `model`      | `String` | Target table name                                |
-| `foreignKey` | `String` | Field in the related table (or this table)       |
-| `localKey`   | `String` | Field in this table (or related table)           |
+| Property     | Type     | Description                                |
+| ------------ | -------- | ------------------------------------------ |
+| `model`      | `String` | Target table name                          |
+| `foreignKey` | `String` | Field in the related table (or this table) |
+| `localKey`   | `String` | Field in this table (or related table)     |
 
 ---
 
 ## SQLite Type Mapping
 
-`sqflow_core` uses **logical data types**, which are mapped by `sqflow_generator` to concrete SQLite types.
+`sqflow_core` uses native SQLite data types via constructor calls.
 
-SQLite uses dynamic typing, so the mapping is pragmatic and predictable.
+| Class       | SQLite type | Dart type     | Notes                      |
+| :---------- | :---------- | :------------ | :------------------------- |
+| `TEXT()`    | `TEXT`      | `String`      | Strings, UUIDs, ISO dates  |
+| `INTEGER()` | `INTEGER`   | `int`, `bool` | Booleans stored as `1`/`0` |
+| `REAL()`    | `REAL`      | `double`      | Floating point numbers     |
+| `BLOB()`    | `BLOB`      | `Uint8List`   | Binary data                |
+| `NUMERIC()` | `NUMERIC`   | `num`         | Integer or float           |
 
-| DataTypes      | SQLite Type            | Notes                                  |
-| -------------- | ---------------------- | -------------------------------------- |
-| `INTEGER`      | `INTEGER`              | Used for ids, counters                 |
-| `BIGINT`       | `INTEGER`              | SQLite stores 64-bit ints              |
-| `REAL`         | `REAL`                 | Floating point                         |
-| `TEXT`         | `TEXT`                 | Arbitrary length string                |
-| `VARCHAR(n)`   | `VARCHAR(n)` or `TEXT` | Falls back to `TEXT` if length omitted |
-| `CHAR(n)`      | `CHAR(n)`              | Defaults to `CHAR(1)`                  |
-| `DECIMAL(p,s)` | `DECIMAL(p,s)`         | Stored as numeric/text internally      |
-| `BOOLEAN`      | `INTEGER`              | `1` = true, `0` = false                |
-| `DATE`         | `TEXT`                 | ISO-8601 recommended                   |
-| `DATETIME`     | `TEXT`                 | ISO-8601 recommended                   |
-| `TIME`         | `TEXT`                 | ISO-8601 recommended                   |
-| `BLOB`         | `BLOB`                 | Binary data                            |
-| `JSON`         | `TEXT`                 | No native JSON in SQLite               |
-
-> ⚠️ SQLite does **not** enforce strict column types. Validation is mostly application-level.
-
----
-
-## DataTypes
-
-Logical column types (database-agnostic):
-
-* `INTEGER`
-* `BIGINT`
-* `REAL`
-* `TEXT`
-* `VARCHAR`
-* `CHAR`
-* `DECIMAL`
-* `BOOLEAN`
-* `DATE`
-* `DATETIME`
-* `TIME`
-* `BLOB`
-* `JSON`
-
-The generator maps these to concrete SQL types (e.g. SQLite, PostgreSQL).
+> [!NOTE]
+> There is no dedicated `BOOLEAN` or `DATETIME` class. Use `INTEGER()` for booleans and `TEXT()` for dates (stored as ISO-8601 strings).
 
 ---
 
@@ -355,16 +249,12 @@ The generator maps these to concrete SQL types (e.g. SQLite, PostgreSQL).
 
 ### 1. SQLite is weakly typed
 
-* SQLite does **not** strictly enforce column types
-* `VARCHAR`, `CHAR`, `DECIMAL` are mostly semantic
-* Validation should be done at the application layer
-
----
+SQLite does **not** strictly enforce column types. Validation should be done at the application layer.
 
 ### 2. BOOLEAN is stored as INTEGER
 
 ```dart
-@Column(type: DataTypes.BOOLEAN, defaultValue: true)
+@Column(type: INTEGER(), defaultValue: 1)
 final bool isActive;
 ```
 
@@ -380,9 +270,9 @@ You must convert manually in `toJson` / `fromJson`.
 
 ### 3. CHECK constraints are limited
 
-* `CHECK` works in SQLite
-* But complex expressions are discouraged
-* Prefer enums / validation in Dart
+- `CHECK` works in SQLite
+- But complex expressions are discouraged
+- Prefer enums / validation in Dart
 
 ---
 
@@ -390,16 +280,16 @@ You must convert manually in `toJson` / `fromJson`.
 
 If `@Schema(paranoid: true)` is set:
 
-* A `deletedAt` field **must exist**
-* Name must resolve to `deleted_at`
-* Otherwise generation will fail
+- A `deletedAt` field **must exist**
+- Name must resolve to `deleted_at`
+- Otherwise generation will fail
 
 ---
 
 ### 5. Field names are auto-converted
 
-* Dart: `camelCase`
-* SQL: `snake_case`
+- Dart: `camelCase`
+- SQL: `snake_case`
 
 ```dart
 firstName → first_name
@@ -414,8 +304,8 @@ Indexes must use **SQL column names** (snake_case), not Dart field names.
 
 `sqflow_generator` generates **full CREATE TABLE schemas**.
 
-* No ALTER TABLE
-* No diff-based migrations
+- No ALTER TABLE
+- No diff-based migrations
 
 This is intentional and keeps the generator simple.
 
@@ -425,15 +315,15 @@ This is intentional and keeps the generator simple.
 
 When `paranoid: true`:
 
-* The model **must** define a `deletedAt` field
-* Records are marked as deleted instead of being removed
-* The generator automatically detects soft-delete support
+- The model **must** define a `deletedAt` field
+- Records are marked as deleted instead of being removed
+- The generator automatically detects soft-delete support
 
 ---
 
 ## Build Flow (Annotations → SQL)
 
-```text
+````text
 ┌──────────────┐
 │ Dart Model   │
 │ + Annotations│
@@ -477,17 +367,17 @@ When `paranoid: true`:
   ],
 )
 class User {
-  @ID(type: DataTypes.TEXT)
+  @ID(type: TEXT())
   final String id;
 
-  @Column(type: DataTypes.TEXT)
+  @Column(type: TEXT())
   final String firstName;
 
   @Column(type: DataTypes.TEXT)
   final String lastName;
   // ...
 }
-```
+````
 
 Generated SQL (camelCase example):
 
@@ -506,9 +396,11 @@ CREATE INDEX users_firstName_lastName_idx ON users(firstName, lastName);
 ```
 
 Notes:
+
 - Choose `snakeCase`, `camelCase`, or `pascalCase` to fit your conventions.
 - Ensure `indexes` reference column names consistent with the chosen strategy.
 - When writing manual SQL or using `Table<T>` without code generation, you fully control column names in `schema`; set `columnNaming` only for generated models.
+
 ```
 
 ---
@@ -517,3 +409,4 @@ Notes:
 
 * **sqflow_generator** – SQL schema code generator
   [https://github.com/interdev7/sqflow_generator](https://github.com/interdev7/sqflow_generator)
+```

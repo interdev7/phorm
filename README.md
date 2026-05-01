@@ -94,6 +94,6 @@ Full documentation is in the [`docs/`](./docs) folder:
 
 ---
 
-## License
+## 📄 License
 
-MIT
+Apache 2.0
