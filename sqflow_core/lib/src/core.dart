@@ -512,6 +512,7 @@ class SqflowCore<T extends Model> {
     int? limit,
     int? offset,
     bool includeTotalCount = false,
+    bool explainQueryPlan = false,
   }) {
     final selectFields = <String>[];
     final joins = <String>{};
@@ -649,7 +650,9 @@ class SqflowCore<T extends Model> {
         query += ' OFFSET $offset';
       }
     }
-
+    if (explainQueryPlan) {
+      query = 'EXPLAIN QUERY PLAN $query';
+    }
     return query;
   }
 
@@ -740,7 +743,8 @@ class SqflowCore<T extends Model> {
     final results =
         rows.map((r) => _unflattenRow(Map<String, dynamic>.from(r))).toList();
     final data = results.map(table.fromJson).toList();
-    final count = rows.isNotEmpty ? (rows.first['total_count'] as int? ?? 0) : 0;
+    final count =
+        rows.isNotEmpty ? (rows.first['total_count'] as int? ?? 0) : 0;
 
     return (data: data, count: count);
   }

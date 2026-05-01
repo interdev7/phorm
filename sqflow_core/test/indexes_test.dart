@@ -75,10 +75,9 @@ void main() {
     // We want to see if a query for orders by user_id uses the index
     final orderService = SqflowCore(dbManager: db, table: ordersTable);
     final where = WhereBuilder().eq('user_id', 'u1');
-    final sql = orderService.getBuildJoinQuery(where: where);
+    final sql = orderService.getBuildJoinQuery(where: where, explainQueryPlan: true);
 
-    final queryPlan =
-        await database.rawQuery("EXPLAIN QUERY PLAN $sql", where.args);
+    final queryPlan = await database.rawQuery(sql, where.args);
 
     // SQLite query plan output usually contains "SEARCH TABLE orders USING INDEX orders_user_id_idx"
     final planString = queryPlan.toString();
@@ -92,10 +91,10 @@ void main() {
     final sql = userService.getBuildJoinQuery(
       where: where,
       include: [Includable.model<Order>()],
+      explainQueryPlan: true,
     );
 
-    final complexQueryPlan =
-        await database.rawQuery("EXPLAIN QUERY PLAN $sql", where.args);
+    final complexQueryPlan = await database.rawQuery(sql, where.args);
 
     final planString = complexQueryPlan.toString();
 
