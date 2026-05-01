@@ -1,55 +1,99 @@
-<div style="padding-top: 50px;" align="center">
-  <image src="https://github.com/interdev7/sqflow/blob/main/assets/logo/sqflow_logo_screen.png"  alt="SqFlow" height="300" />
+<div align="center">
+  <img src="assets/logo/sqflow_logo.png" alt="SqFlow" height="240" />
 </div>
 
 # SQFlow
 
-A lightweight, type-safe SQLite abstraction for Dart and Flutter.
+A lightweight, type-safe SQLite ORM-like abstraction for Dart and Flutter.
 
-`sqflow` provides a clean repository-style API with:
+SQFlow uses **Single-Query JSON Aggregation** to load relationships in a single SQL query, and provides a fluent, type-safe API for all database needs — without raw string concatenation.
 
-- safe query builders (no raw SQL concatenation),
-- built-in pagination and filtering,
-- soft deletes and timestamps,
-- batch & transaction support,
-- predictable and testable data access.
+---
 
 ## Packages
 
-This workspace contains the following packages:
+| Package | Description |
+| :--- | :--- |
+| [sqflow_core](./sqflow_core) | Runtime engine — CRUD, WhereBuilder, Transactions, Eager Loading |
+| [sqflow_platform_interface](./sqflow_platform_interface) | Annotation library — `@Schema`, `@Column`, `@ID`, relationships |
+| [sqflow_generator](./sqflow_generator) | Code generator — automates SQL schemas, `toJson`/`fromJson`, mixins |
 
-- [`sqflow_core`](./sqflow_core): Core logic, CRUD operations, query builders (`WhereBuilder`, `SortBuilder`), and smart migration tracking.
-- [`sqflow_platform_interface`](./sqflow_platform_interface): Annotation library for declarative SQL table and schema definitions in Dart.
-- [`sqflow_generator`](./sqflow_generator): SQL Table Schema Generator for Flutter.
+---
 
-## Features
+## Key Features
 
-### Performance & Relationships
-SQFlow uses a **Single-Query JOIN** architecture to load relationships (`HasMany`, `BelongsTo`, `HasOne`) in one go using SQLite's JSON aggregation functions. This prevents the common N+1 query problem.
+- **🚀 Performance** — Load complex relationships in **exactly one** SQL query via JSON aggregation
+- **🛡️ Type Safety** — No `dynamic` maps in queries; compile-safe `Includable.model<T>()`
+- **🔍 Fluent API** — `WhereBuilder` and `SortBuilder` with full SQL injection protection
+- **🔗 Cross-table Filtering** — Filter by related table columns with automatic `LEFT JOIN`
+- **🗑️ Soft Deletes** — Built-in paranoid mode with restore support
+- **📦 Batch & Transactions** — Atomic bulk operations
+- **🔄 Smart Migrations** — Versioned, idempotent migration tracking
 
-> [!TIP]
-> To maximize performance on large datasets, always define indices on foreign key columns in your `@Schema`.
+---
 
-### Column Filtering (Attributes)
-You can select only specific columns (attributes) to reduce memory usage and query time, similar to Sequelize:
+## Quick Start
 
 ```dart
-// Fetch only specific columns
-final users = await userService.readAll(
-  attributes: Attribute.include(['id', 'first_name', 'email'])
-);
+@Schema(
+  tableName: 'users',
+  paranoid: true,
+  relationships: [HasMany(model: Post, foreignKey: 'user_id')],
+)
+class User extends Model with _$SQFlowUserMixin {
+  @ID(type: TEXT())
+  @override
+  final String id;
 
-// Exclude sensitive or heavy columns
-final profiles = await userService.readAll(
-  attributes: Attribute.exclude(['internal_notes', 'raw_metadata'])
-);
+  @Column(type: TEXT())
+  final String name;
 
-// Filter attributes in relationships
-final data = await userService.readAll(
-  include: [
-    Includable.model<Post>(
-      attributes: Attribute.include(['title', 'view_count'])
-    )
-  ]
-);
+  User({required this.id, required this.name});
+
+  @override
+  Map<String, dynamic> toJson() => _$SQFlowUserToJson();
+
+  factory User.fromJson(Map<String, dynamic> json) => _$SQFlowUserFromJson(json);
+}
 ```
+
+```dart
+// No count needed — returns Result<User>
+final result = await userService.readAll(
+  where: WhereBuilder().like('posts.title', 'Dart%'),
+  include: [Includable.model<Post>()],
+  attributes: Attributes.include(['id', 'name']),
+);
+
+// With pagination count — returns ResultWithCount<User>, no cast needed
+final paged = await userService.readAllWithCount(
+  where: WhereBuilder().like('posts.title', 'Dart%'),
+  limit: 20,
+  offset: 0,
+);
+print('Showing ${paged.data.length} of ${paged.count}');
+```
+
+---
+
+## Documentation
+
+Full documentation is in the [`docs/`](./docs) folder:
+
+| File | Contents |
+| :--- | :--- |
+| [01-overview.md](./docs/01-overview.md) | Architecture, why SQFlow, package structure |
+| [02-schema-definition.md](./docs/02-schema-definition.md) | `@Schema`, `@Column`, `@ID`, data types, indexes, CHECK |
+| [03-where-builder.md](./docs/03-where-builder.md) | All WhereBuilder methods, groups, cross-table filtering, pitfalls |
+| [04-crud-operations.md](./docs/04-crud-operations.md) | Insert, Read, Update, Delete, Batch, Transactions, Attributes |
+| [05-relationships.md](./docs/05-relationships.md) | HasMany, HasOne, BelongsTo, Includable API, fromJson patterns |
+| [06-db-and-migrations.md](./docs/06-db-and-migrations.md) | DB manager, MigrationBuilder, version lifecycle |
+| [07-code-generation.md](./docs/07-code-generation.md) | Generator setup, commands, generated code anatomy |
+| [08-soft-deletes.md](./docs/08-soft-deletes.md) | Paranoid mode, restore, hard delete |
+| [09-pitfalls-and-limitations.md](./docs/09-pitfalls-and-limitations.md) | Known issues, gotchas, design trade-offs |
+
+---
+
+## License
+
+MIT
