@@ -15,6 +15,7 @@ part 'user.sql.g.dart';
 )
 class User extends Model with _$SQFlowUserMixin {
   @ID(type: TEXT(), autoIncrement: false, unique: true)
+  @override
   final String id;
 
   @Column(type: TEXT())
