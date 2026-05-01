@@ -1,13 +1,9 @@
-import 'package:flutter_test/flutter_test.dart';
-import 'package:sqflite_common_ffi/sqflite_ffi.dart';
-import 'package:sqflow_core/sqflow_core.dart';
-import 'package:sqflow_platform_interface/sqflow_platform_interface.dart';
 import 'models/user.dart';
+import 'test_utils.dart';
 
 void main() {
   setUpAll(() {
-    sqfliteFfiInit();
-    databaseFactory = databaseFactoryFfi;
+    initSqflite();
   });
 
   late DB db;
@@ -106,24 +102,4 @@ void main() {
     expect(ordersJson, contains('"total":100'));
     expect(ordersJson, isNot(contains('"id":1')));
   });
-}
-
-// Add a helper to access _buildJoinQuery for testing if needed,
-// or just test through readAsync and check what fails.
-// Since _buildJoinQuery is private, I'll add a public getter or just test readAsync.
-
-extension SqflowCoreTestExt on SqflowCore {
-  String getBuildJoinQuery({
-    List<String>? columns,
-    Attributes? attributes,
-    List<Includable>? include,
-    WhereBuilder? where,
-  }) {
-    return (this as dynamic).buildJoinQuery(
-      columns: columns,
-      attributes: attributes,
-      include: include,
-      where: where,
-    ) as String;
-  }
 }
