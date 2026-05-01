@@ -136,16 +136,18 @@ class User extends Model with _$SQFlowUserMixin { ... }
 
 ## Logical Data Types
 
-`sqflow` uses logical types that are mapped to concrete SQLite types by the generator.
+`sqflow` uses logical types mapped to concrete SQLite types. Use them as constructor calls (e.g. `TEXT()`).
 
-| DataTypes    | SQLite Type | Notes                      |
-| :----------- | :---------- | :------------------------- |
-| `INTEGER()`  | `INTEGER`   | Standard integers          |
-| `TEXT()`     | `TEXT`      | Strings                    |
-| `REAL()`     | `REAL`      | Floating point             |
-| `BOOLEAN()`  | `INTEGER`   | Stored as 1/0              |
-| `DATETIME()` | `TEXT`      | ISO-8601 strings           |
-| `JSON()`     | `TEXT`      | Stored as stringified JSON |
+| Class | SQLite Type | Dart Type |
+| :----------- | :---------- | :---------- |
+| `INTEGER()`  | `INTEGER`   | `int`, `bool` |
+| `TEXT()`     | `TEXT`      | `String`    |
+| `REAL()`     | `REAL`      | `double`    |
+| `BLOB()`     | `BLOB`      | `Uint8List` |
+| `NUMERIC()`  | `NUMERIC`   | `num`       |
+
+> [!NOTE]
+> For Booleans, use `INTEGER()` (stored as 1/0). For Dates, use `TEXT()` (ISO-8601 strings).
 
 ---
 
@@ -173,4 +175,4 @@ print('Page 3: ${paged.data.length} of ${paged.count} total');
 ## Status
 
 - Dart SDK: `>=3.0.0 <4.0.0`
-- License: MIT
+- License: Apache 2.0
