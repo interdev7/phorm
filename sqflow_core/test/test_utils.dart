@@ -21,6 +21,7 @@ extension SqflowCoreTestExt on SqflowCore {
     int? limit,
     int? offset,
     bool includeTotalCount = false,
+    bool explainQueryPlan = false,
   }) {
     return (this as dynamic).buildJoinQuery(
       columns: columns,
@@ -31,6 +32,7 @@ extension SqflowCoreTestExt on SqflowCore {
       limit: limit,
       offset: offset,
       includeTotalCount: includeTotalCount,
+      explainQueryPlan: explainQueryPlan,
     ) as String;
   }
 }
