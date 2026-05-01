@@ -73,11 +73,12 @@ void main() {
         });
 
         // Update an existing user
+        final where = WhereBuilder().eq('id', 'u001');
         await txn.update(
           'users',
           {'first_name': 'UpdatedInTxn'},
-          where: 'id = ?',
-          whereArgs: ['u001'],
+          where: where.build(),
+          whereArgs: where.args,
         );
       });
 
