@@ -18,7 +18,7 @@ void main() {
 
   group('SqflowCore Transaction:', () {
     test('Transaction rolls back on error', () async {
-      final initialCount = (await userService.readAll()).count;
+      final initialCount = (await userService.readAllWithCount()).count;
 
       try {
         await userService.transaction((txn) async {
@@ -45,7 +45,7 @@ void main() {
       }
 
       // Verify transaction rolled back
-      final finalCount = (await userService.readAll()).count;
+      final finalCount = (await userService.readAllWithCount()).count;
       expect(finalCount, initialCount);
 
       // Verify user was not inserted
@@ -54,7 +54,7 @@ void main() {
     });
 
     test('Successful transaction', () async {
-      final initialCount = (await userService.readAll()).count;
+      final initialCount = (await userService.readAllWithCount()).count;
 
       await userService.transaction((txn) async {
         // Insert a user
@@ -82,7 +82,7 @@ void main() {
       });
 
       // Verify both changes were applied
-      final finalCount = (await userService.readAll()).count;
+      final finalCount = (await userService.readAllWithCount()).count;
       expect(finalCount, initialCount + 1);
 
       final newUser = await userService.readAsync('txn_success');

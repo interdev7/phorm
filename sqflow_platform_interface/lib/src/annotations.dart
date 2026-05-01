@@ -246,23 +246,23 @@ abstract interface class Includable {
   String getTableName(List<dynamic> availableTables);
 
   /// Optional attribute filter for the included model.
-  IAttributes? get attributes;
+  Attributes? get attributes;
 
   /// Includes a relationship by its explicit table name.
-  static Includable table(String name, {IAttributes? attributes}) =>
+  static Includable table(String name, {Attributes? attributes}) =>
       _TableIncludable(name, attributes: attributes);
 
   /// Includes a relationship by its model class type.
   ///
   /// Provides compile-time safety and refactoring support.
-  static Includable model<T>({IAttributes? attributes}) =>
+  static Includable model<T>({Attributes? attributes}) =>
       _ModelIncludable<T>(attributes: attributes);
 }
 
 class _TableIncludable implements Includable {
   final String name;
   @override
-  final IAttributes? attributes;
+  final Attributes? attributes;
 
   _TableIncludable(this.name, {this.attributes});
 
@@ -272,7 +272,7 @@ class _TableIncludable implements Includable {
 
 class _ModelIncludable<T> implements Includable {
   @override
-  final IAttributes? attributes;
+  final Attributes? attributes;
 
   _ModelIncludable({this.attributes});
 
@@ -290,20 +290,20 @@ class _ModelIncludable<T> implements Includable {
 }
 
 /// Interface for attribute filtering in queries (columns selection).
-abstract interface class IAttributes {
+abstract interface class Attributes {
   /// Includes only the specified columns.
-  static IAttributes include(List<String> columns) =>
+  static Attributes include(List<String> columns) =>
       _IncludeAttributes(columns);
 
   /// Excludes the specified columns.
-  static IAttributes exclude(List<String> columns) =>
+  static Attributes exclude(List<String> columns) =>
       _ExcludeAttributes(columns);
 
   /// Applies the filter to the given list of columns.
   List<String> apply(List<String> allColumns);
 }
 
-class _IncludeAttributes implements IAttributes {
+class _IncludeAttributes implements Attributes {
   final List<String> columns;
   _IncludeAttributes(this.columns);
 
@@ -311,7 +311,7 @@ class _IncludeAttributes implements IAttributes {
   List<String> apply(List<String> allColumns) => columns;
 }
 
-class _ExcludeAttributes implements IAttributes {
+class _ExcludeAttributes implements Attributes {
   final List<String> columns;
   _ExcludeAttributes(this.columns);
 

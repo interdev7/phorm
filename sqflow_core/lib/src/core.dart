@@ -404,7 +404,7 @@ class SqflowCore<T extends Model> {
   /// ```
   Future<T?> readAsync(Object id,
       {List<String>? columns,
-      IAttributes? attributes,
+      Attributes? attributes,
       bool withDeleted = false,
       List<Includable>? include}) async {
     final db = await database;
@@ -442,7 +442,7 @@ class SqflowCore<T extends Model> {
   /// ```
   void read(Object id,
       {List<String>? columns,
-      IAttributes? attributes,
+      Attributes? attributes,
       void Function(T)? onSuccess,
       ErrorCallback? onError,
       bool withDeleted = false,
@@ -501,12 +501,11 @@ class SqflowCore<T extends Model> {
     return value;
   }
 
-  @visibleForTesting
-
   /// Builds a single SQL query for relationships using JOINs and JSON aggregation.
+  @visibleForTesting
   String buildJoinQuery({
     List<String>? columns,
-    IAttributes? attributes,
+    Attributes? attributes,
     List<Includable>? include,
     WhereBuilder? where,
     SortBuilder? sort,
@@ -698,26 +697,19 @@ class SqflowCore<T extends Model> {
     }
   }
 
-  /// Returns all items with optional filtering, sorting, and pagination.
-  /// Uses **single query** with COUNT(*) OVER() to avoid a second count query.
-  ///
-  /// **Example:**
-  /// ```dart
-  /// final result = await userService.readAll(
-  ///   limit: 10,
-  ///   offset: 0,
-  ///   where: WhereBuilder().like('name', '%John%'),
-  ///   sort: SortBuilder().asc('name')
-  /// );
-  /// print('Total: ${result.count}, Items: ${result.data.length}');
-  /// ```
-  Future<DataAndCount<T>> readAll({
+  // -------------------------------------------------------
+  // READ ALL 🔍
+  // -------------------------------------------------------
+
+  /// Shared query execution for [readAll] and [readAllWithCount].
+  Future<({List<T> data, int count})> _fetchRows({
+    required bool includeTotalCount,
     int limit = 20,
     int offset = 0,
     WhereBuilder? where,
     SortBuilder? sort,
     List<String>? columns,
-    IAttributes? attributes,
+    Attributes? attributes,
     bool withDeleted = false,
     bool onlyDeleted = false,
     List<Includable>? include,
@@ -741,18 +733,97 @@ class SqflowCore<T extends Model> {
       sort: sort,
       limit: limit,
       offset: offset,
-      includeTotalCount: true,
+      includeTotalCount: includeTotalCount,
     );
 
     final rows = await db.rawQuery(sql, effectiveWhere.args);
-
     final results =
         rows.map((r) => _unflattenRow(Map<String, dynamic>.from(r))).toList();
-
     final data = results.map(table.fromJson).toList();
-    final count = rows.isNotEmpty ? (rows.first['total_count'] as int) : 0;
+    final count = rows.isNotEmpty ? (rows.first['total_count'] as int? ?? 0) : 0;
 
-    return DataAndCount(data: data, count: count);
+    return (data: data, count: count);
+  }
+
+  /// Returns a page of items without a total count.
+  ///
+  /// Use [readAllWithCount] when you need the total number of matching rows
+  /// for pagination UI.
+  ///
+  /// **Example:**
+  /// ```dart
+  /// final result = await userService.readAll(
+  ///   where: WhereBuilder().eq('city', 'Sofia'),
+  ///   limit: 20,
+  ///   sort: SortBuilder().asc('first_name'),
+  /// );
+  /// for (final user in result.data) { ... }
+  /// ```
+  Future<Result<T>> readAll({
+    int limit = 20,
+    int offset = 0,
+    WhereBuilder? where,
+    SortBuilder? sort,
+    List<String>? columns,
+    Attributes? attributes,
+    bool withDeleted = false,
+    bool onlyDeleted = false,
+    List<Includable>? include,
+  }) async {
+    final fetched = await _fetchRows(
+      includeTotalCount: false,
+      limit: limit,
+      offset: offset,
+      where: where,
+      sort: sort,
+      columns: columns,
+      attributes: attributes,
+      withDeleted: withDeleted,
+      onlyDeleted: onlyDeleted,
+      include: include,
+    );
+    return Result(data: fetched.data);
+  }
+
+  /// Returns a page of items **with** the total count of matching rows.
+  ///
+  /// Uses a single SQL query with `COUNT(*) OVER()` — no extra round-trip.
+  /// The returned [ResultWithCount.count] reflects the total number of rows
+  /// matching the [where] clause, regardless of [limit]/[offset].
+  ///
+  /// **Example:**
+  /// ```dart
+  /// final result = await userService.readAllWithCount(
+  ///   where: WhereBuilder().eq('city', 'Sofia'),
+  ///   limit: 20,
+  ///   offset: 0,
+  /// );
+  /// print('Showing ${result.data.length} of ${result.count}');
+  /// ```
+  Future<ResultWithCount<T>> readAllWithCount({
+    int limit = 20,
+    int offset = 0,
+    WhereBuilder? where,
+    SortBuilder? sort,
+    List<String>? columns,
+    Attributes? attributes,
+    bool withDeleted = false,
+    bool onlyDeleted = false,
+    List<Includable>? include,
+  }) async {
+    final fetched = await _fetchRows(
+      includeTotalCount: true,
+      limit: limit,
+      offset: offset,
+      where: where,
+      sort: sort,
+      columns: columns,
+      attributes: attributes,
+      withDeleted: withDeleted,
+      onlyDeleted: onlyDeleted,
+      include: include,
+    );
+    return ResultWithCount(data: fetched.data, count: fetched.count);
   }
 
   /// Executes operations in a transaction.

@@ -44,7 +44,7 @@ void main() {
   test('Attribute.include should only fetch specified columns', () async {
     final where = WhereBuilder().eq('id', 'u1');
     final sql = userService.getBuildJoinQuery(
-      attributes: IAttributes.include(['id', 'first_name']),
+      attributes: Attributes.include(['id', 'first_name']),
       where: where,
     );
 
@@ -60,7 +60,7 @@ void main() {
   test('Attribute.exclude should fetch all except specified columns', () async {
     final where = WhereBuilder().eq('id', 'u1');
     final sql = userService.getBuildJoinQuery(
-      attributes: IAttributes.exclude(['email', 'phone']),
+      attributes: Attributes.exclude(['email', 'phone']),
       where: where,
     );
 
@@ -78,9 +78,9 @@ void main() {
       () async {
     final where = WhereBuilder().eq('id', 'u1');
     final sql = userService.getBuildJoinQuery(
-      attributes: IAttributes.include(['id', 'first_name']),
+      attributes: Attributes.include(['id', 'first_name']),
       include: [
-        Includable.model<Order>(attributes: IAttributes.include(['total']))
+        Includable.model<Order>(attributes: Attributes.include(['total']))
       ],
       where: where,
     );
@@ -115,7 +115,7 @@ void main() {
 extension SqflowCoreTestExt on SqflowCore {
   String getBuildJoinQuery({
     List<String>? columns,
-    IAttributes? attributes,
+    Attributes? attributes,
     List<Includable>? include,
     WhereBuilder? where,
   }) {
