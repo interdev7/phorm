@@ -28,6 +28,13 @@ CREATE TABLE users (
 
 CREATE UNIQUE INDEX users_email_idx ON users(email);
 CREATE INDEX users_first_name_last_name_idx ON users(first_name, last_name);
+
+CREATE TRIGGER update_users_timestamp
+AFTER UPDATE ON users
+FOR EACH ROW
+BEGIN
+    UPDATE users SET updated_at = datetime('now') WHERE id = OLD.id;
+END;
 """;
 
 class _$SQFlowUserTable extends Table<User> {
@@ -190,15 +197,23 @@ User _$SQFlowUserFromJson(Map<String, dynamic> json) {
 
 const _$SQFlowPostSchema = """
 CREATE TABLE posts (
-  id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL UNIQUE,
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
   title TEXT NOT NULL,
   user_id TEXT NOT NULL,
   created_at TEXT NOT NULL,
   updated_at TEXT NOT NULL,
-  deleted_at TEXT
+  deleted_at TEXT,
+  FOREIGN KEY(user_id) REFERENCES users(id)
 );
 
 CREATE INDEX posts_user_id_idx ON posts(user_id);
+
+CREATE TRIGGER update_posts_timestamp
+AFTER UPDATE ON posts
+FOR EACH ROW
+BEGIN
+    UPDATE posts SET updated_at = datetime('now') WHERE id = OLD.id;
+END;
 """;
 
 class _$SQFlowPostTable extends Table<Post> {
@@ -289,14 +304,22 @@ Post _$SQFlowPostFromJson(Map<String, dynamic> json) {
 
 const _$SQFlowProfileSchema = """
 CREATE TABLE profiles (
-  id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL UNIQUE,
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
   bio TEXT NOT NULL,
   user_id TEXT NOT NULL,
   created_at TEXT NOT NULL,
-  updated_at TEXT NOT NULL
+  updated_at TEXT NOT NULL,
+  FOREIGN KEY(user_id) REFERENCES users(id)
 );
 
 CREATE UNIQUE INDEX profiles_user_id_idx ON profiles(user_id);
+
+CREATE TRIGGER update_profiles_timestamp
+AFTER UPDATE ON profiles
+FOR EACH ROW
+BEGIN
+    UPDATE profiles SET updated_at = datetime('now') WHERE id = OLD.id;
+END;
 """;
 
 class _$SQFlowProfileTable extends Table<Profile> {
@@ -373,15 +396,23 @@ Profile _$SQFlowProfileFromJson(Map<String, dynamic> json) {
 
 const _$SQFlowOrderSchema = """
 CREATE TABLE orders (
-  id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL UNIQUE,
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
   total INTEGER NOT NULL,
   user_id TEXT NOT NULL,
   created_at TEXT NOT NULL,
   updated_at TEXT NOT NULL,
-  deleted_at TEXT
+  deleted_at TEXT,
+  FOREIGN KEY(user_id) REFERENCES users(id)
 );
 
 CREATE INDEX orders_user_id_idx ON orders(user_id);
+
+CREATE TRIGGER update_orders_timestamp
+AFTER UPDATE ON orders
+FOR EACH ROW
+BEGIN
+    UPDATE orders SET updated_at = datetime('now') WHERE id = OLD.id;
+END;
 """;
 
 class _$SQFlowOrderTable extends Table<Order> {

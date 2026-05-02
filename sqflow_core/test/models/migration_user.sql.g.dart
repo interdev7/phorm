@@ -18,6 +18,12 @@ CREATE TABLE migration_users (
 );
 
 
+CREATE TRIGGER update_migration_users_timestamp
+AFTER UPDATE ON migration_users
+FOR EACH ROW
+BEGIN
+    UPDATE migration_users SET updated_at = datetime('now') WHERE id = OLD.id;
+END;
 """;
 
 class _$SQFlowMigrationUserTable extends Table<MigrationUser> {

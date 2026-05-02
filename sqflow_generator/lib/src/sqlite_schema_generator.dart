@@ -62,7 +62,7 @@ class SqliteSchemaGenerator extends GeneratorForAnnotation<Schema> {
 
       final annotationMeta = field.metadata.where((m) {
         final name = m.element?.enclosingElement3?.name;
-        return name == 'Column' || name == 'ID' || name == 'ForeignKey';
+        return name == 'Column' || name == 'ID';
       }).firstOrNull;
 
       if (annotationMeta == null) continue;
@@ -70,10 +70,6 @@ class SqliteSchemaGenerator extends GeneratorForAnnotation<Schema> {
       final result = _generateColumn(field, annotationMeta, strategy);
       columnSql.add(result.columnSql);
       columnNames.add(result.columnName);
-
-      if (result.foreignKeySql != null) {
-        foreignKeys.add(result.foreignKeySql!);
-      }
     }
 
     if (timestamps) {
@@ -98,7 +94,16 @@ class SqliteSchemaGenerator extends GeneratorForAnnotation<Schema> {
       );
     }
 
-    final indexSql = _generateIndexes(schemaReader, tableName);
+    String indexSql = _generateIndexes(schemaReader, tableName);
+
+    if (timestamps || hasUpdatedAt) {
+      final triggerSql = _generateTrigger(tableName);
+      if (indexSql.isNotEmpty) {
+        indexSql += '\n$triggerSql';
+      } else {
+        indexSql = triggerSql;
+      }
+    }
 
     final List<Map<String, dynamic>> relationships = [
       ..._extractRelationships(schemaReader)
@@ -119,9 +124,9 @@ class SqliteSchemaGenerator extends GeneratorForAnnotation<Schema> {
       }
     }
 
-    // Synthesize missing foreign key columns
+    // Synthesize missing foreign key columns and add constraints
     for (final rel in relationships) {
-      if (rel['type'] == 'BelongsTo') {
+      if (rel['type'] == 'BelongsTo' || rel['type'] == 'Join') {
         final fkSqlName = rel['foreignKey'] as String;
         bool mapped = false;
         for (final field in fields) {
@@ -136,6 +141,18 @@ class SqliteSchemaGenerator extends GeneratorForAnnotation<Schema> {
           columnSql.add('  $fkSqlName $sqlType');
           columnNames.add(fkSqlName);
         }
+
+        final refTable = rel['model'] as String;
+        final refColumn = rel['localKey'] as String;
+        final onDelete = rel['onDelete'] as String?;
+        final onUpdate = rel['onUpdate'] as String?;
+
+        final fk = StringBuffer()
+          ..write('  FOREIGN KEY($fkSqlName) REFERENCES $refTable($refColumn)');
+        if (onDelete != null) fk.write(' ON DELETE $onDelete');
+        if (onUpdate != null) fk.write(' ON UPDATE $onUpdate');
+
+        foreignKeys.add(fk.toString());
       }
     }
 
@@ -165,6 +182,8 @@ class SqliteSchemaGenerator extends GeneratorForAnnotation<Schema> {
         'idType': MetadataExtractor.resolveIdSqlType(modelReader),
         'foreignKey': r.read('foreignKey').stringValue,
         'localKey': r.read('localKey').stringValue,
+        'onDelete': r.peek('onDelete')?.stringValue,
+        'onUpdate': r.peek('onUpdate')?.stringValue,
       };
     }).toList();
   }
@@ -179,6 +198,8 @@ class SqliteSchemaGenerator extends GeneratorForAnnotation<Schema> {
       'idType': MetadataExtractor.resolveIdSqlType(modelReader),
       'foreignKey': reader.read('foreignKey').stringValue,
       'localKey': reader.read('localKey').stringValue,
+      'onDelete': reader.peek('onDelete')?.stringValue,
+      'onUpdate': reader.peek('onUpdate')?.stringValue,
     };
   }
 
@@ -214,6 +235,25 @@ class SqliteSchemaGenerator extends GeneratorForAnnotation<Schema> {
       'Relationship model must be a String (table name) or a Model class Type.',
       element: modelReader.objectValue.type?.element,
     );
+  }
+
+  // Generate TRigger
+  // CREATE TRIGGER update_posts_timestamp
+  // AFTER UPDATE ON posts
+  // FOR EACH ROW
+  // BEGIN
+  //     UPDATE posts SET updated_at = datetime('now') WHERE id = OLD.id;
+  // END;
+  // НУжно чтобы красиво выглядело и структурированно
+  String _generateTrigger(String tableName) {
+    return '''
+
+CREATE TRIGGER update_${tableName}_timestamp
+AFTER UPDATE ON $tableName
+FOR EACH ROW
+BEGIN
+    UPDATE $tableName SET updated_at = datetime('now') WHERE id = OLD.id;
+END;''';
   }
 
   // ──────────────────────────────────────────────────────────────
@@ -294,19 +334,25 @@ class SqliteSchemaGenerator extends GeneratorForAnnotation<Schema> {
     final precision = reader.peek('precision')?.intValue;
     final scale = reader.peek('scale')?.intValue;
 
-    final buffer = StringBuffer();
-    buffer.write(
-        '  $columnName ${_mapDataType(typeName, length, precision, scale)}');
+    final buffer = StringBuffer()
+      ..write(
+          '  $columnName ${_mapDataType(typeName, length, precision, scale)}');
 
-    if (annotationName == 'ID') {
+    final isId = annotationName == 'ID';
+    final isInteger =
+        _mapDataType(typeName, length, precision, scale) == 'INTEGER';
+
+    if (isId) {
       buffer.write(' PRIMARY KEY');
       if (reader.peek('autoIncrement')?.boolValue ?? false) {
         buffer.write(' AUTOINCREMENT');
       }
     }
 
-    if (!nullable) buffer.write(' NOT NULL');
-    if (unique) buffer.write(' UNIQUE');
+    final skipConstraints = isId && isInteger;
+
+    if (!nullable && !skipConstraints) buffer.write(' NOT NULL');
+    if (unique && !skipConstraints) buffer.write(' UNIQUE');
 
     if (defaultValue != null && !defaultValue.isNull) {
       buffer.write(' DEFAULT ${_formatDefaultValue(defaultValue)}');
@@ -345,26 +391,9 @@ class SqliteSchemaGenerator extends GeneratorForAnnotation<Schema> {
       }
     }
 
-    String? foreignKeySql;
-
-    if (annotationName == 'ForeignKey') {
-      final refTable = reader.read('referencesTable').stringValue;
-      final refColumn = reader.read('referencesColumn').stringValue;
-      final onDelete = reader.peek('onDelete')?.stringValue;
-      final onUpdate = reader.peek('onUpdate')?.stringValue;
-
-      final fk = StringBuffer()
-        ..write('  FOREIGN KEY($columnName) REFERENCES $refTable($refColumn)');
-      if (onDelete != null) fk.write(' ON DELETE $onDelete');
-      if (onUpdate != null) fk.write(' ON UPDATE $onUpdate');
-
-      foreignKeySql = fk.toString();
-    }
-
     return _ColumnResult(
       columnName: columnName,
       columnSql: buffer.toString(),
-      foreignKeySql: foreignKeySql,
     );
   }
 
@@ -416,11 +445,9 @@ class SqliteSchemaGenerator extends GeneratorForAnnotation<Schema> {
 class _ColumnResult {
   final String columnName;
   final String columnSql;
-  final String? foreignKeySql;
 
   _ColumnResult({
     required this.columnName,
     required this.columnSql,
-    this.foreignKeySql,
   });
 }

@@ -17,6 +17,12 @@ CREATE TABLE migration_posts (
 );
 
 
+CREATE TRIGGER update_migration_posts_timestamp
+AFTER UPDATE ON migration_posts
+FOR EACH ROW
+BEGIN
+    UPDATE migration_posts SET updated_at = datetime('now') WHERE id = OLD.id;
+END;
 """;
 
 class _$SQFlowMigrationPostTable extends Table<MigrationPost> {

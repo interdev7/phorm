@@ -17,6 +17,12 @@ CREATE TABLE explicit_table (
 );
 
 
+CREATE TRIGGER update_explicit_table_timestamp
+AFTER UPDATE ON explicit_table
+FOR EACH ROW
+BEGIN
+    UPDATE explicit_table SET updated_at = datetime('now') WHERE id = OLD.id;
+END;
 """;
 
 class _$SQFlowExplicitNamingTable extends Table<ExplicitNaming> {
