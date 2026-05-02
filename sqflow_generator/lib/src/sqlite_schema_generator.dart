@@ -353,8 +353,8 @@ class SqliteSchemaGenerator extends GeneratorForAnnotation<Schema> {
       final onDelete = reader.peek('onDelete')?.stringValue;
       final onUpdate = reader.peek('onUpdate')?.stringValue;
 
-      final fk = StringBuffer();
-      fk.write('  FOREIGN KEY($columnName) REFERENCES $refTable($refColumn)');
+      final fk = StringBuffer()
+        ..write('  FOREIGN KEY($columnName) REFERENCES $refTable($refColumn)');
       if (onDelete != null) fk.write(' ON DELETE $onDelete');
       if (onUpdate != null) fk.write(' ON UPDATE $onUpdate');
 
