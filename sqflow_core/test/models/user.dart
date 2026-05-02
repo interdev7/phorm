@@ -5,6 +5,7 @@ part 'user.sql.g.dart';
 @Schema(
   tableName: 'users',
   paranoid: true,
+  timestamps: false,
   indexes: [
     Index(columns: ['email'], unique: true),
     Index(columns: ['first_name', 'last_name']),

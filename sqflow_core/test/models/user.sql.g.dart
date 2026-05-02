@@ -22,20 +22,11 @@ CREATE TABLE users (
   address TEXT,
   is_active INTEGER NOT NULL DEFAULT 1,
   is_verified INTEGER NOT NULL DEFAULT 0,
-  created_at TEXT NOT NULL,
-  updated_at TEXT NOT NULL,
   deleted_at TEXT
 );
 
 CREATE UNIQUE INDEX users_email_idx ON users(email);
 CREATE INDEX users_first_name_last_name_idx ON users(first_name, last_name);
-
-CREATE TRIGGER update_users_timestamp
-AFTER UPDATE ON users
-FOR EACH ROW
-BEGIN
-    UPDATE users SET updated_at = datetime('now') WHERE id = OLD.id;
-END;
 """;
 
 class _$SQFlowUserTable extends Table<User> {
@@ -72,15 +63,11 @@ final usersTable = _$SQFlowUserTable(
     'address',
     'is_active',
     'is_verified',
-    'created_at',
-    'updated_at',
     'deleted_at'
   ],
 );
 
 mixin _$SQFlowUserMixin {
-  DateTime? createdAt;
-  DateTime? updatedAt;
   DateTime? deletedAt;
   final List<Order> _$orders = [];
   List<Order> get orders => _$orders;
@@ -106,8 +93,6 @@ extension SQFlowUserSqlExt on User {
       'address': _$SQFlowToJsonValue(address),
       'is_active': _$SQFlowToJsonValue(isActive),
       'is_verified': _$SQFlowToJsonValue(isVerified),
-      'created_at': _$SQFlowToJsonValue(createdAt),
-      'updated_at': _$SQFlowToJsonValue(updatedAt),
       'deleted_at': _$SQFlowToJsonValue(deletedAt),
     };
   }
@@ -126,8 +111,6 @@ extension SQFlowUserSqlExt on User {
     String? address,
     bool? isActive,
     bool? isVerified,
-    DateTime? createdAt,
-    DateTime? updatedAt,
     DateTime? deletedAt,
   }) {
     return User(
@@ -144,10 +127,7 @@ extension SQFlowUserSqlExt on User {
       address: address ?? this.address,
       isActive: isActive ?? this.isActive,
       isVerified: isVerified ?? this.isVerified,
-    )
-      ..createdAt = createdAt ?? this.createdAt
-      ..updatedAt = updatedAt ?? this.updatedAt
-      ..deletedAt = deletedAt ?? this.deletedAt;
+    )..deletedAt = deletedAt ?? this.deletedAt;
   }
 }
 
@@ -171,12 +151,6 @@ User _$SQFlowUserFromJson(Map<String, dynamic> json) {
         ? json['is_verified'] as bool
         : (json['is_verified'] as int?) == 1,
   )
-    ..createdAt = json['created_at'] != null
-        ? DateTime.parse(json['created_at'] as String)
-        : null
-    ..updatedAt = json['updated_at'] != null
-        ? DateTime.parse(json['updated_at'] as String)
-        : null
     ..deletedAt = json['deleted_at'] != null
         ? DateTime.parse(json['deleted_at'] as String)
         : null
