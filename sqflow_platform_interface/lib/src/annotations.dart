@@ -130,11 +130,19 @@ abstract class Relationship {
   final dynamic model;
   final String foreignKey;
   final String localKey;
+  
+  /// Action applied when the referenced record is deleted.
+  final String? onDelete;
+
+  /// Action applied when the referenced record is updated.
+  final String? onUpdate;
 
   const Relationship({
     required this.model,
     required this.foreignKey,
     this.localKey = 'id',
+    this.onDelete,
+    this.onUpdate,
   });
 
   /// True if the relationship returns a collection of models.
@@ -147,6 +155,8 @@ class HasMany extends Relationship {
     required super.model,
     required super.foreignKey,
     super.localKey = 'id',
+    super.onDelete,
+    super.onUpdate,
   });
 
   @override
@@ -158,6 +168,8 @@ class HasOne extends Relationship {
     required super.model,
     required super.foreignKey,
     super.localKey = 'id',
+    super.onDelete,
+    super.onUpdate,
   });
 
   @override
@@ -169,6 +181,8 @@ class BelongsTo extends Relationship {
     required super.model,
     required super.foreignKey,
     super.localKey = 'id',
+    super.onDelete,
+    super.onUpdate,
   });
 
   @override
@@ -180,6 +194,8 @@ class Join extends BelongsTo {
     required super.model,
     required super.foreignKey,
     super.localKey = 'id',
+    super.onDelete,
+    super.onUpdate,
   });
 }
 
@@ -210,30 +226,7 @@ class CHECK {
   const CHECK(this.checker, {this.constraint});
 }
 
-/// Foreign key column.
-///
-/// Represents a reference to another table.
-class ForeignKey extends ColumnBase {
-  /// Referenced table name.
-  final String referencesTable;
 
-  /// Referenced column name.
-  final String referencesColumn;
-
-  /// Action applied when the referenced record is deleted.
-  final String? onDelete;
-
-  /// Action applied when the referenced record is updated.
-  final String? onUpdate;
-
-  const ForeignKey({
-    required super.type,
-    required this.referencesTable,
-    required this.referencesColumn,
-    this.onDelete,
-    this.onUpdate,
-  });
-}
 
 /// Base interface for specifying relationships to include in a query.
 ///
