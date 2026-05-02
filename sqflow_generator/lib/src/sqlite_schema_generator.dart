@@ -381,7 +381,9 @@ END;''';
 
       if (checkExpr != null) {
         if (constraint != null) {
-          buffer.write(' CONSTRAINT $constraint CHECK($checkExpr)');
+          buffer
+            ..write(',\n  ')
+            ..write('CONSTRAINT $constraint CHECK($checkExpr)');
         } else {
           buffer.write(' CHECK($checkExpr)');
         }
