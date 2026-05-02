@@ -434,8 +434,9 @@ class SqflowCore<T extends Model> {
       DatabaseExecutor? executor}) async {
     final db = executor ?? await database;
     final where = WhereBuilder().eq(table.primaryKey, id);
-    if (table.paranoid && !withDeleted)
+    if (table.paranoid && !withDeleted) {
       where.isNull('${table.name}.deleted_at');
+    }
 
     final sql = buildJoinQuery(
       columns: columns,
