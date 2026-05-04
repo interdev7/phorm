@@ -165,6 +165,7 @@ class SqliteSchemaGenerator extends GeneratorForAnnotation<Schema> {
       columnNames: columnNames,
       indexSql: indexSql,
       relationships: relationships,
+      timestamps: timestamps,
     );
   }
 
@@ -381,9 +382,7 @@ END;''';
 
       if (checkExpr != null) {
         if (constraint != null) {
-          buffer
-            ..write(',\n  ')
-            ..write('CONSTRAINT $constraint CHECK($checkExpr)');
+          buffer.write(' CONSTRAINT $constraint CHECK($checkExpr)');
         } else {
           buffer.write(' CHECK($checkExpr)');
         }

@@ -33,6 +33,7 @@ class _$SQFlowMigrationUserTable extends Table<MigrationUser> {
     required super.fromJson,
     super.relationships = const [],
     super.columns = const [],
+    super.timestamps = true,
   }) : super(type: MigrationUser, paranoid: Table.detectSoftDelete(schema));
 }
 
@@ -51,6 +52,7 @@ final migration_usersTable = _$SQFlowMigrationUserTable(
     'created_at',
     'updated_at'
   ],
+  timestamps: true,
 );
 
 mixin _$SQFlowMigrationUserMixin {
@@ -109,6 +111,18 @@ MigrationUser _$SQFlowMigrationUserFromJson(Map<String, dynamic> json) {
         ? DateTime.parse(json['updated_at'] as String)
         : null;
   return instance;
+}
+
+class MigrationUserTable {
+  static const SqflowColumn<String> id = SqflowColumn<String>('id');
+  static const SqflowColumn<String> name = SqflowColumn<String>('name');
+  static const SqflowColumn<String> email = SqflowColumn<String>('email');
+  static const SqflowColumn<int> age = SqflowColumn<int>('age');
+  static const SqflowColumn<bool> isActive = SqflowColumn<bool>('is_active');
+  static const SqflowColumn<DateTime> createdAt =
+      SqflowColumn<DateTime>('created_at');
+  static const SqflowColumn<DateTime> updatedAt =
+      SqflowColumn<DateTime>('updated_at');
 }
 
 dynamic _$SQFlowToJsonValue(dynamic value) {

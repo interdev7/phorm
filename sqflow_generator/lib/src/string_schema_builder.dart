@@ -8,6 +8,7 @@ String stringSchemaBuilder({
   required List<String> columnNames,
   String? indexSql,
   List<Map<String, dynamic>> relationships = const [],
+  bool timestamps = true,
 }) {
   final relationshipsCode = relationships.map((r) {
     final lk = r['localKey'];
@@ -37,6 +38,7 @@ class $tableClassName extends Table<$className> {
     required super.fromJson,
     super.relationships = const [],
     super.columns = const [],
+    super.timestamps = true,
   }) : super(type: $className, paranoid: Table.detectSoftDelete(schema));
 }
 
@@ -47,6 +49,7 @@ final $tableVarName = $tableClassName(
   fromJson: $className.fromJson,
   relationships: ${relationshipsCode.isNotEmpty ? "const " : ""} [$relationshipsCode],
   columns: const [${columnNames.map((c) => "'$c'").join(', ')}],
+  timestamps: $timestamps,
 );
 ''';
 }

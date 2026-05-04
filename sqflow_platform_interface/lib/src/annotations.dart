@@ -241,23 +241,28 @@ abstract interface class Includable {
   /// Optional attribute filter for the included model.
   Attributes? get attributes;
 
+  /// Optional nested includes for deep loading.
+  List<Includable>? get include;
+
   /// Includes a relationship by its explicit table name.
-  static Includable table(String name, {Attributes? attributes}) =>
-      _TableIncludable(name, attributes: attributes);
+  static Includable table(String name, {Attributes? attributes, List<Includable>? include}) =>
+      _TableIncludable(name, attributes: attributes, include: include);
 
   /// Includes a relationship by its model class type.
   ///
   /// Provides compile-time safety and refactoring support.
-  static Includable model<T>({Attributes? attributes}) =>
-      _ModelIncludable<T>(attributes: attributes);
+  static Includable model<T>({Attributes? attributes, List<Includable>? include}) =>
+      _ModelIncludable<T>(attributes: attributes, include: include);
 }
 
 class _TableIncludable implements Includable {
   final String name;
   @override
   final Attributes? attributes;
+  @override
+  final List<Includable>? include;
 
-  _TableIncludable(this.name, {this.attributes});
+  _TableIncludable(this.name, {this.attributes, this.include});
 
   @override
   String getTableName(List<dynamic> _) => name;
@@ -266,8 +271,10 @@ class _TableIncludable implements Includable {
 class _ModelIncludable<T> implements Includable {
   @override
   final Attributes? attributes;
+  @override
+  final List<Includable>? include;
 
-  _ModelIncludable({this.attributes});
+  _ModelIncludable({this.attributes, this.include});
 
   @override
   String getTableName(List<dynamic> availableTables) {

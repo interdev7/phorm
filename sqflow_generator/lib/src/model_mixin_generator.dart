@@ -365,6 +365,44 @@ class ModelMixinGenerator extends GeneratorForAnnotation<Schema> {
         ..writeln('}');
     }
 
+    // 4. Type-safe Table Columns
+    buffer
+      ..writeln()
+      ..writeln('class ${className}Table {');
+
+    for (final field in fields.where((f) => _isColumn(f))) {
+      final sqlName = MetadataExtractor.getSqlColumnName(field, strategy);
+      var type = field.type.getDisplayString();
+      if (type.endsWith('?')) type = type.substring(0, type.length - 1);
+      buffer.writeln("  static const SqflowColumn<$type> ${field.name} = SqflowColumn<$type>('$sqlName');");
+    }
+
+    if (timestamps) {
+      if (!existsCreatedAt) {
+        buffer.writeln("  static const SqflowColumn<DateTime> createdAt = SqflowColumn<DateTime>('created_at');");
+      }
+      if (!existsUpdatedAt) {
+        buffer.writeln("  static const SqflowColumn<DateTime> updatedAt = SqflowColumn<DateTime>('updated_at');");
+      }
+    }
+    if (paranoid && !existsDeletedAt) {
+      buffer.writeln("  static const SqflowColumn<DateTime> deletedAt = SqflowColumn<DateTime>('deleted_at');");
+    }
+
+    // Synthesized FKs
+    for (final rel in relationships) {
+      if (rel['type'] == 'BelongsTo') {
+        final fkName = rel['foreignKeyName'] as String;
+        final fkSqlName = rel['foreignKey'] as String;
+        final existsFk = fields.any((f) => f.name == fkName);
+        if (!existsFk) {
+          buffer.writeln("  static const SqflowColumn<dynamic> $fkName = SqflowColumn<dynamic>('$fkSqlName');");
+        }
+      }
+    }
+
+    buffer.writeln('}');
+
     return buffer.toString();
   }
 
