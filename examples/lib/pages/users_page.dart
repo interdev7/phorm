@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:sqflow_core/sqflow_core.dart' hide Column;
-import 'package:sqflow_platform_interface/sqflow_platform_interface.dart' as pi;
 import 'package:uuid/uuid.dart';
 
 import '../models/user.dart';
@@ -25,7 +24,7 @@ class _UsersPageState extends State<UsersPage> {
   String _search = '';
   bool _sortAsc = true;
 
-  late Future<pi.DataAndCount<User>> _future;
+  late Future<ResultWithCount<User>> _future;
 
   @override
   void initState() {
@@ -38,19 +37,20 @@ class _UsersPageState extends State<UsersPage> {
 
     if (_search.isNotEmpty) {
       where.orGroup((f) {
-        f.like('firstName', '%$_search%');
-        f.like('lastName', '%$_search%');
-        f.like('email', '%$_search%');
+        f
+          ..like('first_name', '%$_search%')
+          ..like('last_name', '%$_search%')
+          ..like('email', '%$_search%');
       });
     }
 
-    _future = _repo.readAll(
+    _future = _repo.readAllWithCount(
       limit: _limit,
       offset: _offset,
       where: where.isEmpty ? null : where,
       sort: (_sortAsc
-          ? SortBuilder().asc('createdAt')
-          : SortBuilder().desc('createdAt')),
+          ? SortBuilder().asc('created_at')
+          : SortBuilder().desc('created_at')),
       withDeleted: _showDeleted,
       onlyDeleted: _onlyDeleted,
     );
@@ -158,7 +158,6 @@ class _UsersPageState extends State<UsersPage> {
                 city: user?.city ?? '',
                 country: user?.country ?? '',
                 address: user?.address ?? '',
-
               );
 
               if (user == null) {
@@ -233,7 +232,7 @@ class _UsersPageState extends State<UsersPage> {
             ),
           ),
           Expanded(
-            child: FutureBuilder<pi.DataAndCount<User>>(
+            child: FutureBuilder(
               future: _future,
               builder: (_, snapshot) {
                 if (!snapshot.hasData) {
@@ -257,7 +256,7 @@ class _UsersPageState extends State<UsersPage> {
                           final isDeleted = u.deletedAt != null;
 
                           return ListTile(
-                            title: Text(u.firstName + ' ' + u.lastName,
+                            title: Text('${u.firstName} ${u.lastName}',
                                 style: TextStyle(
                                     decoration: isDeleted
                                         ? TextDecoration.lineThrough

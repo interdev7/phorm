@@ -1,7 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 import 'package:sqflow_core/sqflow_core.dart';
-import 'package:sqflow_platform_interface/sqflow_platform_interface.dart';
 
 void main() {
   setUpAll(() {
@@ -22,6 +21,7 @@ void main() {
       relationships: const [
         HasMany(model: 'posts', foreignKey: 'user_id', localKey: 'id'),
       ],
+      columns: const ['id', 'name'],
     );
 
     postsTable = Table<Post>(
@@ -33,6 +33,7 @@ void main() {
       relationships: const [
         BelongsTo(model: 'users', foreignKey: 'user_id', localKey: 'id'),
       ],
+      columns: const ['id', 'title', 'user_id'],
     );
 
     db = DB(
@@ -61,7 +62,8 @@ void main() {
     final userService = SqflowCore<User>(dbManager: db, table: usersTable);
 
     // Test readAsync with include
-    final user = await userService.readAsync('u1', include: [Includable.model<Post>()]);
+    final user =
+        await userService.readAsync('u1', include: [Includable.model<Post>()]);
 
     expect(user, isNotNull);
     expect(user!.name, 'John');
@@ -81,7 +83,8 @@ void main() {
     final postService = SqflowCore<Post>(dbManager: db, table: postsTable);
 
     // Test readAsync with include
-    final post = await postService.readAsync(1, include: [Includable.model<User>()]);
+    final post =
+        await postService.readAsync(1, include: [Includable.model<User>()]);
 
     expect(post, isNotNull);
     expect(post!.title, 'Post 1');
@@ -99,7 +102,8 @@ void main() {
 
     final userService = SqflowCore<User>(dbManager: db, table: usersTable);
 
-    final result = await userService.readAll(include: [Includable.model<Post>()]);
+    final result =
+        await userService.readAll(include: [Includable.model<Post>()]);
 
     expect(result.data, hasLength(2));
     final john = result.data.firstWhere((u) => u.id == 'u1');

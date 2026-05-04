@@ -13,7 +13,8 @@ void main() {
       expect(indexNames, contains('users_email_idx'));
       expect(indexNames, contains('users_first_name_last_name_idx'));
 
-      final info = await db.rawQuery("PRAGMA index_info('users_first_name_last_name_idx')");
+      final info = await db
+          .rawQuery("PRAGMA index_info('users_first_name_last_name_idx')");
       final cols = info.map((r) => r['name'] as String).toList();
       expect(cols, equals(['first_name', 'last_name']));
     });
@@ -33,7 +34,6 @@ void main() {
         gender: 'X', // invalid per CHECK
         city: 'Nowhere',
         country: 'Bulgaria',
-
       );
 
       expect(

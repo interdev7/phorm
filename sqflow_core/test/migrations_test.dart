@@ -2,9 +2,9 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:path/path.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 import 'package:sqflow_core/sqflow_core.dart';
-import 'models/migration_user.dart';
+
 import 'models/migration_post.dart';
-import 'package:sqflow_platform_interface/sqflow_platform_interface.dart';
+import 'models/migration_user.dart';
 
 void main() {
   setUpAll(() {
@@ -352,7 +352,7 @@ void main() {
       );
 
       // --- v1 ---
-      var dbv1 = DB(databaseName: dbFileName, version: 1, tables: [usersV1]);
+      final dbv1 = DB(databaseName: dbFileName, version: 1, tables: [usersV1]);
       final databaseV1 = await dbv1.database;
       await databaseV1.insert('users', {
         'id': '1',
@@ -370,12 +370,13 @@ void main() {
           .addColumn(name: 'email', type: 'TEXT', version: 2)
           .build();
 
-      var dbV2 = DB(databaseName: dbFileName, version: 2, tables: [usersV2]);
+      final dbV2 = DB(databaseName: dbFileName, version: 2, tables: [usersV2]);
       final databaseV2 = await dbV2.database;
 
       // Verify data persists
-      final rows =
-          await databaseV2.query('users', where: 'id = ?', whereArgs: ['1']);
+      final where = WhereBuilder().eq('id', '1');
+      final rows = await databaseV2.query('users',
+          where: where.build(), whereArgs: where.args);
       expect(rows.first['name'], 'John');
 
       // Verify new column exists

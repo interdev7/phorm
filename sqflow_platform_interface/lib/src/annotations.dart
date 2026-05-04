@@ -130,11 +130,19 @@ abstract class Relationship {
   final dynamic model;
   final String foreignKey;
   final String localKey;
+  
+  /// Action applied when the referenced record is deleted.
+  final String? onDelete;
+
+  /// Action applied when the referenced record is updated.
+  final String? onUpdate;
 
   const Relationship({
     required this.model,
     required this.foreignKey,
     this.localKey = 'id',
+    this.onDelete,
+    this.onUpdate,
   });
 
   /// True if the relationship returns a collection of models.
@@ -147,6 +155,8 @@ class HasMany extends Relationship {
     required super.model,
     required super.foreignKey,
     super.localKey = 'id',
+    super.onDelete,
+    super.onUpdate,
   });
 
   @override
@@ -158,6 +168,8 @@ class HasOne extends Relationship {
     required super.model,
     required super.foreignKey,
     super.localKey = 'id',
+    super.onDelete,
+    super.onUpdate,
   });
 
   @override
@@ -169,6 +181,8 @@ class BelongsTo extends Relationship {
     required super.model,
     required super.foreignKey,
     super.localKey = 'id',
+    super.onDelete,
+    super.onUpdate,
   });
 
   @override
@@ -180,6 +194,8 @@ class Join extends BelongsTo {
     required super.model,
     required super.foreignKey,
     super.localKey = 'id',
+    super.onDelete,
+    super.onUpdate,
   });
 }
 
@@ -210,30 +226,7 @@ class CHECK {
   const CHECK(this.checker, {this.constraint});
 }
 
-/// Foreign key column.
-///
-/// Represents a reference to another table.
-class ForeignKey extends ColumnBase {
-  /// Referenced table name.
-  final String referencesTable;
 
-  /// Referenced column name.
-  final String referencesColumn;
-
-  /// Action applied when the referenced record is deleted.
-  final String? onDelete;
-
-  /// Action applied when the referenced record is updated.
-  final String? onUpdate;
-
-  const ForeignKey({
-    required super.type,
-    required this.referencesTable,
-    required this.referencesColumn,
-    this.onDelete,
-    this.onUpdate,
-  });
-}
 
 /// Base interface for specifying relationships to include in a query.
 ///
@@ -245,24 +238,44 @@ abstract interface class Includable {
   /// Takes a list of available tables to perform type-to-name lookup.
   String getTableName(List<dynamic> availableTables);
 
+  /// Optional attribute filter for the included model.
+  Attributes? get attributes;
+
+  /// Optional nested includes for deep loading.
+  List<Includable>? get include;
+
   /// Includes a relationship by its explicit table name.
-  static Includable table(String name) => _TableIncludable(name);
+  static Includable table(String name, {Attributes? attributes, List<Includable>? include}) =>
+      _TableIncludable(name, attributes: attributes, include: include);
 
   /// Includes a relationship by its model class type.
   ///
   /// Provides compile-time safety and refactoring support.
-  static Includable model<T>() => _ModelIncludable<T>();
+  static Includable model<T>({Attributes? attributes, List<Includable>? include}) =>
+      _ModelIncludable<T>(attributes: attributes, include: include);
 }
 
 class _TableIncludable implements Includable {
   final String name;
-  _TableIncludable(this.name);
+  @override
+  final Attributes? attributes;
+  @override
+  final List<Includable>? include;
+
+  _TableIncludable(this.name, {this.attributes, this.include});
 
   @override
   String getTableName(List<dynamic> _) => name;
 }
 
 class _ModelIncludable<T> implements Includable {
+  @override
+  final Attributes? attributes;
+  @override
+  final List<Includable>? include;
+
+  _ModelIncludable({this.attributes, this.include});
+
   @override
   String getTableName(List<dynamic> availableTables) {
     for (final table in availableTables) {
@@ -273,5 +286,37 @@ class _ModelIncludable<T> implements Includable {
     }
     throw ArgumentError(
         'Table for model type $T not found in registered tables.');
+  }
+}
+
+/// Interface for attribute filtering in queries (columns selection).
+abstract interface class Attributes {
+  /// Includes only the specified columns.
+  static Attributes include(List<String> columns) =>
+      _IncludeAttributes(columns);
+
+  /// Excludes the specified columns.
+  static Attributes exclude(List<String> columns) =>
+      _ExcludeAttributes(columns);
+
+  /// Applies the filter to the given list of columns.
+  List<String> apply(List<String> allColumns);
+}
+
+class _IncludeAttributes implements Attributes {
+  final List<String> columns;
+  _IncludeAttributes(this.columns);
+
+  @override
+  List<String> apply(List<String> allColumns) => columns;
+}
+
+class _ExcludeAttributes implements Attributes {
+  final List<String> columns;
+  _ExcludeAttributes(this.columns);
+
+  @override
+  List<String> apply(List<String> allColumns) {
+    return allColumns.where((c) => !columns.contains(c)).toList();
   }
 }

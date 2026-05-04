@@ -5,8 +5,11 @@ String stringSchemaBuilder({
   required String className,
   required String tableName,
   required String fileName,
+  required List<String> columnNames,
   String? indexSql,
   List<Map<String, dynamic>> relationships = const [],
+  bool timestamps = true,
+  bool useFromJson = true,
 }) {
   final relationshipsCode = relationships.map((r) {
     final lk = r['localKey'];
@@ -35,6 +38,8 @@ class $tableClassName extends Table<$className> {
     required super.name,
     required super.fromJson,
     super.relationships = const [],
+    super.columns = const [],
+    super.timestamps = true,
   }) : super(type: $className, paranoid: Table.detectSoftDelete(schema));
 }
 
@@ -42,8 +47,10 @@ class $tableClassName extends Table<$className> {
 final $tableVarName = $tableClassName(
   schema: $schemaVarName,
   name: '$tableName',
-  fromJson: $className.fromJson,
+  fromJson: ${useFromJson ? '_\$SQFlow${className}FromJson' : '$className.fromJson'},
   relationships: ${relationshipsCode.isNotEmpty ? "const " : ""} [$relationshipsCode],
+  columns: const [${columnNames.map((c) => "'$c'").join(', ')}],
+  timestamps: $timestamps,
 );
 ''';
 }

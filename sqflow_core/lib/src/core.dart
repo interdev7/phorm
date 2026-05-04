@@ -1,5 +1,8 @@
 import 'dart:async';
+import 'dart:convert';
+import 'dart:isolate';
 
+import 'package:meta/meta.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:sqflow_core/sqflow_core.dart';
 import 'package:sqflow_platform_interface/sqflow_platform_interface.dart';
@@ -69,6 +72,11 @@ class SqflowCore<T extends Model> {
     return result;
   }
 
+  /// Notifies the database manager that this table has changed.
+  void _notify() {
+    dbManager.notifyTableChange(table.name);
+  }
+
   // -------------------------------------------------------
   // CRUD 📝
   // -------------------------------------------------------
@@ -82,20 +90,26 @@ class SqflowCore<T extends Model> {
   /// final id = await userService.insertAsync(User(id: '1', name: 'John'));
   /// print('Inserted ID: $id');
   /// ```
-  Future<int> insertAsync(T item) async {
-    final db = await database;
-    return db.insert(
-      table.name,
-      _withTimestamps(item.toJson(), isInsert: true),
+  Future<int> insertAsync(T item, {DatabaseExecutor? executor}) async {
+    final db = executor ?? await database;
+    final json = _withTimestamps(item.toJson(), isInsert: true);
+    final res = await dbManager.logAction(
+      'INSERT INTO ${table.name}',
+      [json],
+      () => db.insert(table.name, json),
     );
+    _notify();
+    return res;
   }
 
   /// Inserts a single item synchronously (fire-and-forget).
   /// Wraps [insertAsync] with callbacks.
   void insert(T item,
-      {void Function(int id)? onSuccess, ErrorCallback? onError}) async {
+      {void Function(int id)? onSuccess,
+      ErrorCallback? onError,
+      DatabaseExecutor? executor}) async {
     try {
-      final id = await insertAsync(item);
+      final id = await insertAsync(item, executor: executor);
       if (onSuccess != null) onSuccess(id);
     } catch (e, st) {
       if (onError != null) onError(e, st);
@@ -110,21 +124,30 @@ class SqflowCore<T extends Model> {
   /// final rows = await userService.updateAsync(User(id: '1', name: 'John Updated'));
   /// print('Updated rows: $rows');
   /// ```
-  Future<int> updateAsync(T item) async {
-    final db = await database;
-    return db.update(
-      table.name,
-      _withTimestamps(item.toJson()),
-      where: '${table.primaryKey} = ?',
-      whereArgs: [item.id],
+  Future<int> updateAsync(T item, {DatabaseExecutor? executor}) async {
+    final db = executor ?? await database;
+    final json = _withTimestamps(item.toJson());
+    final res = await dbManager.logAction(
+      'UPDATE ${table.name}',
+      [json, item.id],
+      () => db.update(
+        table.name,
+        json,
+        where: '${table.primaryKey} = ?',
+        whereArgs: [item.id],
+      ),
     );
+    _notify();
+    return res;
   }
 
   /// Updates a single item synchronously.
   void update(T item,
-      {void Function(int rows)? onSuccess, ErrorCallback? onError}) async {
+      {void Function(int rows)? onSuccess,
+      ErrorCallback? onError,
+      DatabaseExecutor? executor}) async {
     try {
-      final rows = await updateAsync(item);
+      final rows = await updateAsync(item, executor: executor);
       if (onSuccess != null) onSuccess(rows);
     } catch (e, st) {
       if (onError != null) onError(e, st);
@@ -137,20 +160,28 @@ class SqflowCore<T extends Model> {
   /// ```dart
   /// await userService.upsertAsync(User(id: '1', name: 'John'));
   /// ```
-  Future<void> upsertAsync(T item) async {
-    final db = await database;
-    await db.insert(
-      table.name,
-      _withTimestamps(item.toJson(), isInsert: true),
-      conflictAlgorithm: ConflictAlgorithm.replace,
+  Future<void> upsertAsync(T item, {DatabaseExecutor? executor}) async {
+    final db = executor ?? await database;
+    final json = _withTimestamps(item.toJson(), isInsert: true);
+    await dbManager.logAction(
+      'UPSERT ${table.name}',
+      [json],
+      () => db.insert(
+        table.name,
+        json,
+        conflictAlgorithm: ConflictAlgorithm.replace,
+      ),
     );
+    _notify();
   }
 
   /// Upserts a single item synchronously.
   void upsert(T item,
-      {void Function(Object id)? onSuccess, ErrorCallback? onError}) async {
+      {void Function(Object id)? onSuccess,
+      ErrorCallback? onError,
+      DatabaseExecutor? executor}) async {
     try {
-      await upsertAsync(item);
+      await upsertAsync(item, executor: executor);
       if (onSuccess != null) onSuccess(item.id);
     } catch (e, st) {
       if (onError != null) onError(e, st);
@@ -168,28 +199,41 @@ class SqflowCore<T extends Model> {
   /// ```dart
   /// await userService.deleteAsync('1'); // soft delete
   /// ```
-  Future<int> deleteAsync(Object id, {bool force = false}) async {
-    final db = await database;
+  Future<int> deleteAsync(Object id,
+      {bool force = false, DatabaseExecutor? executor}) async {
+    final db = executor ?? await database;
     if (!table.paranoid || force) {
-      return db.delete(table.name,
-          where: '${table.primaryKey} = ?', whereArgs: [id]);
+      final res = await dbManager.logAction(
+        'DELETE FROM ${table.name}',
+        [id],
+        () => db.delete(table.name,
+            where: '${table.primaryKey} = ?', whereArgs: [id]),
+      );
+      _notify();
+      return res;
     }
-    final now = DateTime.now().toIso8601String();
-    return db.update(
-      table.name,
-      {'deleted_at': now, 'updated_at': now},
-      where: '${table.primaryKey} = ?',
-      whereArgs: [id],
+    final res = await dbManager.logAction(
+      'SOFT DELETE ${table.name}',
+      [id],
+      () => db.update(
+        table.name,
+        _withTimestamps({'deleted_at': DateTime.now().toIso8601String()}),
+        where: '${table.primaryKey} = ?',
+        whereArgs: [id],
+      ),
     );
+    _notify();
+    return res;
   }
 
   /// Deletes a single item synchronously.
   void delete(Object id,
       {bool force = false,
       void Function(int rows)? onSuccess,
-      ErrorCallback? onError}) async {
+      ErrorCallback? onError,
+      DatabaseExecutor? executor}) async {
     try {
-      final rows = await deleteAsync(id, force: force);
+      final rows = await deleteAsync(id, force: force, executor: executor);
       if (onSuccess != null) onSuccess(rows);
     } catch (e, st) {
       if (onError != null) onError(e, st);
@@ -202,22 +246,26 @@ class SqflowCore<T extends Model> {
   /// ```dart
   /// await userService.restoreAsync('1');
   /// ```
-  Future<int> restoreAsync(Object id) async {
+  Future<int> restoreAsync(Object id, {DatabaseExecutor? executor}) async {
     if (!table.paranoid) throw StateError('Soft delete not enabled');
-    final db = await database;
-    return db.update(
+    final db = executor ?? await database;
+    final res = await db.update(
       table.name,
-      {'deleted_at': null, 'updated_at': DateTime.now().toIso8601String()},
+      _withTimestamps({'deleted_at': null}),
       where: '${table.primaryKey} = ?',
       whereArgs: [id],
     );
+    _notify();
+    return res;
   }
 
   /// Restores a soft-deleted item synchronously.
   void restore(Object id,
-      {void Function(int rows)? onSuccess, ErrorCallback? onError}) async {
+      {void Function(int rows)? onSuccess,
+      ErrorCallback? onError,
+      DatabaseExecutor? executor}) async {
     try {
-      final rows = await restoreAsync(id);
+      final rows = await restoreAsync(id, executor: executor);
       if (onSuccess != null) onSuccess(rows);
     } catch (e, st) {
       if (onError != null) onError(e, st);
@@ -229,162 +277,148 @@ class SqflowCore<T extends Model> {
   // -------------------------------------------------------
 
   /// Inserts multiple items in a batch asynchronously.
-  ///
-  /// **Example:**
-  /// ```dart
-  /// await userService.insertBatchAsync([User(id: '1', name: 'John'), User(id: '2', name: 'Jane')]);
-  /// ```
-  Future<void> insertBatchAsync(List<T> items) async {
-    if (items.isEmpty) return;
-    final db = await database;
-    final batch = db.batch();
-    for (final item in items) {
-      batch.insert(table.name, _withTimestamps(item.toJson(), isInsert: true),
-          conflictAlgorithm: ConflictAlgorithm.replace);
-    }
-    await batch.commit(noResult: true);
-  }
-
-  /// Inserts multiple items in a batch synchronously.
-  void insertBatch(List<T> items,
-      {void Function(int count)? onSuccess, ErrorCallback? onError}) async {
-    try {
-      await insertBatchAsync(items);
-      if (onSuccess != null) onSuccess(items.length);
-    } catch (e, st) {
-      if (onError != null) onError(e, st);
-    }
+  Future<int> insertBatchAsync(List<T> items,
+      {DatabaseExecutor? executor}) async {
+    if (items.isEmpty) return 0;
+    final db = executor ?? await database;
+    final count = await dbManager.logAction(
+      'INSERT BATCH ${table.name}',
+      [items.length],
+      () async {
+        final batch = db.batch();
+        for (final item in items) {
+          batch.insert(
+              table.name, _withTimestamps(item.toJson(), isInsert: true));
+        }
+        final results = await batch.commit(noResult: true);
+        return results.length;
+      },
+    );
+    _notify();
+    return count;
   }
 
   /// Updates multiple items in a batch asynchronously.
-  ///
-  /// **Example:**
-  /// ```dart
-  /// await userService.updateBatchAsync([User(id: '1', name: 'John'), User(id: '2', name: 'Jane')]);
-  /// ```
-  Future<void> updateBatchAsync(List<T> items) async {
-    if (items.isEmpty) return;
-    final db = await database;
-    final batch = db.batch();
-    for (final item in items) {
-      batch.update(table.name, _withTimestamps(item.toJson()),
-          where: '${table.primaryKey} = ?', whereArgs: [item.id]);
-    }
-    await batch.commit(noResult: true);
-  }
-
-  /// Updates multiple items in a batch synchronously.
-  void updateBatch(List<T> items,
-      {void Function(int count)? onSuccess, ErrorCallback? onError}) async {
-    try {
-      await updateBatchAsync(items);
-      if (onSuccess != null) onSuccess(items.length);
-    } catch (e, st) {
-      if (onError != null) onError(e, st);
-    }
+  Future<int> updateBatchAsync(List<T> items,
+      {DatabaseExecutor? executor}) async {
+    if (items.isEmpty) return 0;
+    final db = executor ?? await database;
+    final count = await dbManager.logAction(
+      'UPDATE BATCH ${table.name}',
+      [items.length],
+      () async {
+        final batch = db.batch();
+        for (final item in items) {
+          batch.update(
+            table.name,
+            _withTimestamps(item.toJson()),
+            where: '${table.primaryKey} = ?',
+            whereArgs: [item.id],
+          );
+        }
+        final results = await batch.commit(noResult: true);
+        return results.length;
+      },
+    );
+    _notify();
+    return count;
   }
 
   /// Upserts multiple items in a batch asynchronously.
-  ///
-  /// **Example:**
-  /// ```dart
-  /// await userService.upsertBatchAsync([User(id: '1', name: 'John'), User(id: '2', name: 'Jane')]);
-  /// ```
-  Future<void> upsertBatchAsync(List<T> items) async {
-    if (items.isEmpty) return;
-    final db = await database;
-    final batch = db.batch();
-    for (final item in items) {
-      batch.insert(table.name, _withTimestamps(item.toJson(), isInsert: true),
-          conflictAlgorithm: ConflictAlgorithm.replace);
-    }
-    await batch.commit(noResult: true);
-  }
-
-  /// Upserts multiple items in a batch synchronously.
-  ///
-  /// **Example:**
-  /// ```dart
-  /// await userService.upsertBatch([User(id: '1', name: 'John'), User(id: '2', name: 'Jane')],
-  ///   onSuccess: (count) {
-  ///     print('Upserted $count items');
-  ///   },
-  ///   onError: (e, st) {
-  ///     print('Error upserting items: $e');
-  ///   }
-  /// );
-  /// ```
-  void upsertBatch(List<T> items,
-      {void Function(int count)? onSuccess, ErrorCallback? onError}) async {
-    try {
-      await upsertBatchAsync(items);
-      if (onSuccess != null) onSuccess(items.length);
-    } catch (e, st) {
-      if (onError != null) onError(e, st);
-    }
+  Future<int> upsertBatchAsync(List<T> items,
+      {DatabaseExecutor? executor}) async {
+    if (items.isEmpty) return 0;
+    final db = executor ?? await database;
+    final count = await dbManager.logAction(
+      'UPSERT BATCH ${table.name}',
+      [items.length],
+      () async {
+        final batch = db.batch();
+        for (final item in items) {
+          batch.insert(
+            table.name,
+            _withTimestamps(item.toJson(), isInsert: true),
+            conflictAlgorithm: ConflictAlgorithm.replace,
+          );
+        }
+        final results = await batch.commit(noResult: true);
+        return results.length;
+      },
+    );
+    _notify();
+    return count;
   }
 
   /// Deletes multiple items in a batch asynchronously.
-  ///
-  /// **Example:**
-  /// ```dart
-  /// await userService.deleteBatchAsync(['1', '2']);
-  /// ```
-  Future<void> deleteBatchAsync(List<Object> ids, {bool force = false}) async {
-    if (ids.isEmpty) return;
-    final db = await database;
-    final batch = db.batch();
-    final now = DateTime.now().toIso8601String();
-    for (final id in ids) {
-      if (!table.paranoid || force) {
-        batch.delete(table.name,
-            where: '${table.primaryKey} = ?', whereArgs: [id]);
-      } else {
-        batch.update(table.name, {'deleted_at': now, 'updated_at': now},
-            where: '${table.primaryKey} = ?', whereArgs: [id]);
-      }
-    }
-    await batch.commit(noResult: true);
-  }
-
-  /// Deletes multiple items in a batch synchronously.
-  void deleteBatch(List<Object> ids,
-      {bool force = false,
-      void Function(int count)? onSuccess,
-      ErrorCallback? onError}) async {
-    try {
-      await deleteBatchAsync(ids, force: force);
-      if (onSuccess != null) onSuccess(ids.length);
-    } catch (e, st) {
-      if (onError != null) onError(e, st);
-    }
+  Future<int> deleteBatchAsync(List<Object> ids,
+      {bool force = false, DatabaseExecutor? executor}) async {
+    if (ids.isEmpty) return 0;
+    final db = executor ?? await database;
+    final count = await dbManager.logAction(
+      'DELETE BATCH ${table.name}',
+      [ids.length],
+      () async {
+        final batch = db.batch();
+        if (!table.paranoid || force) {
+          for (final id in ids) {
+            batch.delete(table.name,
+                where: '${table.primaryKey} = ?', whereArgs: [id]);
+          }
+        } else {
+          for (final id in ids) {
+            batch.update(
+              table.name,
+              _withTimestamps({'deleted_at': DateTime.now().toIso8601String()}),
+              where: '${table.primaryKey} = ?',
+              whereArgs: [id],
+            );
+          }
+        }
+        final results = await batch.commit(noResult: true);
+        return results.length;
+      },
+    );
+    _notify();
+    return count;
   }
 
   /// Restores multiple soft-deleted items in a batch asynchronously.
-  ///
-  /// **Example:**
-  /// ```dart
-  /// await userService.restoreBatchAsync(['1', '2']);
-  /// ```
-  Future<void> restoreBatchAsync(List<Object> ids) async {
-    if (!table.paranoid) throw StateError('Soft delete not enabled');
-    if (ids.isEmpty) return;
-    final db = await database;
-    final batch = db.batch();
-    final now = DateTime.now().toIso8601String();
-    for (final id in ids) {
-      batch.update(table.name, {'deleted_at': null, 'updated_at': now},
-          where: '${table.primaryKey} = ?', whereArgs: [id]);
+  Future<int> restoreBatchAsync(List<Object> ids,
+      {DatabaseExecutor? executor}) async {
+    if (!table.paranoid) {
+      throw StateError('Restore not supported on non-paranoid tables.');
     }
-    await batch.commit(noResult: true);
+    if (ids.isEmpty) return 0;
+    final db = executor ?? await database;
+    final count = await dbManager.logAction(
+      'RESTORE BATCH ${table.name}',
+      [ids.length],
+      () async {
+        final batch = db.batch();
+        for (final id in ids) {
+          batch.update(
+            table.name,
+            _withTimestamps({'deleted_at': null}),
+            where: '${table.primaryKey} = ?',
+            whereArgs: [id],
+          );
+        }
+        final results = await batch.commit(noResult: true);
+        return results.length;
+      },
+    );
+    _notify();
+    return count;
   }
 
   /// Restores multiple soft-deleted items in a batch synchronously.
   void restoreBatch(List<Object> ids,
-      {void Function(int count)? onSuccess, ErrorCallback? onError}) async {
+      {void Function(int count)? onSuccess,
+      ErrorCallback? onError,
+      DatabaseExecutor? executor}) async {
     try {
-      await restoreBatchAsync(ids);
-      if (onSuccess != null) onSuccess(ids.length);
+      final count = await restoreBatchAsync(ids, executor: executor);
+      if (onSuccess != null) onSuccess(count);
     } catch (e, st) {
       if (onError != null) onError(e, st);
     }
@@ -402,22 +436,32 @@ class SqflowCore<T extends Model> {
   /// ```
   Future<T?> readAsync(Object id,
       {List<String>? columns,
+      Attributes? attributes,
       bool withDeleted = false,
-      List<Includable>? include}) async {
-    final db = await database;
+      List<Includable>? include,
+      DatabaseExecutor? executor}) async {
+    final db = executor ?? await database;
     final where = WhereBuilder().eq(table.primaryKey, id);
-    if (table.paranoid && !withDeleted) where.isNull('deleted_at');
-    final result = await db.query(table.name,
-        columns: columns,
-        where: where.build(),
-        whereArgs: where.args,
-        limit: 1);
+    if (table.paranoid && !withDeleted) {
+      where.isNull('${table.name}.deleted_at');
+    }
+
+    final sql = buildJoinQuery(
+      columns: columns,
+      attributes: attributes,
+      include: include,
+      where: where,
+      limit: 1,
+    );
+
+    final result = await dbManager.logAction(
+      sql,
+      where.args,
+      () => db.rawQuery(sql, where.args),
+    );
     if (result.isEmpty) return null;
 
-    final row = Map<String, dynamic>.from(result.first);
-    if (include != null && include.isNotEmpty) {
-      await _eagerLoad([row], include);
-    }
+    final row = _unflattenRow(Map<String, dynamic>.from(result.first));
 
     return table.fromJson(row);
   }
@@ -437,140 +481,24 @@ class SqflowCore<T extends Model> {
   /// ```
   void read(Object id,
       {List<String>? columns,
+      Attributes? attributes,
       void Function(T)? onSuccess,
       ErrorCallback? onError,
       bool withDeleted = false,
-      List<Includable>? include}) async {
+      List<Includable>? include,
+      DatabaseExecutor? executor}) async {
     try {
-      final item = await readAsync(id,
-          columns: columns, withDeleted: withDeleted, include: include);
+      final item = await readAsync(
+        id,
+        columns: columns,
+        attributes: attributes,
+        withDeleted: withDeleted,
+        include: include,
+        executor: executor,
+      );
       if (item != null && onSuccess != null) onSuccess(item);
     } catch (e, st) {
       if (onError != null) onError(e, st);
-    }
-  }
-
-  /// Helper to fetch and attach related data to rows.
-  Future<void> _eagerLoad(
-      List<Map<String, dynamic>> rows, List<Includable> include) async {
-    if (rows.isEmpty) return;
-    final db = await database;
-
-    final includeNames =
-        include.map((inc) => inc.getTableName(dbManager.tables)).toList();
-
-    for (final relName in includeNames) {
-      // 1. Find relationship definition
-      final rel = table.relationships.where((r) {
-        final model = r.model;
-        if (model is String) return model == relName;
-        if (model is Type) {
-          // Find table by type
-          final relatedTable =
-              dbManager.tables.where((t) => t.type == model).firstOrNull;
-          return relatedTable?.name == relName;
-        }
-        return false;
-      }).firstOrNull;
-
-      if (rel == null) continue;
-
-      if (rel is HasMany) {
-        await _loadHasMany(rows, rel, db, relName);
-      } else if (rel is BelongsTo) {
-        await _loadBelongsTo(rows, rel, db, relName);
-      } else if (rel is HasOne) {
-        await _loadHasOne(rows, rel, db, relName);
-      }
-    }
-  }
-
-  Future<void> _loadHasMany(List<Map<String, dynamic>> rows, HasMany rel,
-      DatabaseExecutor db, String relName) async {
-    final localKeys = rows
-        .map((r) => r[rel.localKey])
-        .where((e) => e != null)
-        .cast<Object>()
-        .toList();
-    if (localKeys.isEmpty) return;
-
-    final relatedTable = _findTable(rel.model);
-    if (relatedTable == null) return;
-
-    final placeholders = List.filled(localKeys.length, '?').join(', ');
-    final relatedRows = await db.query(
-      relatedTable.name,
-      where: '${rel.foreignKey} IN ($placeholders)',
-      whereArgs: localKeys,
-    );
-
-    // Group related rows by foreign key
-    final grouped = <Object, List<Map<String, dynamic>>>{};
-    for (final row in relatedRows) {
-      final fk = row[rel.foreignKey];
-      if (fk != null) {
-        grouped.putIfAbsent(fk, () => []).add(row);
-      }
-    }
-
-    // Attach to main rows
-    for (final row in rows) {
-      final key = row[rel.localKey];
-      row[relName] = grouped[key] ?? [];
-    }
-  }
-
-  Future<void> _loadBelongsTo(List<Map<String, dynamic>> rows, BelongsTo rel,
-      DatabaseExecutor db, String relName) async {
-    final foreignKeys = rows
-        .map((r) => r[rel.foreignKey])
-        .where((e) => e != null)
-        .cast<Object>()
-        .toList();
-    if (foreignKeys.isEmpty) return;
-
-    final relatedTable = _findTable(rel.model);
-    if (relatedTable == null) return;
-
-    final placeholders = List.filled(foreignKeys.length, '?').join(', ');
-    final relatedRows = await db.query(
-      relatedTable.name,
-      where: '${rel.localKey} IN ($placeholders)',
-      whereArgs: foreignKeys,
-    );
-
-    final grouped = {for (final r in relatedRows) r[rel.localKey]: r};
-
-    for (final row in rows) {
-      final fk = row[rel.foreignKey];
-      row[relName] = grouped[fk];
-    }
-  }
-
-  Future<void> _loadHasOne(List<Map<String, dynamic>> rows, HasOne rel,
-      DatabaseExecutor db, String relName) async {
-    final localKeys = rows
-        .map((r) => r[rel.localKey])
-        .where((e) => e != null)
-        .cast<Object>()
-        .toList();
-    if (localKeys.isEmpty) return;
-
-    final relatedTable = _findTable(rel.model);
-    if (relatedTable == null) return;
-
-    final placeholders = List.filled(localKeys.length, '?').join(', ');
-    final relatedRows = await db.query(
-      relatedTable.name,
-      where: '${rel.foreignKey} IN ($placeholders)',
-      whereArgs: localKeys,
-    );
-
-    final grouped = {for (final r in relatedRows) r[rel.foreignKey]: r};
-
-    for (final row in rows) {
-      final key = row[rel.localKey];
-      row[relName] = grouped[key];
     }
   }
 
@@ -584,6 +512,235 @@ class SqflowCore<T extends Model> {
     return null;
   }
 
+  /// Unflattens a database row that contains aliased columns from JOINs.
+  /// Converts 'table__column' into {'table': {'column': value}}.
+  static Map<String, dynamic> _unflattenRow(Map<String, dynamic> row) {
+    final result = <String, dynamic>{};
+    row.forEach((key, value) {
+      if (key.contains('__')) {
+        final parts = key.split('__');
+        var current = result;
+        for (var i = 0; i < parts.length - 1; i++) {
+          final part = parts[i];
+          current = current.putIfAbsent(part, () => <String, dynamic>{})
+              as Map<String, dynamic>;
+        }
+        current[parts.last] = _tryParseJson(value);
+      } else {
+        result[key] = _tryParseJson(value);
+      }
+    });
+    return result;
+  }
+
+  static dynamic _tryParseJson(dynamic value) {
+    if (value is String && (value.startsWith('[') || value.startsWith('{'))) {
+      try {
+        return jsonDecode(value);
+      } catch (_) {
+        return value;
+      }
+    }
+    return value;
+  }
+
+  String _buildJsonObjectArgs(
+      Table currentTable, Attributes? attributes, List<Includable>? include) {
+    final relCols = attributes != null
+        ? attributes.apply(currentTable.columns)
+        : currentTable.columns;
+
+    final baseFields = relCols.isNotEmpty
+        ? relCols.map((c) => "'$c', ${currentTable.name}.$c").join(', ')
+        : "'id', ${currentTable.name}.${currentTable.primaryKey}";
+
+    if (include == null || include.isEmpty) return baseFields;
+
+    final includeFields = <String>[];
+    for (final inc in include) {
+      final relName = inc.getTableName(dbManager.tables);
+      final rel = currentTable.relationships.where((r) {
+        final model = r.model;
+        if (model is String) return model == relName;
+        if (model is Type) {
+          final relatedTable =
+              dbManager.tables.where((t) => t.type == model).firstOrNull;
+          return relatedTable?.name == relName;
+        }
+        return false;
+      }).firstOrNull;
+
+      if (rel == null) continue;
+
+      final relatedTable = _findTable(rel.model);
+      if (relatedTable == null) continue;
+
+      final subArgs =
+          _buildJsonObjectArgs(relatedTable, inc.attributes, inc.include);
+
+      if (rel is HasMany) {
+        includeFields.add('''
+          '$relName', (
+            SELECT json_group_array(json_object($subArgs)) 
+            FROM ${relatedTable.name} 
+            WHERE ${relatedTable.name}.${rel.foreignKey} = ${currentTable.name}.${rel.localKey}
+          )
+        ''');
+      } else {
+        includeFields.add('''
+          '$relName', (
+            SELECT json_object($subArgs) 
+            FROM ${relatedTable.name} 
+            WHERE ${relatedTable.name}.${rel is BelongsTo ? rel.localKey : rel.foreignKey} = ${currentTable.name}.${rel is BelongsTo ? rel.foreignKey : rel.localKey}
+          )
+        ''');
+      }
+    }
+
+    return '$baseFields, ${includeFields.join(', ')}';
+  }
+
+  /// Builds a single SQL query for relationships using JOINs and JSON aggregation.
+  @visibleForTesting
+  String buildJoinQuery({
+    List<String>? columns,
+    Attributes? attributes,
+    List<Includable>? include,
+    WhereBuilder? where,
+    SortBuilder? sort,
+    int? limit,
+    int? offset,
+    bool includeTotalCount = false,
+    bool explainQueryPlan = false,
+  }) {
+    final selectFields = <String>[];
+    final joins = <String>{};
+
+    // Analyze WhereBuilder for automatic LEFT JOINs (for filtering)
+    if (where != null) {
+      final joinTableNames = <String>{};
+      for (final col in where.usedColumns) {
+        if (col.contains('.')) {
+          joinTableNames.add(col.split('.').first);
+        }
+      }
+
+      for (final relName in joinTableNames) {
+        final rel = table.relationships.where((r) {
+          final model = r.model;
+          if (model is String) return model == relName;
+          if (model is Type) {
+            final relatedTable =
+                dbManager.tables.where((t) => t.type == model).firstOrNull;
+            return relatedTable?.name == relName;
+          }
+          return false;
+        }).firstOrNull;
+
+        if (rel != null) {
+          final relatedTable = _findTable(rel.model);
+          if (relatedTable != null) {
+            if (rel is HasMany || rel is HasOne) {
+              joins.add(
+                  'LEFT JOIN ${relatedTable.name} ON ${relatedTable.name}.${rel.foreignKey} = ${table.name}.${rel.localKey}');
+            } else if (rel is BelongsTo) {
+              joins.add(
+                  'LEFT JOIN ${relatedTable.name} ON ${relatedTable.name}.${rel.localKey} = ${table.name}.${rel.foreignKey}');
+            }
+          }
+        }
+      }
+    }
+
+    // Main table fields
+    List<String> effectiveColumns;
+    if (attributes != null) {
+      effectiveColumns = attributes.apply(table.columns);
+    } else if (columns != null && columns.isNotEmpty) {
+      effectiveColumns = columns;
+    } else {
+      effectiveColumns = table.columns;
+    }
+
+    if (effectiveColumns.isEmpty) {
+      // Fallback to * if no columns specified (though table.columns should have them)
+      selectFields.add('${table.name}.*');
+    } else {
+      selectFields.addAll(effectiveColumns.map((c) => '${table.name}.$c'));
+    }
+
+    if (includeTotalCount) {
+      selectFields.add('COUNT(*) OVER() AS total_count');
+    }
+
+    if (include != null) {
+      for (final inc in include) {
+        final relName = inc.getTableName(dbManager.tables);
+        final rel = table.relationships.where((r) {
+          final model = r.model;
+          if (model is String) return model == relName;
+          if (model is Type) {
+            final relatedTable =
+                dbManager.tables.where((t) => t.type == model).firstOrNull;
+            return relatedTable?.name == relName;
+          }
+          return false;
+        }).firstOrNull;
+
+        if (rel == null) continue;
+
+        final relatedTable = _findTable(rel.model);
+        if (relatedTable == null) continue;
+
+        final subArgs =
+            _buildJsonObjectArgs(relatedTable, inc.attributes, inc.include);
+
+        if (rel is HasMany) {
+          selectFields.add('''
+            (SELECT json_group_array(json_object($subArgs)) 
+             FROM ${relatedTable.name} 
+             WHERE ${relatedTable.name}.${rel.foreignKey} = ${table.name}.${rel.localKey}
+            ) AS $relName
+          ''');
+        } else {
+          // BelongsTo or HasOne
+          selectFields.add('''
+            (SELECT json_object($subArgs) 
+             FROM ${relatedTable.name} 
+             WHERE ${relatedTable.name}.${rel is BelongsTo ? rel.localKey : rel.foreignKey} = ${table.name}.${rel is BelongsTo ? rel.foreignKey : rel.localKey}
+            ) AS $relName
+          ''');
+        }
+      }
+    }
+
+    var query = 'SELECT ${selectFields.join(', ')} FROM ${table.name}';
+    if (joins.isNotEmpty) {
+      query += ' ${joins.toList().join(' ')}';
+    }
+    if (where != null && where.isNotEmpty) {
+      query += ' WHERE ${where.build()}';
+    }
+
+    if (joins.isNotEmpty) {
+      query += ' GROUP BY ${table.name}.${table.primaryKey}';
+    }
+
+    if (sort != null) {
+      query += ' ORDER BY ${sort.build()}';
+    }
+    if (limit != null) {
+      query += ' LIMIT $limit';
+      if (offset != null) {
+        query += ' OFFSET $offset';
+      }
+    }
+    if (explainQueryPlan) {
+      query = 'EXPLAIN QUERY PLAN $query';
+    }
+    return query;
+  }
+
   /// Checks existence by primary key.
   /// Corrected: properly returns true/false.
   ///
@@ -591,15 +748,22 @@ class SqflowCore<T extends Model> {
   /// ```dart
   /// final exists = await userService.existsAsync('1');
   /// ```
-  Future<bool> existsAsync(Object id, {bool withDeleted = false}) async {
-    final db = await database;
+  Future<bool> existsAsync(Object id,
+      {bool withDeleted = false, DatabaseExecutor? executor}) async {
+    final db = executor ?? await database;
     final where = WhereBuilder().eq(table.primaryKey, id);
-    if (table.paranoid && !withDeleted) where.isNull('deleted_at');
-    final result = await db.query(table.name,
-        columns: [table.primaryKey],
-        where: where.build(),
-        whereArgs: where.args,
-        limit: 1);
+    if (table.paranoid && !withDeleted) {
+      where.isNull('${table.name}.deleted_at');
+    }
+    final result = await dbManager.logAction(
+      'EXISTS in ${table.name}',
+      [id, ...where.args],
+      () => db.query(table.name,
+          columns: [table.primaryKey],
+          where: where.build(),
+          whereArgs: where.args,
+          limit: 1),
+    );
     return result.isNotEmpty;
   }
 
@@ -619,68 +783,306 @@ class SqflowCore<T extends Model> {
   void exists(Object id,
       {void Function(bool exists)? onResult,
       ErrorCallback? onError,
-      bool withDeleted = false}) async {
+      bool withDeleted = false,
+      DatabaseExecutor? executor}) async {
     try {
-      final ex = await existsAsync(id, withDeleted: withDeleted);
+      final ex =
+          await existsAsync(id, withDeleted: withDeleted, executor: executor);
       if (onResult != null) onResult(ex);
     } catch (e, st) {
       if (onError != null) onError(e, st);
     }
   }
 
-  /// Returns all items with optional filtering, sorting, and pagination.
-  /// Uses **single query** with COUNT(*) OVER() to avoid a second count query.
+  // -------------------------------------------------------
+  // AGGREGATES 📊
+  // -------------------------------------------------------
+
+  Future<num> _aggregateAsync(String function, String column,
+      {WhereBuilder? where, DatabaseExecutor? executor}) async {
+    final db = executor ?? await database;
+    final effectiveWhere = where?.copy() ?? WhereBuilder();
+    if (table.paranoid && !effectiveWhere.hasConditionOn('deleted_at')) {
+      effectiveWhere.isNull('${table.name}.deleted_at');
+    }
+    var sql = 'SELECT $function($column) as val FROM ${table.name}';
+
+    // Add joins if WhereBuilder uses related tables
+    if (effectiveWhere.isNotEmpty) {
+      final joinTableNames = <String>{};
+      for (final col in effectiveWhere.usedColumns) {
+        if (col.contains('.')) joinTableNames.add(col.split('.').first);
+      }
+      for (final relName in joinTableNames) {
+        final rel = table.relationships
+            .where((r) => (r.model is String
+                ? r.model == relName
+                : (dbManager.tables
+                        .where((t) => t.type == r.model)
+                        .firstOrNull
+                        ?.name ==
+                    relName)))
+            .firstOrNull;
+
+        if (rel != null) {
+          final relatedTable = _findTable(rel.model);
+          if (relatedTable != null) {
+            if (rel is HasMany || rel is HasOne) {
+              sql +=
+                  ' LEFT JOIN ${relatedTable.name} ON ${relatedTable.name}.${rel.foreignKey} = ${table.name}.${rel.localKey}';
+            } else if (rel is BelongsTo) {
+              sql +=
+                  ' LEFT JOIN ${relatedTable.name} ON ${relatedTable.name}.${rel.localKey} = ${table.name}.${rel.foreignKey}';
+            }
+          }
+        }
+      }
+
+      sql += ' WHERE ${effectiveWhere.build()}';
+    }
+
+    final result = await dbManager.logAction(
+      sql,
+      effectiveWhere.args,
+      () => db.rawQuery(sql, effectiveWhere.args),
+    );
+    if (result.isEmpty) return 0;
+    return (result.first['val'] as num?) ?? 0;
+  }
+
+  /// Calculates the total count of rows matching the given condition.
   ///
   /// **Example:**
   /// ```dart
-  /// final result = await userService.readAll(
-  ///   limit: 10,
-  ///   offset: 0,
-  ///   where: WhereBuilder().like('name', '%John%'),
-  ///   sort: SortBuilder().asc('name')
-  /// );
-  /// print('Total: ${result.count}, Items: ${result.data.length}');
+  /// final total = await userService.countAsync(where: WhereBuilder().gt('age', 18));
   /// ```
-  Future<DataAndCount<T>> readAll({
+  Future<int> countAsync(
+      {Object? column, WhereBuilder? where, DatabaseExecutor? executor}) async {
+    final colStr = column?.toString() ?? '*';
+    final result = await _aggregateAsync('COUNT', colStr,
+        where: where, executor: executor);
+    return result.toInt();
+  }
+
+  /// Calculates the sum of a specific column.
+  ///
+  /// **Example:**
+  /// ```dart
+  /// final totalPoints = await scoreService.sumAsync('points');
+  /// ```
+  Future<num> sumAsync(Object column,
+          {WhereBuilder? where, DatabaseExecutor? executor}) =>
+      _aggregateAsync('SUM', column.toString(),
+          where: where, executor: executor);
+
+  /// Calculates the average of a specific column.
+  ///
+  /// **Example:**
+  /// ```dart
+  /// final averageAge = await userService.avgAsync('age');
+  /// ```
+  Future<num> avgAsync(Object column,
+          {WhereBuilder? where, DatabaseExecutor? executor}) =>
+      _aggregateAsync('AVG', column.toString(),
+          where: where, executor: executor);
+
+  /// Finds the minimum value of a specific column.
+  ///
+  /// **Example:**
+  /// ```dart
+  /// final minScore = await scoreService.minAsync('score');
+  /// ```
+  Future<num> minAsync(Object column,
+          {WhereBuilder? where, DatabaseExecutor? executor}) =>
+      _aggregateAsync('MIN', column.toString(),
+          where: where, executor: executor);
+
+  /// Finds the maximum value of a specific column.
+  ///
+  /// **Example:**
+  /// ```dart
+  /// final maxScore = await scoreService.maxAsync('score');
+  /// ```
+  Future<num> maxAsync(Object column,
+          {WhereBuilder? where, DatabaseExecutor? executor}) =>
+      _aggregateAsync('MAX', column.toString(),
+          where: where, executor: executor);
+
+  // -------------------------------------------------------
+  // READ ALL 🔍
+  // -------------------------------------------------------
+
+  /// Shared query execution for [readAll] and [readAllWithCount].
+  Future<({List<T> data, int count})> _fetchRows({
+    required bool includeTotalCount,
     int limit = 20,
     int offset = 0,
     WhereBuilder? where,
     SortBuilder? sort,
     List<String>? columns,
+    Attributes? attributes,
     bool withDeleted = false,
     bool onlyDeleted = false,
     List<Includable>? include,
+    DatabaseExecutor? executor,
   }) async {
-    final db = await database;
+    final db = executor ?? await database;
     final effectiveWhere = where?.copy() ?? WhereBuilder();
 
     if (table.paranoid) {
       if (onlyDeleted) {
-        effectiveWhere.isNotNull('deleted_at');
+        effectiveWhere.isNotNull('${table.name}.deleted_at');
       } else if (!withDeleted && !effectiveWhere.hasConditionOn('deleted_at')) {
-        effectiveWhere.isNull('deleted_at');
+        effectiveWhere.isNull('${table.name}.deleted_at');
       }
     }
 
-    // Build a single query with COUNT(*) OVER()
-    final rows = await db.rawQuery('''
-      SELECT ${columns?.join(', ') ?? '*'}, COUNT(*) OVER() AS total_count
-      FROM ${table.name}
-      ${effectiveWhere.isEmpty ? '' : 'WHERE ${effectiveWhere.build()}'}
-      ${sort != null ? 'ORDER BY ${sort.build()}' : ''}
-      LIMIT $limit OFFSET $offset
-    ''', effectiveWhere.args);
+    final sql = buildJoinQuery(
+      columns: columns,
+      attributes: attributes,
+      include: include,
+      where: effectiveWhere,
+      sort: sort,
+      limit: limit,
+      offset: offset,
+      includeTotalCount: includeTotalCount,
+    );
 
-    final results = rows.map((r) => Map<String, dynamic>.from(r)).toList();
+    final rows = await dbManager.logAction(
+      sql,
+      effectiveWhere.args,
+      () => db.rawQuery(sql, effectiveWhere.args),
+    );
 
-    if (include != null && include.isNotEmpty) {
-      await _eagerLoad(results, include);
+    List<T> data;
+    try {
+      final threshold = dbManager.isolateThreshold;
+      if (rows.length > threshold) {
+        // Use isolate for large datasets to keep UI thread responsive
+        // We pass only necessary data to a static method to avoid capturing 'this' or local scope
+        data = await _parseInIsolate<T>(
+          rows,
+          table.fromJson,
+          table.name,
+        );
+      } else {
+        data = rows.map((r) {
+          final unflattened = _unflattenRow(Map<String, dynamic>.from(r));
+          return table.fromJson(unflattened);
+        }).toList();
+      }
+    } catch (e, stack) {
+      dbManager.logger?.error('Error parsing results', e, stack);
+      rethrow;
     }
 
-    final data = results.map(table.fromJson).toList();
-    final count = rows.isNotEmpty ? (rows.first['total_count'] as int) : 0;
+    final count =
+        rows.isNotEmpty ? (rows.first['total_count'] as int? ?? 0) : 0;
 
-    return DataAndCount(data: data, count: count);
+    return (data: data, count: count);
+  }
+
+  /// Internal helper for parsing rows in a background isolate.
+  /// This is a static method to ensure it doesn't capture the instance state (this).
+  static Future<List<T>> _parseInIsolate<T extends Model>(
+    List<Map<String, Object?>> rows,
+    T Function(Map<String, dynamic>) fromJson,
+    String tableName,
+  ) async {
+    return await Isolate.run(
+      () {
+        return rows.map((r) {
+          final unflattened = _unflattenRow(Map<String, dynamic>.from(r));
+          return fromJson(unflattened);
+        }).toList();
+      },
+      debugName: 'SQFlow_IsolateParsing_$tableName',
+    );
+  }
+
+  /// Returns a page of items without a total count.
+  ///
+  /// Use [readAllWithCount] when you need the total number of matching rows
+  /// for pagination UI.
+  ///
+  /// **Example:**
+  /// ```dart
+  /// final result = await userService.readAll(
+  ///   where: WhereBuilder().eq('city', 'Sofia'),
+  ///   limit: 20,
+  ///   sort: SortBuilder().asc('first_name'),
+  /// );
+  /// for (final user in result.data) { ... }
+  /// ```
+  Future<Result<T>> readAll({
+    int limit = 20,
+    int offset = 0,
+    WhereBuilder? where,
+    SortBuilder? sort,
+    List<String>? columns,
+    Attributes? attributes,
+    bool withDeleted = false,
+    bool onlyDeleted = false,
+    List<Includable>? include,
+    DatabaseExecutor? executor,
+  }) async {
+    final fetched = await _fetchRows(
+      includeTotalCount: false,
+      limit: limit,
+      offset: offset,
+      where: where,
+      sort: sort,
+      columns: columns,
+      attributes: attributes,
+      withDeleted: withDeleted,
+      onlyDeleted: onlyDeleted,
+      include: include,
+      executor: executor,
+    );
+    return Result(data: fetched.data);
+  }
+
+  /// Returns a page of items **with** the total count of matching rows.
+  ///
+  /// Uses a single SQL query with `COUNT(*) OVER()` — no extra round-trip.
+  /// The returned [ResultWithCount.count] reflects the total number of rows
+  /// matching the [where] clause, regardless of [limit]/[offset].
+  ///
+  /// **Example:**
+  /// ```dart
+  /// final result = await userService.readAllWithCount(
+  ///   where: WhereBuilder().eq('city', 'Sofia'),
+  ///   limit: 20,
+  ///   offset: 0,
+  /// );
+  /// print('Showing ${result.data.length} of ${result.count}');
+  /// ```
+  Future<ResultWithCount<T>> readAllWithCount({
+    int limit = 20,
+    int offset = 0,
+    WhereBuilder? where,
+    SortBuilder? sort,
+    List<String>? columns,
+    Attributes? attributes,
+    bool withDeleted = false,
+    bool onlyDeleted = false,
+    List<Includable>? include,
+    DatabaseExecutor? executor,
+  }) async {
+    final fetched = await _fetchRows(
+      includeTotalCount: true,
+      limit: limit,
+      offset: offset,
+      where: where,
+      sort: sort,
+      columns: columns,
+      attributes: attributes,
+      withDeleted: withDeleted,
+      onlyDeleted: onlyDeleted,
+      include: include,
+      executor: executor,
+    );
+    return ResultWithCount(data: fetched.data, count: fetched.count);
   }
 
   /// Executes operations in a transaction.
@@ -695,5 +1097,117 @@ class SqflowCore<T extends Model> {
   Future<R> transaction<R>(Future<R> Function(Transaction txn) action) async {
     final db = await database;
     return db.transaction(action);
+  }
+
+  /// **Internal Helper: Extract tables from Includable list**
+  Set<String> _extractIncludedTables(List<Includable>? includes) {
+    final tables = <String>{};
+    if (includes == null) return tables;
+    for (final inc in includes) {
+      tables.add(inc.getTableName(dbManager.tables));
+      if (inc.include != null) {
+        tables.addAll(_extractIncludedTables(inc.include));
+      }
+    }
+    return tables;
+  }
+
+  // -------------------------------------------------------
+  // WATCHERS (STREAMS) 📡
+  // -------------------------------------------------------
+
+  /// Watches a single record by ID.
+  /// Re-emits when the table or any specified dependencies change.
+  ///
+  /// **Parameters:**
+  /// - `id`: The primary key of the record.
+  /// - `include`: Relationships to eager load.
+  /// - `attributes`: Column selection filter.
+  /// - `withDeleted`: Whether to include soft-deleted record.
+  /// - `dependencies`: Extra table names to watch for changes.
+  Stream<T?> watch(
+    Object id, {
+    List<Includable>? include,
+    Attributes? attributes,
+    bool withDeleted = false,
+    List<String>? dependencies,
+  }) async* {
+    final tablesToWatch = {
+      table.name,
+      ..._extractIncludedTables(include),
+      ...?dependencies
+    };
+    // Initial load
+    yield await readAsync(id,
+        include: include, attributes: attributes, withDeleted: withDeleted);
+
+    // Listen for changes
+    await for (final changedTable in dbManager.changeStream) {
+      if (tablesToWatch.contains(changedTable)) {
+        yield await readAsync(id,
+            include: include, attributes: attributes, withDeleted: withDeleted);
+      }
+    }
+  }
+
+  /// Watches all records matching the filters.
+  /// Re-emits when the table or any specified dependencies change.
+  ///
+  /// **Parameters:**
+  /// - `where`: Filter conditions.
+  /// - `sort`: Ordering.
+  /// - `limit`: Max rows.
+  /// - `offset`: Skip rows.
+  /// - `include`: Relationships to eager load.
+  /// - `attributes`: Column selection filter.
+  /// - `withDeleted`: Whether to include soft-deleted records.
+  /// - `onlyDeleted`: Return only soft-deleted records.
+  /// - `dependencies`: Extra table names to watch for changes.
+  Stream<List<T>> watchAll({
+    WhereBuilder? where,
+    SortBuilder? sort,
+    int? limit,
+    int? offset,
+    List<Includable>? include,
+    Attributes? attributes,
+    bool withDeleted = false,
+    bool onlyDeleted = false,
+    List<String>? dependencies,
+  }) async* {
+    final tablesToWatch = {
+      table.name,
+      ..._extractIncludedTables(include),
+      ...?dependencies
+    };
+
+    // Initial load
+    final initial = await readAll(
+      where: where,
+      sort: sort,
+      limit: limit ?? 20,
+      offset: offset ?? 0,
+      include: include,
+      attributes: attributes,
+      withDeleted: withDeleted,
+      onlyDeleted: onlyDeleted,
+    );
+    yield initial.data;
+
+    // Listen for changes
+    await for (final changedTable in dbManager.changeStream) {
+      if (tablesToWatch.contains(changedTable)) {
+        final result = await readAll(
+          where: where,
+          sort: sort,
+          limit: limit ?? 20,
+          offset: offset ?? 0,
+          include: include,
+          attributes: attributes,
+          withDeleted: withDeleted,
+          onlyDeleted: onlyDeleted,
+        );
+        yield result.data;
+      }
+    }
   }
 }
