@@ -52,7 +52,7 @@ class _$SQFlowUserTable extends Table<User> {
 final usersTable = _$SQFlowUserTable(
   schema: _$SQFlowUserSchema,
   name: 'users',
-  fromJson: User.fromJson,
+  fromJson: _$SQFlowUserFromJson,
   relationships: const [
     HasMany(model: 'orders', foreignKey: 'user_id'),
     HasMany(model: 'posts', foreignKey: 'user_id'),
@@ -259,7 +259,7 @@ class _$SQFlowPostTable extends Table<Post> {
 final postsTable = _$SQFlowPostTable(
   schema: _$SQFlowPostSchema,
   name: 'posts',
-  fromJson: Post.fromJson,
+  fromJson: _$SQFlowPostFromJson,
   relationships: const [BelongsTo(model: 'users', foreignKey: 'user_id')],
   columns: const [
     'id',
@@ -379,7 +379,7 @@ class _$SQFlowProfileTable extends Table<Profile> {
 final profilesTable = _$SQFlowProfileTable(
   schema: _$SQFlowProfileSchema,
   name: 'profiles',
-  fromJson: Profile.fromJson,
+  fromJson: _$SQFlowProfileFromJson,
   relationships: const [BelongsTo(model: 'users', foreignKey: 'user_id')],
   columns: const ['id', 'bio', 'user_id', 'created_at', 'updated_at'],
   timestamps: true,
@@ -484,7 +484,7 @@ class _$SQFlowOrderTable extends Table<Order> {
 final ordersTable = _$SQFlowOrderTable(
   schema: _$SQFlowOrderSchema,
   name: 'orders',
-  fromJson: Order.fromJson,
+  fromJson: _$SQFlowOrderFromJson,
   relationships: const [BelongsTo(model: 'users', foreignKey: 'user_id')],
   columns: const [
     'id',

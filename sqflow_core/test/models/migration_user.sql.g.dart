@@ -41,7 +41,7 @@ class _$SQFlowMigrationUserTable extends Table<MigrationUser> {
 final migration_usersTable = _$SQFlowMigrationUserTable(
   schema: _$SQFlowMigrationUserSchema,
   name: 'migration_users',
-  fromJson: MigrationUser.fromJson,
+  fromJson: _$SQFlowMigrationUserFromJson,
   relationships: [],
   columns: const [
     'id',

@@ -231,22 +231,36 @@ print('Showing ${result.data.length} of ${result.count}');
 
 ---
 
-## Check Existence
+## Aggregate Functions
+
+SQFlow provides type-safe aggregate functions. These functions automatically respect soft-delete filtering (paranoid mode) and any `WhereBuilder` conditions.
 
 ```dart
-final exists = await userService.existsAsync('user_id_here');
-// Returns true/false
-
-// Include soft-deleted in the check
-final exists = await userService.existsAsync('id', withDeleted: true);
-
-// Fire-and-forget
-userService.exists(
-  'user_id_here',
-  onResult: (exists) => print('Exists: $exists'),
-  onError: (e, st) => print('Error: $e'),
+// 1. Count
+final totalUsers = await userService.countAsync();
+final activeUsers = await userService.countAsync(
+  where: WhereBuilder().isTrue('is_active'),
 );
+
+// 2. Sum
+final totalRevenue = await orderService.sumAsync('total');
+final userRevenue = await orderService.sumAsync(
+  'total',
+  where: WhereBuilder().eq('user_id', 'u1'),
+);
+
+// 3. Average
+final avgRating = await reviewService.avgAsync('rating');
+
+// 4. Min/Max
+final minPrice = await productService.minAsync('price');
+final maxPrice = await productService.maxAsync('price');
 ```
+
+> [!NOTE]
+> `sumAsync`, `avgAsync`, `minAsync`, and `maxAsync` return a `double?` (null if no records match). `countAsync` returns an `int`.
+
+---
 
 ---
 
@@ -292,14 +306,15 @@ userService.insertBatch(
 Use when multiple operations must succeed or fail together.
 
 ```dart
-await userService.transaction((txn) async {
-  await txn.insert('users', {'id': 'u1', 'name': 'Alice'});
-  await txn.insert('orders', {'id': 1, 'user_id': 'u1', 'total': 100});
+await db.transaction((txn) async {
+  // You can use SqflowCore methods inside transaction by passing the executor
+  await userService.insertAsync(user, executor: txn);
+  await orderService.insertAsync(order, executor: txn);
 });
 ```
 
-> [!WARNING]
-> The `transaction` callback receives a raw `sqflite` `Transaction` object, not a `SqflowCore`. You must use raw table-name based calls (`txn.insert`, `txn.update`, etc.) inside the callback. High-level `SqflowCore` methods like `insertAsync` cannot be used inside a transaction directly.
+> [!TIP]
+> Always pass the `txn` object to `executor` parameter of CRUD methods inside the transaction block. If you omit it, the operation will run on a separate connection outside the transaction.
 
 ---
 
@@ -346,4 +361,4 @@ SortBuilder()
 ```
 
 > [!NOTE]
-> `SortBuilder` validates column names. Dot-notation (e.g., `posts.created_at`) is **not supported** in `SortBuilder`. Sorting on related table columns is not natively supported.
+> `SortBuilder` validates column names and supports dot-notation for related tables (e.g., `orders.created_at`). However, for the query to work, the related table must be joined (e.g., by having a condition on it in `WhereBuilder`).

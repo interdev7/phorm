@@ -27,6 +27,7 @@ class SqliteSchemaGenerator extends GeneratorForAnnotation<Schema> {
     final className = element.name;
     final tableName =
         schemaReader.peek('tableName')?.stringValue ?? _camelToSnake(className);
+    final useFromJson = schemaReader.peek('useFromJson')?.boolValue ?? true;
 
     final strategyReader = schemaReader.peek('columnNaming');
     final strategy = strategyReader == null || strategyReader.isNull
@@ -166,6 +167,7 @@ class SqliteSchemaGenerator extends GeneratorForAnnotation<Schema> {
       indexSql: indexSql,
       relationships: relationships,
       timestamps: timestamps,
+      useFromJson: useFromJson,
     );
   }
 

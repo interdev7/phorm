@@ -29,10 +29,7 @@ import 'dart:convert';
 
 import 'package:path/path.dart';
 import 'package:sqflite/sqflite.dart';
-import 'package:sqflow_platform_interface/src/table.dart';
-import 'package:sqflow_platform_interface/src/table_migration.dart';
-import 'package:sqflow_platform_interface/src/executor.dart';
-import 'package:sqflow_platform_interface/src/logger.dart';
+import 'package:sqflow_platform_interface/sqflow_platform_interface.dart';
 
 /// Main database manager that handles connection lifecycle,
 /// version management, and smart migration tracking.

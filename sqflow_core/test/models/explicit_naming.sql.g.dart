@@ -40,7 +40,7 @@ class _$SQFlowExplicitNamingTable extends Table<ExplicitNaming> {
 final explicit_tableTable = _$SQFlowExplicitNamingTable(
   schema: _$SQFlowExplicitNamingSchema,
   name: 'explicit_table',
-  fromJson: ExplicitNaming.fromJson,
+  fromJson: _$SQFlowExplicitNamingFromJson,
   relationships: [],
   columns: const [
     'custom_id',
