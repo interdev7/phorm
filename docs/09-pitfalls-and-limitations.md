@@ -59,13 +59,13 @@ The `REGEXP` operator is **not available** in standard `sqflite` builds. Using `
 
 ---
 
-### `SortBuilder` does not support dot notation
+### `SortBuilder` requires joined tables for dot notation
 
 ```dart
-SortBuilder().asc('orders.created_at'); // Throws ArgumentError!
+SortBuilder().asc('orders.created_at'); 
 ```
 
-Sorting on related table columns is not supported. Sort only on columns from the main table.
+While `SortBuilder` supports dot notation, the query will fail at runtime if the `orders` table is not joined. Joins are automatically triggered by adding a condition on the related table in `WhereBuilder`.
 
 ---
 
@@ -88,17 +88,17 @@ The batch insert silently replaces existing rows with the same primary key. This
 
 ---
 
-### Transactions use raw `sqflite` API
+### Transactions require passing the `executor`
 
 ```dart
-// WRONG — SqflowCore methods cannot be called inside transaction()
-await userService.transaction((txn) async {
-  await userService.insertAsync(user); // ← This opens a NEW connection, not txn!
+// WRONG — operations inside transaction() must use the txn object
+await db.transaction((txn) async {
+  await userService.insertAsync(user); // ← This uses the global connection, NOT txn!
 });
 
-// CORRECT — use raw sqflite operations inside transaction
-await userService.transaction((txn) async {
-  await txn.insert('users', user.toJson());
+// CORRECT — pass the txn as executor
+await db.transaction((txn) async {
+  await userService.insertAsync(user, executor: txn);
 });
 ```
 

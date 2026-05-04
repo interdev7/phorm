@@ -3,6 +3,7 @@ library sqflow_platform_interface;
 export 'src/annotations.dart';
 export 'src/columns.dart';
 export 'src/data_type.dart';
+export 'src/executor.dart';
 export 'src/logger.dart';
 export 'src/migration_builder.dart';
 export 'src/models.dart';

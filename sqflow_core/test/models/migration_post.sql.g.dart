@@ -40,7 +40,7 @@ class _$SQFlowMigrationPostTable extends Table<MigrationPost> {
 final migration_postsTable = _$SQFlowMigrationPostTable(
   schema: _$SQFlowMigrationPostSchema,
   name: 'migration_posts',
-  fromJson: MigrationPost.fromJson,
+  fromJson: _$SQFlowMigrationPostFromJson,
   relationships: [],
   columns: const [
     'id',
