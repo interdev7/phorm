@@ -16,6 +16,12 @@ CREATE TABLE categories (
 );
 
 
+CREATE TRIGGER update_categories_timestamp
+AFTER UPDATE ON categories
+FOR EACH ROW
+BEGIN
+    UPDATE categories SET updated_at = datetime('now') WHERE id = OLD.id;
+END;
 """;
 
 class _$SQFlowCategoryTable extends Table<Category> {
@@ -24,6 +30,8 @@ class _$SQFlowCategoryTable extends Table<Category> {
     required super.name,
     required super.fromJson,
     super.relationships = const [],
+    super.columns = const [],
+    super.timestamps = true,
   }) : super(type: Category, paranoid: Table.detectSoftDelete(schema));
 }
 
@@ -31,8 +39,10 @@ class _$SQFlowCategoryTable extends Table<Category> {
 final categoriesTable = _$SQFlowCategoryTable(
   schema: _$SQFlowCategorySchema,
   name: 'categories',
-  fromJson: Category.fromJson,
+  fromJson: _$SQFlowCategoryFromJson,
   relationships: const [HasMany(model: 'tasks', foreignKey: 'category_id')],
+  columns: const ['id', 'name', 'color', 'created_at', 'updated_at'],
+  timestamps: true,
 );
 
 mixin _$SQFlowCategoryMixin {
@@ -90,18 +100,35 @@ Category _$SQFlowCategoryFromJson(Map<String, dynamic> json) {
   return instance;
 }
 
+class CategoryTable {
+  static const SqflowColumn<String> id = SqflowColumn<String>('id');
+  static const SqflowColumn<String> name = SqflowColumn<String>('name');
+  static const SqflowColumn<String> color = SqflowColumn<String>('color');
+  static const SqflowColumn<DateTime> createdAt =
+      SqflowColumn<DateTime>('created_at');
+  static const SqflowColumn<DateTime> updatedAt =
+      SqflowColumn<DateTime>('updated_at');
+}
+
 const _$SQFlowTaskSchema = """
 CREATE TABLE tasks (
-  id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL UNIQUE,
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
   title TEXT NOT NULL,
   is_completed INTEGER NOT NULL DEFAULT 0,
   category_id TEXT NOT NULL,
   created_at TEXT NOT NULL,
   updated_at TEXT NOT NULL,
-  deleted_at TEXT
+  deleted_at TEXT,
+  FOREIGN KEY(category_id) REFERENCES categories(id)
 );
 
 
+CREATE TRIGGER update_tasks_timestamp
+AFTER UPDATE ON tasks
+FOR EACH ROW
+BEGIN
+    UPDATE tasks SET updated_at = datetime('now') WHERE id = OLD.id;
+END;
 """;
 
 class _$SQFlowTaskTable extends Table<Task> {
@@ -110,6 +137,8 @@ class _$SQFlowTaskTable extends Table<Task> {
     required super.name,
     required super.fromJson,
     super.relationships = const [],
+    super.columns = const [],
+    super.timestamps = true,
   }) : super(type: Task, paranoid: Table.detectSoftDelete(schema));
 }
 
@@ -117,10 +146,20 @@ class _$SQFlowTaskTable extends Table<Task> {
 final tasksTable = _$SQFlowTaskTable(
   schema: _$SQFlowTaskSchema,
   name: 'tasks',
-  fromJson: Task.fromJson,
+  fromJson: _$SQFlowTaskFromJson,
   relationships: const [
     BelongsTo(model: 'categories', foreignKey: 'category_id')
   ],
+  columns: const [
+    'id',
+    'title',
+    'is_completed',
+    'category_id',
+    'created_at',
+    'updated_at',
+    'deleted_at'
+  ],
+  timestamps: true,
 );
 
 mixin _$SQFlowTaskMixin {
@@ -187,6 +226,21 @@ Task _$SQFlowTaskFromJson(Map<String, dynamic> json) {
         ? Category.fromJson(json['categories'] as Map<String, dynamic>)
         : null;
   return instance;
+}
+
+class TaskTable {
+  static const SqflowColumn<int> id = SqflowColumn<int>('id');
+  static const SqflowColumn<String> title = SqflowColumn<String>('title');
+  static const SqflowColumn<bool> isCompleted =
+      SqflowColumn<bool>('is_completed');
+  static const SqflowColumn<String> categoryId =
+      SqflowColumn<String>('category_id');
+  static const SqflowColumn<DateTime> createdAt =
+      SqflowColumn<DateTime>('created_at');
+  static const SqflowColumn<DateTime> updatedAt =
+      SqflowColumn<DateTime>('updated_at');
+  static const SqflowColumn<DateTime> deletedAt =
+      SqflowColumn<DateTime>('deleted_at');
 }
 
 dynamic _$SQFlowToJsonValue(dynamic value) {

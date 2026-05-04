@@ -30,8 +30,12 @@ Future<SqflowCore<User>> createTestService() async {
   // Note: 'memory' with no name might share instance? No, ':memory:' is unique per connection if opened separately,
   // but here we want to ensure isolation.
   // In crud_service_test.dart it used ':memory:'.
-  final dbManager =
-      DB(databaseName: ':memory:', version: 1, tables: [usersTable]);
+  final dbManager = DB(
+    databaseName: ':memory:',
+    version: 1,
+    tables: [usersTable],
+    singleInstance: false,
+  );
   final userService = SqflowCore<User>(dbManager: dbManager, table: usersTable);
 
   // Seed initial data

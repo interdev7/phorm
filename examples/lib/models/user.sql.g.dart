@@ -27,7 +27,14 @@ CREATE TABLE users (
 );
 
 CREATE UNIQUE INDEX users_email_idx ON users(email);
-CREATE INDEX users_firstName_lastName_idx ON users(firstName, lastName);
+CREATE INDEX users_first_name_last_name_idx ON users(first_name, last_name);
+
+CREATE TRIGGER update_users_timestamp
+AFTER UPDATE ON users
+FOR EACH ROW
+BEGIN
+    UPDATE users SET updated_at = datetime('now') WHERE id = OLD.id;
+END;
 """;
 
 class _$SQFlowUserTable extends Table<User> {
@@ -36,6 +43,8 @@ class _$SQFlowUserTable extends Table<User> {
     required super.name,
     required super.fromJson,
     super.relationships = const [],
+    super.columns = const [],
+    super.timestamps = true,
   }) : super(type: User, paranoid: Table.detectSoftDelete(schema));
 }
 
@@ -43,8 +52,27 @@ class _$SQFlowUserTable extends Table<User> {
 final usersTable = _$SQFlowUserTable(
   schema: _$SQFlowUserSchema,
   name: 'users',
-  fromJson: User.fromJson,
+  fromJson: _$SQFlowUserFromJson,
   relationships: const [HasMany(model: 'posts', foreignKey: 'user_id')],
+  columns: const [
+    'id',
+    'first_name',
+    'last_name',
+    'email',
+    'phone',
+    'birth_date',
+    'age',
+    'gender',
+    'city',
+    'country',
+    'address',
+    'is_active',
+    'is_verified',
+    'created_at',
+    'updated_at',
+    'deleted_at'
+  ],
+  timestamps: true,
 );
 
 mixin _$SQFlowUserMixin {
@@ -151,6 +179,32 @@ User _$SQFlowUserFromJson(Map<String, dynamic> json) {
         ? DateTime.parse(json['deleted_at'] as String)
         : null;
   return instance;
+}
+
+class UserTable {
+  static const SqflowColumn<String> id = SqflowColumn<String>('id');
+  static const SqflowColumn<String> firstName =
+      SqflowColumn<String>('first_name');
+  static const SqflowColumn<String> lastName =
+      SqflowColumn<String>('last_name');
+  static const SqflowColumn<String> email = SqflowColumn<String>('email');
+  static const SqflowColumn<String> phone = SqflowColumn<String>('phone');
+  static const SqflowColumn<String> birthDate =
+      SqflowColumn<String>('birth_date');
+  static const SqflowColumn<int> age = SqflowColumn<int>('age');
+  static const SqflowColumn<String> gender = SqflowColumn<String>('gender');
+  static const SqflowColumn<String> city = SqflowColumn<String>('city');
+  static const SqflowColumn<String> country = SqflowColumn<String>('country');
+  static const SqflowColumn<String> address = SqflowColumn<String>('address');
+  static const SqflowColumn<bool> isActive = SqflowColumn<bool>('is_active');
+  static const SqflowColumn<bool> isVerified =
+      SqflowColumn<bool>('is_verified');
+  static const SqflowColumn<DateTime> createdAt =
+      SqflowColumn<DateTime>('created_at');
+  static const SqflowColumn<DateTime> updatedAt =
+      SqflowColumn<DateTime>('updated_at');
+  static const SqflowColumn<DateTime> deletedAt =
+      SqflowColumn<DateTime>('deleted_at');
 }
 
 dynamic _$SQFlowToJsonValue(dynamic value) {

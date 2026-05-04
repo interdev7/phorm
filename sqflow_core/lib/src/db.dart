@@ -27,6 +27,7 @@
 /// ```
 import 'dart:convert';
 
+import 'dart:async';
 import 'package:path/path.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:sqflow_platform_interface/sqflow_platform_interface.dart';
@@ -84,6 +85,31 @@ class DB {
   /// Threshold for logging slow queries
   final Duration slowQueryThreshold;
 
+  /// Whether to use a single instance for the same database path.
+  /// Set to false for in-memory databases in tests to ensure isolation.
+  final bool singleInstance;
+
+  /// Row count threshold at which data mapping is moved to an isolate.
+  /// Default is 50 rows.
+  final int isolateThreshold;
+
+  /// Internal stream controller for table changes
+  final _changeController = StreamController<String>.broadcast();
+
+  /// Stream of table names that have been modified
+  Stream<String> get changeStream => _changeController.stream;
+
+  /// Notifies the database that a table has been modified.
+  /// If inside a transaction, notifications are buffered and emitted after commit.
+  void notifyTableChange(String tableName) {
+    final buffered = Zone.current[#sqflow_notifications] as Set<String>?;
+    if (buffered != null) {
+      buffered.add(tableName);
+    } else {
+      _changeController.add(tableName);
+    }
+  }
+
   /// Creates a new database instance
   ///
   /// **Parameters:**
@@ -111,6 +137,8 @@ class DB {
     this.logger = const SqflowConsoleLogger(),
     this.logQueries = false,
     this.slowQueryThreshold = const Duration(milliseconds: 200),
+    this.singleInstance = true,
+    this.isolateThreshold = 50,
   }) {
     _validateMigrations();
   }
@@ -136,6 +164,8 @@ class DB {
     SqflowLogger? logger = const SqflowConsoleLogger(),
     bool logQueries = false,
     Duration slowQueryThreshold = const Duration(milliseconds: 200),
+    bool singleInstance = true,
+    int isolateThreshold = 50,
   }) {
     // Determine maximum version from all migrations
     final maxVersion = _calculateMaxVersion(tables);
@@ -147,6 +177,8 @@ class DB {
       logger: logger,
       logQueries: logQueries,
       slowQueryThreshold: slowQueryThreshold,
+      singleInstance: singleInstance,
+      isolateThreshold: isolateThreshold,
     );
   }
 
@@ -185,6 +217,7 @@ class DB {
       onUpgrade: _onUpgrade,
       onDowngrade: _onDowngrade,
       onConfigure: _onConfigure,
+      singleInstance: singleInstance,
     );
   }
 
@@ -569,6 +602,7 @@ class DB {
 
   /// Closes the database connection
   Future<void> close() async {
+    await _changeController.close();
     if (_database != null) {
       await _database!.close();
       _database = null;
@@ -611,9 +645,26 @@ class DB {
   Future<R> transaction<R>(
       Future<R> Function(DatabaseExecutor txn) action) async {
     final dbInstance = await database;
-    return dbInstance.transaction((txn) async {
-      return await action(txn);
-    });
+    final bufferedNotifications = <String>{};
+
+    return await runZoned(
+      () async {
+        try {
+          final result = await dbInstance.transaction((txn) async {
+            return await action(txn);
+          });
+          // If we reached here, transaction committed successfully
+          for (final table in bufferedNotifications) {
+            _changeController.add(table);
+          }
+          return result;
+        } catch (e) {
+          // If transaction failed/rolled back, notifications are discarded
+          rethrow;
+        }
+      },
+      zoneValues: {#sqflow_notifications: bufferedNotifications},
+    );
   }
 }
 
