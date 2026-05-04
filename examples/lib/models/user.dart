@@ -8,7 +8,7 @@ part 'user.sql.g.dart';
   paranoid: true,
   indexes: [
     Index(columns: ['email'], unique: true),
-    Index(columns: ['firstName', 'lastName']),
+    Index(columns: ['first_name', 'last_name']),
   ],
   relationships: [
     HasMany(
@@ -38,7 +38,8 @@ class User extends Model with _$SQFlowUserMixin {
 
   final List<Post> posts;
 
-  factory User.fromJson(Map<String, dynamic> json) => _$SQFlowUserFromJson(json);
+  factory User.fromJson(Map<String, dynamic> json) =>
+      _$SQFlowUserFromJson(json);
   @ID(type: TEXT(), autoIncrement: false, unique: true)
   @override
   final String id;
@@ -81,7 +82,6 @@ class User extends Model with _$SQFlowUserMixin {
 
   @Column(type: INTEGER(), defaultValue: false)
   final bool isVerified;
-
 
   @override
   Map<String, dynamic> toJson() => _$SQFlowUserToJson();

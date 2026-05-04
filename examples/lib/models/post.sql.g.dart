@@ -8,15 +8,22 @@ part of 'post.dart';
 
 const _$SQFlowPostSchema = """
 CREATE TABLE posts (
-  id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL UNIQUE,
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
   title TEXT NOT NULL,
   content TEXT NOT NULL,
   user_id TEXT NOT NULL,
   created_at TEXT NOT NULL,
-  updated_at TEXT NOT NULL
+  updated_at TEXT NOT NULL,
+  FOREIGN KEY(user_id) REFERENCES users(id)
 );
 
 
+CREATE TRIGGER update_posts_timestamp
+AFTER UPDATE ON posts
+FOR EACH ROW
+BEGIN
+    UPDATE posts SET updated_at = datetime('now') WHERE id = OLD.id;
+END;
 """;
 
 class _$SQFlowPostTable extends Table<Post> {
@@ -25,6 +32,8 @@ class _$SQFlowPostTable extends Table<Post> {
     required super.name,
     required super.fromJson,
     super.relationships = const [],
+    super.columns = const [],
+    super.timestamps = true,
   }) : super(type: Post, paranoid: Table.detectSoftDelete(schema));
 }
 
@@ -32,8 +41,17 @@ class _$SQFlowPostTable extends Table<Post> {
 final postsTable = _$SQFlowPostTable(
   schema: _$SQFlowPostSchema,
   name: 'posts',
-  fromJson: Post.fromJson,
+  fromJson: _$SQFlowPostFromJson,
   relationships: const [Join(model: 'users', foreignKey: 'user_id')],
+  columns: const [
+    'id',
+    'title',
+    'content',
+    'user_id',
+    'created_at',
+    'updated_at'
+  ],
+  timestamps: true,
 );
 
 mixin _$SQFlowPostMixin {
@@ -91,6 +109,17 @@ Post _$SQFlowPostFromJson(Map<String, dynamic> json) {
         ? DateTime.parse(json['updated_at'] as String)
         : null;
   return instance;
+}
+
+class PostTable {
+  static const SqflowColumn<int> id = SqflowColumn<int>('id');
+  static const SqflowColumn<String> title = SqflowColumn<String>('title');
+  static const SqflowColumn<String> content = SqflowColumn<String>('content');
+  static const SqflowColumn<String> userId = SqflowColumn<String>('user_id');
+  static const SqflowColumn<DateTime> createdAt =
+      SqflowColumn<DateTime>('created_at');
+  static const SqflowColumn<DateTime> updatedAt =
+      SqflowColumn<DateTime>('updated_at');
 }
 
 dynamic _$SQFlowToJsonValue(dynamic value) {

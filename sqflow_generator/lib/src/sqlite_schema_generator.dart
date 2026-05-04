@@ -378,6 +378,8 @@ END;''';
           }).join(', ');
           checkExpr = '$columnName IN ($values)';
         } else if (checker.isString) {
+          // Example: Check('column > 10') or Check('column IN (1, 2, 3)')
+          // or Check('column LIKE %value%')
           checkExpr = checker.stringValue;
         }
       }
