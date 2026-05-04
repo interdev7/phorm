@@ -32,6 +32,7 @@ class _$SQFlowExplicitNamingTable extends Table<ExplicitNaming> {
     required super.fromJson,
     super.relationships = const [],
     super.columns = const [],
+    super.timestamps = true,
   }) : super(type: ExplicitNaming, paranoid: Table.detectSoftDelete(schema));
 }
 
@@ -49,6 +50,7 @@ final explicit_tableTable = _$SQFlowExplicitNamingTable(
     'created_at',
     'updated_at'
   ],
+  timestamps: true,
 );
 
 mixin _$SQFlowExplicitNamingMixin {
@@ -103,6 +105,18 @@ ExplicitNaming _$SQFlowExplicitNamingFromJson(Map<String, dynamic> json) {
         ? DateTime.parse(json['updated_at'] as String)
         : null;
   return instance;
+}
+
+class ExplicitNamingTable {
+  static const SqflowColumn<String> id = SqflowColumn<String>('custom_id');
+  static const SqflowColumn<String> name = SqflowColumn<String>('custom_name');
+  static const SqflowColumn<int> age = SqflowColumn<int>('custom_age');
+  static const SqflowColumn<bool> isVerified =
+      SqflowColumn<bool>('is_verified');
+  static const SqflowColumn<DateTime> createdAt =
+      SqflowColumn<DateTime>('created_at');
+  static const SqflowColumn<DateTime> updatedAt =
+      SqflowColumn<DateTime>('updated_at');
 }
 
 dynamic _$SQFlowToJsonValue(dynamic value) {

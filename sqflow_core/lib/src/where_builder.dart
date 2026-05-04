@@ -67,9 +67,10 @@ class WhereBuilder {
   /// Validates column name format
   ///
   /// **Throws:** ArgumentError if column name is invalid
-  void _validate(String column) {
-    if (!_columnRegExp.hasMatch(column)) {
-      throw ArgumentError('Invalid column name: "$column". '
+  void _validate(Object column) {
+    final colStr = column.toString();
+    if (!_columnRegExp.hasMatch(colStr)) {
+      throw ArgumentError('Invalid column name: "$colStr". '
           'Must contain only letters, numbers, underscores, '
           'and dots, and parts must start with a letter or underscore.');
     }
@@ -103,10 +104,10 @@ class WhereBuilder {
   }
 
   /// Adds a simple condition with arguments
-  void _addCondition(String condition, List<Object?> args, String? column) {
-    _conditions.add(_Condition(condition, args, column));
+  void _addCondition(String condition, List<Object?> args, Object? column) {
+    _conditions.add(_Condition(condition, args, column?.toString()));
     if (column != null) {
-      _usedColumns.add(column);
+      _usedColumns.add(column.toString());
     }
   }
 
@@ -128,7 +129,7 @@ class WhereBuilder {
   /// // Produces: status = ?
   /// // Args: ['active']
   /// ```
-  WhereBuilder eq(String column, Object? value) {
+  WhereBuilder eq(Object column, Object? value) {
     _validate(column);
     if (value == null) return this;
     _addCondition('$column = ?', [_prepareValue(value)], column);
@@ -143,7 +144,7 @@ class WhereBuilder {
   /// // Produces: status != ?
   /// // Args: ['inactive']
   /// ```
-  WhereBuilder ne(String column, Object? value) {
+  WhereBuilder ne(Object column, Object? value) {
     _validate(column);
     if (value == null) return this;
     _addCondition('$column != ?', [_prepareValue(value)], column);
@@ -158,7 +159,7 @@ class WhereBuilder {
   /// // Produces: age > ?
   /// // Args: [18]
   /// ```
-  WhereBuilder gt(String column, Object value) {
+  WhereBuilder gt(Object column, Object value) {
     _validate(column);
     _addCondition('$column > ?', [_prepareValue(value)], column);
     return this;
@@ -172,7 +173,7 @@ class WhereBuilder {
   /// // Produces: score >= ?
   /// // Args: [60]
   /// ```
-  WhereBuilder gte(String column, Object value) {
+  WhereBuilder gte(Object column, Object value) {
     _validate(column);
     _addCondition('$column >= ?', [_prepareValue(value)], column);
     return this;
@@ -186,7 +187,7 @@ class WhereBuilder {
   /// // Produces: age < ?
   /// // Args: [65]
   /// ```
-  WhereBuilder lt(String column, Object value) {
+  WhereBuilder lt(Object column, Object value) {
     _validate(column);
     _addCondition('$column < ?', [_prepareValue(value)], column);
     return this;
@@ -200,7 +201,7 @@ class WhereBuilder {
   /// // Produces: quantity <= ?
   /// // Args: [100]
   /// ```
-  WhereBuilder lte(String column, Object value) {
+  WhereBuilder lte(Object column, Object value) {
     _validate(column);
     _addCondition('$column <= ?', [_prepareValue(value)], column);
     return this;
@@ -218,7 +219,7 @@ class WhereBuilder {
   /// // Produces: name LIKE ?
   /// // Args: ['%John%']
   /// ```
-  WhereBuilder like(String column, String pattern) {
+  WhereBuilder like(Object column, String pattern) {
     _validate(column);
     _addCondition('$column LIKE ?', [pattern], column);
     return this;
@@ -232,7 +233,7 @@ class WhereBuilder {
   /// // Produces: email NOT LIKE ?
   /// // Args: ['%spam.com']
   /// ```
-  WhereBuilder notLike(String column, String pattern) {
+  WhereBuilder notLike(Object column, String pattern) {
     _validate(column);
     _addCondition('$column NOT LIKE ?', [pattern], column);
     return this;
@@ -246,7 +247,7 @@ class WhereBuilder {
   /// // Produces: LOWER(name) LIKE LOWER(?)
   /// // Args: ['%john%']
   /// ```
-  WhereBuilder ilike(String column, String pattern) {
+  WhereBuilder ilike(Object column, String pattern) {
     _validate(column);
     _addCondition('LOWER($column) LIKE LOWER(?)', [pattern], column);
     return this;
@@ -260,7 +261,7 @@ class WhereBuilder {
   /// // Produces: LOWER(name) NOT LIKE LOWER(?)
   /// // Args: ['%test%']
   /// ```
-  WhereBuilder notIlike(String column, String pattern) {
+  WhereBuilder notIlike(Object column, String pattern) {
     _validate(column);
     _addCondition('LOWER($column) NOT LIKE LOWER(?)', [pattern], column);
     return this;
@@ -274,7 +275,7 @@ class WhereBuilder {
   /// // Produces: phone REGEXP ?
   /// // Args: ['^[0-9]{10}\$']
   /// ```
-  WhereBuilder regexp(String column, String pattern) {
+  WhereBuilder regexp(Object column, String pattern) {
     _validate(column);
     _addCondition('$column REGEXP ?', [pattern], column);
     return this;
@@ -285,42 +286,42 @@ class WhereBuilder {
   // =======================================================
 
   /// Adds condition on the length of a column: `LENGTH(column) = ?`
-  WhereBuilder lengthEq(String column, int length) {
+  WhereBuilder lengthEq(Object column, int length) {
     _validate(column);
     _addCondition('LENGTH($column) = ?', [_prepareValue(length)], column);
     return this;
   }
 
   /// Adds condition on the length of a column: `LENGTH(column) != ?`
-  WhereBuilder lengthNe(String column, int length) {
+  WhereBuilder lengthNe(Object column, int length) {
     _validate(column);
     _addCondition('LENGTH($column) != ?', [_prepareValue(length)], column);
     return this;
   }
 
   /// Adds greater-than condition on the length: `LENGTH(column) > ?`
-  WhereBuilder lengthGt(String column, int length) {
+  WhereBuilder lengthGt(Object column, int length) {
     _validate(column);
     _addCondition('LENGTH($column) > ?', [_prepareValue(length)], column);
     return this;
   }
 
   /// Adds greater-than-or-equal condition on the length: `LENGTH(column) >= ?`
-  WhereBuilder lengthGte(String column, int length) {
+  WhereBuilder lengthGte(Object column, int length) {
     _validate(column);
     _addCondition('LENGTH($column) >= ?', [_prepareValue(length)], column);
     return this;
   }
 
   /// Adds less-than condition on the length: `LENGTH(column) < ?`
-  WhereBuilder lengthLt(String column, int length) {
+  WhereBuilder lengthLt(Object column, int length) {
     _validate(column);
     _addCondition('LENGTH($column) < ?', [_prepareValue(length)], column);
     return this;
   }
 
   /// Adds less-than-or-equal condition on the length: `LENGTH(column) <= ?`
-  WhereBuilder lengthLte(String column, int length) {
+  WhereBuilder lengthLte(Object column, int length) {
     _validate(column);
     _addCondition('LENGTH($column) <= ?', [_prepareValue(length)], column);
     return this;
@@ -330,7 +331,7 @@ class WhereBuilder {
   ///
   /// `start` and `len` are passed as parameters to preserve ordering
   /// and avoid embedding literals directly into SQL.
-  WhereBuilder substrEq(String column, int start, int len, String value) {
+  WhereBuilder substrEq(Object column, int start, int len, String value) {
     _validate(column);
     _addCondition(
         'SUBSTR($column, ?, ?) = ?',
@@ -340,7 +341,7 @@ class WhereBuilder {
   }
 
   /// Adds SUBSTR LIKE condition: `SUBSTR(column, start, len) LIKE ?`
-  WhereBuilder substrLike(String column, int start, int len, String pattern) {
+  WhereBuilder substrLike(Object column, int start, int len, String pattern) {
     _validate(column);
     _addCondition('SUBSTR($column, ?, ?) LIKE ?',
         [_prepareValue(start), _prepareValue(len), pattern], column);
@@ -348,7 +349,7 @@ class WhereBuilder {
   }
 
   /// Adds case-insensitive SUBSTR LIKE: `LOWER(SUBSTR(column, start, len)) LIKE LOWER(?)`
-  WhereBuilder substrIlike(String column, int start, int len, String pattern) {
+  WhereBuilder substrIlike(Object column, int start, int len, String pattern) {
     _validate(column);
     _addCondition('LOWER(SUBSTR($column, ?, ?)) LIKE LOWER(?)',
         [_prepareValue(start), _prepareValue(len), pattern], column);
@@ -367,7 +368,7 @@ class WhereBuilder {
   /// // Produces: age BETWEEN ? AND ?
   /// // Args: [18, 65]
   /// ```
-  WhereBuilder between(String column, Object from, Object to) {
+  WhereBuilder between(Object column, Object from, Object to) {
     _validate(column);
     _addCondition(
       '$column BETWEEN ? AND ?',
@@ -385,7 +386,7 @@ class WhereBuilder {
   /// // Produces: status IN (?, ?)
   /// // Args: ['active', 'pending']
   /// ```
-  WhereBuilder inList(String column, List<Object?> values) {
+  WhereBuilder inList(Object column, List<Object?> values) {
     _validate(column);
     if (values.isEmpty) {
       _addCondition('1 = 0', [], column); // Always false
@@ -405,7 +406,7 @@ class WhereBuilder {
   /// // Produces: role NOT IN (?, ?)
   /// // Args: ['admin', 'superuser']
   /// ```
-  WhereBuilder notInList(String column, List<Object?> values) {
+  WhereBuilder notInList(Object column, List<Object?> values) {
     _validate(column);
     if (values.isEmpty) return this; // No restriction
     final preparedValues = values.map(_prepareValue).toList();
@@ -425,7 +426,7 @@ class WhereBuilder {
   /// where.isNull('deleted_at');
   /// // Produces: deleted_at IS NULL
   /// ```
-  WhereBuilder isNull(String column) {
+  WhereBuilder isNull(Object column) {
     _validate(column);
     _addCondition('$column IS NULL', [], column);
     return this;
@@ -438,7 +439,7 @@ class WhereBuilder {
   /// where.isNotNull('email');
   /// // Produces: email IS NOT NULL
   /// ```
-  WhereBuilder isNotNull(String column) {
+  WhereBuilder isNotNull(Object column) {
     _validate(column);
     _addCondition('$column IS NOT NULL', [], column);
     return this;
@@ -455,7 +456,7 @@ class WhereBuilder {
   /// where.isTrue('is_active');
   /// // Produces: is_active = 1
   /// ```
-  WhereBuilder isTrue(String column) {
+  WhereBuilder isTrue(Object column) {
     _validate(column);
     _addCondition('$column = 1', [], column);
     return this;
@@ -468,7 +469,7 @@ class WhereBuilder {
   /// where.isFalse('is_deleted');
   /// // Produces: is_deleted = 0
   /// ```
-  WhereBuilder isFalse(String column) {
+  WhereBuilder isFalse(Object column) {
     _validate(column);
     _addCondition('$column = 0', [], column);
     return this;
@@ -571,7 +572,7 @@ class WhereBuilder {
   /// // Produces: DATE(created_at) = ?
   /// // Args: ['2024-01-15']
   /// ```
-  WhereBuilder dateOnlyEq(String column, DateTime date) {
+  WhereBuilder dateOnlyEq(Object column, DateTime date) {
     _validate(column);
     final dateStr = '${date.year}-${date.month.toString().padLeft(2, '0')}-'
         '${date.day.toString().padLeft(2, '0')}';
@@ -587,7 +588,7 @@ class WhereBuilder {
   /// // Produces: DATE(birth_date) > ?
   /// // Args: ['2000-01-01']
   /// ```
-  WhereBuilder dateOnlyGt(String column, DateTime date) {
+  WhereBuilder dateOnlyGt(Object column, DateTime date) {
     _validate(column);
     final dateStr = '${date.year}-${date.month.toString().padLeft(2, '0')}-'
         '${date.day.toString().padLeft(2, '0')}';
@@ -603,7 +604,7 @@ class WhereBuilder {
   /// // Produces: DATE(expiry_date) < ?
   /// // Args: ['2025-12-31']
   /// ```
-  WhereBuilder dateOnlyLt(String column, DateTime date) {
+  WhereBuilder dateOnlyLt(Object column, DateTime date) {
     _validate(column);
     final dateStr = '${date.year}-${date.month.toString().padLeft(2, '0')}-'
         '${date.day.toString().padLeft(2, '0')}';
@@ -622,7 +623,7 @@ class WhereBuilder {
   /// // Produces: DATE(created_at) BETWEEN ? AND ?
   /// // Args: ['2024-01-01', '2024-12-31']
   /// ```
-  WhereBuilder dateOnlyBetween(String column, DateTime from, DateTime to) {
+  WhereBuilder dateOnlyBetween(Object column, DateTime from, DateTime to) {
     _validate(column);
     final fromStr = '${from.year}-${from.month.toString().padLeft(2, '0')}-'
         '${from.day.toString().padLeft(2, '0')}';
@@ -640,7 +641,7 @@ class WhereBuilder {
   /// // Produces: TIME(created_at) = ?
   /// // Args: ['14:30:00']
   /// ```
-  WhereBuilder timeOnlyEq(String column, DateTime time) {
+  WhereBuilder timeOnlyEq(Object column, DateTime time) {
     _validate(column);
     final timeStr = '${time.hour.toString().padLeft(2, '0')}:'
         '${time.minute.toString().padLeft(2, '0')}:'

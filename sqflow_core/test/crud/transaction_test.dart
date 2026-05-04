@@ -22,20 +22,22 @@ void main() {
 
       try {
         await userService.transaction((txn) async {
-          // Insert a new user
-          await txn.insert('users', {
-            'id': 'txn_test',
-            'first_name': 'Transaction',
-            'last_name': 'Test',
-            'email': 'txn@test.com',
-            'phone': '+359888222333',
-            'gender': 'M',
-            'city': 'City',
-            'country': 'Country',
-            'is_active': 1,
-            'is_verified': 0,
-            'created_at': DateTime.now().toIso8601String(),
-          });
+          // Insert a new user using ORM method with executor
+          await userService.insertAsync(
+            User(
+              id: 'txn_test',
+              firstName: 'Transaction',
+              lastName: 'Test',
+              email: 'txn@test.com',
+              phone: '+359888222333',
+              gender: 'M',
+              city: 'City',
+              country: 'Country',
+              isActive: true,
+              isVerified: false,
+            ),
+            executor: txn,
+          );
 
           // Simulate an error
           throw Exception('Test rollback');
@@ -53,34 +55,37 @@ void main() {
       expect(user, isNull);
     });
 
-    test('Successful transaction', () async {
+    test('Successful transaction with ORM methods', () async {
       final initialCount = (await userService.readAllWithCount()).count;
 
       await userService.transaction((txn) async {
-        // Insert a user
-        await txn.insert('users', {
-          'id': 'txn_success',
-          'first_name': 'Success',
-          'last_name': 'Transaction',
-          'email': 'success.txn@test.com',
-          'phone': '+359888333444',
-          'gender': 'F',
-          'city': 'City',
-          'country': 'Country',
-          'is_active': 1,
-          'is_verified': 1,
-          'created_at': DateTime.now().toIso8601String(),
-          'updated_at': DateTime.now().toIso8601String(),
-        });
-
-        // Update an existing user
-        final where = WhereBuilder().eq('id', 'u001');
-        await txn.update(
-          'users',
-          {'first_name': 'UpdatedInTxn'},
-          where: where.build(),
-          whereArgs: where.args,
+        // Insert a user using ORM method
+        await userService.insertAsync(
+          User(
+            id: 'txn_success',
+            firstName: 'Success',
+            lastName: 'Transaction',
+            email: 'success.txn@test.com',
+            phone: '+359888333444',
+            gender: 'F',
+            city: 'City',
+            country: 'Country',
+            isActive: true,
+            isVerified: true,
+          ),
+          executor: txn,
         );
+
+        // Update an existing user using ORM method
+        final userToUpdate = await userService.readAsync('u001', executor: txn);
+        if (userToUpdate != null) {
+          final updatedData = userToUpdate.toJson();
+          updatedData['first_name'] = 'UpdatedInTxn';
+          await userService.updateAsync(
+            User.fromJson(updatedData),
+            executor: txn,
+          );
+        }
       });
 
       // Verify both changes were applied

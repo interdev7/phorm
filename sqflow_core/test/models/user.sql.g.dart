@@ -15,18 +15,26 @@ CREATE TABLE users (
   phone TEXT NOT NULL,
   birth_date TEXT,
   age INTEGER,
-  gender TEXT NOT NULL,
-  CONSTRAINT gender_check CHECK(gender IN ('M', 'F', 'Other')),
+  gender TEXT NOT NULL CONSTRAINT gender_check CHECK(gender IN ('M', 'F', 'Other')),
   city TEXT NOT NULL,
   country TEXT NOT NULL,
   address TEXT,
   is_active INTEGER NOT NULL DEFAULT 1,
   is_verified INTEGER NOT NULL DEFAULT 0,
+  created_at TEXT NOT NULL,
+  updated_at TEXT NOT NULL,
   deleted_at TEXT
 );
 
 CREATE UNIQUE INDEX users_email_idx ON users(email);
 CREATE INDEX users_first_name_last_name_idx ON users(first_name, last_name);
+
+CREATE TRIGGER update_users_timestamp
+AFTER UPDATE ON users
+FOR EACH ROW
+BEGIN
+    UPDATE users SET updated_at = datetime('now') WHERE id = OLD.id;
+END;
 """;
 
 class _$SQFlowUserTable extends Table<User> {
@@ -36,6 +44,7 @@ class _$SQFlowUserTable extends Table<User> {
     required super.fromJson,
     super.relationships = const [],
     super.columns = const [],
+    super.timestamps = true,
   }) : super(type: User, paranoid: Table.detectSoftDelete(schema));
 }
 
@@ -63,11 +72,16 @@ final usersTable = _$SQFlowUserTable(
     'address',
     'is_active',
     'is_verified',
+    'created_at',
+    'updated_at',
     'deleted_at'
   ],
+  timestamps: true,
 );
 
 mixin _$SQFlowUserMixin {
+  DateTime? createdAt;
+  DateTime? updatedAt;
   DateTime? deletedAt;
   final List<Order> _$orders = [];
   List<Order> get orders => _$orders;
@@ -93,6 +107,8 @@ extension SQFlowUserSqlExt on User {
       'address': _$SQFlowToJsonValue(address),
       'is_active': _$SQFlowToJsonValue(isActive),
       'is_verified': _$SQFlowToJsonValue(isVerified),
+      'created_at': _$SQFlowToJsonValue(createdAt),
+      'updated_at': _$SQFlowToJsonValue(updatedAt),
       'deleted_at': _$SQFlowToJsonValue(deletedAt),
     };
   }
@@ -111,6 +127,8 @@ extension SQFlowUserSqlExt on User {
     String? address,
     bool? isActive,
     bool? isVerified,
+    DateTime? createdAt,
+    DateTime? updatedAt,
     DateTime? deletedAt,
   }) {
     return User(
@@ -127,7 +145,10 @@ extension SQFlowUserSqlExt on User {
       address: address ?? this.address,
       isActive: isActive ?? this.isActive,
       isVerified: isVerified ?? this.isVerified,
-    )..deletedAt = deletedAt ?? this.deletedAt;
+    )
+      ..createdAt = createdAt ?? this.createdAt
+      ..updatedAt = updatedAt ?? this.updatedAt
+      ..deletedAt = deletedAt ?? this.deletedAt;
   }
 }
 
@@ -151,6 +172,12 @@ User _$SQFlowUserFromJson(Map<String, dynamic> json) {
         ? json['is_verified'] as bool
         : (json['is_verified'] as int?) == 1,
   )
+    ..createdAt = json['created_at'] != null
+        ? DateTime.parse(json['created_at'] as String)
+        : null
+    ..updatedAt = json['updated_at'] != null
+        ? DateTime.parse(json['updated_at'] as String)
+        : null
     ..deletedAt = json['deleted_at'] != null
         ? DateTime.parse(json['deleted_at'] as String)
         : null
@@ -168,6 +195,32 @@ User _$SQFlowUserFromJson(Map<String, dynamic> json) {
         ? Profile.fromJson(json['profiles'] as Map<String, dynamic>)
         : null;
   return instance;
+}
+
+class UserTable {
+  static const SqflowColumn<String> id = SqflowColumn<String>('id');
+  static const SqflowColumn<String> firstName =
+      SqflowColumn<String>('first_name');
+  static const SqflowColumn<String> lastName =
+      SqflowColumn<String>('last_name');
+  static const SqflowColumn<String> email = SqflowColumn<String>('email');
+  static const SqflowColumn<String> phone = SqflowColumn<String>('phone');
+  static const SqflowColumn<String> birthDate =
+      SqflowColumn<String>('birth_date');
+  static const SqflowColumn<int> age = SqflowColumn<int>('age');
+  static const SqflowColumn<String> gender = SqflowColumn<String>('gender');
+  static const SqflowColumn<String> city = SqflowColumn<String>('city');
+  static const SqflowColumn<String> country = SqflowColumn<String>('country');
+  static const SqflowColumn<String> address = SqflowColumn<String>('address');
+  static const SqflowColumn<bool> isActive = SqflowColumn<bool>('is_active');
+  static const SqflowColumn<bool> isVerified =
+      SqflowColumn<bool>('is_verified');
+  static const SqflowColumn<DateTime> createdAt =
+      SqflowColumn<DateTime>('created_at');
+  static const SqflowColumn<DateTime> updatedAt =
+      SqflowColumn<DateTime>('updated_at');
+  static const SqflowColumn<DateTime> deletedAt =
+      SqflowColumn<DateTime>('deleted_at');
 }
 
 const _$SQFlowPostSchema = """
@@ -198,6 +251,7 @@ class _$SQFlowPostTable extends Table<Post> {
     required super.fromJson,
     super.relationships = const [],
     super.columns = const [],
+    super.timestamps = true,
   }) : super(type: Post, paranoid: Table.detectSoftDelete(schema));
 }
 
@@ -215,6 +269,7 @@ final postsTable = _$SQFlowPostTable(
     'updated_at',
     'deleted_at'
   ],
+  timestamps: true,
 );
 
 mixin _$SQFlowPostMixin {
@@ -277,6 +332,18 @@ Post _$SQFlowPostFromJson(Map<String, dynamic> json) {
   return instance;
 }
 
+class PostTable {
+  static const SqflowColumn<int> id = SqflowColumn<int>('id');
+  static const SqflowColumn<String> title = SqflowColumn<String>('title');
+  static const SqflowColumn<String> userId = SqflowColumn<String>('user_id');
+  static const SqflowColumn<DateTime> createdAt =
+      SqflowColumn<DateTime>('created_at');
+  static const SqflowColumn<DateTime> updatedAt =
+      SqflowColumn<DateTime>('updated_at');
+  static const SqflowColumn<DateTime> deletedAt =
+      SqflowColumn<DateTime>('deleted_at');
+}
+
 const _$SQFlowProfileSchema = """
 CREATE TABLE profiles (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -304,6 +371,7 @@ class _$SQFlowProfileTable extends Table<Profile> {
     required super.fromJson,
     super.relationships = const [],
     super.columns = const [],
+    super.timestamps = true,
   }) : super(type: Profile, paranoid: Table.detectSoftDelete(schema));
 }
 
@@ -314,6 +382,7 @@ final profilesTable = _$SQFlowProfileTable(
   fromJson: Profile.fromJson,
   relationships: const [BelongsTo(model: 'users', foreignKey: 'user_id')],
   columns: const ['id', 'bio', 'user_id', 'created_at', 'updated_at'],
+  timestamps: true,
 );
 
 mixin _$SQFlowProfileMixin {
@@ -369,6 +438,16 @@ Profile _$SQFlowProfileFromJson(Map<String, dynamic> json) {
   return instance;
 }
 
+class ProfileTable {
+  static const SqflowColumn<int> id = SqflowColumn<int>('id');
+  static const SqflowColumn<String> bio = SqflowColumn<String>('bio');
+  static const SqflowColumn<String> userId = SqflowColumn<String>('user_id');
+  static const SqflowColumn<DateTime> createdAt =
+      SqflowColumn<DateTime>('created_at');
+  static const SqflowColumn<DateTime> updatedAt =
+      SqflowColumn<DateTime>('updated_at');
+}
+
 const _$SQFlowOrderSchema = """
 CREATE TABLE orders (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -397,6 +476,7 @@ class _$SQFlowOrderTable extends Table<Order> {
     required super.fromJson,
     super.relationships = const [],
     super.columns = const [],
+    super.timestamps = true,
   }) : super(type: Order, paranoid: Table.detectSoftDelete(schema));
 }
 
@@ -414,6 +494,7 @@ final ordersTable = _$SQFlowOrderTable(
     'updated_at',
     'deleted_at'
   ],
+  timestamps: true,
 );
 
 mixin _$SQFlowOrderMixin {
@@ -474,6 +555,18 @@ Order _$SQFlowOrderFromJson(Map<String, dynamic> json) {
         ? User.fromJson(json['users'] as Map<String, dynamic>)
         : null;
   return instance;
+}
+
+class OrderTable {
+  static const SqflowColumn<int> id = SqflowColumn<int>('id');
+  static const SqflowColumn<int> total = SqflowColumn<int>('total');
+  static const SqflowColumn<String> userId = SqflowColumn<String>('user_id');
+  static const SqflowColumn<DateTime> createdAt =
+      SqflowColumn<DateTime>('created_at');
+  static const SqflowColumn<DateTime> updatedAt =
+      SqflowColumn<DateTime>('updated_at');
+  static const SqflowColumn<DateTime> deletedAt =
+      SqflowColumn<DateTime>('deleted_at');
 }
 
 dynamic _$SQFlowToJsonValue(dynamic value) {
