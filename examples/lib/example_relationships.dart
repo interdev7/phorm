@@ -38,7 +38,9 @@ void main() async {
 
   // 6. Bulk fetching with relationships
   print('\n--- Fetching all users with posts ---');
-  final result = await userService.readAll(include: [Includable.model<Post>()]);
+  final result = await userService.readAllWithCount(
+    include: [Includable.model<Post>()],
+  );
   print('Total users: ${result.count}');
   for (final u in result.data) {
     print('User ${u.id} has ${u.posts.length} posts');

@@ -27,11 +27,10 @@
 /// ```
 import 'dart:convert';
 
+import 'dart:async';
 import 'package:path/path.dart';
 import 'package:sqflite/sqflite.dart';
-import 'package:sqflow_platform_interface/src/table.dart';
-import 'package:sqflow_platform_interface/src/table_migration.dart';
-import 'package:sqflow_platform_interface/src/executor.dart';
+import 'package:sqflow_platform_interface/sqflow_platform_interface.dart';
 
 /// Main database manager that handles connection lifecycle,
 /// version management, and smart migration tracking.
@@ -77,12 +76,49 @@ class DB {
   /// Name of the migrations tracking table
   static const String _migrationsTable = '__sqflow_migrations';
 
+  /// Optional logger for the database
+  final SqflowLogger? logger;
+
+  /// Whether to log all queries
+  final bool logQueries;
+
+  /// Threshold for logging slow queries
+  final Duration slowQueryThreshold;
+
+  /// Whether to use a single instance for the same database path.
+  /// Set to false for in-memory databases in tests to ensure isolation.
+  final bool singleInstance;
+
+  /// Row count threshold at which data mapping is moved to an isolate.
+  /// Default is 50 rows.
+  final int isolateThreshold;
+
+  /// Internal stream controller for table changes
+  final _changeController = StreamController<String>.broadcast();
+
+  /// Stream of table names that have been modified
+  Stream<String> get changeStream => _changeController.stream;
+
+  /// Notifies the database that a table has been modified.
+  /// If inside a transaction, notifications are buffered and emitted after commit.
+  void notifyTableChange(String tableName) {
+    final buffered = Zone.current[#sqflow_notifications] as Set<String>?;
+    if (buffered != null) {
+      buffered.add(tableName);
+    } else {
+      _changeController.add(tableName);
+    }
+  }
+
   /// Creates a new database instance
   ///
   /// **Parameters:**
   /// - `databaseName`: SQLite database file name
   /// - `version`: Current schema version (must be >= all migration versions)
   /// - `tables`: List of table configurations
+  /// - `logger`: Custom logger (defaults to SqflowConsoleLogger)
+  /// - `logQueries`: Whether to log all executed queries
+  /// - `slowQueryThreshold`: Threshold for slow query warning
   ///
   /// **Throws:** `ArgumentError` if any migration has version > `version`
   ///
@@ -95,9 +131,14 @@ class DB {
   /// );
   /// ```
   DB({
-    this.databaseName = 'app_database.db',
     required this.version,
     required this.tables,
+    this.databaseName = 'app_database.db',
+    this.logger = const SqflowConsoleLogger(),
+    this.logQueries = false,
+    this.slowQueryThreshold = const Duration(milliseconds: 200),
+    this.singleInstance = true,
+    this.isolateThreshold = 50,
   }) {
     _validateMigrations();
   }
@@ -120,6 +161,11 @@ class DB {
   factory DB.autoVersion({
     required String databaseName,
     required List<Table> tables,
+    SqflowLogger? logger = const SqflowConsoleLogger(),
+    bool logQueries = false,
+    Duration slowQueryThreshold = const Duration(milliseconds: 200),
+    bool singleInstance = true,
+    int isolateThreshold = 50,
   }) {
     // Determine maximum version from all migrations
     final maxVersion = _calculateMaxVersion(tables);
@@ -128,6 +174,11 @@ class DB {
       databaseName: databaseName,
       version: maxVersion,
       tables: tables,
+      logger: logger,
+      logQueries: logQueries,
+      slowQueryThreshold: slowQueryThreshold,
+      singleInstance: singleInstance,
+      isolateThreshold: isolateThreshold,
     );
   }
 
@@ -157,7 +208,7 @@ class DB {
       path = join(await getDatabasesPath(), databaseName);
     }
 
-    print('🔧 Initializing database: $databaseName (v$version)');
+    logger?.info('Initializing database: $databaseName (v$version)');
 
     return await openDatabase(
       path,
@@ -166,6 +217,7 @@ class DB {
       onUpgrade: _onUpgrade,
       onDowngrade: _onDowngrade,
       onConfigure: _onConfigure,
+      singleInstance: singleInstance,
     );
   }
 
@@ -206,7 +258,7 @@ class DB {
 
   /// Database creation callback (first run)
   Future<void> _onCreate(Database db, int version) async {
-    print('✨ Creating new database (v$version)');
+    logger?.info('Creating new database (v$version)');
 
     // 1. Create migrations tracking table
     await _createMigrationsTable(db);
@@ -220,12 +272,12 @@ class DB {
     // await _markAllMigrationsApplied(db);
     await _applyPendingMigrations(db, 0, version);
 
-    print('✅ Database created successfully');
+    logger?.info('Database created successfully');
   }
 
   /// Database upgrade callback (version increase)
   Future<void> _onUpgrade(Database db, int oldVersion, int newVersion) async {
-    print('🔄 Upgrading database from v$oldVersion to v$newVersion');
+    logger?.info('Upgrading database from v$oldVersion to v$newVersion');
 
     // 1. Ensure migrations table exists
     await _createMigrationsTable(db);
@@ -238,7 +290,7 @@ class DB {
       );
 
       if (tableCheck.isEmpty) {
-        print('📦 New table detected: ${table.name}. Creating...');
+        logger?.info('New table detected: ${table.name}. Creating...');
         await _createTable(db, table);
       }
     }
@@ -246,7 +298,7 @@ class DB {
     // 2. Apply pending migrations
     await _applyPendingMigrations(db, oldVersion, newVersion);
 
-    print('✅ Database upgraded successfully');
+    logger?.info('Database upgraded successfully');
   }
 
   /// Database downgrade callback (version decrease)
@@ -255,7 +307,7 @@ class DB {
   /// This implementation recreates the database from scratch.
   /// For production, consider more sophisticated downgrade strategies.
   Future<void> _onDowngrade(Database db, int oldVersion, int newVersion) async {
-    print('⚠️  Downgrading database from v$oldVersion to v$newVersion');
+    logger?.info('Downgrading database from v$oldVersion to v$newVersion');
 
     // Close current connection
     await db.close();
@@ -272,7 +324,7 @@ class DB {
     _database = null;
     await database;
 
-    print('✅ Database downgraded by recreation');
+    logger?.info('Database downgraded by recreation');
   }
 
   /// Creates the migrations tracking table
@@ -299,12 +351,38 @@ class DB {
   /// Creates a single table with its schema
   Future<void> _createTable(Database db, Table table) async {
     try {
-      print('  📦 Creating table: ${table.name}');
-      await db.execute(table.schema);
+      logger?.info('Creating table: ${table.name}');
+
+      // Smart splitting to avoid breaking triggers (BEGIN...END blocks)
+      final statements = <String>[];
+      final rawParts = table.schema.split(';');
+      String currentStatement = '';
+
+      for (final part in rawParts) {
+        currentStatement += part;
+        final normalized = currentStatement.toUpperCase();
+
+        // Count BEGIN and END blocks to handle triggers
+        // We use regex with word boundaries to avoid matching keywords inside other words
+        final beginCount = RegExp(r'\bBEGIN\b').allMatches(normalized).length;
+        final endCount = RegExp(r'\bEND\b').allMatches(normalized).length;
+
+        if (beginCount == endCount) {
+          final trimmed = currentStatement.trim();
+          if (trimmed.isNotEmpty) {
+            statements.add(trimmed);
+          }
+          currentStatement = '';
+        } else {
+          currentStatement += ';';
+        }
+      }
+
+      for (final statement in statements) {
+        await db.execute(statement);
+      }
     } catch (e, stackTrace) {
-      print('  ❌ Failed to create table ${table.name}: $e');
-      print('  Schema: ${table.schema}');
-      print('  Stack Trace: $stackTrace');
+      logger?.error('Failed to create table ${table.name}', e, stackTrace);
       rethrow;
     }
   }
@@ -359,7 +437,7 @@ class DB {
     }
 
     if (pendingMigrations.isEmpty) {
-      print('  ⏭️  No pending migrations found');
+      logger?.info('No pending migrations found');
       return;
     }
 
@@ -371,7 +449,7 @@ class DB {
       return a.migration.priority.compareTo(b.migration.priority);
     });
 
-    print('  📋 Found ${pendingMigrations.length} pending migrations');
+    logger?.info('Found ${pendingMigrations.length} pending migrations');
 
     // Apply migrations
     // Note: onCreate/onUpgrade are already running in a transaction,
@@ -393,12 +471,12 @@ class DB {
     final isApplied = await _isMigrationApplied(db, table.name, hash);
 
     if (isApplied) {
-      print('  ⏭️  Skipping (already applied): ${migration.description}');
+      logger?.info('Skipping (already applied): ${migration.description}');
       return;
     }
 
-    print('  🔄 Applying: ${migration.description} '
-        '(v${migration.targetVersion})');
+    logger?.info(
+        'Applying: ${migration.description} (v${migration.targetVersion})');
 
     try {
       // Execute migration
@@ -413,10 +491,10 @@ class DB {
         'applied_at': DateTime.now().toIso8601String(),
       });
 
-      print('  ✅ Success');
+      logger?.info('Migration Success');
     } catch (e, stackTrace) {
-      print('  ❌ Failed: $e');
-      print('  Stack trace: $stackTrace');
+      logger?.error(
+          'Migration Failed: ${migration.description}', e, stackTrace);
       rethrow;
     }
   }
@@ -524,13 +602,71 @@ class DB {
 
   /// Closes the database connection
   Future<void> close() async {
+    await _changeController.close();
     if (_database != null) {
       await _database!.close();
       _database = null;
     }
   }
-}
 
+  /// Helper to execute an action and log its performance
+  Future<T> logAction<T>(
+      String sql, List<Object?>? arguments, Future<T> Function() action) async {
+    if (!logQueries) return action();
+    final stopwatch = Stopwatch()..start();
+    try {
+      final result = await action();
+      stopwatch.stop();
+      if (stopwatch.elapsed >= slowQueryThreshold) {
+        logger?.slowQuery(sql, arguments, stopwatch.elapsed);
+      } else {
+        logger?.query(sql, arguments, stopwatch.elapsed);
+      }
+      return result;
+    } catch (e, st) {
+      stopwatch.stop();
+      logger?.error('Query Failed: $sql', e, st);
+      rethrow;
+    }
+  }
+
+  /// Executes a transaction with the provided action.
+  ///
+  /// The [action] callback receives a [DatabaseExecutor] that should be
+  /// passed to any service methods executed within the transaction.
+  ///
+  /// **Example:**
+  /// ```dart
+  /// await dbManager.transaction((txn) async {
+  ///   final userId = await userService.insertAsync(user, executor: txn);
+  ///   await profileService.insertAsync(profile.copyWith(userId: userId), executor: txn);
+  /// });
+  /// ```
+  Future<R> transaction<R>(
+      Future<R> Function(DatabaseExecutor txn) action) async {
+    final dbInstance = await database;
+    final bufferedNotifications = <String>{};
+
+    return await runZoned(
+      () async {
+        try {
+          final result = await dbInstance.transaction((txn) async {
+            return await action(txn);
+          });
+          // If we reached here, transaction committed successfully
+          for (final table in bufferedNotifications) {
+            _changeController.add(table);
+          }
+          return result;
+        } catch (e) {
+          // If transaction failed/rolled back, notifications are discarded
+          rethrow;
+        }
+      },
+      zoneValues: {#sqflow_notifications: bufferedNotifications},
+    );
+  }
+}
 
 /// Helper class for tracking pending migrations
 class _PendingMigration {

@@ -1,9 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 import 'package:sqflow_core/sqflow_core.dart';
-import 'package:sqflow_platform_interface/sqflow_platform_interface.dart';
-
-part 'complex_relationships_test.sql.g.dart';
+import 'models/user.dart';
 
 void main() {
   setUpAll(() {
@@ -29,17 +27,44 @@ void main() {
     final database = await db.database;
 
     // Seed data
-    await database.insert('users', {'id': 'u1', 'name': 'John Doe'});
+    final now = DateTime.now().toIso8601String();
+    await database.insert('users', {
+      'id': 'u1',
+      'first_name': 'John',
+      'last_name': 'Doe',
+      'email': 'john@example.com',
+      'phone': '123',
+      'gender': 'M',
+      'city': 'Sofia',
+      'country': 'Bulgaria',
+      'created_at': now,
+      'updated_at': now
+    });
 
     // Posts
-    await database
-        .insert('posts', {'id': 1, 'title': 'First Post', 'user_id': 'u1'});
-    await database
-        .insert('posts', {'id': 2, 'title': 'Second Post', 'user_id': 'u1'});
+    await database.insert('posts', {
+      'id': 1,
+      'title': 'First Post',
+      'user_id': 'u1',
+      'created_at': now,
+      'updated_at': now
+    });
+    await database.insert('posts', {
+      'id': 2,
+      'title': 'Second Post',
+      'user_id': 'u1',
+      'created_at': now,
+      'updated_at': now
+    });
 
     // Profile
-    await database.insert(
-        'profiles', {'id': 100, 'bio': 'Software Engineer', 'user_id': 'u1'});
+    await database.insert('profiles', {
+      'id': 100,
+      'bio': 'Software Engineer',
+      'user_id': 'u1',
+      'created_at': now,
+      'updated_at': now
+    });
 
     final userService = SqflowCore<User>(dbManager: db, table: usersTable);
 
@@ -50,7 +75,7 @@ void main() {
     ]);
 
     expect(user, isNotNull);
-    expect(user!.name, 'John Doe');
+    expect(user!.firstName, 'John');
 
     // Verify collection (HasMany)
     expect(user.posts, hasLength(2));
@@ -67,15 +92,62 @@ void main() {
       () async {
     final database = await db.database;
 
+    final now = DateTime.now().toIso8601String();
     // Seed User 1
-    await database.insert('users', {'id': 'u1', 'name': 'John'});
-    await database.insert('posts', {'id': 1, 'title': 'P1', 'user_id': 'u1'});
-    await database.insert('profiles', {'id': 10, 'bio': 'B1', 'user_id': 'u1'});
+    await database.insert('users', {
+      'id': 'u1',
+      'first_name': 'John',
+      'last_name': 'Doe',
+      'email': 'john@example.com',
+      'phone': '123',
+      'gender': 'M',
+      'city': 'Sofia',
+      'country': 'Bulgaria',
+      'created_at': now,
+      'updated_at': now
+    });
+    await database.insert('posts', {
+      'id': 1,
+      'title': 'P1',
+      'user_id': 'u1',
+      'created_at': now,
+      'updated_at': now
+    });
+    await database.insert('profiles', {
+      'id': 10,
+      'bio': 'B1',
+      'user_id': 'u1',
+      'created_at': now,
+      'updated_at': now
+    });
 
     // Seed User 2
-    await database.insert('users', {'id': 'u2', 'name': 'Jane'});
-    await database.insert('posts', {'id': 2, 'title': 'P2', 'user_id': 'u2'});
-    await database.insert('posts', {'id': 3, 'title': 'P3', 'user_id': 'u2'});
+    await database.insert('users', {
+      'id': 'u2',
+      'first_name': 'Jane',
+      'last_name': 'Doe',
+      'email': 'jane@example.com',
+      'phone': '123',
+      'gender': 'F',
+      'city': 'Sofia',
+      'country': 'Bulgaria',
+      'created_at': now,
+      'updated_at': now
+    });
+    await database.insert('posts', {
+      'id': 2,
+      'title': 'P2',
+      'user_id': 'u2',
+      'created_at': now,
+      'updated_at': now
+    });
+    await database.insert('posts', {
+      'id': 3,
+      'title': 'P3',
+      'user_id': 'u2',
+      'created_at': now,
+      'updated_at': now
+    });
     // User 2 has no profile (test null handling)
 
     final userService = SqflowCore<User>(dbManager: db, table: usersTable);
@@ -105,9 +177,26 @@ void main() {
   test('BelongsTo eager loading: Post with User', () async {
     final database = await db.database;
 
-    await database.insert('users', {'id': 'u1', 'name': 'Author One'});
-    await database
-        .insert('posts', {'id': 100, 'title': 'Hello World', 'user_id': 'u1'});
+    final now = DateTime.now().toIso8601String();
+    await database.insert('users', {
+      'id': 'u1',
+      'first_name': 'Author',
+      'last_name': 'One',
+      'email': 'author@example.com',
+      'phone': '123',
+      'gender': 'M',
+      'city': 'Sofia',
+      'country': 'Bulgaria',
+      'created_at': now,
+      'updated_at': now
+    });
+    await database.insert('posts', {
+      'id': 100,
+      'title': 'Hello World',
+      'user_id': 'u1',
+      'created_at': now,
+      'updated_at': now
+    });
 
     final postService = SqflowCore<Post>(dbManager: db, table: postsTable);
 
@@ -117,22 +206,60 @@ void main() {
     expect(post, isNotNull);
     expect(post!.title, 'Hello World');
     expect(post.user, isNotNull);
-    expect(post.user!.name, 'Author One');
+    expect(post.user!.firstName, 'Author');
     expect(post.userId, 'u1');
   });
 
   test('BelongsTo batch loading: Many Posts with Users', () async {
     final database = await db.database;
 
-    await database.insert('users', {'id': 'u1', 'name': 'Admin'});
-    await database.insert('users', {'id': 'u2', 'name': 'Editor'});
+    final now = DateTime.now().toIso8601String();
+    await database.insert('users', {
+      'id': 'u1',
+      'first_name': 'Admin',
+      'last_name': 'User',
+      'email': 'admin@example.com',
+      'phone': '123',
+      'gender': 'M',
+      'city': 'Sofia',
+      'country': 'Bulgaria',
+      'created_at': now,
+      'updated_at': now
+    });
+    await database.insert('users', {
+      'id': 'u2',
+      'first_name': 'Editor',
+      'last_name': 'User',
+      'email': 'editor@example.com',
+      'phone': '123',
+      'gender': 'F',
+      'city': 'Sofia',
+      'country': 'Bulgaria',
+      'created_at': now,
+      'updated_at': now
+    });
 
-    await database
-        .insert('posts', {'id': 1, 'title': 'News 1', 'user_id': 'u1'});
-    await database
-        .insert('posts', {'id': 2, 'title': 'News 2', 'user_id': 'u1'});
-    await database
-        .insert('posts', {'id': 3, 'title': 'News 3', 'user_id': 'u2'});
+    await database.insert('posts', {
+      'id': 1,
+      'title': 'News 1',
+      'user_id': 'u1',
+      'created_at': now,
+      'updated_at': now
+    });
+    await database.insert('posts', {
+      'id': 2,
+      'title': 'News 2',
+      'user_id': 'u1',
+      'created_at': now,
+      'updated_at': now
+    });
+    await database.insert('posts', {
+      'id': 3,
+      'title': 'News 3',
+      'user_id': 'u2',
+      'created_at': now,
+      'updated_at': now
+    });
 
     final postService = SqflowCore<Post>(dbManager: db, table: postsTable);
 
@@ -144,9 +271,9 @@ void main() {
     for (final post in result.data) {
       expect(post.user, isNotNull);
       if (post.id == 3) {
-        expect(post.user!.name, 'Editor');
+        expect(post.user!.firstName, 'Editor');
       } else {
-        expect(post.user!.name, 'Admin');
+        expect(post.user!.firstName, 'Admin');
       }
     }
   });
@@ -155,41 +282,93 @@ void main() {
       () async {
     final database = await db.database;
 
+    final now = DateTime.now().toIso8601String();
     // Seed Data
     await database.insert('users', {
       'id': 'u1',
-      'name': 'Alice Admin'
-    }); // Age check will be manual column in a real app, here we use 'name' length or other tricks since User model in this test is simple
-    await database.insert('users', {'id': 'u2', 'name': 'Bob Editor'});
-    await database.insert('users', {'id': 'u3', 'name': 'Charlie Guest'});
+      'first_name': 'Alice',
+      'last_name': 'Admin',
+      'email': 'alice@example.com',
+      'phone': '123',
+      'gender': 'F',
+      'city': 'Sofia',
+      'country': 'Bulgaria',
+      'created_at': now,
+      'updated_at': now
+    });
+    await database.insert('users', {
+      'id': 'u2',
+      'first_name': 'Bob',
+      'last_name': 'Editor',
+      'email': 'bob@example.com',
+      'phone': '123',
+      'gender': 'M',
+      'city': 'Sofia',
+      'country': 'Bulgaria',
+      'created_at': now,
+      'updated_at': now
+    });
+    await database.insert('users', {
+      'id': 'u3',
+      'first_name': 'Charlie',
+      'last_name': 'Guest',
+      'email': 'charlie@example.com',
+      'phone': '123',
+      'gender': 'M',
+      'city': 'Sofia',
+      'country': 'Bulgaria',
+      'created_at': now,
+      'updated_at': now
+    });
 
     // Posts
-    await database.insert('posts', {'id': 1, 'title': 'A1', 'user_id': 'u1'});
-    await database.insert('posts', {'id': 2, 'title': 'B1', 'user_id': 'u2'});
-    await database.insert('posts', {'id': 3, 'title': 'C1', 'user_id': 'u3'});
+    await database.insert('posts', {
+      'id': 1,
+      'title': 'A1',
+      'user_id': 'u1',
+      'created_at': now,
+      'updated_at': now
+    });
+    await database.insert('posts', {
+      'id': 2,
+      'title': 'B1',
+      'user_id': 'u2',
+      'created_at': now,
+      'updated_at': now
+    });
+    await database.insert('posts', {
+      'id': 3,
+      'title': 'C1',
+      'user_id': 'u3',
+      'created_at': now,
+      'updated_at': now
+    });
 
     final userService = SqflowCore<User>(dbManager: db, table: usersTable);
 
     // Complex filter:
-    // (Name contains 'Alice' OR Name contains 'Bob')
-    // AND (Name length > 5)
+    // (firstName contains 'Alice' OR firstName contains 'Bob')
+    // AND (firstName length > 2)
     final where = WhereBuilder().andGroup((ag) {
-      ag.orGroup((og) {
-        og.like('name', '%Alice%').like('name', '%Bob%');
-      });
-      ag.lengthGt('name', 5);
+      ag
+        ..orGroup((og) {
+          og
+            ..like('first_name', '%Alice%')
+            ..like('first_name', '%Bob%');
+        })
+        ..lengthGt('first_name', 2);
     });
 
     final result = await userService.readAll(
       where: where,
       include: [Includable.model<Post>()],
-      sort: SortBuilder().asc('name'),
+      sort: SortBuilder().asc('first_name'),
     );
 
     // Expected: Alice and Bob (Charlie is excluded by orGroup)
     expect(result.data, hasLength(2));
-    expect(result.data[0].name, contains('Alice'));
-    expect(result.data[1].name, contains('Bob'));
+    expect(result.data[0].firstName, contains('Alice'));
+    expect(result.data[1].firstName, contains('Bob'));
 
     // Verify relationships were still loaded for the filtered set
     expect(result.data[0].posts, hasLength(1));
@@ -202,15 +381,53 @@ void main() {
       () async {
     final database = await db.database;
 
-    await database.insert('users', {'id': 'u1', 'name': 'Author A'});
-    await database.insert('users', {'id': 'u2', 'name': 'Author B'});
+    final now = DateTime.now().toIso8601String();
+    await database.insert('users', {
+      'id': 'u1',
+      'first_name': 'Author',
+      'last_name': 'A',
+      'email': 'a@example.com',
+      'phone': '123',
+      'gender': 'M',
+      'city': 'Sofia',
+      'country': 'Bulgaria',
+      'created_at': now,
+      'updated_at': now
+    });
+    await database.insert('users', {
+      'id': 'u2',
+      'first_name': 'Author',
+      'last_name': 'B',
+      'email': 'b@example.com',
+      'phone': '123',
+      'gender': 'M',
+      'city': 'Sofia',
+      'country': 'Bulgaria',
+      'created_at': now,
+      'updated_at': now
+    });
 
-    await database
-        .insert('posts', {'id': 1, 'title': 'Tech News', 'user_id': 'u1'});
-    await database
-        .insert('posts', {'id': 2, 'title': 'Tech Review', 'user_id': 'u2'});
-    await database
-        .insert('posts', {'id': 3, 'title': 'Food Blog', 'user_id': 'u1'});
+    await database.insert('posts', {
+      'id': 1,
+      'title': 'Tech News',
+      'user_id': 'u1',
+      'created_at': now,
+      'updated_at': now
+    });
+    await database.insert('posts', {
+      'id': 2,
+      'title': 'Tech Review',
+      'user_id': 'u2',
+      'created_at': now,
+      'updated_at': now
+    });
+    await database.insert('posts', {
+      'id': 3,
+      'title': 'Food Blog',
+      'user_id': 'u1',
+      'created_at': now,
+      'updated_at': now
+    });
 
     final postService = SqflowCore<Post>(dbManager: db, table: postsTable);
 
@@ -225,78 +442,62 @@ void main() {
     expect(result.data, hasLength(1));
     expect(result.data[0].title, 'Tech Review');
     expect(result.data[0].user, isNotNull);
-    expect(result.data[0].user!.name, 'Author B');
-  });
-}
-
-// Test Models
-
-@Schema(
-  tableName: 'users',
-  relationships: [
-    HasMany(model: Post, foreignKey: 'user_id', localKey: 'id'),
-    HasOne(model: Profile, foreignKey: 'user_id', localKey: 'id'),
-  ],
-)
-class User extends Model with _$SQFlowUserMixin {
-  @ID(type: TEXT())
-  @override
-  final String id;
-
-  @Column(type: TEXT())
-  final String name;
-
-  User({
-    required this.id,
-    required this.name,
+    expect(result.data[0].user!.lastName, 'B');
   });
 
-  factory User.fromJson(Map<String, dynamic> json) =>
-      _$SQFlowUserFromJson(json);
+  test('Filter main table (Users) by related table (Posts) columns', () async {
+    final database = await db.database;
+    final now = DateTime.now().toIso8601String();
 
-  @override
-  Map<String, dynamic> toJson() => _$SQFlowUserToJson();
-}
+    await database.insert('users', {
+      'id': 'ua',
+      'first_name': 'Author',
+      'last_name': 'A',
+      'email': 'ua@example.com',
+      'phone': '123',
+      'gender': 'M',
+      'city': 'Sofia',
+      'country': 'Bulgaria',
+      'created_at': now,
+      'updated_at': now
+    });
+    await database.insert('users', {
+      'id': 'ub',
+      'first_name': 'Author',
+      'last_name': 'B',
+      'email': 'ub@example.com',
+      'phone': '123',
+      'gender': 'M',
+      'city': 'Sofia',
+      'country': 'Bulgaria',
+      'created_at': now,
+      'updated_at': now
+    });
 
-@Schema(
-  tableName: 'posts',
-  relationships: [
-    BelongsTo(model: User, foreignKey: 'user_id', localKey: 'id')
-  ],
-)
-class Post extends Model with _$SQFlowPostMixin {
-  @ID(type: INTEGER(), autoIncrement: true)
-  @override
-  final int id;
+    await database.insert('posts', {
+      'id': 101,
+      'title': 'Dart News',
+      'user_id': 'ua',
+      'created_at': now,
+      'updated_at': now
+    });
+    await database.insert('posts', {
+      'id': 102,
+      'title': 'Java News',
+      'user_id': 'ub',
+      'created_at': now,
+      'updated_at': now
+    });
 
-  @Column(type: TEXT())
-  final String title;
+    final userService = SqflowCore<User>(dbManager: db, table: usersTable);
 
-  Post({required this.id, required this.title});
+    // Query: Users who have a post with 'Dart' in title
+    // 'posts' is the tableName/relationship name
+    final where = WhereBuilder().like('posts.title', 'Dart%');
 
-  factory Post.fromJson(Map<String, dynamic> json) =>
-      _$SQFlowPostFromJson(json);
+    final result = await userService.readAll(where: where);
 
-  @override
-  Map<String, dynamic> toJson() => _$SQFlowPostToJson();
-}
-
-@Schema(tableName: 'profiles', relationships: [
-  BelongsTo(model: User, foreignKey: 'user_id', localKey: 'id')
-])
-class Profile extends Model with _$SQFlowProfileMixin {
-  @ID(type: INTEGER(), autoIncrement: true)
-  @override
-  final int id;
-
-  @Column(type: TEXT())
-  final String bio;
-
-  Profile({required this.id, required this.bio});
-
-  factory Profile.fromJson(Map<String, dynamic> json) =>
-      _$SQFlowProfileFromJson(json);
-
-  @override
-  Map<String, dynamic> toJson() => _$SQFlowProfileToJson();
+    expect(result.data, hasLength(1));
+    expect(result.data[0].lastName, 'A');
+  });
 }

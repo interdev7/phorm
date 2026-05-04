@@ -17,6 +17,12 @@ CREATE TABLE explicit_table (
 );
 
 
+CREATE TRIGGER update_explicit_table_timestamp
+AFTER UPDATE ON explicit_table
+FOR EACH ROW
+BEGIN
+    UPDATE explicit_table SET updated_at = datetime('now') WHERE id = OLD.id;
+END;
 """;
 
 class _$SQFlowExplicitNamingTable extends Table<ExplicitNaming> {
@@ -25,6 +31,8 @@ class _$SQFlowExplicitNamingTable extends Table<ExplicitNaming> {
     required super.name,
     required super.fromJson,
     super.relationships = const [],
+    super.columns = const [],
+    super.timestamps = true,
   }) : super(type: ExplicitNaming, paranoid: Table.detectSoftDelete(schema));
 }
 
@@ -32,8 +40,17 @@ class _$SQFlowExplicitNamingTable extends Table<ExplicitNaming> {
 final explicit_tableTable = _$SQFlowExplicitNamingTable(
   schema: _$SQFlowExplicitNamingSchema,
   name: 'explicit_table',
-  fromJson: ExplicitNaming.fromJson,
+  fromJson: _$SQFlowExplicitNamingFromJson,
   relationships: [],
+  columns: const [
+    'custom_id',
+    'custom_name',
+    'custom_age',
+    'is_verified',
+    'created_at',
+    'updated_at'
+  ],
+  timestamps: true,
 );
 
 mixin _$SQFlowExplicitNamingMixin {
@@ -88,6 +105,18 @@ ExplicitNaming _$SQFlowExplicitNamingFromJson(Map<String, dynamic> json) {
         ? DateTime.parse(json['updated_at'] as String)
         : null;
   return instance;
+}
+
+class ExplicitNamingTable {
+  static const SqflowColumn<String> id = SqflowColumn<String>('custom_id');
+  static const SqflowColumn<String> name = SqflowColumn<String>('custom_name');
+  static const SqflowColumn<int> age = SqflowColumn<int>('custom_age');
+  static const SqflowColumn<bool> isVerified =
+      SqflowColumn<bool>('is_verified');
+  static const SqflowColumn<DateTime> createdAt =
+      SqflowColumn<DateTime>('created_at');
+  static const SqflowColumn<DateTime> updatedAt =
+      SqflowColumn<DateTime>('updated_at');
 }
 
 dynamic _$SQFlowToJsonValue(dynamic value) {

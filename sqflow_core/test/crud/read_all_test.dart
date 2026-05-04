@@ -18,7 +18,7 @@ void main() {
 
   group('SqflowCore ReadAll Tests:', () {
     test('Basic pagination', () async {
-      final result = await userService.readAll(
+      final result = await userService.readAllWithCount(
         limit: 5,
         offset: 0,
       );
@@ -81,7 +81,7 @@ void main() {
       initSqflite();
       final service = await createTestService();
 
-      final result = await service.readAll(
+      final result = await service.readAllWithCount(
         where: WhereBuilder()
             .lengthEq('first_name', 5)
             .substrEq('last_name', 1, 1, 'S'),
@@ -104,7 +104,7 @@ void main() {
         og.substrLike('email', 1, 3, '%@g').eq('city', 'Varna');
       });
 
-      final result = await service.readAll(where: where, limit: 50);
+      final result = await service.readAllWithCount(where: where, limit: 50);
 
       expect(result.count, greaterThanOrEqualTo(1));
       final ids = result.data.map((e) => e.id).toList();

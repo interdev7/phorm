@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:sqflow_core/sqflow_core.dart';
+import 'package:sqflow_example/example_reactivity.dart';
 import 'package:sqflow_example/models/todo.dart';
 import 'package:sqflow_example/pages/todo_page.dart';
 
@@ -11,7 +12,7 @@ final todoDatabase = DB.autoVersion(
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  runApp(const TodoApp());
+  runApp(const SqflowReactivityApp());
 }
 
 class TodoApp extends StatelessWidget {
@@ -35,7 +36,7 @@ class TodoApp extends StatelessWidget {
           ),
         ),
       ),
-      home: const TodoPage(),
+      home: const SqflowReactivityApp(),
     );
   }
 }

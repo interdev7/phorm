@@ -176,20 +176,23 @@ class ModelMixinGenerator extends GeneratorForAnnotation<Schema> {
           ..writeln('    return {');
         for (final field in fields.where((f) => _isColumn(f))) {
           final sqlName = MetadataExtractor.getSqlColumnName(field, strategy);
-          buffer
-              .writeln("      '$sqlName': _\$SQFlowToJsonValue(${field.name}),");
+          buffer.writeln(
+              "      '$sqlName': _\$SQFlowToJsonValue(${field.name}),");
         }
 
         if (timestamps) {
           if (!existsCreatedAt) {
-            buffer.writeln("      'created_at': _\$SQFlowToJsonValue(createdAt),");
+            buffer.writeln(
+                "      'created_at': _\$SQFlowToJsonValue(createdAt),");
           }
           if (!existsUpdatedAt) {
-            buffer.writeln("      'updated_at': _\$SQFlowToJsonValue(updatedAt),");
+            buffer.writeln(
+                "      'updated_at': _\$SQFlowToJsonValue(updatedAt),");
           }
         }
         if (paranoid && !existsDeletedAt) {
-          buffer.writeln("      'deleted_at': _\$SQFlowToJsonValue(deletedAt),");
+          buffer
+              .writeln("      'deleted_at': _\$SQFlowToJsonValue(deletedAt),");
         }
 
         // Output synthesized foreign keys in toJson
@@ -274,8 +277,9 @@ class ModelMixinGenerator extends GeneratorForAnnotation<Schema> {
         final FieldElement? field =
             fields.where((f) => f.name == param.name).firstOrNull;
 
-        final rel =
-            relationships.where((r) => r['fieldName'] == param.name).firstOrNull;
+        final rel = relationships
+            .where((r) => r['fieldName'] == param.name)
+            .firstOrNull;
         if (rel != null) {
           final modelClass = rel['modelClass'];
           final modelTable = rel['model'];
@@ -358,12 +362,54 @@ class ModelMixinGenerator extends GeneratorForAnnotation<Schema> {
         }
       }
 
-      buffer.writeln(';');
-
       buffer
+        ..writeln(';')
         ..writeln('  return instance;')
         ..writeln('}');
     }
+
+    // 4. Type-safe Table Columns
+    buffer
+      ..writeln()
+      ..writeln('class ${className}Table {');
+
+    for (final field in fields.where((f) => _isColumn(f))) {
+      final sqlName = MetadataExtractor.getSqlColumnName(field, strategy);
+      var type = field.type.getDisplayString();
+      if (type.endsWith('?')) type = type.substring(0, type.length - 1);
+      buffer.writeln(
+          "  static const SqflowColumn<$type> ${field.name} = SqflowColumn<$type>('$sqlName');");
+    }
+
+    if (timestamps) {
+      if (!existsCreatedAt) {
+        buffer.writeln(
+            "  static const SqflowColumn<DateTime> createdAt = SqflowColumn<DateTime>('created_at');");
+      }
+      if (!existsUpdatedAt) {
+        buffer.writeln(
+            "  static const SqflowColumn<DateTime> updatedAt = SqflowColumn<DateTime>('updated_at');");
+      }
+    }
+    if (paranoid && !existsDeletedAt) {
+      buffer.writeln(
+          "  static const SqflowColumn<DateTime> deletedAt = SqflowColumn<DateTime>('deleted_at');");
+    }
+
+    // Synthesized FKs
+    for (final rel in relationships) {
+      if (rel['type'] == 'BelongsTo') {
+        final fkName = rel['foreignKeyName'] as String;
+        final fkSqlName = rel['foreignKey'] as String;
+        final existsFk = fields.any((f) => f.name == fkName);
+        if (!existsFk) {
+          buffer.writeln(
+              "  static const SqflowColumn<dynamic> $fkName = SqflowColumn<dynamic>('$fkSqlName');");
+        }
+      }
+    }
+
+    buffer.writeln('}');
 
     return buffer.toString();
   }

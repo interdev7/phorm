@@ -48,6 +48,9 @@ class Table<T extends Model> {
   /// Associated model type
   final Type type;
 
+  /// List of column names in the table.
+  final List<String> columns;
+
   /// Creates a migration builder for this table
   ///
   /// **Example:**
@@ -72,6 +75,7 @@ class Table<T extends Model> {
     this.paranoid = false,
     this.timestamps = true,
     this.relationships = const [],
+    this.columns = const [],
   });
 
   /// Helper to detect if a schema string contains soft-delete capability.

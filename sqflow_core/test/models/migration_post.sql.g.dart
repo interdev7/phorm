@@ -17,6 +17,12 @@ CREATE TABLE migration_posts (
 );
 
 
+CREATE TRIGGER update_migration_posts_timestamp
+AFTER UPDATE ON migration_posts
+FOR EACH ROW
+BEGIN
+    UPDATE migration_posts SET updated_at = datetime('now') WHERE id = OLD.id;
+END;
 """;
 
 class _$SQFlowMigrationPostTable extends Table<MigrationPost> {
@@ -25,6 +31,8 @@ class _$SQFlowMigrationPostTable extends Table<MigrationPost> {
     required super.name,
     required super.fromJson,
     super.relationships = const [],
+    super.columns = const [],
+    super.timestamps = true,
   }) : super(type: MigrationPost, paranoid: Table.detectSoftDelete(schema));
 }
 
@@ -32,8 +40,17 @@ class _$SQFlowMigrationPostTable extends Table<MigrationPost> {
 final migration_postsTable = _$SQFlowMigrationPostTable(
   schema: _$SQFlowMigrationPostSchema,
   name: 'migration_posts',
-  fromJson: MigrationPost.fromJson,
+  fromJson: _$SQFlowMigrationPostFromJson,
   relationships: [],
+  columns: const [
+    'id',
+    'title',
+    'content',
+    'user_id',
+    'created_at',
+    'updated_at'
+  ],
+  timestamps: true,
 );
 
 mixin _$SQFlowMigrationPostMixin {
@@ -86,6 +103,17 @@ MigrationPost _$SQFlowMigrationPostFromJson(Map<String, dynamic> json) {
         ? DateTime.parse(json['updated_at'] as String)
         : null;
   return instance;
+}
+
+class MigrationPostTable {
+  static const SqflowColumn<String> id = SqflowColumn<String>('id');
+  static const SqflowColumn<String> title = SqflowColumn<String>('title');
+  static const SqflowColumn<String> content = SqflowColumn<String>('content');
+  static const SqflowColumn<String> userId = SqflowColumn<String>('user_id');
+  static const SqflowColumn<DateTime> createdAt =
+      SqflowColumn<DateTime>('created_at');
+  static const SqflowColumn<DateTime> updatedAt =
+      SqflowColumn<DateTime>('updated_at');
 }
 
 dynamic _$SQFlowToJsonValue(dynamic value) {
