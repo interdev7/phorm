@@ -9,12 +9,12 @@ part of 'user.dart';
 const _$SQFlowUserSchema = """
 CREATE TABLE users (
   id TEXT PRIMARY KEY NOT NULL UNIQUE,
-  first_name TEXT NOT NULL,
-  last_name TEXT NOT NULL,
+  first_name TEXT NOT NULL CONSTRAINT name_length_check CHECK(LENGTH(first_name) BETWEEN 3 AND 30),
+  last_name TEXT NOT NULL CONSTRAINT last_name_length_check CHECK(LENGTH(last_name) BETWEEN 3 AND 30),
   email TEXT NOT NULL UNIQUE,
   phone TEXT NOT NULL,
   birth_date TEXT,
-  age INTEGER,
+  age INTEGER CONSTRAINT age_check CHECK(age BETWEEN 0 AND 120),
   gender TEXT NOT NULL CONSTRAINT gender_check CHECK(gender IN ('M', 'F', 'Other')),
   city TEXT NOT NULL,
   country TEXT NOT NULL,
@@ -93,7 +93,7 @@ mixin _$SQFlowUserMixin {
 
 extension SQFlowUserSqlExt on User {
   Map<String, dynamic> _$SQFlowUserToJson() {
-    return {
+    final userJson = {
       'id': _$SQFlowToJsonValue(id),
       'first_name': _$SQFlowToJsonValue(firstName),
       'last_name': _$SQFlowToJsonValue(lastName),
@@ -111,6 +111,9 @@ extension SQFlowUserSqlExt on User {
       'updated_at': _$SQFlowToJsonValue(updatedAt),
       'deleted_at': _$SQFlowToJsonValue(deletedAt),
     };
+    _$validateUser(userJson, tableName: 'users');
+
+    return userJson;
   }
 
   User copyWith({
@@ -149,6 +152,45 @@ extension SQFlowUserSqlExt on User {
       ..createdAt = createdAt ?? this.createdAt
       ..updatedAt = updatedAt ?? this.updatedAt
       ..deletedAt = deletedAt ?? this.deletedAt;
+  }
+}
+
+void _$validateUser(Map<String, dynamic> json, {required String tableName}) {
+  if (!const CheckLength(min: 3, max: 30, constraint: 'name_length_check')
+      .isValid(json['first_name'])) {
+    throw SqflowCheckException(
+      table: tableName,
+      column: 'first_name',
+      message: 'Value "${json['first_name']}" failed validation',
+      constraint: 'name_length_check',
+    );
+  }
+  if (!const CheckLength(min: 3, max: 30, constraint: 'last_name_length_check')
+      .isValid(json['last_name'])) {
+    throw SqflowCheckException(
+      table: tableName,
+      column: 'last_name',
+      message: 'Value "${json['last_name']}" failed validation',
+      constraint: 'last_name_length_check',
+    );
+  }
+  if (!const CheckRange(min: 0, max: 120, constraint: 'age_check')
+      .isValid(json['age'])) {
+    throw SqflowCheckException(
+      table: tableName,
+      column: 'age',
+      message: 'Value "${json['age']}" failed validation',
+      constraint: 'age_check',
+    );
+  }
+  if (!const CheckInList(['M', 'F', 'Other'], constraint: 'gender_check')
+      .isValid(json['gender'])) {
+    throw SqflowCheckException(
+      table: tableName,
+      column: 'gender',
+      message: 'Value "${json['gender']}" failed validation',
+      constraint: 'gender_check',
+    );
   }
 }
 
@@ -282,7 +324,7 @@ mixin _$SQFlowPostMixin {
 
 extension SQFlowPostSqlExt on Post {
   Map<String, dynamic> _$SQFlowPostToJson() {
-    return {
+    final postJson = {
       'id': _$SQFlowToJsonValue(id),
       'title': _$SQFlowToJsonValue(title),
       'user_id': _$SQFlowToJsonValue(userId),
@@ -290,6 +332,9 @@ extension SQFlowPostSqlExt on Post {
       'updated_at': _$SQFlowToJsonValue(updatedAt),
       'deleted_at': _$SQFlowToJsonValue(deletedAt),
     };
+    _$validatePost(postJson, tableName: 'posts');
+
+    return postJson;
   }
 
   Post copyWith({
@@ -310,6 +355,8 @@ extension SQFlowPostSqlExt on Post {
       ..deletedAt = deletedAt ?? this.deletedAt;
   }
 }
+
+void _$validatePost(Map<String, dynamic> json, {required String tableName}) {}
 
 Post _$SQFlowPostFromJson(Map<String, dynamic> json) {
   final instance = Post(
@@ -394,13 +441,16 @@ mixin _$SQFlowProfileMixin {
 
 extension SQFlowProfileSqlExt on Profile {
   Map<String, dynamic> _$SQFlowProfileToJson() {
-    return {
+    final profileJson = {
       'id': _$SQFlowToJsonValue(id),
       'bio': _$SQFlowToJsonValue(bio),
       'user_id': _$SQFlowToJsonValue(userId),
       'created_at': _$SQFlowToJsonValue(createdAt),
       'updated_at': _$SQFlowToJsonValue(updatedAt),
     };
+    _$validateProfile(profileJson, tableName: 'profiles');
+
+    return profileJson;
   }
 
   Profile copyWith({
@@ -419,6 +469,9 @@ extension SQFlowProfileSqlExt on Profile {
       ..updatedAt = updatedAt ?? this.updatedAt;
   }
 }
+
+void _$validateProfile(Map<String, dynamic> json,
+    {required String tableName}) {}
 
 Profile _$SQFlowProfileFromJson(Map<String, dynamic> json) {
   final instance = Profile(
@@ -507,7 +560,7 @@ mixin _$SQFlowOrderMixin {
 
 extension SQFlowOrderSqlExt on Order {
   Map<String, dynamic> _$SQFlowOrderToJson() {
-    return {
+    final orderJson = {
       'id': _$SQFlowToJsonValue(id),
       'total': _$SQFlowToJsonValue(total),
       'user_id': _$SQFlowToJsonValue(userId),
@@ -515,6 +568,9 @@ extension SQFlowOrderSqlExt on Order {
       'updated_at': _$SQFlowToJsonValue(updatedAt),
       'deleted_at': _$SQFlowToJsonValue(deletedAt),
     };
+    _$validateOrder(orderJson, tableName: 'orders');
+
+    return orderJson;
   }
 
   Order copyWith({
@@ -535,6 +591,8 @@ extension SQFlowOrderSqlExt on Order {
       ..deletedAt = deletedAt ?? this.deletedAt;
   }
 }
+
+void _$validateOrder(Map<String, dynamic> json, {required String tableName}) {}
 
 Order _$SQFlowOrderFromJson(Map<String, dynamic> json) {
   final instance = Order(

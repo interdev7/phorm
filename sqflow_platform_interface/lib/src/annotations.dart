@@ -1,3 +1,5 @@
+import 'package:sqflow_platform_interface/src/check_condition.dart';
+
 import 'data_type.dart';
 
 /// Strategy for naming database columns.
@@ -37,7 +39,7 @@ abstract class ColumnBase {
   /// Optional value constraint.
   ///
   /// Can be used to restrict allowed values.
-  final CHECK? check;
+  final ICHECK? check;
 
   const ColumnBase({
     required this.type,
@@ -111,6 +113,9 @@ class Schema {
   /// Whether to automatically manage createdAt and updatedAt timestamps.
   final bool timestamps;
 
+  /// Whether to generate the validate() method based on column CHECK constraints.
+  final bool useValidator;
+
   const Schema({
     this.tableName,
     this.indexes = const [],
@@ -121,6 +126,7 @@ class Schema {
     this.useFromJson = true,
     this.useCopyWith = true,
     this.timestamps = true,
+    this.useValidator = true,
   });
 }
 
@@ -130,7 +136,7 @@ abstract class Relationship {
   final dynamic model;
   final String foreignKey;
   final String localKey;
-  
+
   /// Action applied when the referenced record is deleted.
   final String? onDelete;
 
@@ -213,21 +219,6 @@ class Index {
   });
 }
 
-/// Value constraint definition.
-///
-/// Restricts column values to a predefined set.
-class CHECK {
-  /// Allowed values for the column.
-  final dynamic checker;
-
-  /// Custom constraint expression.
-  final String? constraint;
-
-  const CHECK(this.checker, {this.constraint});
-}
-
-
-
 /// Base interface for specifying relationships to include in a query.
 ///
 /// Use [Includable.table] to include by table name (String)
@@ -245,13 +236,15 @@ abstract interface class Includable {
   List<Includable>? get include;
 
   /// Includes a relationship by its explicit table name.
-  static Includable table(String name, {Attributes? attributes, List<Includable>? include}) =>
+  static Includable table(String name,
+          {Attributes? attributes, List<Includable>? include}) =>
       _TableIncludable(name, attributes: attributes, include: include);
 
   /// Includes a relationship by its model class type.
   ///
   /// Provides compile-time safety and refactoring support.
-  static Includable model<T>({Attributes? attributes, List<Includable>? include}) =>
+  static Includable model<T>(
+          {Attributes? attributes, List<Includable>? include}) =>
       _ModelIncludable<T>(attributes: attributes, include: include);
 }
 

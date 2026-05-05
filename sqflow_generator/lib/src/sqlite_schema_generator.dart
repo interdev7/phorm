@@ -10,6 +10,14 @@ import 'package:sqflow_platform_interface/sqflow_platform_interface.dart';
 
 import 'metadata_extractor.dart';
 
+const _checkInListChecker = TypeChecker.fromRuntime(CheckInList);
+const _checkRangeChecker = TypeChecker.fromRuntime(CheckRange);
+const _checkComparisonChecker = TypeChecker.fromRuntime(CheckComparison);
+const _checkLengthChecker = TypeChecker.fromRuntime(CheckLength);
+const _checkCustomChecker = TypeChecker.fromRuntime(CheckCustom);
+const _checkCompositeChecker = TypeChecker.fromRuntime(CheckComposite);
+const _checkNotChecker = TypeChecker.fromRuntime(CheckNot);
+
 class SqliteSchemaGenerator extends GeneratorForAnnotation<Schema> {
   @override
   FutureOr<String> generateForAnnotatedElement(
@@ -362,37 +370,14 @@ END;''';
     }
 
     if (check != null && !check.isNull) {
-      final checker = check.peek('checker');
-      final constraint = check.peek('constraint')?.stringValue;
-
-      String? checkExpr;
-      if (checker != null && !checker.isNull) {
-        if (checker.isList) {
-          final values = checker.listValue.map((v) {
-            final r = ConstantReader(v);
-            if (r.isBool) return r.boolValue ? '1' : '0';
-            if (r.isInt) return r.intValue.toString();
-            if (r.isDouble) return r.doubleValue.toString();
-            if (r.isString) return "'${r.stringValue}'";
-            return v.toString();
-          }).join(', ');
-          checkExpr = '$columnName IN ($values)';
-        } else if (checker.isString) {
-          // Example: Check('column > 10') or Check('column IN (1, 2, 3)')
-          // or Check('column LIKE %value%')
-          checkExpr = checker.stringValue;
-        }
-      }
-
-      if (checkExpr != null) {
+      final checkSql = _getCheckSql(check, columnName);
+      if (checkSql != null) {
+        final constraint = check.peek('constraint')?.stringValue;
         if (constraint != null) {
-          buffer.write(' CONSTRAINT $constraint CHECK($checkExpr)');
+          buffer.write(' CONSTRAINT $constraint CHECK($checkSql)');
         } else {
-          buffer.write(' CHECK($checkExpr)');
+          buffer.write(' CHECK($checkSql)');
         }
-      } else if (constraint != null) {
-        // If no checker, treat constraint as the expression
-        buffer.write(' CHECK($constraint)');
       }
     }
 
@@ -444,6 +429,78 @@ END;''';
           (m) => '${m[1]}_${m[2]!.toLowerCase()}',
         )
         .toLowerCase();
+  }
+
+  String? _getCheckSql(ConstantReader reader, String columnName) {
+    if (reader.isNull) return null;
+
+    if (_checkInListChecker.isExactlyType(reader.objectValue.type!)) {
+      final values = reader.read('values').listValue.map((v) {
+        final r = ConstantReader(v);
+        if (r.isString) return "'${r.stringValue}'";
+        return r.objectValue.toString();
+      }).join(', ');
+      return '$columnName IN ($values)';
+    }
+
+    if (_checkRangeChecker.isExactlyType(reader.objectValue.type!)) {
+      final min = _readNum(reader.read('min'));
+      final max = _readNum(reader.read('max'));
+      if (min != null && max != null) {
+        return '$columnName BETWEEN $min AND $max';
+      }
+      if (min != null) return '$columnName >= $min';
+      if (max != null) return '$columnName <= $max';
+      return null;
+    }
+
+    if (_checkComparisonChecker.isExactlyType(reader.objectValue.type!)) {
+      final value = _readNum(reader.read('value'));
+      final operator = reader.read('operator').stringValue;
+      return '$columnName $operator $value';
+    }
+
+    if (_checkLengthChecker.isExactlyType(reader.objectValue.type!)) {
+      final min = reader.peek('min')?.intValue;
+      final max = reader.peek('max')?.intValue;
+      final lengthExpr = 'LENGTH($columnName)';
+      if (min != null && max != null) {
+        return '$lengthExpr BETWEEN $min AND $max';
+      }
+      if (min != null) return '$lengthExpr >= $min';
+      if (max != null) return '$lengthExpr <= $max';
+      return null;
+    }
+
+    if (_checkCustomChecker.isExactlyType(reader.objectValue.type!)) {
+      final sql = reader.read('sql').stringValue;
+      return sql.replaceAll('{column}', columnName);
+    }
+
+    if (_checkCompositeChecker.isExactlyType(reader.objectValue.type!)) {
+      final conditions = reader.read('conditions').listValue;
+      final operator = reader.read('operator').stringValue;
+      final parts = conditions
+          .map((c) => '(${_getCheckSql(ConstantReader(c), columnName)})')
+          .whereType<String>()
+          .join(' $operator ');
+      return parts.isNotEmpty ? parts : null;
+    }
+
+    if (_checkNotChecker.isExactlyType(reader.objectValue.type!)) {
+      final condition = reader.read('condition');
+      final innerSql = _getCheckSql(condition, columnName);
+      return innerSql != null ? 'NOT ($innerSql)' : null;
+    }
+
+    return null;
+  }
+
+  num? _readNum(ConstantReader reader) {
+    if (reader.isNull) return null;
+    if (reader.isInt) return reader.intValue;
+    if (reader.isDouble) return reader.doubleValue;
+    return null;
   }
 }
 

@@ -385,7 +385,7 @@ void main() {
     await database.insert('users', {
       'id': 'u1',
       'first_name': 'Author',
-      'last_name': 'A',
+      'last_name': 'Someone',
       'email': 'a@example.com',
       'phone': '123',
       'gender': 'M',
@@ -397,7 +397,7 @@ void main() {
     await database.insert('users', {
       'id': 'u2',
       'first_name': 'Author',
-      'last_name': 'B',
+      'last_name': 'SomeoneElse',
       'email': 'b@example.com',
       'phone': '123',
       'gender': 'M',
@@ -442,7 +442,7 @@ void main() {
     expect(result.data, hasLength(1));
     expect(result.data[0].title, 'Tech Review');
     expect(result.data[0].user, isNotNull);
-    expect(result.data[0].user!.lastName, 'B');
+    expect(result.data[0].user!.lastName, 'SomeoneElse');
   });
 
   test('Filter main table (Users) by related table (Posts) columns', () async {
@@ -452,7 +452,7 @@ void main() {
     await database.insert('users', {
       'id': 'ua',
       'first_name': 'Author',
-      'last_name': 'A',
+      'last_name': 'Someone',
       'email': 'ua@example.com',
       'phone': '123',
       'gender': 'M',
@@ -464,7 +464,7 @@ void main() {
     await database.insert('users', {
       'id': 'ub',
       'first_name': 'Author',
-      'last_name': 'B',
+      'last_name': 'SomeoneElse',
       'email': 'ub@example.com',
       'phone': '123',
       'gender': 'M',
@@ -498,6 +498,6 @@ void main() {
     final result = await userService.readAll(where: where);
 
     expect(result.data, hasLength(1));
-    expect(result.data[0].lastName, 'A');
+    expect(result.data[0].lastName, 'Someone');
   });
 }

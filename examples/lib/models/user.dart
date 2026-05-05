@@ -64,7 +64,7 @@ class User extends Model with _$SQFlowUserMixin {
 
   @Column(
     type: TEXT(),
-    check: CHECK(['M', 'F', 'Other']),
+    check: CheckInList(['M', 'F', 'Other']),
   )
   final String gender;
 
