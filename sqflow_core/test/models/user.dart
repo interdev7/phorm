@@ -32,7 +32,13 @@ class User extends Model with _$SQFlowUserMixin {
   )
   final String lastName;
 
-  @Column(type: TEXT(), unique: true)
+  @Column(
+    type: TEXT(),
+    unique: true,
+    check: CheckEmail(
+      constraint: 'email_format_check',
+    ),
+  )
   final String email;
 
   @Column(type: TEXT())

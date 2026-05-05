@@ -174,6 +174,15 @@ void _$validateUser(Map<String, dynamic> json, {required String tableName}) {
       constraint: 'last_name_length_check',
     );
   }
+  if (!const CheckEmail(constraint: 'email_format_check')
+      .isValid(json['email'])) {
+    throw SqflowCheckException(
+      table: tableName,
+      column: 'email',
+      message: 'Value "${json['email']}" failed validation',
+      constraint: 'email_format_check',
+    );
+  }
   if (!const CheckInList(['M', 'F', 'Other'], constraint: 'gender_check')
       .isValid(json['gender'])) {
     throw SqflowCheckException(

@@ -70,6 +70,29 @@ void main() {
     });
   });
 
+  test("should throw SqflowCheckException for invalid email", () {
+    final user = User(
+      id: '1',
+      firstName: 'John',
+      lastName: 'Doe',
+      email: 'invalid-email', // Invalid email
+      phone: '123456',
+      gender: 'M',
+      city: 'New York',
+      country: 'USA',
+      isActive: true,
+      isVerified: false,
+    );
+
+    expect(
+      () => user.toJson(),
+      throwsA(isA<SqflowCheckException>()
+          .having((e) => e.table, 'table', 'users')
+          .having((e) => e.column, 'column', 'email')
+          .having((e) => e.constraint, 'constraint', 'email_format_check')),
+    );
+  });
+
   // test("should throw SqflowCheckException for null first_name", () {
   //   final user = User(
   //     id: '1',
