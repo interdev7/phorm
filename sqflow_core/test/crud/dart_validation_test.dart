@@ -1,5 +1,7 @@
 import 'common.dart';
 
+// T unsafeCast<T>(dynamic x) => x as T;
+
 void main() {
   group('Dart-Side Validation Tests', () {
     test('toJson() should throw SqflowCheckException for invalid gender', () {
@@ -67,4 +69,27 @@ void main() {
       expect(json['first_name'], equals('John'));
     });
   });
+
+  // test("should throw SqflowCheckException for null first_name", () {
+  //   final user = User(
+  //     id: '1',
+  //     firstName: unsafeCast<String>(null), // null value on required field
+  //     lastName: 'Doe',
+  //     email: 'john@example.com',
+  //     phone: '123456',
+  //     gender: 'M',
+  //     city: 'New York',
+  //     country: 'USA',
+  //     isActive: true,
+  //     isVerified: false,
+  //   );
+
+  //   expect(
+  //     () => user.toJson(),
+  //     throwsA(isA<SqflowCheckException>()
+  //         .having((e) => e.table, 'table', 'users')
+  //         .having((e) => e.column, 'column', 'first_name')
+  //         .having((e) => e.constraint, 'constraint', 'null_field')),
+  //   );
+  // });
 }

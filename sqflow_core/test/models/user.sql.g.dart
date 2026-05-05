@@ -14,7 +14,7 @@ CREATE TABLE users (
   email TEXT NOT NULL UNIQUE,
   phone TEXT NOT NULL,
   birth_date TEXT,
-  age INTEGER CONSTRAINT age_check CHECK(age BETWEEN 0 AND 120),
+  age INTEGER,
   gender TEXT NOT NULL CONSTRAINT gender_check CHECK(gender IN ('M', 'F', 'Other')),
   city TEXT NOT NULL,
   country TEXT NOT NULL,
@@ -172,15 +172,6 @@ void _$validateUser(Map<String, dynamic> json, {required String tableName}) {
       column: 'last_name',
       message: 'Value "${json['last_name']}" failed validation',
       constraint: 'last_name_length_check',
-    );
-  }
-  if (!const CheckRange(min: 0, max: 120, constraint: 'age_check')
-      .isValid(json['age'])) {
-    throw SqflowCheckException(
-      table: tableName,
-      column: 'age',
-      message: 'Value "${json['age']}" failed validation',
-      constraint: 'age_check',
     );
   }
   if (!const CheckInList(['M', 'F', 'Other'], constraint: 'gender_check')

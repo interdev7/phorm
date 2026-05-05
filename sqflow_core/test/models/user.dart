@@ -41,10 +41,7 @@ class User extends Model with _$SQFlowUserMixin {
   @Column(type: TEXT())
   final String? birthDate;
 
-  @Column(
-    type: INTEGER(),
-    check: CheckRange(min: 0, max: 120, constraint: 'age_check'),
-  )
+  @Column(type: INTEGER())
   final int? age;
 
   @Column(
