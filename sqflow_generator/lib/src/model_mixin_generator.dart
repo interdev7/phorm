@@ -3,7 +3,7 @@ import 'package:analyzer/dart/constant/value.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:build/build.dart';
 import 'package:source_gen/source_gen.dart';
-import 'package:sqflow_platform_interface/src/annotations.dart';
+import 'package:sqflow_platform_interface/sqflow_platform_interface.dart';
 
 import 'metadata_extractor.dart';
 
@@ -293,6 +293,19 @@ class ModelMixinGenerator extends GeneratorForAnnotation<Schema> {
           final revived = check.revive();
           final constString = _reviveToCheckCode(revived);
 
+          // final isNullable =
+          //   field.type.nullabilitySuffix == NullabilitySuffix.question;
+          // if (!isNullable) {
+          //   buffer
+          //     ..writeln("if (json['$sqlName'] == null) {")
+          //     ..writeln('    throw SqflowCheckException(')
+          //     ..writeln('      table: tableName,')
+          //     ..writeln("      column: '$sqlName',")
+          //     ..writeln(
+          //         '      message: \'Value "\${json[\'$sqlName\']}" is required\', constraint: \'null_field\',')
+          //     ..writeln('    );')
+          //     ..writeln('  }');
+          // }
           buffer
             ..writeln("  if (!const $constString.isValid(json['$sqlName'])) {")
             ..writeln('    throw SqflowCheckException(')
