@@ -20,10 +20,16 @@ class User extends Model with _$SQFlowUserMixin {
   @override
   final String id;
 
-  @Column(type: TEXT())
+  @Column(
+    type: TEXT(),
+    check: CheckLength(min: 3, max: 30, constraint: 'name_length_check'),
+  )
   final String firstName;
 
-  @Column(type: TEXT())
+  @Column(
+    type: TEXT(),
+    check: CheckLength(min: 3, max: 30, constraint: 'last_name_length_check'),
+  )
   final String lastName;
 
   @Column(type: TEXT(), unique: true)
@@ -35,12 +41,15 @@ class User extends Model with _$SQFlowUserMixin {
   @Column(type: TEXT())
   final String? birthDate;
 
-  @Column(type: INTEGER())
+  @Column(
+    type: INTEGER(),
+    check: CheckRange(min: 0, max: 120, constraint: 'age_check'),
+  )
   final int? age;
 
   @Column(
     type: TEXT(),
-    check: CHECK(['M', 'F', 'Other'], constraint: 'gender_check'),
+    check: CheckInList(['M', 'F', 'Other'], constraint: 'gender_check'),
   )
   final String gender;
 

@@ -38,7 +38,10 @@ void main() {
 
       expect(
         () async => await service.insertAsync(badUser),
-        throwsA(isA<DatabaseException>()),
+        throwsA(isA<SqflowCheckException>()
+            .having((e) => e.table, 'table', 'users')
+            .having((e) => e.column, 'column', 'gender')
+            .having((e) => e.constraint, 'constraint', 'gender_check')),
       );
     });
   });

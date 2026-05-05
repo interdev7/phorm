@@ -1,10 +1,11 @@
 // lib/builder.dart
-import 'package:path/path.dart' as p;
 import 'package:build/build.dart';
+import 'package:path/path.dart' as p;
 import 'package:source_gen/source_gen.dart';
-import 'src/sqlite_schema_generator.dart';
-import 'src/model_mixin_generator.dart';
 import 'package:sqflow_platform_interface/src/annotations.dart';
+
+import 'src/model_mixin_generator.dart';
+import 'src/sqlite_schema_generator.dart';
 
 Builder sqlSchemaBuilder(BuilderOptions options) {
   return SharedPartBuilder(
@@ -27,8 +28,9 @@ class _SqflowCombinedGenerator extends Generator {
   @override
   Future<String> generate(LibraryReader library, BuildStep buildStep) async {
     final buffer = StringBuffer();
-    final annotated = library.annotatedWith(const TypeChecker.fromRuntime(Schema));
-    
+    final annotated =
+        library.annotatedWith(const TypeChecker.fromRuntime(Schema));
+
     if (annotated.isEmpty) return '';
 
     final fileName = p.basename(buildStep.inputId.path);
@@ -49,7 +51,7 @@ class _SqflowCombinedGenerator extends Generator {
       );
       buffer.writeln(mixinResult);
     }
-    
+
     buffer.writeln(r'''
 dynamic _$SQFlowToJsonValue(dynamic value) {
   if (value == null) return null;

@@ -62,7 +62,7 @@ mixin _$SQFlowMigrationUserMixin {
 
 extension SQFlowMigrationUserSqlExt on MigrationUser {
   Map<String, dynamic> _$SQFlowMigrationUserToJson() {
-    return {
+    final migrationuserJson = {
       'id': _$SQFlowToJsonValue(id),
       'name': _$SQFlowToJsonValue(name),
       'email': _$SQFlowToJsonValue(email),
@@ -71,6 +71,9 @@ extension SQFlowMigrationUserSqlExt on MigrationUser {
       'created_at': _$SQFlowToJsonValue(createdAt),
       'updated_at': _$SQFlowToJsonValue(updatedAt),
     };
+    _$validateMigrationUser(migrationuserJson, tableName: 'migration_users');
+
+    return migrationuserJson;
   }
 
   MigrationUser copyWith({
@@ -93,6 +96,9 @@ extension SQFlowMigrationUserSqlExt on MigrationUser {
       ..updatedAt = updatedAt ?? this.updatedAt;
   }
 }
+
+void _$validateMigrationUser(Map<String, dynamic> json,
+    {required String tableName}) {}
 
 MigrationUser _$SQFlowMigrationUserFromJson(Map<String, dynamic> json) {
   final instance = MigrationUser(
