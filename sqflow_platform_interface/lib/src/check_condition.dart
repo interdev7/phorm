@@ -183,11 +183,11 @@ class CheckComparison extends ICHECK {
 }
 
 class CheckRegExp extends ICHECK {
-  final RegExp regex;
+  final String pattern;
   @override
   final String? constraint;
 
-  const CheckRegExp(this.regex, {this.constraint});
+  const CheckRegExp(this.pattern, {this.constraint});
 
   @override
   String toSql(String columnName) {
@@ -196,7 +196,7 @@ class CheckRegExp extends ICHECK {
 
   @override
   bool isValid(dynamic value) {
-    return regex.hasMatch(value.toString());
+    return RegExp(pattern).hasMatch(value.toString());
   }
 }
 
