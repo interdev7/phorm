@@ -65,7 +65,9 @@ class _ValidationDemoPageState extends State<ValidationDemoPage> {
       lastName: _lastNameCtrl.text.trim(),
       email: _emailCtrl.text.trim(),
       phone: _phoneCtrl.text.trim(),
-      birthDate: _birthDateCtrl.text.trim().isEmpty ? null : _birthDateCtrl.text.trim(),
+      birthDate: _birthDateCtrl.text.trim().isEmpty
+          ? null
+          : _birthDateCtrl.text.trim(),
       city: _cityCtrl.text.trim(),
       country: _countryCtrl.text.trim(),
       address: _addressCtrl.text.trim(),
@@ -75,7 +77,8 @@ class _ValidationDemoPageState extends State<ValidationDemoPage> {
     try {
       await _userService.insertAsync(user);
       setState(() {
-        _successMessage = 'User "${user.firstName} ${user.lastName}" created successfully!';
+        _successMessage =
+            'User "${user.firstName} ${user.lastName}" created successfully!';
         _isLoading = false;
       });
     } on SqflowJSONValidatorException catch (e) {
@@ -102,7 +105,8 @@ class _ValidationDemoPageState extends State<ValidationDemoPage> {
   void _fillValid() {
     _firstNameCtrl.text = 'Alice';
     _lastNameCtrl.text = 'Smith';
-    _emailCtrl.text = 'alice${DateTime.now().millisecondsSinceEpoch}@example.com';
+    _emailCtrl.text =
+        'alice${DateTime.now().millisecondsSinceEpoch}@example.com';
     _phoneCtrl.text = '+359888123456';
     _birthDateCtrl.text = '1990-05-21';
     _cityCtrl.text = 'Sofia';
@@ -114,7 +118,8 @@ class _ValidationDemoPageState extends State<ValidationDemoPage> {
   void _fillInvalidJson() {
     _firstNameCtrl.text = 'Alice';
     _lastNameCtrl.text = 'Smith';
-    _emailCtrl.text = 'NOT-AN-EMAIL'; // EmailValidator → SqflowJSONValidatorException
+    _emailCtrl.text =
+        'NOT-AN-EMAIL'; // EmailValidator → SqflowJSONValidatorException
     _phoneCtrl.text = '+359888123456';
     _birthDateCtrl.text = '1990-05-21';
     _cityCtrl.text = 'Sofia';
@@ -124,7 +129,8 @@ class _ValidationDemoPageState extends State<ValidationDemoPage> {
   }
 
   void _fillInvalidCheck() {
-    _firstNameCtrl.text = 'Al'; // LengthValidator(min:2) → SqflowCHECKValidatorException
+    _firstNameCtrl.text =
+        'A'; // LengthValidator(min:2) → SqflowCHECKValidatorException
     _lastNameCtrl.text = 'Smith';
     _emailCtrl.text = 'alice2@example.com';
     _phoneCtrl.text = '+359888999000';
@@ -173,7 +179,10 @@ class _ValidationDemoPageState extends State<ValidationDemoPage> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text('Validation Demo',
-                style: GoogleFonts.inter(fontWeight: FontWeight.w700, fontSize: 20, color: Colors.white)),
+                style: GoogleFonts.inter(
+                    fontWeight: FontWeight.w700,
+                    fontSize: 20,
+                    color: Colors.white)),
             Text('IJsonValidator · ICheckValidator · Exceptions',
                 style: GoogleFonts.inter(fontSize: 10, color: Colors.white54)),
           ],
@@ -190,7 +199,8 @@ class _ValidationDemoPageState extends State<ValidationDemoPage> {
             padding: const EdgeInsets.fromLTRB(16, 48, 16, 16),
             child: Align(
               alignment: Alignment.topRight,
-              child: Icon(Icons.verified_user, size: 64, color: Colors.white.withOpacity(0.15)),
+              child: Icon(Icons.verified_user,
+                  size: 64, color: Colors.white.withOpacity(0.15)),
             ),
           ),
         ),
@@ -216,7 +226,8 @@ class _ValidationDemoPageState extends State<ValidationDemoPage> {
             child: Text(
               'Sqflow validates data on the Dart side before any DB write. '
               'Use the buttons below to trigger different exception types.',
-              style: GoogleFonts.inter(fontSize: 12, color: Colors.white70, height: 1.5),
+              style: GoogleFonts.inter(
+                  fontSize: 12, color: Colors.white70, height: 1.5),
             ),
           ),
         ],
@@ -229,15 +240,21 @@ class _ValidationDemoPageState extends State<ValidationDemoPage> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text('Quick Fill',
-            style: GoogleFonts.inter(fontSize: 11, color: Colors.white38, fontWeight: FontWeight.w700, letterSpacing: 1)),
+            style: GoogleFonts.inter(
+                fontSize: 11,
+                color: Colors.white38,
+                fontWeight: FontWeight.w700,
+                letterSpacing: 1)),
         const SizedBox(height: 8),
         Wrap(
           spacing: 8,
           runSpacing: 8,
           children: [
             _chip('✅ Valid Data', const Color(0xFF00C896), _fillValid),
-            _chip('🔴 Bad Email (JSON)', const Color(0xFF4FACFE), _fillInvalidJson),
-            _chip('🔴 Short Name (CHECK)', const Color(0xFFFF6B6B), _fillInvalidCheck),
+            _chip('🔴 Bad Email (JSON)', const Color(0xFF4FACFE),
+                _fillInvalidJson),
+            _chip('🔴 Short Name (CHECK)', const Color(0xFFFF6B6B),
+                _fillInvalidCheck),
           ],
         ),
       ],
@@ -254,7 +271,9 @@ class _ValidationDemoPageState extends State<ValidationDemoPage> {
           borderRadius: BorderRadius.circular(20),
           border: Border.all(color: color.withOpacity(0.4)),
         ),
-        child: Text(label, style: GoogleFonts.inter(fontSize: 12, color: color, fontWeight: FontWeight.w600)),
+        child: Text(label,
+            style: GoogleFonts.inter(
+                fontSize: 12, color: color, fontWeight: FontWeight.w600)),
       ),
     );
   }
@@ -268,16 +287,21 @@ class _ValidationDemoPageState extends State<ValidationDemoPage> {
           _sectionLabel('Identity'),
           Row(
             children: [
-              Expanded(child: _field('First Name', _firstNameCtrl, hint: 'Alice')),
+              Expanded(
+                  child: _field('First Name', _firstNameCtrl, hint: 'Alice')),
               const SizedBox(width: 12),
-              Expanded(child: _field('Last Name', _lastNameCtrl, hint: 'Smith')),
+              Expanded(
+                  child: _field('Last Name', _lastNameCtrl, hint: 'Smith')),
             ],
           ),
           const SizedBox(height: 12),
           _sectionLabel('Contact'),
-          _field('Email', _emailCtrl, hint: 'alice@example.com', keyboardType: TextInputType.emailAddress),
+          _field('Email', _emailCtrl,
+              hint: 'alice@example.com',
+              keyboardType: TextInputType.emailAddress),
           const SizedBox(height: 12),
-          _field('Phone', _phoneCtrl, hint: '+359888123456', keyboardType: TextInputType.phone),
+          _field('Phone', _phoneCtrl,
+              hint: '+359888123456', keyboardType: TextInputType.phone),
           const SizedBox(height: 12),
           _sectionLabel('Profile'),
           _field('Birth Date', _birthDateCtrl, hint: '1990-05-21'),
@@ -296,7 +320,11 @@ class _ValidationDemoPageState extends State<ValidationDemoPage> {
             child: ElevatedButton.icon(
               onPressed: _isLoading ? null : _submit,
               icon: _isLoading
-                  ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+                  ? const SizedBox(
+                      width: 18,
+                      height: 18,
+                      child: CircularProgressIndicator(
+                          strokeWidth: 2, color: Colors.white))
                   : const Icon(Icons.save_alt_rounded),
               label: Text(_isLoading ? 'Creating...' : 'Create User'),
             ),
@@ -311,12 +339,17 @@ class _ValidationDemoPageState extends State<ValidationDemoPage> {
       padding: const EdgeInsets.only(bottom: 8),
       child: Text(
         text.toUpperCase(),
-        style: GoogleFonts.inter(fontSize: 10, color: Colors.white38, fontWeight: FontWeight.w700, letterSpacing: 1.2),
+        style: GoogleFonts.inter(
+            fontSize: 10,
+            color: Colors.white38,
+            fontWeight: FontWeight.w700,
+            letterSpacing: 1.2),
       ),
     );
   }
 
-  Widget _field(String label, TextEditingController ctrl, {String? hint, TextInputType? keyboardType}) {
+  Widget _field(String label, TextEditingController ctrl,
+      {String? hint, TextInputType? keyboardType}) {
     return TextFormField(
       controller: ctrl,
       keyboardType: keyboardType,
@@ -338,10 +371,14 @@ class _ValidationDemoPageState extends State<ValidationDemoPage> {
               margin: EdgeInsets.only(right: g != 'Other' ? 8 : 0),
               padding: const EdgeInsets.symmetric(vertical: 12),
               decoration: BoxDecoration(
-                color: selected ? const Color(0xFF6C63FF).withOpacity(0.2) : const Color(0xFF1A1A2E),
+                color: selected
+                    ? const Color(0xFF6C63FF).withOpacity(0.2)
+                    : const Color(0xFF1A1A2E),
                 borderRadius: BorderRadius.circular(12),
                 border: Border.all(
-                  color: selected ? const Color(0xFF6C63FF) : Colors.white.withOpacity(0.1),
+                  color: selected
+                      ? const Color(0xFF6C63FF)
+                      : Colors.white.withOpacity(0.1),
                   width: selected ? 2 : 1,
                 ),
               ),
@@ -350,7 +387,9 @@ class _ValidationDemoPageState extends State<ValidationDemoPage> {
                     style: GoogleFonts.inter(
                         fontSize: 13,
                         fontWeight: FontWeight.w600,
-                        color: selected ? const Color(0xFF6C63FF) : Colors.white54)),
+                        color: selected
+                            ? const Color(0xFF6C63FF)
+                            : Colors.white54)),
               ),
             ),
           ),
@@ -376,14 +415,20 @@ class _ValidationDemoPageState extends State<ValidationDemoPage> {
             Row(children: [
               Icon(Icons.error_outline, color: color, size: 18),
               const SizedBox(width: 8),
-              Text(_errorType!, style: GoogleFonts.jetBrainsMono(fontSize: 12, color: color, fontWeight: FontWeight.w700)),
+              Text(_errorType!,
+                  style: GoogleFonts.jetBrainsMono(
+                      fontSize: 12, color: color, fontWeight: FontWeight.w700)),
             ]),
             const SizedBox(height: 10),
             Container(
               width: double.infinity,
               padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(color: const Color(0xFF0F0F1A), borderRadius: BorderRadius.circular(8)),
-              child: Text(_errorMessage!, style: GoogleFonts.jetBrainsMono(fontSize: 12, color: Colors.white70, height: 1.6)),
+              decoration: BoxDecoration(
+                  color: const Color(0xFF0F0F1A),
+                  borderRadius: BorderRadius.circular(8)),
+              child: Text(_errorMessage!,
+                  style: GoogleFonts.jetBrainsMono(
+                      fontSize: 12, color: Colors.white70, height: 1.6)),
             ),
           ],
         ),
@@ -399,9 +444,13 @@ class _ValidationDemoPageState extends State<ValidationDemoPage> {
           border: Border.all(color: const Color(0xFF00C896).withOpacity(0.4)),
         ),
         child: Row(children: [
-          const Icon(Icons.check_circle_outline, color: Color(0xFF00C896), size: 20),
+          const Icon(Icons.check_circle_outline,
+              color: Color(0xFF00C896), size: 20),
           const SizedBox(width: 10),
-          Expanded(child: Text(_successMessage!, style: GoogleFonts.inter(color: const Color(0xFF00C896), fontSize: 13))),
+          Expanded(
+              child: Text(_successMessage!,
+                  style: GoogleFonts.inter(
+                      color: const Color(0xFF00C896), fontSize: 13))),
         ]),
       );
     }
