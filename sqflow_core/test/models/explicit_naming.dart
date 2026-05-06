@@ -7,17 +7,17 @@ part 'explicit_naming.sql.g.dart';
   columnNaming: ColumnNamingStrategy.snakeCase,
 )
 class ExplicitNaming extends Model with _$SQFlowExplicitNamingMixin {
-  @ID(type: TEXT(), columnName: 'custom_id')
+  @ID( columnName: 'custom_id')
   @override
   final String id;
 
-  @Column(type: TEXT(), columnName: 'custom_name')
+  @Column( columnName: 'custom_name')
   final String name;
 
-  @Column(type: INTEGER(), columnName: 'custom_age')
+  @Column( columnName: 'custom_age')
   final int age;
 
-  @Column(type: INTEGER(), columnName: 'is_verified')
+  @Column( columnName: 'is_verified')
   bool isVerified;
 
   ExplicitNaming({

@@ -60,22 +60,37 @@ class MetadataExtractor {
       if (element is ClassElement) {
         final idField = element.fields.firstWhere((f) =>
             f.metadata.any((m) => m.element?.enclosingElement3?.name == 'ID'));
-        final idMeta = idField.metadata
-            .firstWhere((m) => m.element?.enclosingElement3?.name == 'ID');
-        final typeReader =
-            ConstantReader(idMeta.computeConstantValue()).read('type');
-        final typeName = typeReader.peek('name')?.stringValue ??
-            typeReader.objectValue.type?.element?.name ??
-            typeReader.revive().accessor.split('.').last;
-
-        if (typeName == 'INTEGER') return 'INTEGER';
-        if (typeName == 'REAL') return 'REAL';
-        if (typeName == 'BLOB') return 'BLOB';
-        if (typeName == 'NUMERIC') return 'NUMERIC';
-        return 'TEXT';
+        
+        return resolveSqlType(idField);
       }
     } catch (_) {}
     return null;
+  }
+
+  static String resolveSqlType(FieldElement field) {
+    final meta = field.metadata.where((m) {
+      final name = m.element?.enclosingElement3?.name;
+      return name == 'Column' || name == 'ID';
+    }).firstOrNull;
+
+    if (meta != null) {
+      final reader = ConstantReader(meta.computeConstantValue());
+      final explicitType = reader.peek('sqlType')?.stringValue;
+      if (explicitType != null) return explicitType;
+    }
+
+    final type = field.type;
+    if (type.isDartCoreInt) return 'INTEGER';
+    if (type.isDartCoreDouble) return 'REAL';
+    if (type.isDartCoreBool) return 'INTEGER';
+    if (type.isDartCoreString) return 'TEXT';
+    
+    final typeName = type.element?.name;
+    if (typeName == 'num') return 'NUMERIC';
+    if (typeName == 'DateTime') return 'TEXT';
+    if (typeName == 'Uint8List') return 'BLOB';
+    
+    return 'TEXT';
   }
 
   static String camelToSnake(String input) {

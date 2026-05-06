@@ -15,17 +15,17 @@ class Post extends Model with _$SQFlowPostMixin {
 
   factory Post.fromJson(Map<String, dynamic> json) => _$SQFlowPostFromJson(json);
 
-  @ID(type: INTEGER(), autoIncrement: true)
+  @ID( autoIncrement: true)
   @override
   final int id;
 
-  @Column(type: TEXT())
+  @Column()
   final String title;
 
-  @Column(type: TEXT())
+  @Column()
   final String content;
 
-  @Column(type: TEXT())
+  @Column()
   final String userId;
 
   @Join(model: 'users', foreignKey: 'user_id')

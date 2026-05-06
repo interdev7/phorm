@@ -4,7 +4,9 @@ import 'common.dart';
 
 void main() {
   group('Dart-Side Validation Tests', () {
-    test('toJson() should throw SqflowCheckException for invalid gender', () {
+    test(
+        'toJson() should throw SqflowCHECKValidatorException for invalid gender',
+        () {
       final user = User(
         id: '1',
         firstName: 'John',
@@ -20,14 +22,16 @@ void main() {
 
       expect(
         () => user.toJson(),
-        throwsA(isA<SqflowCheckException>()
+        throwsA(isA<SqflowCHECKValidatorException>()
             .having((e) => e.table, 'table', 'users')
             .having((e) => e.column, 'column', 'gender')
             .having((e) => e.constraint, 'constraint', 'gender_check')),
       );
     });
 
-    test('toJson() should throw SqflowCheckException for short firstName', () {
+    test(
+        'toJson() should throw SqflowCHECKValidatorException for short firstName',
+        () {
       final user = User(
         id: '1',
         firstName: 'Jo', // Too short (min 3)
@@ -43,9 +47,9 @@ void main() {
 
       expect(
         () => user.toJson(),
-        throwsA(isA<SqflowCheckException>()
+        throwsA(isA<SqflowCHECKValidatorException>()
             .having((e) => e.column, 'column', 'first_name')
-            .having((e) => e.constraint, 'constraint', 'name_length_check')),
+            .having((e) => e.constraint, 'constraint', 'first_name_length_check')),
       );
     });
 
@@ -70,7 +74,7 @@ void main() {
     });
   });
 
-  test("should throw SqflowCheckException for invalid email", () {
+  test("should throw SqflowJSONValidatorException for invalid email", () {
     final user = User(
       id: '1',
       firstName: 'John',
@@ -86,7 +90,7 @@ void main() {
 
     expect(
       () => user.toJson(),
-      throwsA(isA<SqflowCheckException>()
+      throwsA(isA<SqflowJSONValidatorException>()
           .having((e) => e.table, 'table', 'users')
           .having((e) => e.column, 'column', 'email')
           .having((e) => e.constraint, 'constraint', 'email_format_check')),

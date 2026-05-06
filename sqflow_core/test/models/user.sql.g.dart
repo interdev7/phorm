@@ -9,10 +9,10 @@ part of 'user.dart';
 const _$SQFlowUserSchema = """
 CREATE TABLE users (
   id TEXT PRIMARY KEY NOT NULL UNIQUE,
-  first_name TEXT NOT NULL CONSTRAINT name_length_check CHECK(LENGTH(first_name) BETWEEN 3 AND 30),
+  first_name TEXT NOT NULL CONSTRAINT first_name_length_check CHECK(LENGTH(first_name) BETWEEN 3 AND 30),
   last_name TEXT NOT NULL CONSTRAINT last_name_length_check CHECK(LENGTH(last_name) BETWEEN 3 AND 30),
   email TEXT NOT NULL UNIQUE,
-  phone TEXT NOT NULL,
+  phone TEXT NOT NULL CONSTRAINT phone_length_check CHECK(LENGTH(phone) BETWEEN 6 AND 15),
   birth_date TEXT,
   age INTEGER,
   gender TEXT NOT NULL CONSTRAINT gender_check CHECK(gender IN ('M', 'F', 'Other')),
@@ -122,11 +122,11 @@ extension SQFlowUserSqlExt on User {
     String? lastName,
     String? email,
     String? phone,
-    String? birthDate,
-    int? age,
     String? gender,
     String? city,
     String? country,
+    String? birthDate,
+    int? age,
     String? address,
     bool? isActive,
     bool? isVerified,
@@ -140,11 +140,11 @@ extension SQFlowUserSqlExt on User {
       lastName: lastName ?? this.lastName,
       email: email ?? this.email,
       phone: phone ?? this.phone,
-      birthDate: birthDate ?? this.birthDate,
-      age: age ?? this.age,
       gender: gender ?? this.gender,
       city: city ?? this.city,
       country: country ?? this.country,
+      birthDate: birthDate ?? this.birthDate,
+      age: age ?? this.age,
       address: address ?? this.address,
       isActive: isActive ?? this.isActive,
       isVerified: isVerified ?? this.isVerified,
@@ -156,40 +156,116 @@ extension SQFlowUserSqlExt on User {
 }
 
 void _$validateUser(Map<String, dynamic> json, {required String tableName}) {
-  if (!const CheckLength(min: 3, max: 30, constraint: 'name_length_check')
+  if (!const LengthValidator(
+          min: 3, max: 30, constraint: "first_name_length_check")
       .isValid(json['first_name'])) {
-    throw SqflowCheckException(
+    throw SqflowCHECKValidatorException(
       table: tableName,
       column: 'first_name',
       message: 'Value "${json['first_name']}" failed validation',
-      constraint: 'name_length_check',
+      constraint: 'first_name_length_check',
     );
   }
-  if (!const CheckLength(min: 3, max: 30, constraint: 'last_name_length_check')
+  if (!const NotEmptyValidator().isValid(json['first_name'])) {
+    throw SqflowCHECKValidatorException(
+      table: tableName,
+      column: 'first_name',
+      message: 'Value "${json['first_name']}" failed validation',
+    );
+  }
+  if (!const LengthValidator(
+          min: 3, max: 30, constraint: "last_name_length_check")
       .isValid(json['last_name'])) {
-    throw SqflowCheckException(
+    throw SqflowCHECKValidatorException(
       table: tableName,
       column: 'last_name',
       message: 'Value "${json['last_name']}" failed validation',
       constraint: 'last_name_length_check',
     );
   }
-  if (!const CheckEmail(constraint: 'email_format_check')
+  if (!const NotEmptyValidator().isValid(json['last_name'])) {
+    throw SqflowCHECKValidatorException(
+      table: tableName,
+      column: 'last_name',
+      message: 'Value "${json['last_name']}" failed validation',
+    );
+  }
+  if (!const EmailValidator(constraint: "email_format_check")
       .isValid(json['email'])) {
-    throw SqflowCheckException(
+    throw SqflowJSONValidatorException(
       table: tableName,
       column: 'email',
       message: 'Value "${json['email']}" failed validation',
       constraint: 'email_format_check',
     );
   }
-  if (!const CheckInList(['M', 'F', 'Other'], constraint: 'gender_check')
+  if (!const NotEmptyValidator().isValid(json['email'])) {
+    throw SqflowCHECKValidatorException(
+      table: tableName,
+      column: 'email',
+      message: 'Value "${json['email']}" failed validation',
+    );
+  }
+  if (!const IsNumberValidator().isValid(json['phone'])) {
+    throw SqflowJSONValidatorException(
+      table: tableName,
+      column: 'phone',
+      message: 'Value "${json['phone']}" failed validation',
+    );
+  }
+  if (!const NotEmptyValidator().isValid(json['phone'])) {
+    throw SqflowCHECKValidatorException(
+      table: tableName,
+      column: 'phone',
+      message: 'Value "${json['phone']}" failed validation',
+    );
+  }
+  if (!const LengthValidator(min: 6, max: 15, constraint: "phone_length_check")
+      .isValid(json['phone'])) {
+    throw SqflowCHECKValidatorException(
+      table: tableName,
+      column: 'phone',
+      message: 'Value "${json['phone']}" failed validation',
+      constraint: 'phone_length_check',
+    );
+  }
+  if (!const RegExpValidator("\\d{4}-\\d{2}-\\d{2}", constraint: "date_format")
+      .isValid(json['birth_date'])) {
+    throw SqflowJSONValidatorException(
+      table: tableName,
+      column: 'birth_date',
+      message: 'Value "${json['birth_date']}" failed validation',
+      constraint: 'date_format',
+    );
+  }
+  if (!const ContainsValidator(["M", "F", "Other"], constraint: "gender_check")
       .isValid(json['gender'])) {
-    throw SqflowCheckException(
+    throw SqflowCHECKValidatorException(
       table: tableName,
       column: 'gender',
       message: 'Value "${json['gender']}" failed validation',
       constraint: 'gender_check',
+    );
+  }
+  if (!const NotEmptyValidator().isValid(json['gender'])) {
+    throw SqflowCHECKValidatorException(
+      table: tableName,
+      column: 'gender',
+      message: 'Value "${json['gender']}" failed validation',
+    );
+  }
+  if (!const NotEmptyValidator().isValid(json['city'])) {
+    throw SqflowCHECKValidatorException(
+      table: tableName,
+      column: 'city',
+      message: 'Value "${json['city']}" failed validation',
+    );
+  }
+  if (!const NotEmptyValidator().isValid(json['country'])) {
+    throw SqflowCHECKValidatorException(
+      table: tableName,
+      column: 'country',
+      message: 'Value "${json['country']}" failed validation',
     );
   }
 }
@@ -201,11 +277,11 @@ User _$SQFlowUserFromJson(Map<String, dynamic> json) {
     lastName: json['last_name'] as String,
     email: json['email'] as String,
     phone: json['phone'] as String,
-    birthDate: json['birth_date'] as String?,
-    age: json['age'] as int?,
     gender: json['gender'] as String,
     city: json['city'] as String,
     country: json['country'] as String,
+    birthDate: json['birth_date'] as String?,
+    age: json['age'] as int?,
     address: json['address'] as String?,
     isActive: json['is_active'] is bool
         ? json['is_active'] as bool

@@ -6,20 +6,20 @@ part 'migration_user.sql.g.dart';
   tableName: 'migration_users',
 )
 class MigrationUser extends Model with _$SQFlowMigrationUserMixin {
-  @ID(type: TEXT(), autoIncrement: false)
+  @ID( autoIncrement: false)
   @override
   final String id;
 
-  @Column(type: TEXT())
+  @Column()
   final String name;
 
-  @Column(type: TEXT())
+  @Column()
   final String? email;
 
-  @Column(type: INTEGER())
+  @Column()
   final int? age;
 
-  @Column(type: INTEGER(), defaultValue: true)
+  @Column( defaultValue: true)
   final bool isActive;
 
   MigrationUser({

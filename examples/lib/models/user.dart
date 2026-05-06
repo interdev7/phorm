@@ -40,47 +40,47 @@ class User extends Model with _$SQFlowUserMixin {
 
   factory User.fromJson(Map<String, dynamic> json) =>
       _$SQFlowUserFromJson(json);
-  @ID(type: TEXT(), autoIncrement: false, unique: true)
+  @ID( autoIncrement: false, unique: true)
   @override
   final String id;
 
-  @Column(type: TEXT())
+  @Column()
   final String firstName;
 
-  @Column(type: TEXT())
+  @Column()
   final String lastName;
 
-  @Column(type: TEXT(), unique: true)
+  @Column( unique: true)
   final String email;
 
-  @Column(type: TEXT())
+  @Column()
   final String phone;
 
-  @Column(type: TEXT())
+  @Column()
   final String? birthDate;
 
-  @Column(type: INTEGER())
+  @Column()
   final int? age;
 
   @Column(
-    type: TEXT(),
-    check: CheckInList(['M', 'F', 'Other']),
+    
+    check: ContainsValidator(['M', 'F', 'Other']),
   )
   final String gender;
 
-  @Column(type: TEXT())
+  @Column()
   final String city;
 
-  @Column(type: TEXT())
+  @Column()
   final String country;
 
-  @Column(type: TEXT())
+  @Column()
   final String address;
 
-  @Column(type: INTEGER(), defaultValue: true)
+  @Column( defaultValue: true)
   final bool isActive;
 
-  @Column(type: INTEGER(), defaultValue: false)
+  @Column( defaultValue: false)
   final bool isVerified;
 
   @override

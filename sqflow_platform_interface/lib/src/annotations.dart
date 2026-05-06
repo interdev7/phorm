@@ -1,6 +1,4 @@
-import 'package:sqflow_platform_interface/src/check_condition.dart';
-
-import 'data_type.dart';
+import 'package:sqflow_platform_interface/src/json_validators.dart';
 
 /// Strategy for naming database columns.
 enum ColumnNamingStrategy {
@@ -26,7 +24,10 @@ abstract class ColumnBase {
   final String? columnName;
 
   /// Database data type of the column.
-  final DataType type;
+  /// 
+  /// By default, the generator infers this from the Dart field type.
+  /// If you want to explicitly override the SQLite type (e.g. 'VARCHAR(255)', 'JSON'), set this field.
+  final String? sqlType;
 
   /// Whether the column enforces uniqueness.
   ///
@@ -39,14 +40,14 @@ abstract class ColumnBase {
   /// Optional value constraint.
   ///
   /// Can be used to restrict allowed values.
-  final ICHECK? check;
+  final List<IValidator>? validators;
 
   const ColumnBase({
-    required this.type,
+    this.sqlType,
     this.columnName,
     this.unique = false,
     this.defaultValue,
-    this.check,
+    this.validators,
   });
 }
 
@@ -55,11 +56,11 @@ abstract class ColumnBase {
 /// Used for most non-key fields.
 class Column extends ColumnBase {
   const Column({
-    required super.type,
+    super.sqlType,
     super.columnName,
     super.unique,
     super.defaultValue,
-    super.check,
+    super.validators,
   });
 }
 
@@ -73,7 +74,7 @@ class ID extends ColumnBase {
   final bool autoIncrement;
 
   const ID({
-    required super.type,
+    super.sqlType,
     super.columnName,
     this.autoIncrement = false,
     super.unique = true,

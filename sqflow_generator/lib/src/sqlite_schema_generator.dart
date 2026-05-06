@@ -10,13 +10,12 @@ import 'package:sqflow_platform_interface/sqflow_platform_interface.dart';
 
 import 'metadata_extractor.dart';
 
-const _checkInListChecker = TypeChecker.fromRuntime(CheckInList);
-const _checkRangeChecker = TypeChecker.fromRuntime(CheckRange);
-const _checkComparisonChecker = TypeChecker.fromRuntime(CheckComparison);
-const _checkLengthChecker = TypeChecker.fromRuntime(CheckLength);
-const _checkCustomChecker = TypeChecker.fromRuntime(CheckCustom);
-const _checkCompositeChecker = TypeChecker.fromRuntime(CheckComposite);
-const _checkNotChecker = TypeChecker.fromRuntime(CheckNot);
+const _checkInListChecker = TypeChecker.fromRuntime(ContainsValidator);
+const _checkRangeChecker = TypeChecker.fromRuntime(RangeValidator);
+const _checkComparisonChecker = TypeChecker.fromRuntime(ComparisonValidator);
+const _checkLengthChecker = TypeChecker.fromRuntime(LengthValidator);
+const _checkNotChecker = TypeChecker.fromRuntime(NotContainsValidator);
+const _customSqlChecker = TypeChecker.fromRuntime(CustomSqlValidator);
 
 class SqliteSchemaGenerator extends GeneratorForAnnotation<Schema> {
   @override
@@ -329,29 +328,19 @@ END;''';
       }
     }
 
-    final typeReader = reader.read('type');
-    final typeName = typeReader.peek('name')?.stringValue ??
-        typeReader.objectValue.type?.element?.name ??
-        typeReader.revive().accessor.split('.').last;
-
     final nullable = reader.peek('nullable')?.boolValue ??
         field.type.nullabilitySuffix == NullabilitySuffix.question;
 
     final unique = reader.peek('unique')?.boolValue ?? false;
     final defaultValue = reader.peek('defaultValue');
-    final check = reader.peek('check');
-
-    final length = reader.peek('length')?.intValue;
-    final precision = reader.peek('precision')?.intValue;
-    final scale = reader.peek('scale')?.intValue;
 
     final buffer = StringBuffer()
       ..write(
-          '  $columnName ${_mapDataType(typeName, length, precision, scale)}');
+          '  $columnName ${MetadataExtractor.resolveSqlType(field)}');
 
     final isId = annotationName == 'ID';
     final isInteger =
-        _mapDataType(typeName, length, precision, scale) == 'INTEGER';
+        MetadataExtractor.resolveSqlType(field) == 'INTEGER';
 
     if (isId) {
       buffer.write(' PRIMARY KEY');
@@ -369,16 +358,36 @@ END;''';
       buffer.write(' DEFAULT ${_formatDefaultValue(defaultValue)}');
     }
 
-    if (check != null && !check.isNull) {
-      final checkSql = _getCheckSql(check, columnName);
-      if (checkSql != null) {
-        final constraint = check.peek('constraint')?.stringValue;
-        if (constraint != null) {
-          buffer.write(' CONSTRAINT $constraint CHECK($checkSql)');
-        } else {
-          buffer.write(' CHECK($checkSql)');
+    final validatorsReader = reader.peek('validators');
+    if (validatorsReader != null && !validatorsReader.isNull && validatorsReader.isList) {
+        final checkSqls = <String>[];
+        String? lastConstraintName;
+
+        for (final validatorObj in validatorsReader.listValue) {
+          final validatorReader = ConstantReader(validatorObj);
+          
+          if (const TypeChecker.fromRuntime(ICheckValidator)
+              .isAssignableFromType(validatorObj.type!)) {
+            final sql = _getCheckSql(validatorReader, columnName);
+            if (sql != null && sql.isNotEmpty) {
+              checkSqls.add(sql);
+              final constraint = validatorReader.peek('constraint')?.stringValue;
+              if (constraint != null) lastConstraintName = constraint;
+            }
+          }
         }
-      }
+
+        if (checkSqls.isNotEmpty) {
+          final combinedSql = checkSqls.length > 1 
+              ? checkSqls.map((c) => '($c)').join(' AND ') 
+              : checkSqls.first;
+              
+          if (lastConstraintName != null) {
+            buffer.write(' CONSTRAINT $lastConstraintName CHECK($combinedSql)');
+          } else {
+            buffer.write(' CHECK($combinedSql)');
+          }
+        }
     }
 
     return _ColumnResult(
@@ -399,28 +408,7 @@ END;''';
     return 'NULL';
   }
 
-  String _mapDataType(
-    String type,
-    int? length,
-    int? precision,
-    int? scale,
-  ) {
-    switch (type) {
-      case 'INTEGER':
-        return 'INTEGER';
-      case 'REAL':
-        return 'REAL';
-      case 'TEXT':
-        return 'TEXT';
-      case 'BLOB':
-        return 'BLOB';
-      case 'NUMERIC':
-        return 'NUMERIC';
-      default:
-        // Default to TEXT for unknown types (safe SQLite fallback)
-        return 'TEXT';
-    }
-  }
+
 
   String _camelToSnake(String input) {
     return input
@@ -472,25 +460,15 @@ END;''';
       return null;
     }
 
-    if (_checkCustomChecker.isExactlyType(reader.objectValue.type!)) {
-      final sql = reader.read('sql').stringValue;
-      return sql.replaceAll('{column}', columnName);
-    }
-
-    if (_checkCompositeChecker.isExactlyType(reader.objectValue.type!)) {
-      final conditions = reader.read('conditions').listValue;
-      final operator = reader.read('operator').stringValue;
-      final parts = conditions
-          .map((c) => '(${_getCheckSql(ConstantReader(c), columnName)})')
-          .whereType<String>()
-          .join(' $operator ');
-      return parts.isNotEmpty ? parts : null;
-    }
-
     if (_checkNotChecker.isExactlyType(reader.objectValue.type!)) {
       final condition = reader.read('condition');
       final innerSql = _getCheckSql(condition, columnName);
       return innerSql != null ? 'NOT ($innerSql)' : null;
+    }
+
+    if (_customSqlChecker.isExactlyType(reader.objectValue.type!)) {
+      final sql = reader.read('sql').stringValue;
+      return sql.replaceAll('{column}', columnName);
     }
 
     return null;

@@ -2,6 +2,21 @@ import 'package:sqflow_platform_interface/sqflow_platform_interface.dart';
 
 part 'user.sql.g.dart';
 
+class IsNumberValidator implements IJsonValidator {
+  @override
+  String? get constraint => 'is_number';
+
+  const IsNumberValidator();
+
+  @override
+  bool isValid(dynamic value) {
+    if (value is! String) return false;
+    return RegExp(r'^\+?\d+$').hasMatch(value);
+  }
+}
+
+
+
 @Schema(
   tableName: 'users',
   paranoid: true,
@@ -16,59 +31,84 @@ part 'user.sql.g.dart';
   ],
 )
 class User extends Model with _$SQFlowUserMixin {
-  @ID(type: TEXT(), autoIncrement: false, unique: true)
+  @ID( autoIncrement: false, unique: true)
   @override
   final String id;
 
   @Column(
-    type: TEXT(),
-    check: CheckLength(min: 3, max: 30, constraint: 'name_length_check'),
+    
+    validators: [
+      LengthValidator(min: 3, max: 30, constraint: 'first_name_length_check'),
+      NotEmptyValidator(),
+    ],
   )
   final String firstName;
 
   @Column(
-    type: TEXT(),
-    check: CheckLength(min: 3, max: 30, constraint: 'last_name_length_check'),
+    
+    validators: [
+      LengthValidator(min: 3, max: 30, constraint: 'last_name_length_check'),
+      NotEmptyValidator(),
+    ],
   )
   final String lastName;
 
   @Column(
-    type: TEXT(),
+    
     unique: true,
-    check: CheckEmail(
-      constraint: 'email_format_check',
-    ),
+    validators: [
+      EmailValidator(constraint: 'email_format_check'),
+      NotEmptyValidator(),
+    ],
   )
   final String email;
 
-  @Column(type: TEXT())
+  @Column(
+    
+    validators: [
+      IsNumberValidator(),
+      NotEmptyValidator(),
+      LengthValidator(min: 6, max: 15, constraint: 'phone_length_check'),
+    ],
+  )
   final String phone;
 
-  @Column(type: TEXT())
+  @Column(
+    
+    validators: [
+      RegExpValidator(
+        r'\d{4}-\d{2}-\d{2}',
+        constraint: 'date_format', // yyyy-MM-dd
+      ),
+    ],
+  )
   final String? birthDate;
 
-  @Column(type: INTEGER())
+  @Column()
   final int? age;
 
   @Column(
-    type: TEXT(),
-    check: CheckInList(['M', 'F', 'Other'], constraint: 'gender_check'),
+    
+    validators: [
+      ContainsValidator(['M', 'F', 'Other'], constraint: 'gender_check'),
+      NotEmptyValidator(),
+    ],
   )
   final String gender;
 
-  @Column(type: TEXT())
+  @Column( validators: [NotEmptyValidator()])
   final String city;
 
-  @Column(type: TEXT())
+  @Column( validators: [NotEmptyValidator()])
   final String country;
 
-  @Column(type: TEXT())
+  @Column()
   final String? address;
 
-  @Column(type: INTEGER(), defaultValue: true)
+  @Column( defaultValue: true)
   final bool isActive;
 
-  @Column(type: INTEGER(), defaultValue: false)
+  @Column( defaultValue: false)
   final bool isVerified;
 
   User({
@@ -77,11 +117,11 @@ class User extends Model with _$SQFlowUserMixin {
     required this.lastName,
     required this.email,
     required this.phone,
-    this.birthDate,
-    this.age,
     required this.gender,
     required this.city,
     required this.country,
+    this.birthDate,
+    this.age,
     this.address,
     this.isActive = true,
     this.isVerified = false,
@@ -107,14 +147,14 @@ class User extends Model with _$SQFlowUserMixin {
   ],
 )
 class Post extends Model with _$SQFlowPostMixin {
-  @ID(type: INTEGER(), autoIncrement: true)
+  @ID( autoIncrement: true)
   @override
   final int id;
 
-  @Column(type: TEXT())
+  @Column()
   final String title;
 
-  @Column(type: TEXT(), columnName: 'user_id')
+  @Column( columnName: 'user_id')
   final String userId;
 
   Post({
@@ -140,14 +180,14 @@ class Post extends Model with _$SQFlowPostMixin {
   ],
 )
 class Profile extends Model with _$SQFlowProfileMixin {
-  @ID(type: INTEGER(), autoIncrement: true)
+  @ID( autoIncrement: true)
   @override
   final int id;
 
-  @Column(type: TEXT())
+  @Column()
   final String bio;
 
-  @Column(type: TEXT(), columnName: 'user_id')
+  @Column( columnName: 'user_id')
   final String userId;
 
   Profile({
@@ -174,14 +214,14 @@ class Profile extends Model with _$SQFlowProfileMixin {
   ],
 )
 class Order extends Model with _$SQFlowOrderMixin {
-  @ID(type: INTEGER(), autoIncrement: true)
+  @ID( autoIncrement: true)
   @override
   final int id;
 
-  @Column(type: INTEGER())
+  @Column()
   final int total;
 
-  @Column(type: TEXT(), columnName: 'user_id')
+  @Column( columnName: 'user_id')
   final String userId;
 
   Order({
