@@ -54,13 +54,16 @@ mixin _$SQFlowCategoryMixin {
 
 extension SQFlowCategorySqlExt on Category {
   Map<String, dynamic> _$SQFlowCategoryToJson() {
-    return {
+    final categoryJson = {
       'id': _$SQFlowToJsonValue(id),
       'name': _$SQFlowToJsonValue(name),
       'color': _$SQFlowToJsonValue(color),
       'created_at': _$SQFlowToJsonValue(createdAt),
       'updated_at': _$SQFlowToJsonValue(updatedAt),
     };
+    _$validateCategory(categoryJson, tableName: 'categories');
+
+    return categoryJson;
   }
 
   Category copyWith({
@@ -79,6 +82,9 @@ extension SQFlowCategorySqlExt on Category {
       ..updatedAt = updatedAt ?? this.updatedAt;
   }
 }
+
+void _$validateCategory(Map<String, dynamic> json,
+    {required String tableName}) {}
 
 Category _$SQFlowCategoryFromJson(Map<String, dynamic> json) {
   final instance = Category(
@@ -172,7 +178,7 @@ mixin _$SQFlowTaskMixin {
 
 extension SQFlowTaskSqlExt on Task {
   Map<String, dynamic> _$SQFlowTaskToJson() {
-    return {
+    final taskJson = {
       'id': _$SQFlowToJsonValue(id),
       'title': _$SQFlowToJsonValue(title),
       'is_completed': _$SQFlowToJsonValue(isCompleted),
@@ -181,6 +187,9 @@ extension SQFlowTaskSqlExt on Task {
       'updated_at': _$SQFlowToJsonValue(updatedAt),
       'deleted_at': _$SQFlowToJsonValue(deletedAt),
     };
+    _$validateTask(taskJson, tableName: 'tasks');
+
+    return taskJson;
   }
 
   Task copyWith({
@@ -203,6 +212,8 @@ extension SQFlowTaskSqlExt on Task {
       ..deletedAt = deletedAt ?? this.deletedAt;
   }
 }
+
+void _$validateTask(Map<String, dynamic> json, {required String tableName}) {}
 
 Task _$SQFlowTaskFromJson(Map<String, dynamic> json) {
   final instance = Task(

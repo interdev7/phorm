@@ -1,4 +1,4 @@
-import 'data_type.dart';
+import 'package:sqflow_platform_interface/src/json_validators.dart';
 
 /// Strategy for naming database columns.
 enum ColumnNamingStrategy {
@@ -24,7 +24,10 @@ abstract class ColumnBase {
   final String? columnName;
 
   /// Database data type of the column.
-  final DataType type;
+  /// 
+  /// By default, the generator infers this from the Dart field type.
+  /// If you want to explicitly override the SQLite type (e.g. 'VARCHAR(255)', 'JSON'), set this field.
+  final String? sqlType;
 
   /// Whether the column enforces uniqueness.
   ///
@@ -37,14 +40,14 @@ abstract class ColumnBase {
   /// Optional value constraint.
   ///
   /// Can be used to restrict allowed values.
-  final CHECK? check;
+  final List<IValidator>? validators;
 
   const ColumnBase({
-    required this.type,
+    this.sqlType,
     this.columnName,
     this.unique = false,
     this.defaultValue,
-    this.check,
+    this.validators,
   });
 }
 
@@ -53,11 +56,11 @@ abstract class ColumnBase {
 /// Used for most non-key fields.
 class Column extends ColumnBase {
   const Column({
-    required super.type,
+    super.sqlType,
     super.columnName,
     super.unique,
     super.defaultValue,
-    super.check,
+    super.validators,
   });
 }
 
@@ -71,7 +74,7 @@ class ID extends ColumnBase {
   final bool autoIncrement;
 
   const ID({
-    required super.type,
+    super.sqlType,
     super.columnName,
     this.autoIncrement = false,
     super.unique = true,
@@ -111,6 +114,9 @@ class Schema {
   /// Whether to automatically manage createdAt and updatedAt timestamps.
   final bool timestamps;
 
+  /// Whether to generate the validate() method based on column CHECK constraints.
+  final bool useValidator;
+
   const Schema({
     this.tableName,
     this.indexes = const [],
@@ -121,6 +127,7 @@ class Schema {
     this.useFromJson = true,
     this.useCopyWith = true,
     this.timestamps = true,
+    this.useValidator = true,
   });
 }
 
@@ -130,7 +137,7 @@ abstract class Relationship {
   final dynamic model;
   final String foreignKey;
   final String localKey;
-  
+
   /// Action applied when the referenced record is deleted.
   final String? onDelete;
 
@@ -213,21 +220,6 @@ class Index {
   });
 }
 
-/// Value constraint definition.
-///
-/// Restricts column values to a predefined set.
-class CHECK {
-  /// Allowed values for the column.
-  final dynamic checker;
-
-  /// Custom constraint expression.
-  final String? constraint;
-
-  const CHECK(this.checker, {this.constraint});
-}
-
-
-
 /// Base interface for specifying relationships to include in a query.
 ///
 /// Use [Includable.table] to include by table name (String)
@@ -245,13 +237,15 @@ abstract interface class Includable {
   List<Includable>? get include;
 
   /// Includes a relationship by its explicit table name.
-  static Includable table(String name, {Attributes? attributes, List<Includable>? include}) =>
+  static Includable table(String name,
+          {Attributes? attributes, List<Includable>? include}) =>
       _TableIncludable(name, attributes: attributes, include: include);
 
   /// Includes a relationship by its model class type.
   ///
   /// Provides compile-time safety and refactoring support.
-  static Includable model<T>({Attributes? attributes, List<Includable>? include}) =>
+  static Includable model<T>(
+          {Attributes? attributes, List<Includable>? include}) =>
       _ModelIncludable<T>(attributes: attributes, include: include);
 }
 

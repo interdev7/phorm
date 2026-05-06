@@ -1,10 +1,14 @@
 import 'package:_fe_analyzer_shared/src/type_inference/nullability_suffix.dart';
+import 'package:analyzer/dart/constant/value.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:build/build.dart';
+import 'dart:convert';
 import 'package:source_gen/source_gen.dart';
-import 'package:sqflow_platform_interface/src/annotations.dart';
+import 'package:sqflow_platform_interface/sqflow_platform_interface.dart';
 
 import 'metadata_extractor.dart';
+
+const _jsonValidatorChecker = TypeChecker.fromRuntime(IJsonValidator);
 
 class ModelMixinGenerator extends GeneratorForAnnotation<Schema> {
   @override
@@ -27,7 +31,11 @@ class ModelMixinGenerator extends GeneratorForAnnotation<Schema> {
     final useFromJson = annotation.peek('useFromJson')?.boolValue ?? true;
     final useCopyWith = annotation.peek('useCopyWith')?.boolValue ?? true;
     final timestamps = annotation.peek('timestamps')?.boolValue ?? true;
+    final useValidator = annotation.peek('useValidator')?.boolValue ?? true;
     final paranoid = annotation.peek('paranoid')?.boolValue ?? false;
+
+    final tableName = annotation.peek('tableName')?.stringValue ??
+        MetadataExtractor.camelToSnake(className);
 
     final fields = element.fields.where((f) => !f.isStatic).toList();
     final relationships = <Map<String, dynamic>>[];
@@ -112,10 +120,10 @@ class ModelMixinGenerator extends GeneratorForAnnotation<Schema> {
       }
     }
 
-    final buffer = StringBuffer();
+    final buffer = StringBuffer()
 
-    // 1. Mixin
-    buffer.writeln('mixin _\$SQFlow${className}Mixin {');
+      // 1. Mixin
+      ..writeln('mixin _\$SQFlow${className}Mixin {');
 
     // Timestamps fields
     final existsCreatedAt = fields.any((f) => f.name == 'createdAt');
@@ -173,7 +181,7 @@ class ModelMixinGenerator extends GeneratorForAnnotation<Schema> {
       if (useToJson) {
         buffer
           ..writeln('  Map<String, dynamic> _\$SQFlow${className}ToJson() {')
-          ..writeln('    return {');
+          ..writeln('    final ${className.toLowerCase()}Json = {');
         for (final field in fields.where((f) => _isColumn(f))) {
           final sqlName = MetadataExtractor.getSqlColumnName(field, strategy);
           buffer.writeln(
@@ -183,16 +191,16 @@ class ModelMixinGenerator extends GeneratorForAnnotation<Schema> {
         if (timestamps) {
           if (!existsCreatedAt) {
             buffer.writeln(
-                "      'created_at': _\$SQFlowToJsonValue(createdAt),");
+                r"      'created_at': _$SQFlowToJsonValue(createdAt),");
           }
           if (!existsUpdatedAt) {
             buffer.writeln(
-                "      'updated_at': _\$SQFlowToJsonValue(updatedAt),");
+                r"      'updated_at': _$SQFlowToJsonValue(updatedAt),");
           }
         }
         if (paranoid && !existsDeletedAt) {
           buffer
-              .writeln("      'deleted_at': _\$SQFlowToJsonValue(deletedAt),");
+              .writeln(r"      'deleted_at': _$SQFlowToJsonValue(deletedAt),");
         }
 
         // Output synthesized foreign keys in toJson
@@ -210,6 +218,10 @@ class ModelMixinGenerator extends GeneratorForAnnotation<Schema> {
 
         buffer
           ..writeln('    };')
+          ..writeln(useValidator
+              ? "  _\$validate$className(${className.toLowerCase()}Json, tableName: '$tableName');\n"
+              : '')
+          ..writeln('    return ${className.toLowerCase()}Json;')
           ..writeln('  }');
       }
 
@@ -217,7 +229,7 @@ class ModelMixinGenerator extends GeneratorForAnnotation<Schema> {
         final constructor =
             element.unnamedConstructor ?? element.constructors.first;
         if (useToJson) buffer.writeln();
-        buffer..writeln('  $className copyWith({');
+        buffer.writeln('  $className copyWith({');
 
         for (final param in constructor.parameters) {
           final type = param.type.getDisplayString();
@@ -264,11 +276,67 @@ class ModelMixinGenerator extends GeneratorForAnnotation<Schema> {
       buffer.writeln('}');
     }
 
-    // 3. fromJson Function
+    // 3. Validation Method
+    if (useValidator) {
+      buffer.writeln(
+          '\nvoid _\$validate$className(Map<String, dynamic> json, {required String tableName}) {');
+      for (final field in fields) {
+        final columnMeta = field.metadata.where((m) {
+          final name = m.element?.enclosingElement3?.name;
+          return name == 'Column' || name == 'ID';
+        }).firstOrNull;
+
+        if (columnMeta == null) continue;
+
+        final reader = ConstantReader(columnMeta.computeConstantValue());
+        final validatorsReader = reader.peek('validators');
+
+        if (validatorsReader != null && validatorsReader.isList) {
+          final sqlName = MetadataExtractor.getSqlColumnName(field, strategy);
+          
+          for (final validatorObj in validatorsReader.listValue) {
+            final validatorReader = ConstantReader(validatorObj);
+            final revived = validatorReader.revive();
+            final constString = _reviveToCheckCode(revived);
+
+            final isJsonValidator = _jsonValidatorChecker.isAssignableFromType(validatorObj.type!);
+            final exceptionType = isJsonValidator
+                ? 'SqflowJSONValidatorException'
+                : 'SqflowCHECKValidatorException';
+
+            // final isNullable =
+            //   field.type.nullabilitySuffix == NullabilitySuffix.question;
+            // if (!isNullable) { ... }
+            
+            buffer
+              ..writeln("  if (!const $constString.isValid(json['$sqlName'])) {")
+              ..writeln('    throw $exceptionType(')
+              ..writeln('      table: tableName,')
+              ..writeln("      column: '$sqlName',")
+              ..writeln(
+                  '      message: \'Value "\${json[\'$sqlName\']}" failed validation\',');
+            
+            final constraint = validatorReader.peek('constraint')?.stringValue;
+            if (constraint != null) {
+              buffer.writeln("      constraint: '$constraint',");
+            }
+            buffer
+              ..writeln('    );')
+              ..writeln('  }');
+          }
+        }
+      }
+      buffer.writeln('}');
+    }
+
+    // 4. fromJson Function
     if (useFromJson) {
       buffer
         ..writeln(
             '\n$className _\$SQFlow${className}FromJson(Map<String, dynamic> json) {')
+        // ..writeln(useValidator
+        //     ? '  _\$validate$className(json, tableName: \'$tableName\');\n'
+        //     : '')
         ..writeln('  final instance = $className(');
 
       final constructor =
@@ -422,5 +490,39 @@ class ModelMixinGenerator extends GeneratorForAnnotation<Schema> {
           name == 'ForeignKey' ||
           name == 'BelongsTo';
     });
+  }
+
+  String _reviveToCheckCode(Revivable revived) {
+    final typeName = revived.source.fragment;
+    final posArgs =
+        revived.positionalArguments.map((a) => _formatConstant(a)).join(', ');
+    final namedArgs = revived.namedArguments.entries
+        .map((e) => "${e.key}: ${_formatConstant(e.value)}")
+        .join(', ');
+
+    final allArgs = [
+      if (posArgs.isNotEmpty) posArgs,
+      if (namedArgs.isNotEmpty) namedArgs
+    ].join(', ');
+    return "$typeName($allArgs)";
+  }
+
+  String _formatConstant(dynamic obj) {
+    final reader =
+        obj is ConstantReader ? obj : ConstantReader(obj as DartObject);
+    if (reader.isString) return jsonEncode(reader.stringValue);
+    if (reader.isBool) return reader.boolValue.toString();
+    if (reader.isInt) return reader.intValue.toString();
+    if (reader.isDouble) return reader.doubleValue.toString();
+    if (reader.isList) {
+      return "[${reader.listValue.map((v) => _formatConstant(v)).join(', ')}]";
+    }
+    // Handle nested ICHECK (e.g. CheckNot)
+    try {
+      final revived = reader.revive();
+      return "const ${_reviveToCheckCode(revived)}";
+    } catch (_) {
+      return obj.toString();
+    }
   }
 }

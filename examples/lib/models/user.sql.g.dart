@@ -9,13 +9,13 @@ part of 'user.dart';
 const _$SQFlowUserSchema = """
 CREATE TABLE users (
   id TEXT PRIMARY KEY NOT NULL UNIQUE,
-  first_name TEXT NOT NULL,
-  last_name TEXT NOT NULL,
+  first_name TEXT NOT NULL CONSTRAINT first_name_length CHECK(LENGTH(first_name) BETWEEN 2 AND 50),
+  last_name TEXT NOT NULL CONSTRAINT last_name_length CHECK(LENGTH(last_name) BETWEEN 2 AND 50),
   email TEXT NOT NULL UNIQUE,
-  phone TEXT NOT NULL,
+  phone TEXT NOT NULL CONSTRAINT phone_length CHECK(LENGTH(phone) BETWEEN 6 AND 15),
   birth_date TEXT,
   age INTEGER,
-  gender TEXT NOT NULL CHECK(gender IN ('M', 'F', 'Other')),
+  gender TEXT NOT NULL CONSTRAINT gender_check CHECK(gender IN ('M', 'F', 'Other')),
   city TEXT NOT NULL,
   country TEXT NOT NULL,
   address TEXT NOT NULL,
@@ -83,7 +83,7 @@ mixin _$SQFlowUserMixin {
 
 extension SQFlowUserSqlExt on User {
   Map<String, dynamic> _$SQFlowUserToJson() {
-    return {
+    final userJson = {
       'id': _$SQFlowToJsonValue(id),
       'first_name': _$SQFlowToJsonValue(firstName),
       'last_name': _$SQFlowToJsonValue(lastName),
@@ -101,6 +101,9 @@ extension SQFlowUserSqlExt on User {
       'updated_at': _$SQFlowToJsonValue(updatedAt),
       'deleted_at': _$SQFlowToJsonValue(deletedAt),
     };
+    _$validateUser(userJson, tableName: 'users');
+
+    return userJson;
   }
 
   User copyWith({
@@ -141,6 +144,98 @@ extension SQFlowUserSqlExt on User {
       ..createdAt = createdAt ?? this.createdAt
       ..updatedAt = updatedAt ?? this.updatedAt
       ..deletedAt = deletedAt ?? this.deletedAt;
+  }
+}
+
+void _$validateUser(Map<String, dynamic> json, {required String tableName}) {
+  if (!const LengthValidator(min: 2, max: 50, constraint: "first_name_length")
+      .isValid(json['first_name'])) {
+    throw SqflowCHECKValidatorException(
+      table: tableName,
+      column: 'first_name',
+      message: 'Value "${json['first_name']}" failed validation',
+      constraint: 'first_name_length',
+    );
+  }
+  if (!const NotEmptyValidator().isValid(json['first_name'])) {
+    throw SqflowCHECKValidatorException(
+      table: tableName,
+      column: 'first_name',
+      message: 'Value "${json['first_name']}" failed validation',
+    );
+  }
+  if (!const LengthValidator(min: 2, max: 50, constraint: "last_name_length")
+      .isValid(json['last_name'])) {
+    throw SqflowCHECKValidatorException(
+      table: tableName,
+      column: 'last_name',
+      message: 'Value "${json['last_name']}" failed validation',
+      constraint: 'last_name_length',
+    );
+  }
+  if (!const NotEmptyValidator().isValid(json['last_name'])) {
+    throw SqflowCHECKValidatorException(
+      table: tableName,
+      column: 'last_name',
+      message: 'Value "${json['last_name']}" failed validation',
+    );
+  }
+  if (!const EmailValidator(constraint: "email_format")
+      .isValid(json['email'])) {
+    throw SqflowJSONValidatorException(
+      table: tableName,
+      column: 'email',
+      message: 'Value "${json['email']}" failed validation',
+      constraint: 'email_format',
+    );
+  }
+  if (!const NotEmptyValidator().isValid(json['email'])) {
+    throw SqflowCHECKValidatorException(
+      table: tableName,
+      column: 'email',
+      message: 'Value "${json['email']}" failed validation',
+    );
+  }
+  if (!const IsNumberValidator().isValid(json['phone'])) {
+    throw SqflowJSONValidatorException(
+      table: tableName,
+      column: 'phone',
+      message: 'Value "${json['phone']}" failed validation',
+    );
+  }
+  if (!const NotEmptyValidator().isValid(json['phone'])) {
+    throw SqflowCHECKValidatorException(
+      table: tableName,
+      column: 'phone',
+      message: 'Value "${json['phone']}" failed validation',
+    );
+  }
+  if (!const LengthValidator(min: 6, max: 15, constraint: "phone_length")
+      .isValid(json['phone'])) {
+    throw SqflowCHECKValidatorException(
+      table: tableName,
+      column: 'phone',
+      message: 'Value "${json['phone']}" failed validation',
+      constraint: 'phone_length',
+    );
+  }
+  if (!const RegExpValidator("\\d{4}-\\d{2}-\\d{2}", constraint: "date_format")
+      .isValid(json['birth_date'])) {
+    throw SqflowJSONValidatorException(
+      table: tableName,
+      column: 'birth_date',
+      message: 'Value "${json['birth_date']}" failed validation',
+      constraint: 'date_format',
+    );
+  }
+  if (!const ContainsValidator(["M", "F", "Other"], constraint: "gender_check")
+      .isValid(json['gender'])) {
+    throw SqflowCHECKValidatorException(
+      table: tableName,
+      column: 'gender',
+      message: 'Value "${json['gender']}" failed validation',
+      constraint: 'gender_check',
+    );
   }
 }
 

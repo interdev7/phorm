@@ -60,7 +60,7 @@ mixin _$SQFlowMigrationPostMixin {
 
 extension SQFlowMigrationPostSqlExt on MigrationPost {
   Map<String, dynamic> _$SQFlowMigrationPostToJson() {
-    return {
+    final migrationpostJson = {
       'id': _$SQFlowToJsonValue(id),
       'title': _$SQFlowToJsonValue(title),
       'content': _$SQFlowToJsonValue(content),
@@ -68,6 +68,9 @@ extension SQFlowMigrationPostSqlExt on MigrationPost {
       'created_at': _$SQFlowToJsonValue(createdAt),
       'updated_at': _$SQFlowToJsonValue(updatedAt),
     };
+    _$validateMigrationPost(migrationpostJson, tableName: 'migration_posts');
+
+    return migrationpostJson;
   }
 
   MigrationPost copyWith({
@@ -88,6 +91,9 @@ extension SQFlowMigrationPostSqlExt on MigrationPost {
       ..updatedAt = updatedAt ?? this.updatedAt;
   }
 }
+
+void _$validateMigrationPost(Map<String, dynamic> json,
+    {required String tableName}) {}
 
 MigrationPost _$SQFlowMigrationPostFromJson(Map<String, dynamic> json) {
   final instance = MigrationPost(

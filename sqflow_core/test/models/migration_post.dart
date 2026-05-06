@@ -6,17 +6,17 @@ part 'migration_post.sql.g.dart';
   tableName: 'migration_posts',
 )
 class MigrationPost extends Model with _$SQFlowMigrationPostMixin {
-  @ID(type: TEXT(), autoIncrement: false)
+  @ID( autoIncrement: false)
   @override
   final String id;
 
-  @Column(type: TEXT())
+  @Column()
   final String title;
 
-  @Column(type: TEXT())
+  @Column()
   final String content;
 
-  @Column(type: TEXT())
+  @Column()
   final String userId;
 
   MigrationPost({

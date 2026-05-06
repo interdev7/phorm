@@ -60,7 +60,7 @@ mixin _$SQFlowExplicitNamingMixin {
 
 extension SQFlowExplicitNamingSqlExt on ExplicitNaming {
   Map<String, dynamic> _$SQFlowExplicitNamingToJson() {
-    return {
+    final explicitnamingJson = {
       'custom_id': _$SQFlowToJsonValue(id),
       'custom_name': _$SQFlowToJsonValue(name),
       'custom_age': _$SQFlowToJsonValue(age),
@@ -68,6 +68,9 @@ extension SQFlowExplicitNamingSqlExt on ExplicitNaming {
       'created_at': _$SQFlowToJsonValue(createdAt),
       'updated_at': _$SQFlowToJsonValue(updatedAt),
     };
+    _$validateExplicitNaming(explicitnamingJson, tableName: 'explicit_table');
+
+    return explicitnamingJson;
   }
 
   ExplicitNaming copyWith({
@@ -88,6 +91,9 @@ extension SQFlowExplicitNamingSqlExt on ExplicitNaming {
       ..updatedAt = updatedAt ?? this.updatedAt;
   }
 }
+
+void _$validateExplicitNaming(Map<String, dynamic> json,
+    {required String tableName}) {}
 
 ExplicitNaming _$SQFlowExplicitNamingFromJson(Map<String, dynamic> json) {
   final instance = ExplicitNaming(
