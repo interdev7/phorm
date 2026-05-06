@@ -9,10 +9,10 @@ part of 'user.dart';
 const _$SQFlowUserSchema = """
 CREATE TABLE users (
   id TEXT PRIMARY KEY NOT NULL UNIQUE,
-  first_name TEXT NOT NULL,
-  last_name TEXT NOT NULL,
+  first_name TEXT NOT NULL CONSTRAINT first_name_length_check CHECK(LENGTH(first_name) BETWEEN 3 AND 30),
+  last_name TEXT NOT NULL CONSTRAINT last_name_length_check CHECK(LENGTH(last_name) BETWEEN 3 AND 30),
   email TEXT NOT NULL UNIQUE,
-  phone TEXT NOT NULL,
+  phone TEXT NOT NULL CONSTRAINT phone_length_check CHECK(LENGTH(phone) BETWEEN 6 AND 15),
   birth_date TEXT,
   age INTEGER,
   gender TEXT NOT NULL CONSTRAINT gender_check CHECK(gender IN ('M', 'F', 'Other')),
@@ -93,7 +93,7 @@ mixin _$SQFlowUserMixin {
 
 extension SQFlowUserSqlExt on User {
   Map<String, dynamic> _$SQFlowUserToJson() {
-    return {
+    final userJson = {
       'id': _$SQFlowToJsonValue(id),
       'first_name': _$SQFlowToJsonValue(firstName),
       'last_name': _$SQFlowToJsonValue(lastName),
@@ -111,6 +111,9 @@ extension SQFlowUserSqlExt on User {
       'updated_at': _$SQFlowToJsonValue(updatedAt),
       'deleted_at': _$SQFlowToJsonValue(deletedAt),
     };
+    _$validateUser(userJson, tableName: 'users');
+
+    return userJson;
   }
 
   User copyWith({
@@ -119,11 +122,11 @@ extension SQFlowUserSqlExt on User {
     String? lastName,
     String? email,
     String? phone,
-    String? birthDate,
-    int? age,
     String? gender,
     String? city,
     String? country,
+    String? birthDate,
+    int? age,
     String? address,
     bool? isActive,
     bool? isVerified,
@@ -137,11 +140,11 @@ extension SQFlowUserSqlExt on User {
       lastName: lastName ?? this.lastName,
       email: email ?? this.email,
       phone: phone ?? this.phone,
-      birthDate: birthDate ?? this.birthDate,
-      age: age ?? this.age,
       gender: gender ?? this.gender,
       city: city ?? this.city,
       country: country ?? this.country,
+      birthDate: birthDate ?? this.birthDate,
+      age: age ?? this.age,
       address: address ?? this.address,
       isActive: isActive ?? this.isActive,
       isVerified: isVerified ?? this.isVerified,
@@ -152,6 +155,121 @@ extension SQFlowUserSqlExt on User {
   }
 }
 
+void _$validateUser(Map<String, dynamic> json, {required String tableName}) {
+  if (!const LengthValidator(
+          min: 3, max: 30, constraint: "first_name_length_check")
+      .isValid(json['first_name'])) {
+    throw SqflowCHECKValidatorException(
+      table: tableName,
+      column: 'first_name',
+      message: 'Value "${json['first_name']}" failed validation',
+      constraint: 'first_name_length_check',
+    );
+  }
+  if (!const NotEmptyValidator().isValid(json['first_name'])) {
+    throw SqflowCHECKValidatorException(
+      table: tableName,
+      column: 'first_name',
+      message: 'Value "${json['first_name']}" failed validation',
+    );
+  }
+  if (!const LengthValidator(
+          min: 3, max: 30, constraint: "last_name_length_check")
+      .isValid(json['last_name'])) {
+    throw SqflowCHECKValidatorException(
+      table: tableName,
+      column: 'last_name',
+      message: 'Value "${json['last_name']}" failed validation',
+      constraint: 'last_name_length_check',
+    );
+  }
+  if (!const NotEmptyValidator().isValid(json['last_name'])) {
+    throw SqflowCHECKValidatorException(
+      table: tableName,
+      column: 'last_name',
+      message: 'Value "${json['last_name']}" failed validation',
+    );
+  }
+  if (!const EmailValidator(constraint: "email_format_check")
+      .isValid(json['email'])) {
+    throw SqflowJSONValidatorException(
+      table: tableName,
+      column: 'email',
+      message: 'Value "${json['email']}" failed validation',
+      constraint: 'email_format_check',
+    );
+  }
+  if (!const NotEmptyValidator().isValid(json['email'])) {
+    throw SqflowCHECKValidatorException(
+      table: tableName,
+      column: 'email',
+      message: 'Value "${json['email']}" failed validation',
+    );
+  }
+  if (!const IsNumberValidator().isValid(json['phone'])) {
+    throw SqflowJSONValidatorException(
+      table: tableName,
+      column: 'phone',
+      message: 'Value "${json['phone']}" failed validation',
+    );
+  }
+  if (!const NotEmptyValidator().isValid(json['phone'])) {
+    throw SqflowCHECKValidatorException(
+      table: tableName,
+      column: 'phone',
+      message: 'Value "${json['phone']}" failed validation',
+    );
+  }
+  if (!const LengthValidator(min: 6, max: 15, constraint: "phone_length_check")
+      .isValid(json['phone'])) {
+    throw SqflowCHECKValidatorException(
+      table: tableName,
+      column: 'phone',
+      message: 'Value "${json['phone']}" failed validation',
+      constraint: 'phone_length_check',
+    );
+  }
+  if (!const RegExpValidator("\\d{4}-\\d{2}-\\d{2}", constraint: "date_format")
+      .isValid(json['birth_date'])) {
+    throw SqflowJSONValidatorException(
+      table: tableName,
+      column: 'birth_date',
+      message: 'Value "${json['birth_date']}" failed validation',
+      constraint: 'date_format',
+    );
+  }
+  if (!const ContainsValidator(["M", "F", "Other"], constraint: "gender_check")
+      .isValid(json['gender'])) {
+    throw SqflowCHECKValidatorException(
+      table: tableName,
+      column: 'gender',
+      message: 'Value "${json['gender']}" failed validation',
+      constraint: 'gender_check',
+    );
+  }
+  if (!const NotEmptyValidator().isValid(json['gender'])) {
+    throw SqflowCHECKValidatorException(
+      table: tableName,
+      column: 'gender',
+      message: 'Value "${json['gender']}" failed validation',
+    );
+  }
+  if (!const NotEmptyValidator().isValid(json['city'])) {
+    throw SqflowCHECKValidatorException(
+      table: tableName,
+      column: 'city',
+      message: 'Value "${json['city']}" failed validation',
+    );
+  }
+  if (!const NotEmptyValidator().isValid(json['country'])) {
+    throw SqflowCHECKValidatorException(
+      table: tableName,
+      column: 'country',
+      message: 'Value "${json['country']}" failed validation',
+    );
+  }
+}
+
 User _$SQFlowUserFromJson(Map<String, dynamic> json) {
   final instance = User(
     id: json['id'] as String,
@@ -159,11 +277,11 @@ User _$SQFlowUserFromJson(Map<String, dynamic> json) {
     lastName: json['last_name'] as String,
     email: json['email'] as String,
     phone: json['phone'] as String,
-    birthDate: json['birth_date'] as String?,
-    age: json['age'] as int?,
     gender: json['gender'] as String,
     city: json['city'] as String,
     country: json['country'] as String,
+    birthDate: json['birth_date'] as String?,
+    age: json['age'] as int?,
     address: json['address'] as String?,
     isActive: json['is_active'] is bool
         ? json['is_active'] as bool
@@ -282,7 +400,7 @@ mixin _$SQFlowPostMixin {
 
 extension SQFlowPostSqlExt on Post {
   Map<String, dynamic> _$SQFlowPostToJson() {
-    return {
+    final postJson = {
       'id': _$SQFlowToJsonValue(id),
       'title': _$SQFlowToJsonValue(title),
       'user_id': _$SQFlowToJsonValue(userId),
@@ -290,6 +408,9 @@ extension SQFlowPostSqlExt on Post {
       'updated_at': _$SQFlowToJsonValue(updatedAt),
       'deleted_at': _$SQFlowToJsonValue(deletedAt),
     };
+    _$validatePost(postJson, tableName: 'posts');
+
+    return postJson;
   }
 
   Post copyWith({
@@ -310,6 +431,8 @@ extension SQFlowPostSqlExt on Post {
       ..deletedAt = deletedAt ?? this.deletedAt;
   }
 }
+
+void _$validatePost(Map<String, dynamic> json, {required String tableName}) {}
 
 Post _$SQFlowPostFromJson(Map<String, dynamic> json) {
   final instance = Post(
@@ -394,13 +517,16 @@ mixin _$SQFlowProfileMixin {
 
 extension SQFlowProfileSqlExt on Profile {
   Map<String, dynamic> _$SQFlowProfileToJson() {
-    return {
+    final profileJson = {
       'id': _$SQFlowToJsonValue(id),
       'bio': _$SQFlowToJsonValue(bio),
       'user_id': _$SQFlowToJsonValue(userId),
       'created_at': _$SQFlowToJsonValue(createdAt),
       'updated_at': _$SQFlowToJsonValue(updatedAt),
     };
+    _$validateProfile(profileJson, tableName: 'profiles');
+
+    return profileJson;
   }
 
   Profile copyWith({
@@ -419,6 +545,9 @@ extension SQFlowProfileSqlExt on Profile {
       ..updatedAt = updatedAt ?? this.updatedAt;
   }
 }
+
+void _$validateProfile(Map<String, dynamic> json,
+    {required String tableName}) {}
 
 Profile _$SQFlowProfileFromJson(Map<String, dynamic> json) {
   final instance = Profile(
@@ -507,7 +636,7 @@ mixin _$SQFlowOrderMixin {
 
 extension SQFlowOrderSqlExt on Order {
   Map<String, dynamic> _$SQFlowOrderToJson() {
-    return {
+    final orderJson = {
       'id': _$SQFlowToJsonValue(id),
       'total': _$SQFlowToJsonValue(total),
       'user_id': _$SQFlowToJsonValue(userId),
@@ -515,6 +644,9 @@ extension SQFlowOrderSqlExt on Order {
       'updated_at': _$SQFlowToJsonValue(updatedAt),
       'deleted_at': _$SQFlowToJsonValue(deletedAt),
     };
+    _$validateOrder(orderJson, tableName: 'orders');
+
+    return orderJson;
   }
 
   Order copyWith({
@@ -535,6 +667,8 @@ extension SQFlowOrderSqlExt on Order {
       ..deletedAt = deletedAt ?? this.deletedAt;
   }
 }
+
+void _$validateOrder(Map<String, dynamic> json, {required String tableName}) {}
 
 Order _$SQFlowOrderFromJson(Map<String, dynamic> json) {
   final instance = Order(

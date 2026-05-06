@@ -33,7 +33,7 @@ void main() {
       'first_name': 'John',
       'last_name': 'Doe',
       'email': 'john@example.com',
-      'phone': '123',
+      'phone': '123456',
       'gender': 'M',
       'city': 'Sofia',
       'country': 'Bulgaria',
@@ -99,7 +99,7 @@ void main() {
       'first_name': 'John',
       'last_name': 'Doe',
       'email': 'john@example.com',
-      'phone': '123',
+      'phone': '123456',
       'gender': 'M',
       'city': 'Sofia',
       'country': 'Bulgaria',
@@ -127,7 +127,7 @@ void main() {
       'first_name': 'Jane',
       'last_name': 'Doe',
       'email': 'jane@example.com',
-      'phone': '123',
+      'phone': '123456',
       'gender': 'F',
       'city': 'Sofia',
       'country': 'Bulgaria',
@@ -183,7 +183,7 @@ void main() {
       'first_name': 'Author',
       'last_name': 'One',
       'email': 'author@example.com',
-      'phone': '123',
+      'phone': '123456',
       'gender': 'M',
       'city': 'Sofia',
       'country': 'Bulgaria',
@@ -219,7 +219,7 @@ void main() {
       'first_name': 'Admin',
       'last_name': 'User',
       'email': 'admin@example.com',
-      'phone': '123',
+      'phone': '123456',
       'gender': 'M',
       'city': 'Sofia',
       'country': 'Bulgaria',
@@ -231,7 +231,7 @@ void main() {
       'first_name': 'Editor',
       'last_name': 'User',
       'email': 'editor@example.com',
-      'phone': '123',
+      'phone': '123456',
       'gender': 'F',
       'city': 'Sofia',
       'country': 'Bulgaria',
@@ -289,7 +289,7 @@ void main() {
       'first_name': 'Alice',
       'last_name': 'Admin',
       'email': 'alice@example.com',
-      'phone': '123',
+      'phone': '123456',
       'gender': 'F',
       'city': 'Sofia',
       'country': 'Bulgaria',
@@ -301,7 +301,7 @@ void main() {
       'first_name': 'Bob',
       'last_name': 'Editor',
       'email': 'bob@example.com',
-      'phone': '123',
+      'phone': '123456',
       'gender': 'M',
       'city': 'Sofia',
       'country': 'Bulgaria',
@@ -313,7 +313,7 @@ void main() {
       'first_name': 'Charlie',
       'last_name': 'Guest',
       'email': 'charlie@example.com',
-      'phone': '123',
+      'phone': '123456',
       'gender': 'M',
       'city': 'Sofia',
       'country': 'Bulgaria',
@@ -385,9 +385,9 @@ void main() {
     await database.insert('users', {
       'id': 'u1',
       'first_name': 'Author',
-      'last_name': 'A',
+      'last_name': 'Someone',
       'email': 'a@example.com',
-      'phone': '123',
+      'phone': '123456',
       'gender': 'M',
       'city': 'Sofia',
       'country': 'Bulgaria',
@@ -397,9 +397,9 @@ void main() {
     await database.insert('users', {
       'id': 'u2',
       'first_name': 'Author',
-      'last_name': 'B',
+      'last_name': 'SomeoneElse',
       'email': 'b@example.com',
-      'phone': '123',
+      'phone': '123456',
       'gender': 'M',
       'city': 'Sofia',
       'country': 'Bulgaria',
@@ -442,7 +442,7 @@ void main() {
     expect(result.data, hasLength(1));
     expect(result.data[0].title, 'Tech Review');
     expect(result.data[0].user, isNotNull);
-    expect(result.data[0].user!.lastName, 'B');
+    expect(result.data[0].user!.lastName, 'SomeoneElse');
   });
 
   test('Filter main table (Users) by related table (Posts) columns', () async {
@@ -452,9 +452,9 @@ void main() {
     await database.insert('users', {
       'id': 'ua',
       'first_name': 'Author',
-      'last_name': 'A',
+      'last_name': 'Someone',
       'email': 'ua@example.com',
-      'phone': '123',
+      'phone': '123456',
       'gender': 'M',
       'city': 'Sofia',
       'country': 'Bulgaria',
@@ -464,9 +464,9 @@ void main() {
     await database.insert('users', {
       'id': 'ub',
       'first_name': 'Author',
-      'last_name': 'B',
+      'last_name': 'SomeoneElse',
       'email': 'ub@example.com',
-      'phone': '123',
+      'phone': '123456',
       'gender': 'M',
       'city': 'Sofia',
       'country': 'Bulgaria',
@@ -498,6 +498,6 @@ void main() {
     final result = await userService.readAll(where: where);
 
     expect(result.data, hasLength(1));
-    expect(result.data[0].lastName, 'A');
+    expect(result.data[0].lastName, 'Someone');
   });
 }
