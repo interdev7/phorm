@@ -8,7 +8,7 @@ part of 'post.dart';
 
 const _$SQFlowPostSchema = """
 CREATE TABLE posts (
-  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  id TEXT PRIMARY KEY NOT NULL UNIQUE,
   title TEXT NOT NULL,
   content TEXT NOT NULL,
   user_id TEXT NOT NULL,
@@ -61,7 +61,7 @@ mixin _$SQFlowPostMixin {
 
 extension SQFlowPostSqlExt on Post {
   Map<String, dynamic> _$SQFlowPostToJson() {
-    return {
+    final postJson = {
       'id': _$SQFlowToJsonValue(id),
       'title': _$SQFlowToJsonValue(title),
       'content': _$SQFlowToJsonValue(content),
@@ -69,10 +69,13 @@ extension SQFlowPostSqlExt on Post {
       'created_at': _$SQFlowToJsonValue(createdAt),
       'updated_at': _$SQFlowToJsonValue(updatedAt),
     };
+    _$validatePost(postJson, tableName: 'posts');
+
+    return postJson;
   }
 
   Post copyWith({
-    int? id,
+    String? id,
     String? title,
     String? content,
     String? userId,
@@ -92,9 +95,11 @@ extension SQFlowPostSqlExt on Post {
   }
 }
 
+void _$validatePost(Map<String, dynamic> json, {required String tableName}) {}
+
 Post _$SQFlowPostFromJson(Map<String, dynamic> json) {
   final instance = Post(
-    id: json['id'] as int,
+    id: json['id'] as String,
     title: json['title'] as String,
     content: json['content'] as String,
     userId: json['user_id'] as String,
@@ -112,7 +117,7 @@ Post _$SQFlowPostFromJson(Map<String, dynamic> json) {
 }
 
 class PostTable {
-  static const SqflowColumn<int> id = SqflowColumn<int>('id');
+  static const SqflowColumn<String> id = SqflowColumn<String>('id');
   static const SqflowColumn<String> title = SqflowColumn<String>('title');
   static const SqflowColumn<String> content = SqflowColumn<String>('content');
   static const SqflowColumn<String> userId = SqflowColumn<String>('user_id');
