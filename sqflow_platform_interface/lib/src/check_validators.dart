@@ -1,68 +1,10 @@
-/// Base interface for check conditions (CHECK constraints).
-abstract class ICHECK {
-  const ICHECK();
+import 'package:sqflow_platform_interface/sqflow_platform_interface.dart';
 
-  /// Generates SQL expression for the condition.
-  /// [columnName] - the column name to which the condition is applied.
-  String toSql(String columnName);
-
-  /// Optional constraint name (CONSTRAINT name).
-  String? get constraint;
-
-  /// Validates the [value] in Dart.
-  /// Returns true if valid, false otherwise.
-  bool isValid(dynamic value);
-}
-
-/// Exception thrown when a Dart-side CHECK validation fails.
-class SqflowCheckException implements Exception {
-  final String table;
-  final String column;
-  final String message;
-  final String? constraint;
-
-  SqflowCheckException({
-    required this.table,
-    required this.column,
-    required this.message,
-    this.constraint,
-  });
-
-  @override
-  String toString() =>
-      'SqflowCheckException: [$table.$column] $message${constraint != null ? ' (Constraint: $constraint)' : ''}';
-}
-
-class CheckComposite extends ICHECK {
-  final List<ICHECK> conditions;
-  final String operator;
+class NotContainsValidator implements ICheckValidator {
+  final ICheckValidator condition;
   @override
   final String? constraint;
-  const CheckComposite(this.conditions, this.operator, {this.constraint});
-  @override
-  String toSql(String columnName) {
-    if (conditions.isEmpty) return '';
-    final parts =
-        conditions.map((c) => '(${c.toSql(columnName)})').join(' $operator ');
-    return parts;
-  }
-
-  @override
-  bool isValid(dynamic value) {
-    if (conditions.isEmpty) return true;
-    if (operator == 'AND') {
-      return conditions.every((c) => c.isValid(value));
-    } else {
-      return conditions.any((c) => c.isValid(value));
-    }
-  }
-}
-
-class CheckNot extends ICHECK {
-  final ICHECK condition;
-  @override
-  final String? constraint;
-  const CheckNot(this.condition, {this.constraint});
+  const NotContainsValidator(this.condition, {this.constraint});
   @override
   String toSql(String columnName) => 'NOT (${condition.toSql(columnName)})';
 
@@ -70,12 +12,12 @@ class CheckNot extends ICHECK {
   bool isValid(dynamic value) => !condition.isValid(value);
 }
 
-class CheckLength extends ICHECK {
+class LengthValidator implements ICheckValidator {
   final int? min;
   final int? max;
   @override
   final String? constraint;
-  const CheckLength({this.min, this.max, this.constraint});
+  const LengthValidator({this.min, this.max, this.constraint});
   @override
   String toSql(String columnName) {
     final lengthExpr = 'LENGTH($columnName)';
@@ -99,12 +41,23 @@ class CheckLength extends ICHECK {
   }
 }
 
-class CheckInList extends ICHECK {
+class NotEmptyValidator implements ICheckValidator {
+  @override
+  final String? constraint;
+  const NotEmptyValidator({this.constraint});
+  @override
+  String toSql(String columnName) => '$columnName <> ""';
+
+  @override
+  bool isValid(dynamic value) => value != null && value.toString().isNotEmpty;
+}
+
+class ContainsValidator implements ICheckValidator {
   final List<dynamic> values;
   @override
   final String? constraint;
 
-  const CheckInList(this.values, {this.constraint});
+  const ContainsValidator(this.values, {this.constraint});
 
   @override
   String toSql(String columnName) {
@@ -117,13 +70,13 @@ class CheckInList extends ICHECK {
   bool isValid(dynamic value) => values.contains(value);
 }
 
-class CheckRange extends ICHECK {
+class RangeValidator implements ICheckValidator {
   final num? min;
   final num? max;
   @override
   final String? constraint;
 
-  const CheckRange({this.min, this.max, this.constraint});
+  const RangeValidator({this.min, this.max, this.constraint});
 
   @override
   String toSql(String columnName) {
@@ -147,13 +100,13 @@ class CheckRange extends ICHECK {
   }
 }
 
-class CheckComparison extends ICHECK {
+class ComparisonValidator implements ICheckValidator {
   final num value;
   final String operator;
   @override
   final String? constraint;
 
-  const CheckComparison(this.value, this.operator, {this.constraint});
+  const ComparisonValidator(this.value, this.operator, {this.constraint});
 
   @override
   String toSql(String columnName) => '$columnName $operator $value';
@@ -182,30 +135,12 @@ class CheckComparison extends ICHECK {
   }
 }
 
-class CheckRegExp extends ICHECK {
-  final String pattern;
-  @override
-  final String? constraint;
-
-  const CheckRegExp(this.pattern, {this.constraint});
-
-  @override
-  String toSql(String columnName) {
-    return '';
-  }
-
-  @override
-  bool isValid(dynamic value) {
-    return RegExp(pattern).hasMatch(value.toString());
-  }
-}
-
-class CheckCustom extends ICHECK {
+class CustomSqlValidator implements ICheckValidator {
   final String sql;
   @override
   final String? constraint;
 
-  const CheckCustom(this.sql, {this.constraint});
+  const CustomSqlValidator(this.sql, {this.constraint});
 
   @override
   String toSql(String columnName) {
@@ -217,6 +152,6 @@ class CheckCustom extends ICHECK {
 
   @override
   bool isValid(dynamic value) {
-    return true;
+    return true; // Dart-side execution is ignored for pure SQL custom checks
   }
 }

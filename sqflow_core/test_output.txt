@@ -1,0 +1,660 @@
+Resolving dependencies in `/Users/interdev7/Documents/sqflow`...
+Downloading packages...
+  _fe_analyzer_shared 76.0.0 (100.0.0 available)
+  analyzer 6.11.0 (13.0.0 available)
+  async 2.12.0 (2.13.1 available)
+  build 2.5.4 (4.0.6 available)
+  build_config 1.1.2 (1.3.0 available)
+  build_resolvers 2.5.4 (3.0.4 available)
+  build_runner 2.5.4 (2.15.0 available)
+  build_runner_core 9.1.2 (9.3.2 available)
+  build_test 2.2.3 (3.5.15 available)
+  built_value 8.12.4 (8.12.6 available)
+  characters 1.4.0 (1.4.1 available)
+  checked_yaml 2.0.3 (2.0.4 available)
+  dart_style 2.3.8 (3.1.9 available)
+  fake_async 1.3.2 (1.3.3 available)
+  flutter_lints 3.0.2 (6.0.0 available)
+  json_annotation 4.9.0 (4.11.0 available)
+  leak_tracker 10.0.8 (11.0.2 available)
+  leak_tracker_flutter_testing 3.0.9 (3.0.10 available)
+  leak_tracker_testing 3.0.1 (3.0.2 available)
+  lints 3.0.0 (6.1.0 available)
+  matcher 0.12.17 (0.12.20 available)
+  material_color_utilities 0.11.1 (0.13.0 available)
+  meta 1.16.0 (1.18.2 available)
+  source_gen 1.5.0 (4.2.3 available)
+  source_span 1.10.1 (1.10.2 available)
+  sqflite 2.4.2 (2.4.2+1 available)
+  sqflite_android 2.4.1 (2.4.2+3 available)
+  sqflite_common 2.5.5 (2.5.6+1 available)
+  sqflite_common_ffi 2.3.6 (2.4.0+3 available)
+  sqlite3 2.9.4 (3.3.1 available)
+  synchronized 3.3.1 (3.4.0+1 available)
+  test 1.25.15 (1.31.1 available)
+  test_api 0.7.4 (0.7.12 available)
+  test_core 0.6.8 (0.6.18 available)
+  vector_math 2.1.4 (2.3.0 available)
+  very_good_analysis 8.0.0 (10.2.0 available)
+  vm_service 14.3.1 (15.2.0 available)
+Got dependencies in `/Users/interdev7/Documents/sqflow`!
+37 packages have newer versions incompatible with dependency constraints.
+Try `flutter pub outdated` for more information.
+00:00 +0: loading /Users/interdev7/Documents/sqflow/sqflow_core/test/isolate_parsing_test.dart                                                                                                         00:00 +0: /Users/interdev7/Documents/sqflow/sqflow_core/test/isolate_parsing_test.dart: (setUpAll)                                                                                                     00:00 +0: /Users/interdev7/Documents/sqflow/sqflow_core/test/isolate_parsing_test.dart: readAll uses isolate for > 50 rows                                                                             00:00 +0: /Users/interdev7/Documents/sqflow/sqflow_core/test/isolate_parsing_test.dart: readAll uses isolate for > 50 rows                                                                             
+[34m💡 [Sqflow Info][0m Initializing database: :memory: (v1)
+[34m💡 [Sqflow Info][0m Creating new database (v1)
+[34m💡 [Sqflow Info][0m Creating table: users
+[34m💡 [Sqflow Info][0m No pending migrations found
+[34m💡 [Sqflow Info][0m Database created successfully
+00:01 +1: /Users/interdev7/Documents/sqflow/sqflow_core/test/isolate_parsing_test.dart: readAll uses isolate for > 50 rows                                                                             00:01 +1: /Users/interdev7/Documents/sqflow/sqflow_core/test/isolate_parsing_test.dart: (tearDownAll)                                                                                                  00:01 +1: loading /Users/interdev7/Documents/sqflow/sqflow_core/test/attributes_test.dart                                                                                                              00:01 +1: /Users/interdev7/Documents/sqflow/sqflow_core/test/attributes_test.dart: (setUpAll)                                                                                                          00:01 +1: /Users/interdev7/Documents/sqflow/sqflow_core/test/attributes_test.dart: Attribute.include should only fetch specified columns                                                               00:01 +1: /Users/interdev7/Documents/sqflow/sqflow_core/test/attributes_test.dart: Attribute.include should only fetch specified columns                                                               
+[34m💡 [Sqflow Info][0m Initializing database: :memory: (v1)
+00:01 +1: /Users/interdev7/Documents/sqflow/sqflow_core/test/reactivity_test.dart: Reactivity Tests (Streams) watch() emits initial value and updates on change                                        
+[34m💡 [Sqflow Info][0m Initializing database: :memory: (v1)
+00:01 +1: /Users/interdev7/Documents/sqflow/sqflow_core/test/attributes_test.dart: Attribute.include should only fetch specified columns                                                               
+[34m💡 [Sqflow Info][0m Creating new database (v1)
+[34m💡 [Sqflow Info][0m Creating table: users
+[34m💡 [Sqflow Info][0m Creating table: orders
+[34m💡 [Sqflow Info][0m No pending migrations found
+[34m💡 [Sqflow Info][0m Database created successfully
+00:01 +1: /Users/interdev7/Documents/sqflow/sqflow_core/test/reactivity_test.dart: Reactivity Tests (Streams) watch() emits initial value and updates on change                                        
+[34m💡 [Sqflow Info][0m Creating new database (v1)
+[34m💡 [Sqflow Info][0m Creating table: users
+00:01 +1: /Users/interdev7/Documents/sqflow/sqflow_core/test/attributes_test.dart: Attribute.include should only fetch specified columns                                                               00:01 +1: /Users/interdev7/Documents/sqflow/sqflow_core/test/reactivity_test.dart: Reactivity Tests (Streams) watch() emits initial value and updates on change                                        
+[34m💡 [Sqflow Info][0m Creating table: posts
+[34m💡 [Sqflow Info][0m No pending migrations found
+[34m💡 [Sqflow Info][0m Database created successfully
+00:01 +2: /Users/interdev7/Documents/sqflow/sqflow_core/test/reactivity_test.dart: Reactivity Tests (Streams) watch() emits initial value and updates on change                                        00:01 +2: /Users/interdev7/Documents/sqflow/sqflow_core/test/attributes_test.dart: Attribute.exclude should fetch all except specified columns                                                         
+[34m💡 [Sqflow Info][0m Initializing database: :memory: (v1)
+00:01 +2: /Users/interdev7/Documents/sqflow/sqflow_core/test/reactivity_test.dart: Reactivity Tests (Streams) watch() emits initial value and updates on change                                        00:01 +2: /Users/interdev7/Documents/sqflow/sqflow_core/test/attributes_test.dart: Attribute.exclude should fetch all except specified columns                                                         
+[34m💡 [Sqflow Info][0m Creating new database (v1)
+[34m💡 [Sqflow Info][0m Creating table: users
+[34m💡 [Sqflow Info][0m Creating table: orders
+[34m💡 [Sqflow Info][0m No pending migrations found
+[34m💡 [Sqflow Info][0m Database created successfully
+00:01 +2: /Users/interdev7/Documents/sqflow/sqflow_core/test/relationships_test.dart: Eager load hasMany: User with Posts                                                                              
+[34m💡 [Sqflow Info][0m Initializing database: :memory: (v1)
+00:01 +3: /Users/interdev7/Documents/sqflow/sqflow_core/test/reactivity_test.dart: Reactivity Tests (Streams) watch() emits initial value and updates on change                                        00:01 +3: /Users/interdev7/Documents/sqflow/sqflow_core/test/attributes_test.dart: Include should support Attribute filtering for relationships                                                        
+[34m💡 [Sqflow Info][0m Initializing database: :memory: (v1)
+[34m💡 [Sqflow Info][0m Creating new database (v1)
+[34m💡 [Sqflow Info][0m Creating table: users
+[34m💡 [Sqflow Info][0m Creating table: orders
+[34m💡 [Sqflow Info][0m No pending migrations found
+[34m💡 [Sqflow Info][0m Database created successfully
+00:01 +4: /Users/interdev7/Documents/sqflow/sqflow_core/test/reactivity_test.dart: Reactivity Tests (Streams) watch() emits initial value and updates on change                                        00:01 +4: /Users/interdev7/Documents/sqflow/sqflow_core/test/relationships_test.dart: Eager load hasMany: User with Posts                                                                              
+[34m💡 [Sqflow Info][0m Creating new database (v1)
+[34m💡 [Sqflow Info][0m Creating table: users
+[34m💡 [Sqflow Info][0m Creating table: posts
+[34m💡 [Sqflow Info][0m No pending migrations found
+[34m💡 [Sqflow Info][0m Database created successfully
+00:01 +5: /Users/interdev7/Documents/sqflow/sqflow_core/test/reactivity_test.dart: Reactivity Tests (Streams) watch() emits initial value and updates on change                                        00:01 +5: /Users/interdev7/Documents/sqflow/sqflow_core/test/relationships_test.dart: Eager load belongsTo: Post with User                                                                             
+[34m💡 [Sqflow Info][0m Initializing database: :memory: (v1)
+[34m💡 [Sqflow Info][0m Creating new database (v1)
+[34m💡 [Sqflow Info][0m Creating table: users
+[34m💡 [Sqflow Info][0m Creating table: posts
+[34m💡 [Sqflow Info][0m No pending migrations found
+[34m💡 [Sqflow Info][0m Database created successfully
+00:01 +6: /Users/interdev7/Documents/sqflow/sqflow_core/test/reactivity_test.dart: Reactivity Tests (Streams) watch() emits initial value and updates on change                                        00:01 +6: /Users/interdev7/Documents/sqflow/sqflow_core/test/relationships_test.dart: Eager load in readAll                                                                                            
+[34m💡 [Sqflow Info][0m Initializing database: :memory: (v1)
+[34m💡 [Sqflow Info][0m Creating new database (v1)
+[34m💡 [Sqflow Info][0m Creating table: users
+[34m💡 [Sqflow Info][0m Creating table: posts
+[34m💡 [Sqflow Info][0m No pending migrations found
+[34m💡 [Sqflow Info][0m Database created successfully
+00:01 +7: /Users/interdev7/Documents/sqflow/sqflow_core/test/reactivity_test.dart: Reactivity Tests (Streams) watch() emits initial value and updates on change                                        00:01 +8: /Users/interdev7/Documents/sqflow/sqflow_core/test/crud/insert_test.dart: (setUpAll)                                                                                                         00:01 +8: /Users/interdev7/Documents/sqflow/sqflow_core/test/reactivity_test.dart: Reactivity Tests (Streams) watchAll() emits new list when an item is inserted                                       
+[34m💡 [Sqflow Info][0m Initializing database: :memory: (v1)
+[34m💡 [Sqflow Info][0m Creating new database (v1)
+[34m💡 [Sqflow Info][0m Creating table: users
+[34m💡 [Sqflow Info][0m Creating table: posts
+[34m💡 [Sqflow Info][0m No pending migrations found
+[34m💡 [Sqflow Info][0m Database created successfully
+00:01 +8: /Users/interdev7/Documents/sqflow/sqflow_core/test/crud/insert_test.dart: SqflowCore Insert Tests: Insert and read single record                                                             
+[34m💡 [Sqflow Info][0m Initializing database: :memory: (v1)
+00:01 +9: /Users/interdev7/Documents/sqflow/sqflow_core/test/crud/insert_test.dart: SqflowCore Insert Tests: Insert and read single record                                                             00:01 +9: /Users/interdev7/Documents/sqflow/sqflow_core/test/reactivity_test.dart: Reactivity Tests (Streams) watch() re-emits when a dependency changes                                               
+[34m💡 [Sqflow Info][0m Initializing database: :memory: (v1)
+[34m💡 [Sqflow Info][0m Creating new database (v1)
+[34m💡 [Sqflow Info][0m Creating table: users
+[34m💡 [Sqflow Info][0m Creating table: posts
+[34m💡 [Sqflow Info][0m No pending migrations found
+[34m💡 [Sqflow Info][0m Database created successfully
+00:01 +9: /Users/interdev7/Documents/sqflow/sqflow_core/test/crud/insert_test.dart: SqflowCore Insert Tests: Insert and read single record                                                             
+[34m💡 [Sqflow Info][0m Creating new database (v1)
+[34m💡 [Sqflow Info][0m Creating table: users
+[34m💡 [Sqflow Info][0m No pending migrations found
+[34m💡 [Sqflow Info][0m Database created successfully
+00:01 +10: /Users/interdev7/Documents/sqflow/sqflow_core/test/reactivity_test.dart: Reactivity Tests (Streams) watch() re-emits when a dependency changes                                              00:01 +11: /Users/interdev7/Documents/sqflow/sqflow_core/test/reactivity_test.dart: Reactivity Tests (Streams) watch() re-emits when a dependency changes                                              00:01 +11: /Users/interdev7/Documents/sqflow/sqflow_core/test/reactivity_test.dart: Reactivity Tests (Streams) watchAll() automatically detects dependencies from includes                             00:01 +11: /Users/interdev7/Documents/sqflow/sqflow_core/test/reactivity_test.dart: Reactivity Tests (Streams) watchAll() automatically detects dependencies from includes                             
+[34m💡 [Sqflow Info][0m Initializing database: :memory: (v1)
+[34m💡 [Sqflow Info][0m Creating new database (v1)
+[34m💡 [Sqflow Info][0m Creating table: users
+[34m💡 [Sqflow Info][0m Creating table: posts
+[34m💡 [Sqflow Info][0m No pending migrations found
+[34m💡 [Sqflow Info][0m Database created successfully
+00:01 +12: /Users/interdev7/Documents/sqflow/sqflow_core/test/reactivity_test.dart: Reactivity Tests (Streams) watchAll() automatically detects dependencies from includes                             00:02 +12: /Users/interdev7/Documents/sqflow/sqflow_core/test/reactivity_test.dart: (tearDownAll)                                                                                                      00:02 +12: loading /Users/interdev7/Documents/sqflow/sqflow_core/test/crud/read_test.dart                                                                                                              00:02 +12: /Users/interdev7/Documents/sqflow/sqflow_core/test/crud/read_test.dart: (setUpAll)                                                                                                          00:02 +12: /Users/interdev7/Documents/sqflow/sqflow_core/test/crud/read_test.dart: SqflowCore Read Tests: Existence check                                                                              00:02 +12: /Users/interdev7/Documents/sqflow/sqflow_core/test/crud/read_test.dart: SqflowCore Read Tests: Existence check                                                                              
+[34m💡 [Sqflow Info][0m Initializing database: :memory: (v1)
+00:02 +12: /Users/interdev7/Documents/sqflow/sqflow_core/test/crud/update_test.dart: SqflowCore Update Tests: Update record                                                                            
+[34m💡 [Sqflow Info][0m Initializing database: :memory: (v1)
+00:02 +12: /Users/interdev7/Documents/sqflow/sqflow_core/test/crud/read_test.dart: SqflowCore Read Tests: Existence check                                                                              
+[34m💡 [Sqflow Info][0m Creating new database (v1)
+[34m💡 [Sqflow Info][0m Creating table: users
+[34m💡 [Sqflow Info][0m No pending migrations found
+[34m💡 [Sqflow Info][0m Database created successfully
+00:02 +12: /Users/interdev7/Documents/sqflow/sqflow_core/test/crud/update_test.dart: SqflowCore Update Tests: Update record                                                                            
+[34m💡 [Sqflow Info][0m Creating new database (v1)
+[34m💡 [Sqflow Info][0m Creating table: users
+[34m💡 [Sqflow Info][0m No pending migrations found
+[34m💡 [Sqflow Info][0m Database created successfully
+00:02 +13: /Users/interdev7/Documents/sqflow/sqflow_core/test/crud/update_test.dart: SqflowCore Update Tests: Update record                                                                            00:02 +13: /Users/interdev7/Documents/sqflow/sqflow_core/test/crud/read_test.dart: SqflowCore Read Tests: Read nonexistent record                                                                      
+[34m💡 [Sqflow Info][0m Initializing database: :memory: (v1)
+[34m💡 [Sqflow Info][0m Creating new database (v1)
+[34m💡 [Sqflow Info][0m Creating table: users
+[34m💡 [Sqflow Info][0m No pending migrations found
+[34m💡 [Sqflow Info][0m Database created successfully
+00:02 +14: /Users/interdev7/Documents/sqflow/sqflow_core/test/crud/update_test.dart: SqflowCore Update Tests: Update record                                                                            00:02 +15: /Users/interdev7/Documents/sqflow/sqflow_core/test/crud/transaction_test.dart: SqflowCore Transaction: Transaction rolls back on error                                                      00:02 +15: /Users/interdev7/Documents/sqflow/sqflow_core/test/crud/update_test.dart: SqflowCore Update Tests: Upsert (insert or replace)                                                               
+[34m💡 [Sqflow Info][0m Initializing database: :memory: (v1)
+[34m💡 [Sqflow Info][0m Creating new database (v1)
+[34m💡 [Sqflow Info][0m Creating table: users
+[34m💡 [Sqflow Info][0m No pending migrations found
+[34m💡 [Sqflow Info][0m Database created successfully
+00:02 +15: /Users/interdev7/Documents/sqflow/sqflow_core/test/crud/transaction_test.dart: SqflowCore Transaction: Transaction rolls back on error                                                      
+[34m💡 [Sqflow Info][0m Initializing database: :memory: (v1)
+00:02 +16: /Users/interdev7/Documents/sqflow/sqflow_core/test/crud/transaction_test.dart: SqflowCore Transaction: Transaction rolls back on error                                                      00:02 +16: /Users/interdev7/Documents/sqflow/sqflow_core/test/crud/update_test.dart: SqflowCore Update Tests: Update nonexistent record                                                                
+[34m💡 [Sqflow Info][0m Initializing database: :memory: (v1)
+[34m💡 [Sqflow Info][0m Creating new database (v1)
+[34m💡 [Sqflow Info][0m Creating table: users
+[34m💡 [Sqflow Info][0m No pending migrations found
+[34m💡 [Sqflow Info][0m Database created successfully
+00:02 +17: /Users/interdev7/Documents/sqflow/sqflow_core/test/crud/transaction_test.dart: SqflowCore Transaction: Transaction rolls back on error                                                      00:02 +18: /Users/interdev7/Documents/sqflow/sqflow_core/test/crud/transaction_test.dart: SqflowCore Transaction: Transaction rolls back on error                                                      00:02 +19: /Users/interdev7/Documents/sqflow/sqflow_core/test/crud/transaction_test.dart: SqflowCore Transaction: Transaction rolls back on error                                                      00:02 +20: /Users/interdev7/Documents/sqflow/sqflow_core/test/crud/transaction_test.dart: SqflowCore Transaction: Transaction rolls back on error                                                      00:02 +21: /Users/interdev7/Documents/sqflow/sqflow_core/test/crud/transaction_test.dart: SqflowCore Transaction: Transaction rolls back on error                                                      00:02 +22: /Users/interdev7/Documents/sqflow/sqflow_core/test/crud/transaction_test.dart: SqflowCore Transaction: Transaction rolls back on error                                                      00:02 +23: /Users/interdev7/Documents/sqflow/sqflow_core/test/crud/transaction_test.dart: SqflowCore Transaction: Transaction rolls back on error                                                      00:02 +24: /Users/interdev7/Documents/sqflow/sqflow_core/test/crud/transaction_test.dart: SqflowCore Transaction: Transaction rolls back on error                                                      00:02 +25: /Users/interdev7/Documents/sqflow/sqflow_core/test/crud/transaction_test.dart: SqflowCore Transaction: Transaction rolls back on error                                                      00:02 +26: /Users/interdev7/Documents/sqflow/sqflow_core/test/crud/transaction_test.dart: SqflowCore Transaction: Transaction rolls back on error                                                      00:02 +27: /Users/interdev7/Documents/sqflow/sqflow_core/test/crud/transaction_test.dart: SqflowCore Transaction: Transaction rolls back on error                                                      00:02 +28: /Users/interdev7/Documents/sqflow/sqflow_core/test/crud/transaction_test.dart: SqflowCore Transaction: Transaction rolls back on error                                                      00:02 +29: /Users/interdev7/Documents/sqflow/sqflow_core/test/crud/transaction_test.dart: SqflowCore Transaction: Transaction rolls back on error                                                      00:02 +30: /Users/interdev7/Documents/sqflow/sqflow_core/test/crud/transaction_test.dart: SqflowCore Transaction: Transaction rolls back on error                                                      00:02 +31: /Users/interdev7/Documents/sqflow/sqflow_core/test/crud/transaction_test.dart: SqflowCore Transaction: Transaction rolls back on error                                                      00:02 +32: /Users/interdev7/Documents/sqflow/sqflow_core/test/crud/transaction_test.dart: SqflowCore Transaction: Transaction rolls back on error                                                      00:02 +32: /Users/interdev7/Documents/sqflow/sqflow_core/test/crud/transaction_test.dart: SqflowCore Transaction: Transaction rolls back on error                                                      
+[34m💡 [Sqflow Info][0m Creating new database (v1)
+[34m💡 [Sqflow Info][0m Creating table: users
+[34m💡 [Sqflow Info][0m No pending migrations found
+[34m💡 [Sqflow Info][0m Database created successfully
+00:02 +33: /Users/interdev7/Documents/sqflow/sqflow_core/test/crud/transaction_test.dart: SqflowCore Transaction: Transaction rolls back on error                                                      00:02 +33: /Users/interdev7/Documents/sqflow/sqflow_core/test/crud/transaction_test.dart: SqflowCore Transaction: Successful transaction with ORM methods                                              00:02 +33: /Users/interdev7/Documents/sqflow/sqflow_core/test/crud/transaction_test.dart: SqflowCore Transaction: Successful transaction with ORM methods                                              
+[34m💡 [Sqflow Info][0m Initializing database: :memory: (v1)
+[34m💡 [Sqflow Info][0m Creating new database (v1)
+[34m💡 [Sqflow Info][0m Creating table: users
+[34m💡 [Sqflow Info][0m No pending migrations found
+[34m💡 [Sqflow Info][0m Database created successfully
+00:02 +34: /Users/interdev7/Documents/sqflow/sqflow_core/test/crud/transaction_test.dart: SqflowCore Transaction: Successful transaction with ORM methods                                              00:02 +34: /Users/interdev7/Documents/sqflow/sqflow_core/test/crud/transaction_test.dart: (tearDownAll)                                                                                                00:03 +34: /Users/interdev7/Documents/sqflow/sqflow_core/test/crud/transaction_test.dart: (tearDownAll)                                                                                                00:03 +34: loading /Users/interdev7/Documents/sqflow/sqflow_core/test/crud/dart_validation_test.dart                                                                                                   00:03 +34: /Users/interdev7/Documents/sqflow/sqflow_core/test/crud/dart_validation_test.dart: Dart-Side Validation Tests toJson() should throw SqflowCHECKValidatorException for invalid gender        00:03 +35: /Users/interdev7/Documents/sqflow/sqflow_core/test/crud/dart_validation_test.dart: Dart-Side Validation Tests toJson() should throw SqflowCHECKValidatorException for invalid gender        00:03 +35: /Users/interdev7/Documents/sqflow/sqflow_core/test/crud/dart_validation_test.dart: Dart-Side Validation Tests toJson() should throw SqflowCHECKValidatorException for short firstName       00:03 +36: /Users/interdev7/Documents/sqflow/sqflow_core/test/crud/dart_validation_test.dart: Dart-Side Validation Tests toJson() should throw SqflowCHECKValidatorException for short firstName       00:03 +36: /Users/interdev7/Documents/sqflow/sqflow_core/test/crud/dart_validation_test.dart: Dart-Side Validation Tests toJson() should succeed for valid data                                        00:03 +37: /Users/interdev7/Documents/sqflow/sqflow_core/test/crud/dart_validation_test.dart: Dart-Side Validation Tests toJson() should succeed for valid data                                        00:03 +37: /Users/interdev7/Documents/sqflow/sqflow_core/test/crud/dart_validation_test.dart: should throw SqflowJSONValidatorException for invalid email                                              00:03 +38: /Users/interdev7/Documents/sqflow/sqflow_core/test/crud/dart_validation_test.dart: should throw SqflowJSONValidatorException for invalid email                                              00:03 +38: loading /Users/interdev7/Documents/sqflow/sqflow_core/test/crud/delete_test.dart                                                                                                            00:03 +38: /Users/interdev7/Documents/sqflow/sqflow_core/test/crud/delete_test.dart: (setUpAll)                                                                                                        00:03 +38: /Users/interdev7/Documents/sqflow/sqflow_core/test/crud/delete_test.dart: SqflowCore Delete/Restore Tests: Soft delete and restore                                                          00:03 +38: /Users/interdev7/Documents/sqflow/sqflow_core/test/crud/delete_test.dart: SqflowCore Delete/Restore Tests: Soft delete and restore                                                          
+[34m💡 [Sqflow Info][0m Initializing database: :memory: (v1)
+00:03 +38: /Users/interdev7/Documents/sqflow/sqflow_core/test/crud/batch_test.dart: SqflowCore Batch Operations: Batch insert                                                                          
+[34m💡 [Sqflow Info][0m Initializing database: :memory: (v1)
+00:03 +38: /Users/interdev7/Documents/sqflow/sqflow_core/test/crud/delete_test.dart: SqflowCore Delete/Restore Tests: Soft delete and restore                                                          00:03 +38: /Users/interdev7/Documents/sqflow/sqflow_core/test/crud/read_all_test.dart: SqflowCore ReadAll Tests: Basic pagination                                                                      
+[34m💡 [Sqflow Info][0m Initializing database: :memory: (v1)
+00:03 +38: /Users/interdev7/Documents/sqflow/sqflow_core/test/crud/delete_test.dart: SqflowCore Delete/Restore Tests: Soft delete and restore                                                          
+[34m💡 [Sqflow Info][0m Creating new database (v1)
+[34m💡 [Sqflow Info][0m Creating table: users
+[34m💡 [Sqflow Info][0m No pending migrations found
+[34m💡 [Sqflow Info][0m Database created successfully
+00:03 +38: /Users/interdev7/Documents/sqflow/sqflow_core/test/crud/batch_test.dart: SqflowCore Batch Operations: Batch insert                                                                          
+[34m💡 [Sqflow Info][0m Creating new database (v1)
+[34m💡 [Sqflow Info][0m Creating table: users
+[34m💡 [Sqflow Info][0m No pending migrations found
+[34m💡 [Sqflow Info][0m Database created successfully
+00:03 +39: /Users/interdev7/Documents/sqflow/sqflow_core/test/crud/batch_test.dart: SqflowCore Batch Operations: Batch insert                                                                          00:03 +39: /Users/interdev7/Documents/sqflow/sqflow_core/test/crud/delete_test.dart: SqflowCore Delete/Restore Tests: Force delete (hard delete)                                                       
+[34m💡 [Sqflow Info][0m Initializing database: :memory: (v1)
+[34m💡 [Sqflow Info][0m Creating new database (v1)
+[34m💡 [Sqflow Info][0m Creating table: users
+[34m💡 [Sqflow Info][0m No pending migrations found
+[34m💡 [Sqflow Info][0m Database created successfully
+00:03 +40: /Users/interdev7/Documents/sqflow/sqflow_core/test/crud/batch_test.dart: SqflowCore Batch Operations: Batch insert                                                                          00:03 +40: /Users/interdev7/Documents/sqflow/sqflow_core/test/crud/delete_test.dart: SqflowCore Delete/Restore Tests: Delete nonexistent record                                                        
+[34m💡 [Sqflow Info][0m Initializing database: :memory: (v1)
+[34m💡 [Sqflow Info][0m Creating new database (v1)
+[34m💡 [Sqflow Info][0m Creating table: users
+[34m💡 [Sqflow Info][0m No pending migrations found
+[34m💡 [Sqflow Info][0m Database created successfully
+00:03 +41: /Users/interdev7/Documents/sqflow/sqflow_core/test/crud/read_all_test.dart: SqflowCore ReadAll Tests: Basic pagination                                                                      00:03 +41: /Users/interdev7/Documents/sqflow/sqflow_core/test/crud/batch_test.dart: SqflowCore Batch Operations: Batch update                                                                          
+[34m💡 [Sqflow Info][0m Initializing database: :memory: (v1)
+[34m💡 [Sqflow Info][0m Creating new database (v1)
+00:03 +42: /Users/interdev7/Documents/sqflow/sqflow_core/test/crud/read_all_test.dart: SqflowCore ReadAll Tests: Basic pagination                                                                      00:03 +42: /Users/interdev7/Documents/sqflow/sqflow_core/test/crud/batch_test.dart: SqflowCore Batch Operations: Batch update                                                                          
+[34m💡 [Sqflow Info][0m Creating table: users
+00:03 +42: /Users/interdev7/Documents/sqflow/sqflow_core/test/crud/delete_test.dart: SqflowCore Delete/Restore Tests: Restore nonexistent record                                                       
+[34m💡 [Sqflow Info][0m Initializing database: :memory: (v1)
+00:03 +42: /Users/interdev7/Documents/sqflow/sqflow_core/test/crud/batch_test.dart: SqflowCore Batch Operations: Batch update                                                                          
+[34m💡 [Sqflow Info][0m No pending migrations found
+[34m💡 [Sqflow Info][0m Database created successfully
+00:03 +42: /Users/interdev7/Documents/sqflow/sqflow_core/test/crud/delete_test.dart: SqflowCore Delete/Restore Tests: Restore nonexistent record                                                       
+[34m💡 [Sqflow Info][0m Creating new database (v1)
+[34m💡 [Sqflow Info][0m Creating table: users
+[34m💡 [Sqflow Info][0m No pending migrations found
+[34m💡 [Sqflow Info][0m Database created successfully
+00:03 +43: /Users/interdev7/Documents/sqflow/sqflow_core/test/crud/read_all_test.dart: SqflowCore ReadAll Tests: Basic pagination                                                                      00:03 +44: /Users/interdev7/Documents/sqflow/sqflow_core/test/crud/read_all_test.dart: SqflowCore ReadAll Tests: Basic pagination                                                                      00:03 +44: /Users/interdev7/Documents/sqflow/sqflow_core/test/crud/batch_test.dart: SqflowCore Batch Operations: Batch delete                                                                          
+[34m💡 [Sqflow Info][0m Initializing database: :memory: (v1)
+00:03 +44: /Users/interdev7/Documents/sqflow/sqflow_core/test/crud/read_all_test.dart: SqflowCore ReadAll Tests: Basic pagination                                                                      
+[34m💡 [Sqflow Info][0m Creating new database (v1)
+00:03 +44: /Users/interdev7/Documents/sqflow/sqflow_core/test/crud/batch_test.dart: SqflowCore Batch Operations: Batch delete                                                                          
+[34m💡 [Sqflow Info][0m Creating new database (v1)
+[34m💡 [Sqflow Info][0m Creating table: users
+00:03 +44: /Users/interdev7/Documents/sqflow/sqflow_core/test/crud/read_all_test.dart: SqflowCore ReadAll Tests: Basic pagination                                                                      
+[34m💡 [Sqflow Info][0m Creating table: users
+00:03 +44: /Users/interdev7/Documents/sqflow/sqflow_core/test/crud/batch_test.dart: SqflowCore Batch Operations: Batch delete                                                                          
+[34m💡 [Sqflow Info][0m No pending migrations found
+[34m💡 [Sqflow Info][0m Database created successfully
+00:03 +44: /Users/interdev7/Documents/sqflow/sqflow_core/test/crud/read_all_test.dart: SqflowCore ReadAll Tests: Basic pagination                                                                      
+[34m💡 [Sqflow Info][0m No pending migrations found
+[34m💡 [Sqflow Info][0m Database created successfully
+00:03 +45: /Users/interdev7/Documents/sqflow/sqflow_core/test/crud/read_all_test.dart: SqflowCore ReadAll Tests: Basic pagination                                                                      00:03 +45: /Users/interdev7/Documents/sqflow/sqflow_core/test/crud/batch_test.dart: SqflowCore Batch Operations: Batch operations with empty list                                                      
+[34m💡 [Sqflow Info][0m Initializing database: :memory: (v1)
+[34m💡 [Sqflow Info][0m Creating new database (v1)
+[34m💡 [Sqflow Info][0m Creating table: users
+[34m💡 [Sqflow Info][0m No pending migrations found
+[34m💡 [Sqflow Info][0m Database created successfully
+00:03 +46: /Users/interdev7/Documents/sqflow/sqflow_core/test/crud/read_all_test.dart: SqflowCore ReadAll Tests: Basic pagination                                                                      00:03 +47: /Users/interdev7/Documents/sqflow/sqflow_core/test/crud/aggregates_test.dart: (setUpAll)                                                                                                    00:03 +47: /Users/interdev7/Documents/sqflow/sqflow_core/test/crud/read_all_test.dart: SqflowCore ReadAll Tests: Filtering with conditions                                                             
+[34m💡 [Sqflow Info][0m Initializing database: :memory: (v1)
+[34m💡 [Sqflow Info][0m Creating new database (v1)
+[34m💡 [Sqflow Info][0m Creating table: users
+[34m💡 [Sqflow Info][0m No pending migrations found
+[34m💡 [Sqflow Info][0m Database created successfully
+00:03 +48: /Users/interdev7/Documents/sqflow/sqflow_core/test/crud/aggregates_test.dart: SqflowCore Aggregates: countAsync without where clause                                                        00:03 +48: /Users/interdev7/Documents/sqflow/sqflow_core/test/crud/read_all_test.dart: SqflowCore ReadAll Tests: Sorting                                                                               
+[34m💡 [Sqflow Info][0m Initializing database: :memory: (v1)
+[34m💡 [Sqflow Info][0m Creating new database (v1)
+00:03 +48: /Users/interdev7/Documents/sqflow/sqflow_core/test/crud/aggregates_test.dart: SqflowCore Aggregates: countAsync without where clause                                                        
+[34m💡 [Sqflow Info][0m Initializing database: :memory: (v1)
+00:03 +48: /Users/interdev7/Documents/sqflow/sqflow_core/test/crud/read_all_test.dart: SqflowCore ReadAll Tests: Sorting                                                                               
+[34m💡 [Sqflow Info][0m Creating table: users
+[34m💡 [Sqflow Info][0m No pending migrations found
+[34m💡 [Sqflow Info][0m Database created successfully
+00:03 +49: /Users/interdev7/Documents/sqflow/sqflow_core/test/crud/aggregates_test.dart: SqflowCore Aggregates: countAsync without where clause                                                        00:03 +49: /Users/interdev7/Documents/sqflow/sqflow_core/test/crud/read_all_test.dart: SqflowCore ReadAll Tests: readAll with LENGTH and SUBSTR filters                                                
+[34m💡 [Sqflow Info][0m Initializing database: :memory: (v1)
+[34m💡 [Sqflow Info][0m Creating new database (v1)
+[34m💡 [Sqflow Info][0m Creating table: users
+[34m💡 [Sqflow Info][0m No pending migrations found
+[34m💡 [Sqflow Info][0m Database created successfully
+*** sqflite warning ***
+
+You are changing sqflite default factory.
+Be aware of the potential side effects. Any library using sqflite
+will have this factory as the default for all operations.
+
+*** sqflite warning ***
+
+[34m💡 [Sqflow Info][0m Initializing database: :memory: (v1)
+[34m💡 [Sqflow Info][0m Creating new database (v1)
+[34m💡 [Sqflow Info][0m Creating table: users
+[34m💡 [Sqflow Info][0m No pending migrations found
+[34m💡 [Sqflow Info][0m Database created successfully
+00:03 +50: /Users/interdev7/Documents/sqflow/sqflow_core/test/crud/aggregates_test.dart: SqflowCore Aggregates: countAsync without where clause                                                        00:03 +50: /Users/interdev7/Documents/sqflow/sqflow_core/test/crud/read_all_test.dart: SqflowCore ReadAll Tests: readAll with OR and AND group filters                                                 
+[34m💡 [Sqflow Info][0m Initializing database: :memory: (v1)
+[34m💡 [Sqflow Info][0m Creating new database (v1)
+[34m💡 [Sqflow Info][0m Creating table: users
+[34m💡 [Sqflow Info][0m No pending migrations found
+[34m💡 [Sqflow Info][0m Database created successfully
+*** sqflite warning ***
+
+You are changing sqflite default factory.
+Be aware of the potential side effects. Any library using sqflite
+will have this factory as the default for all operations.
+
+*** sqflite warning ***
+
+[34m💡 [Sqflow Info][0m Initializing database: :memory: (v1)
+[34m💡 [Sqflow Info][0m Creating new database (v1)
+[34m💡 [Sqflow Info][0m Creating table: users
+[34m💡 [Sqflow Info][0m No pending migrations found
+[34m💡 [Sqflow Info][0m Database created successfully
+00:03 +51: /Users/interdev7/Documents/sqflow/sqflow_core/test/crud/aggregates_test.dart: SqflowCore Aggregates: countAsync without where clause                                                        00:03 +51: /Users/interdev7/Documents/sqflow/sqflow_core/test/crud/read_all_test.dart: SqflowCore ReadAll Tests: Only deleted records                                                                  
+[34m💡 [Sqflow Info][0m Initializing database: :memory: (v1)
+[34m💡 [Sqflow Info][0m Creating new database (v1)
+[34m💡 [Sqflow Info][0m Creating table: users
+[34m💡 [Sqflow Info][0m No pending migrations found
+[34m💡 [Sqflow Info][0m Database created successfully
+00:03 +52: /Users/interdev7/Documents/sqflow/sqflow_core/test/crud/aggregates_test.dart: SqflowCore Aggregates: countAsync without where clause                                                        00:03 +52: /Users/interdev7/Documents/sqflow/sqflow_core/test/crud/read_all_test.dart: SqflowCore ReadAll Tests: Search across multiple columns                                                        
+[34m💡 [Sqflow Info][0m Initializing database: :memory: (v1)
+[34m💡 [Sqflow Info][0m Creating new database (v1)
+[34m💡 [Sqflow Info][0m Creating table: users
+[34m💡 [Sqflow Info][0m No pending migrations found
+[34m💡 [Sqflow Info][0m Database created successfully
+00:03 +53: /Users/interdev7/Documents/sqflow/sqflow_core/test/crud/aggregates_test.dart: SqflowCore Aggregates: countAsync without where clause                                                        00:03 +53: /Users/interdev7/Documents/sqflow/sqflow_core/test/crud/read_all_test.dart: SqflowCore ReadAll Tests: Combined conditions with AND and OR                                                   
+[34m💡 [Sqflow Info][0m Initializing database: :memory: (v1)
+[34m💡 [Sqflow Info][0m Creating new database (v1)
+[34m💡 [Sqflow Info][0m Creating table: users
+[34m💡 [Sqflow Info][0m No pending migrations found
+[34m💡 [Sqflow Info][0m Database created successfully
+00:03 +54: /Users/interdev7/Documents/sqflow/sqflow_core/test/crud/aggregates_test.dart: SqflowCore Aggregates: countAsync without where clause                                                        00:03 +54: /Users/interdev7/Documents/sqflow/sqflow_core/test/crud/aggregates_test.dart: SqflowCore Aggregates: countAsync without where clause                                                        
+[34m💡 [Sqflow Info][0m Creating new database (v1)
+[34m💡 [Sqflow Info][0m Creating table: users
+[34m💡 [Sqflow Info][0m No pending migrations found
+[34m💡 [Sqflow Info][0m Database created successfully
+00:03 +55: /Users/interdev7/Documents/sqflow/sqflow_core/test/crud/aggregates_test.dart: SqflowCore Aggregates: countAsync without where clause                                                        00:03 +55: /Users/interdev7/Documents/sqflow/sqflow_core/test/crud/aggregates_test.dart: SqflowCore Aggregates: countAsync with where clause                                                           00:03 +55: /Users/interdev7/Documents/sqflow/sqflow_core/test/crud/aggregates_test.dart: SqflowCore Aggregates: countAsync with where clause                                                           
+[34m💡 [Sqflow Info][0m Initializing database: :memory: (v1)
+[34m💡 [Sqflow Info][0m Creating new database (v1)
+[34m💡 [Sqflow Info][0m Creating table: users
+[34m💡 [Sqflow Info][0m No pending migrations found
+[34m💡 [Sqflow Info][0m Database created successfully
+00:03 +56: /Users/interdev7/Documents/sqflow/sqflow_core/test/crud/aggregates_test.dart: SqflowCore Aggregates: countAsync with where clause                                                           00:03 +56: /Users/interdev7/Documents/sqflow/sqflow_core/test/crud/aggregates_test.dart: SqflowCore Aggregates: sumAsync calculates correctly                                                          00:03 +56: /Users/interdev7/Documents/sqflow/sqflow_core/test/crud/aggregates_test.dart: SqflowCore Aggregates: sumAsync calculates correctly                                                          
+[34m💡 [Sqflow Info][0m Initializing database: :memory: (v1)
+[34m💡 [Sqflow Info][0m Creating new database (v1)
+[34m💡 [Sqflow Info][0m Creating table: users
+[34m💡 [Sqflow Info][0m No pending migrations found
+[34m💡 [Sqflow Info][0m Database created successfully
+00:03 +57: /Users/interdev7/Documents/sqflow/sqflow_core/test/crud/aggregates_test.dart: SqflowCore Aggregates: sumAsync calculates correctly                                                          00:03 +57: /Users/interdev7/Documents/sqflow/sqflow_core/test/crud/aggregates_test.dart: SqflowCore Aggregates: sumAsync with where clause                                                             00:03 +57: /Users/interdev7/Documents/sqflow/sqflow_core/test/crud/aggregates_test.dart: SqflowCore Aggregates: sumAsync with where clause                                                             
+[34m💡 [Sqflow Info][0m Initializing database: :memory: (v1)
+[34m💡 [Sqflow Info][0m Creating new database (v1)
+[34m💡 [Sqflow Info][0m Creating table: users
+[34m💡 [Sqflow Info][0m No pending migrations found
+[34m💡 [Sqflow Info][0m Database created successfully
+00:03 +58: /Users/interdev7/Documents/sqflow/sqflow_core/test/crud/aggregates_test.dart: SqflowCore Aggregates: sumAsync with where clause                                                             00:03 +58: /Users/interdev7/Documents/sqflow/sqflow_core/test/crud/aggregates_test.dart: SqflowCore Aggregates: avgAsync calculates correctly                                                          00:03 +58: /Users/interdev7/Documents/sqflow/sqflow_core/test/crud/aggregates_test.dart: SqflowCore Aggregates: avgAsync calculates correctly                                                          
+[34m💡 [Sqflow Info][0m Initializing database: :memory: (v1)
+[34m💡 [Sqflow Info][0m Creating new database (v1)
+[34m💡 [Sqflow Info][0m Creating table: users
+[34m💡 [Sqflow Info][0m No pending migrations found
+[34m💡 [Sqflow Info][0m Database created successfully
+00:03 +59: /Users/interdev7/Documents/sqflow/sqflow_core/test/crud/aggregates_test.dart: SqflowCore Aggregates: avgAsync calculates correctly                                                          00:03 +59: /Users/interdev7/Documents/sqflow/sqflow_core/test/crud/aggregates_test.dart: SqflowCore Aggregates: minAsync calculates correctly                                                          00:03 +59: /Users/interdev7/Documents/sqflow/sqflow_core/test/crud/aggregates_test.dart: SqflowCore Aggregates: minAsync calculates correctly                                                          
+[34m💡 [Sqflow Info][0m Initializing database: :memory: (v1)
+[34m💡 [Sqflow Info][0m Creating new database (v1)
+[34m💡 [Sqflow Info][0m Creating table: users
+[34m💡 [Sqflow Info][0m No pending migrations found
+[34m💡 [Sqflow Info][0m Database created successfully
+00:03 +60: /Users/interdev7/Documents/sqflow/sqflow_core/test/crud/aggregates_test.dart: SqflowCore Aggregates: minAsync calculates correctly                                                          00:03 +60: /Users/interdev7/Documents/sqflow/sqflow_core/test/crud/aggregates_test.dart: SqflowCore Aggregates: maxAsync calculates correctly                                                          00:03 +60: /Users/interdev7/Documents/sqflow/sqflow_core/test/crud/aggregates_test.dart: SqflowCore Aggregates: maxAsync calculates correctly                                                          
+[34m💡 [Sqflow Info][0m Initializing database: :memory: (v1)
+[34m💡 [Sqflow Info][0m Creating new database (v1)
+[34m💡 [Sqflow Info][0m Creating table: users
+[34m💡 [Sqflow Info][0m No pending migrations found
+[34m💡 [Sqflow Info][0m Database created successfully
+00:03 +61: /Users/interdev7/Documents/sqflow/sqflow_core/test/crud/aggregates_test.dart: SqflowCore Aggregates: maxAsync calculates correctly                                                          00:03 +61: /Users/interdev7/Documents/sqflow/sqflow_core/test/crud/aggregates_test.dart: (tearDownAll)                                                                                                 00:04 +61: /Users/interdev7/Documents/sqflow/sqflow_core/test/crud/aggregates_test.dart: (tearDownAll)                                                                                                 00:04 +61: loading /Users/interdev7/Documents/sqflow/sqflow_core/test/crud/index_and_check_test.dart                                                                                                   00:04 +61: /Users/interdev7/Documents/sqflow/sqflow_core/test/crud/index_and_check_test.dart: Indexes and CHECK constraint tests: Indexes exist and have correct columns                               00:04 +61: /Users/interdev7/Documents/sqflow/sqflow_core/test/crud/index_and_check_test.dart: Indexes and CHECK constraint tests: Indexes exist and have correct columns                               
+[34m💡 [Sqflow Info][0m Initializing database: :memory: (v1)
+00:04 +61: /Users/interdev7/Documents/sqflow/sqflow_core/test/indexes_test.dart: Indices are created in the database                                                                                   
+[34m💡 [Sqflow Info][0m Initializing database: :memory: (v1)
+00:04 +61: /Users/interdev7/Documents/sqflow/sqflow_core/test/crud/index_and_check_test.dart: Indexes and CHECK constraint tests: Indexes exist and have correct columns                               00:04 +61: /Users/interdev7/Documents/sqflow/sqflow_core/test/complex_relationships_test.dart: Eager load mixed relationships: User with Posts and Profile                                             
+[34m💡 [Sqflow Info][0m Initializing database: :memory: (v1)
+00:04 +61: /Users/interdev7/Documents/sqflow/sqflow_core/test/indexes_test.dart: Indices are created in the database                                                                                   
+[34m💡 [Sqflow Info][0m Creating new database (v1)
+[34m💡 [Sqflow Info][0m Creating table: users
+[34m💡 [Sqflow Info][0m Creating table: orders
+[34m💡 [Sqflow Info][0m No pending migrations found
+[34m💡 [Sqflow Info][0m Database created successfully
+00:04 +61: /Users/interdev7/Documents/sqflow/sqflow_core/test/crud/index_and_check_test.dart: Indexes and CHECK constraint tests: Indexes exist and have correct columns                               00:04 +61: /Users/interdev7/Documents/sqflow/sqflow_core/test/complex_relationships_test.dart: Eager load mixed relationships: User with Posts and Profile                                             
+[34m💡 [Sqflow Info][0m Creating new database (v1)
+00:04 +62: /Users/interdev7/Documents/sqflow/sqflow_core/test/crud/index_and_check_test.dart: Indexes and CHECK constraint tests: Indexes exist and have correct columns                               00:04 +62: /Users/interdev7/Documents/sqflow/sqflow_core/test/complex_relationships_test.dart: Eager load mixed relationships: User with Posts and Profile                                             
+[34m💡 [Sqflow Info][0m Creating table: users
+00:04 +62: /Users/interdev7/Documents/sqflow/sqflow_core/test/indexes_test.dart: Unique index prevents duplicate emails                                                                                
+[34m💡 [Sqflow Info][0m Initializing database: :memory: (v1)
+00:04 +62: /Users/interdev7/Documents/sqflow/sqflow_core/test/crud/index_and_check_test.dart: Indexes and CHECK constraint tests: Indexes exist and have correct columns                               00:04 +62: /Users/interdev7/Documents/sqflow/sqflow_core/test/complex_relationships_test.dart: Eager load mixed relationships: User with Posts and Profile                                             
+[34m💡 [Sqflow Info][0m Creating table: posts
+00:04 +62: /Users/interdev7/Documents/sqflow/sqflow_core/test/indexes_test.dart: Unique index prevents duplicate emails                                                                                
+[34m💡 [Sqflow Info][0m Creating new database (v1)
+[34m💡 [Sqflow Info][0m Creating table: users
+00:04 +62: /Users/interdev7/Documents/sqflow/sqflow_core/test/migrations_test.dart: Database Initialization Tests: DB initializes with correct version                                                 
+[34m💡 [Sqflow Info][0m Initializing database: :memory: (v1)
+00:04 +62: /Users/interdev7/Documents/sqflow/sqflow_core/test/complex_relationships_test.dart: Eager load mixed relationships: User with Posts and Profile                                             
+[34m💡 [Sqflow Info][0m Creating table: profiles
+00:04 +62: /Users/interdev7/Documents/sqflow/sqflow_core/test/indexes_test.dart: Unique index prevents duplicate emails                                                                                
+[34m💡 [Sqflow Info][0m Creating table: orders
+[34m💡 [Sqflow Info][0m No pending migrations found
+[34m💡 [Sqflow Info][0m Database created successfully
+00:04 +62: /Users/interdev7/Documents/sqflow/sqflow_core/test/complex_relationships_test.dart: Eager load mixed relationships: User with Posts and Profile                                             
+[34m💡 [Sqflow Info][0m No pending migrations found
+[34m💡 [Sqflow Info][0m Database created successfully
+00:04 +63: /Users/interdev7/Documents/sqflow/sqflow_core/test/crud/index_and_check_test.dart: Indexes and CHECK constraint tests: Indexes exist and have correct columns                               00:04 +63: /Users/interdev7/Documents/sqflow/sqflow_core/test/indexes_test.dart: Query plan uses index for JOIN relationship                                                                           
+[34m💡 [Sqflow Info][0m Initializing database: :memory: (v1)
+[34m💡 [Sqflow Info][0m Creating new database (v1)
+[34m💡 [Sqflow Info][0m Creating table: users
+[34m💡 [Sqflow Info][0m Creating table: orders
+[34m💡 [Sqflow Info][0m No pending migrations found
+[34m💡 [Sqflow Info][0m Database created successfully
+00:04 +64: /Users/interdev7/Documents/sqflow/sqflow_core/test/crud/index_and_check_test.dart: Indexes and CHECK constraint tests: Indexes exist and have correct columns                               00:04 +64: /Users/interdev7/Documents/sqflow/sqflow_core/test/indexes_test.dart: Complex relationship query plan uses indices                                                                          
+[34m💡 [Sqflow Info][0m Initializing database: :memory: (v1)
+[34m💡 [Sqflow Info][0m Creating new database (v1)
+[34m💡 [Sqflow Info][0m Creating table: users
+[34m💡 [Sqflow Info][0m Creating table: orders
+[34m💡 [Sqflow Info][0m No pending migrations found
+[34m💡 [Sqflow Info][0m Database created successfully
+00:04 +65: /Users/interdev7/Documents/sqflow/sqflow_core/test/crud/index_and_check_test.dart: Indexes and CHECK constraint tests: Indexes exist and have correct columns                               00:04 +65: /Users/interdev7/Documents/sqflow/sqflow_core/test/crud/index_and_check_test.dart: Indexes and CHECK constraint tests: Indexes exist and have correct columns                               
+[34m💡 [Sqflow Info][0m Creating new database (v1)
+[34m💡 [Sqflow Info][0m Creating table: users
+00:04 +65: /Users/interdev7/Documents/sqflow/sqflow_core/test/migrations_test.dart: Database Initialization Tests: DB initializes with correct version                                                 
+[34m💡 [Sqflow Info][0m Creating new database (v1)
+00:04 +65: /Users/interdev7/Documents/sqflow/sqflow_core/test/complex_relationships_test.dart: Batch load with readAll: Multiple Users with Posts and Profile                                          
+[34m💡 [Sqflow Info][0m Initializing database: :memory: (v1)
+00:04 +65: /Users/interdev7/Documents/sqflow/sqflow_core/test/migrations_test.dart: Database Initialization Tests: DB initializes with correct version                                                 
+[34m💡 [Sqflow Info][0m Creating table: users
+00:04 +66: /Users/interdev7/Documents/sqflow/sqflow_core/test/crud/index_and_check_test.dart: Indexes and CHECK constraint tests: Indexes exist and have correct columns                               00:04 +66: /Users/interdev7/Documents/sqflow/sqflow_core/test/migrations_test.dart: Database Initialization Tests: DB initializes with correct version                                                 
+[34m💡 [Sqflow Info][0m No pending migrations found
+[34m💡 [Sqflow Info][0m Database created successfully
+00:04 +66: /Users/interdev7/Documents/sqflow/sqflow_core/test/complex_relationships_test.dart: Batch load with readAll: Multiple Users with Posts and Profile                                          
+[34m💡 [Sqflow Info][0m Creating new database (v1)
+[34m💡 [Sqflow Info][0m Creating table: users
+[34m💡 [Sqflow Info][0m Creating table: posts
+[34m💡 [Sqflow Info][0m Creating table: profiles
+00:04 +66: /Users/interdev7/Documents/sqflow/sqflow_core/test/crud/index_and_check_test.dart: Indexes and CHECK constraint tests: Indexes exist and have correct columns                               
+[34m💡 [Sqflow Info][0m No pending migrations found
+[34m💡 [Sqflow Info][0m Database created successfully
+00:04 +67: /Users/interdev7/Documents/sqflow/sqflow_core/test/crud/index_and_check_test.dart: Indexes and CHECK constraint tests: Indexes exist and have correct columns                               00:04 +67: /Users/interdev7/Documents/sqflow/sqflow_core/test/complex_relationships_test.dart: Batch load with readAll: Multiple Users with Posts and Profile                                          
+[34m💡 [Sqflow Info][0m No pending migrations found
+[34m💡 [Sqflow Info][0m Database created successfully
+00:04 +67: /Users/interdev7/Documents/sqflow/sqflow_core/test/migrations_test.dart: Database Initialization Tests: Tables are created successfully                                                     
+[34m💡 [Sqflow Info][0m Initializing database: :memory: (v1)
+[34m💡 [Sqflow Info][0m Creating new database (v1)
+[34m💡 [Sqflow Info][0m Creating table: users
+[34m💡 [Sqflow Info][0m No pending migrations found
+[34m💡 [Sqflow Info][0m Database created successfully
+00:04 +68: /Users/interdev7/Documents/sqflow/sqflow_core/test/crud/index_and_check_test.dart: Indexes and CHECK constraint tests: Indexes exist and have correct columns                               00:04 +69: /Users/interdev7/Documents/sqflow/sqflow_core/test/crud/index_and_check_test.dart: Indexes and CHECK constraint tests: Indexes exist and have correct columns                               00:04 +69: /Users/interdev7/Documents/sqflow/sqflow_core/test/migrations_test.dart: Migration Tracking Tests: Migrations are applied on creation                                                       
+[34m💡 [Sqflow Info][0m Initializing database: test_migrations.db (v1)
+00:04 +70: /Users/interdev7/Documents/sqflow/sqflow_core/test/complex_relationships_test.dart: BelongsTo eager loading: Post with User                                                                 00:04 +70: /Users/interdev7/Documents/sqflow/sqflow_core/test/crud/index_and_check_test.dart: Indexes and CHECK constraint tests: CHECK constraint rejects invalid gender                              
+*** sqflite warning ***
+
+You are changing sqflite default factory.
+Be aware of the potential side effects. Any library using sqflite
+will have this factory as the default for all operations.
+
+*** sqflite warning ***
+
+[34m💡 [Sqflow Info][0m Initializing database: :memory: (v1)
+00:04 +70: /Users/interdev7/Documents/sqflow/sqflow_core/test/complex_relationships_test.dart: BelongsTo eager loading: Post with User                                                                 
+[34m💡 [Sqflow Info][0m Initializing database: :memory: (v1)
+[34m💡 [Sqflow Info][0m Creating new database (v1)
+00:04 +70: /Users/interdev7/Documents/sqflow/sqflow_core/test/crud/index_and_check_test.dart: Indexes and CHECK constraint tests: CHECK constraint rejects invalid gender                              
+[34m💡 [Sqflow Info][0m Creating new database (v1)
+00:04 +70: /Users/interdev7/Documents/sqflow/sqflow_core/test/complex_relationships_test.dart: BelongsTo eager loading: Post with User                                                                 
+[34m💡 [Sqflow Info][0m Creating table: users
+00:04 +70: /Users/interdev7/Documents/sqflow/sqflow_core/test/crud/index_and_check_test.dart: Indexes and CHECK constraint tests: CHECK constraint rejects invalid gender                              
+[34m💡 [Sqflow Info][0m Creating table: users
+[34m💡 [Sqflow Info][0m No pending migrations found
+[34m💡 [Sqflow Info][0m Database created successfully
+00:04 +70: /Users/interdev7/Documents/sqflow/sqflow_core/test/migrations_test.dart: Migration Tracking Tests: Migrations are applied on creation                                                       
+[34m💡 [Sqflow Info][0m Creating new database (v1)
+[34m💡 [Sqflow Info][0m Creating table: users
+00:04 +70: /Users/interdev7/Documents/sqflow/sqflow_core/test/complex_relationships_test.dart: BelongsTo eager loading: Post with User                                                                 
+[34m💡 [Sqflow Info][0m Creating table: posts
+[34m💡 [Sqflow Info][0m Creating table: profiles
+[34m💡 [Sqflow Info][0m No pending migrations found
+00:04 +70: /Users/interdev7/Documents/sqflow/sqflow_core/test/migrations_test.dart: Migration Tracking Tests: Migrations are applied on creation                                                       
+[34m💡 [Sqflow Info][0m Found 1 pending migrations
+00:04 +70: /Users/interdev7/Documents/sqflow/sqflow_core/test/complex_relationships_test.dart: BelongsTo eager loading: Post with User                                                                 
+[34m💡 [Sqflow Info][0m Database created successfully
+00:04 +70: /Users/interdev7/Documents/sqflow/sqflow_core/test/migrations_test.dart: Migration Tracking Tests: Migrations are applied on creation                                                       
+[34m💡 [Sqflow Info][0m Applying: Test migration (v1)
+00:04 +71: /Users/interdev7/Documents/sqflow/sqflow_core/test/migrations_test.dart: Migration Tracking Tests: Migrations are applied on creation                                                       00:04 +71: /Users/interdev7/Documents/sqflow/sqflow_core/test/migrations_test.dart: Migration Tracking Tests: Migrations are applied on creation                                                       
+[34m💡 [Sqflow Info][0m Migration Success
+[34m💡 [Sqflow Info][0m Database created successfully
+00:04 +72: /Users/interdev7/Documents/sqflow/sqflow_core/test/migrations_test.dart: Migration Tracking Tests: Migrations are applied on creation                                                       00:04 +72: /Users/interdev7/Documents/sqflow/sqflow_core/test/complex_relationships_test.dart: BelongsTo batch loading: Many Posts with Users                                                          
+[34m💡 [Sqflow Info][0m Initializing database: :memory: (v1)
+[34m💡 [Sqflow Info][0m Creating new database (v1)
+[34m💡 [Sqflow Info][0m Creating table: users
+[34m💡 [Sqflow Info][0m Creating table: posts
+[34m💡 [Sqflow Info][0m Creating table: profiles
+[34m💡 [Sqflow Info][0m No pending migrations found
+[34m💡 [Sqflow Info][0m Database created successfully
+00:04 +73: /Users/interdev7/Documents/sqflow/sqflow_core/test/complex_relationships_test.dart: BelongsTo batch loading: Many Posts with Users                                                          00:04 +73: /Users/interdev7/Documents/sqflow/sqflow_core/test/migrations_test.dart: Migration Tracking Tests: Migration order is correct                                                               
+[34m💡 [Sqflow Info][0m Initializing database: :memory: (v3)
+[34m💡 [Sqflow Info][0m Creating new database (v3)
+[34m💡 [Sqflow Info][0m Creating table: tracked
+[34m💡 [Sqflow Info][0m Found 3 pending migrations
+[34m💡 [Sqflow Info][0m Applying: Migration v2-1 (v2)
+[34m💡 [Sqflow Info][0m Migration Success
+[34m💡 [Sqflow Info][0m Applying: Migration v2-2 (v2)
+[34m💡 [Sqflow Info][0m Migration Success
+[34m💡 [Sqflow Info][0m Applying: Migration v3 (v3)
+[34m💡 [Sqflow Info][0m Migration Success
+[34m💡 [Sqflow Info][0m Database created successfully
+00:04 +74: /Users/interdev7/Documents/sqflow/sqflow_core/test/migrations_test.dart: Migration Tracking Tests: Migration order is correct                                                               00:04 +75: /Users/interdev7/Documents/sqflow/sqflow_core/test/complex_relationships_test.dart: Complex WhereBuilder with relationships: nested groups and functions                                    00:04 +75: /Users/interdev7/Documents/sqflow/sqflow_core/test/complex_relationships_test.dart: Complex WhereBuilder with relationships: nested groups and functions                                    
+[34m💡 [Sqflow Info][0m Initializing database: :memory: (v1)
+00:04 +75: /Users/interdev7/Documents/sqflow/sqflow_core/test/migrations_test.dart: Version Management Tests: Migration with same version from different tables                                        
+[34m💡 [Sqflow Info][0m Initializing database: :memory: (v2)
+[34m💡 [Sqflow Info][0m Creating new database (v2)
+[34m💡 [Sqflow Info][0m Creating table: users
+[34m💡 [Sqflow Info][0m Creating table: posts
+[34m💡 [Sqflow Info][0m Found 2 pending migrations
+[34m💡 [Sqflow Info][0m Applying: Add email to users (v2)
+[34m💡 [Sqflow Info][0m Migration Success
+[34m💡 [Sqflow Info][0m Applying: Add title to posts (v2)
+[34m💡 [Sqflow Info][0m Migration Success
+[34m💡 [Sqflow Info][0m Database created successfully
+00:04 +76: /Users/interdev7/Documents/sqflow/sqflow_core/test/complex_relationships_test.dart: Complex WhereBuilder with relationships: nested groups and functions                                    00:04 +76: /Users/interdev7/Documents/sqflow/sqflow_core/test/migrations_test.dart: Migration Builder Tests: addColumn generates correct SQL                                                           
+[34m💡 [Sqflow Info][0m Initializing database: :memory: (v1)
+[34m💡 [Sqflow Info][0m Creating new database (v1)
+[34m💡 [Sqflow Info][0m Creating table: test
+[34m💡 [Sqflow Info][0m Found 1 pending migrations
+[34m💡 [Sqflow Info][0m Applying: Add column email (TEXT) (v1)
+[34m💡 [Sqflow Info][0m Migration Success
+[34m💡 [Sqflow Info][0m Database created successfully
+00:04 +77: /Users/interdev7/Documents/sqflow/sqflow_core/test/complex_relationships_test.dart: Complex WhereBuilder with relationships: nested groups and functions                                    00:04 +77: /Users/interdev7/Documents/sqflow/sqflow_core/test/migrations_test.dart: Migration Builder Tests: createIndex generates correct SQL                                                         
+[34m💡 [Sqflow Info][0m Initializing database: :memory: (v1)
+00:04 +77: /Users/interdev7/Documents/sqflow/sqflow_core/test/complex_relationships_test.dart: Complex WhereBuilder with relationships: nested groups and functions                                    
+[34m💡 [Sqflow Info][0m Creating new database (v1)
+00:04 +77: /Users/interdev7/Documents/sqflow/sqflow_core/test/migrations_test.dart: Migration Builder Tests: createIndex generates correct SQL                                                         
+[34m💡 [Sqflow Info][0m Creating new database (v1)
+00:04 +77: /Users/interdev7/Documents/sqflow/sqflow_core/test/complex_relationships_test.dart: Complex WhereBuilder with relationships: nested groups and functions                                    
+[34m💡 [Sqflow Info][0m Creating table: users
+00:04 +77: /Users/interdev7/Documents/sqflow/sqflow_core/test/migrations_test.dart: Migration Builder Tests: createIndex generates correct SQL                                                         
+[34m💡 [Sqflow Info][0m Creating table: test
+[34m💡 [Sqflow Info][0m Found 1 pending migrations
+[34m💡 [Sqflow Info][0m Applying: Create index idx_test_email (v1)
+[34m💡 [Sqflow Info][0m Migration Success
+[34m💡 [Sqflow Info][0m Database created successfully
+00:04 +78: /Users/interdev7/Documents/sqflow/sqflow_core/test/complex_relationships_test.dart: Complex WhereBuilder with relationships: nested groups and functions                                    00:04 +78: /Users/interdev7/Documents/sqflow/sqflow_core/test/complex_relationships_test.dart: Complex WhereBuilder with relationships: nested groups and functions                                    
+[34m💡 [Sqflow Info][0m Creating table: posts
+[34m💡 [Sqflow Info][0m Creating table: profiles
+[34m💡 [Sqflow Info][0m No pending migrations found
+[34m💡 [Sqflow Info][0m Database created successfully
+00:04 +78: /Users/interdev7/Documents/sqflow/sqflow_core/test/migrations_test.dart: Real-world Migration Scenarios: Simple table evolution                                                             
+[34m💡 [Sqflow Info][0m Initializing database: evolution_test.db (v2)
+[34m💡 [Sqflow Info][0m Creating new database (v2)
+[34m💡 [Sqflow Info][0m Creating table: users
+[34m💡 [Sqflow Info][0m Found 2 pending migrations
+[34m💡 [Sqflow Info][0m Applying: Add email column (v2)
+[34m💡 [Sqflow Info][0m Migration Success
+[34m💡 [Sqflow Info][0m Applying: Add age column (v2)
+[34m💡 [Sqflow Info][0m Migration Success
+[34m💡 [Sqflow Info][0m Database created successfully
+00:04 +79: /Users/interdev7/Documents/sqflow/sqflow_core/test/migrations_test.dart: Real-world Migration Scenarios: Simple table evolution                                                             00:04 +79: /Users/interdev7/Documents/sqflow/sqflow_core/test/complex_relationships_test.dart: Complex filtering with BelongsTo: filtering posts by multiple criteria                                  
+[34m💡 [Sqflow Info][0m Initializing database: :memory: (v1)
+00:04 +80: /Users/interdev7/Documents/sqflow/sqflow_core/test/complex_relationships_test.dart: Complex filtering with BelongsTo: filtering posts by multiple criteria                                  00:04 +80: /Users/interdev7/Documents/sqflow/sqflow_core/test/complex_relationships_test.dart: Complex filtering with BelongsTo: filtering posts by multiple criteria                                  
+[34m💡 [Sqflow Info][0m Creating new database (v1)
+[34m💡 [Sqflow Info][0m Creating table: users
+00:04 +80: /Users/interdev7/Documents/sqflow/sqflow_core/test/migrations_test.dart: Production-Ready Persistence & Upgrade Tests: Data persists and migrations apply when app updates (v1 -> v2)       
+[34m💡 [Sqflow Info][0m Initializing database: evolution_test.db (v1)
+00:04 +80: /Users/interdev7/Documents/sqflow/sqflow_core/test/complex_relationships_test.dart: Complex filtering with BelongsTo: filtering posts by multiple criteria                                  
+[34m💡 [Sqflow Info][0m Creating table: posts
+[34m💡 [Sqflow Info][0m Creating table: profiles
+00:04 +80: /Users/interdev7/Documents/sqflow/sqflow_core/test/migrations_test.dart: Production-Ready Persistence & Upgrade Tests: Data persists and migrations apply when app updates (v1 -> v2)       
+[34m💡 [Sqflow Info][0m Creating new database (v1)
+[34m💡 [Sqflow Info][0m Creating table: users
+00:04 +80: /Users/interdev7/Documents/sqflow/sqflow_core/test/complex_relationships_test.dart: Complex filtering with BelongsTo: filtering posts by multiple criteria                                  
+[34m💡 [Sqflow Info][0m No pending migrations found
+[34m💡 [Sqflow Info][0m Database created successfully
+00:04 +80: /Users/interdev7/Documents/sqflow/sqflow_core/test/migrations_test.dart: Production-Ready Persistence & Upgrade Tests: Data persists and migrations apply when app updates (v1 -> v2)       
+[34m💡 [Sqflow Info][0m No pending migrations found
+[34m💡 [Sqflow Info][0m Database created successfully
+00:04 +81: /Users/interdev7/Documents/sqflow/sqflow_core/test/migrations_test.dart: Production-Ready Persistence & Upgrade Tests: Data persists and migrations apply when app updates (v1 -> v2)       00:04 +81: /Users/interdev7/Documents/sqflow/sqflow_core/test/complex_relationships_test.dart: Filter main table (Users) by related table (Posts) columns                                              
+[34m💡 [Sqflow Info][0m Initializing database: :memory: (v1)
+[34m💡 [Sqflow Info][0m Creating new database (v1)
+[34m💡 [Sqflow Info][0m Creating table: users
+[34m💡 [Sqflow Info][0m Creating table: posts
+[34m💡 [Sqflow Info][0m Creating table: profiles
+[34m💡 [Sqflow Info][0m No pending migrations found
+[34m💡 [Sqflow Info][0m Database created successfully
+00:04 +82: /Users/interdev7/Documents/sqflow/sqflow_core/test/migrations_test.dart: Production-Ready Persistence & Upgrade Tests: Data persists and migrations apply when app updates (v1 -> v2)       00:04 +82: /Users/interdev7/Documents/sqflow/sqflow_core/test/migrations_test.dart: Production-Ready Persistence & Upgrade Tests: Data persists and migrations apply when app updates (v1 -> v2)       
+[34m💡 [Sqflow Info][0m Initializing database: evolution_test.db (v2)
+[34m💡 [Sqflow Info][0m Upgrading database from v1 to v2
+[34m💡 [Sqflow Info][0m Found 1 pending migrations
+[34m💡 [Sqflow Info][0m Applying: Add column email (TEXT) (v2)
+[34m💡 [Sqflow Info][0m Migration Success
+[34m💡 [Sqflow Info][0m Database upgraded successfully
+00:04 +83: /Users/interdev7/Documents/sqflow/sqflow_core/test/migrations_test.dart: Production-Ready Persistence & Upgrade Tests: Data persists and migrations apply when app updates (v1 -> v2)       00:04 +83: /Users/interdev7/Documents/sqflow/sqflow_core/test/migrations_test.dart: Production-Ready Persistence & Upgrade Tests: Transaction rollback: If migration fails, version should NOT increase00:04 +83: /Users/interdev7/Documents/sqflow/sqflow_core/test/migrations_test.dart: Production-Ready Persistence & Upgrade Tests: Transaction rollback: If migration fails, version should NOT increase
+[34m💡 [Sqflow Info][0m Initializing database: evolution_test.db (v1)
+[34m💡 [Sqflow Info][0m Creating new database (v1)
+[34m💡 [Sqflow Info][0m Creating table: users
+[34m💡 [Sqflow Info][0m Found 1 pending migrations
+[34m💡 [Sqflow Info][0m Applying: Broken migration (v1)
+[31m❌ [Sqflow Error][0m Migration Failed: Broken migration
+[31mDetails: Exception: Boom! Migration failed[0m
+[90m#0      main.<anonymous closure>.<anonymous closure>.<anonymous closure> (file:///Users/interdev7/Documents/sqflow/sqflow_core/test/migrations_test.dart:404:15)
+#1      MigrationBuilder.custom.<anonymous closure> (package:sqflow_platform_interface/src/migration_builder.dart:214:38)
+#2      DB._applySingleMigration (package:sqflow_core/src/db.dart:483:30)
+<asynchronous suspension>
+#3      DB._applyPendingMigrations (package:sqflow_core/src/db.dart:458:7)
+<asynchronous suspension>
+#4      DB._onCreate (package:sqflow_core/src/db.dart:273:5)
+<asynchronous suspension>
+#5      SqfliteDatabaseMixin.doOpen.<anonymous closure> (package:sqflite_common/src/database_mixin.dart:1137:19)
+<asynchronous suspension>
+#6      SqfliteDatabaseMixinExt._txnTransaction (package:sqflite_common/src/database_mixin.dart:388:16)
+<asynchronous suspension>
+#7      BasicLock.synchronized (package:synchronized/src/basic_lock.dart:38:16)
+<asynchronous suspension>
+#8      SqfliteDatabaseMixin.txnSynchronized (package:sqflite_common/src/database_mixin.dart:589:14)
+<asynchronous suspension>
+#9      SqfliteDatabaseMixin.doOpen (package:sqflite_common/src/database_mixin.dart:1126:13)
+<asynchronous suspension>
+#10     SqfliteDatabaseOpenHelper.openDatabase (package:sqflite_common/src/database.dart:46:7)
+<asynchronous suspension>
+#11     SqfliteDatabaseFactoryMixin.openDatabase.<anonymous closure> (package:sqflite_common/src/factory_mixin.dart:115:18)
+<asynchronous suspension>
+#12     ReentrantLock.synchronized.<anonymous closure> (package:synchronized/src/reentrant_lock.dart:40:18)
+<asynchronous suspension>
+#13     BasicLock.synchronized (package:synchronized/src/basic_lock.dart:38:16)
+<asynchronous suspension>
+#14     DB._initDatabase (package:sqflow_core/src/db.dart:213:12)
+<asynchronous suspension>
+#15     DB.database (package:sqflow_core/src/db.dart:198:17)
+<asynchronous suspension>
+#16     Throws._matchFuture (package:matcher/src/expect/throws_matcher.dart:102:19)
+<asynchronous suspension>
+#17     _expect.<anonymous closure> (package:matcher/src/expect/expect.dart:123:26)
+<asynchronous suspension>
+#18     StackZoneSpecification._registerCallback.<anonymous closure> (package:stack_trace/src/stack_zone_specification.dart:114:42)
+<asynchronous suspension>
+#19     expectLater.<anonymous closure> (package:flutter_test/src/widget_tester.dart:509:19)
+<asynchronous suspension>
+#20     main.<anonymous closure>.<anonymous closure> (file:///Users/interdev7/Documents/sqflow/sqflow_core/test/migrations_test.dart:413:7)
+<asynchronous suspension>
+#21     Declarer.test.<anonymous closure>.<anonymous closure> (package:test_api/src/backend/declarer.dart:229:9)
+<asynchronous suspension>
+#22     Declarer.test.<anonymous closure> (package:test_api/src/backend/declarer.dart:227:7)
+<asynchronous suspension>
+#23     Invoker._waitForOutstandingCallbacks.<anonymous closure> (package:test_api/src/backend/invoker.dart:258:9)
+<asynchronous suspension>
+[0m
+error Exception: Boom! Migration failed during open, closing...
+00:05 +83: /Users/interdev7/Documents/sqflow/sqflow_core/test/deep_loading_test.dart: Deep loading: User -> Posts -> User (Author)                                                                     
+[34m💡 [Sqflow Info][0m Initializing database: :memory: (v1)
+[34m💡 [Sqflow Info][0m Creating new database (v1)
+[34m💡 [Sqflow Info][0m Creating table: users
+[34m💡 [Sqflow Info][0m Creating table: posts
+[34m💡 [Sqflow Info][0m Creating table: profiles
+[34m💡 [Sqflow Info][0m No pending migrations found
+[34m💡 [Sqflow Info][0m Database created successfully
+00:05 +84: /Users/interdev7/Documents/sqflow/sqflow_core/test/deep_loading_test.dart: Deep loading: User -> Posts -> User (Author)                                                                     00:05 +85: /Users/interdev7/Documents/sqflow/sqflow_core/test/deep_loading_test.dart: Deep loading: User -> Posts -> User (Author)                                                                     00:05 +85: /Users/interdev7/Documents/sqflow/sqflow_core/test/deep_loading_test.dart: Deep loading with attributes: User -> Posts (title only) -> User (names only)                                    00:05 +85: /Users/interdev7/Documents/sqflow/sqflow_core/test/deep_loading_test.dart: Deep loading with attributes: User -> Posts (title only) -> User (names only)                                    
+[34m💡 [Sqflow Info][0m Initializing database: :memory: (v1)
+[34m💡 [Sqflow Info][0m Creating new database (v1)
+[34m💡 [Sqflow Info][0m Creating table: users
+[34m💡 [Sqflow Info][0m Creating table: posts
+[34m💡 [Sqflow Info][0m Creating table: profiles
+[34m💡 [Sqflow Info][0m No pending migrations found
+[34m💡 [Sqflow Info][0m Database created successfully
+00:05 +86: /Users/interdev7/Documents/sqflow/sqflow_core/test/transaction_reactivity_test.dart: (setUpAll)                                                                                             00:05 +86: /Users/interdev7/Documents/sqflow/sqflow_core/test/deep_loading_test.dart: Deep loading with exclude attributes: User -> Posts (exclude timestamps) -> User (exclude phone)                 00:05 +86: /Users/interdev7/Documents/sqflow/sqflow_core/test/deep_loading_test.dart: Deep loading with exclude attributes: User -> Posts (exclude timestamps) -> User (exclude phone)                 
+[34m💡 [Sqflow Info][0m Initializing database: :memory: (v1)
+[34m💡 [Sqflow Info][0m Creating new database (v1)
+[34m💡 [Sqflow Info][0m Creating table: users
+[34m💡 [Sqflow Info][0m Creating table: posts
+[34m💡 [Sqflow Info][0m Creating table: profiles
+00:05 +86: /Users/interdev7/Documents/sqflow/sqflow_core/test/transaction_reactivity_test.dart: notifications are buffered and emitted only after transaction commit                                   
+[34m💡 [Sqflow Info][0m Initializing database: :memory: (v1)
+00:05 +86: /Users/interdev7/Documents/sqflow/sqflow_core/test/deep_loading_test.dart: Deep loading with exclude attributes: User -> Posts (exclude timestamps) -> User (exclude phone)                 
+[34m💡 [Sqflow Info][0m No pending migrations found
+[34m💡 [Sqflow Info][0m Database created successfully
+00:05 +87: /Users/interdev7/Documents/sqflow/sqflow_core/test/transaction_reactivity_test.dart: notifications are buffered and emitted only after transaction commit                                   00:05 +87: /Users/interdev7/Documents/sqflow/sqflow_core/test/transaction_reactivity_test.dart: notifications are buffered and emitted only after transaction commit                                   
+[34m💡 [Sqflow Info][0m Creating new database (v1)
+[34m💡 [Sqflow Info][0m Creating table: users
+[34m💡 [Sqflow Info][0m No pending migrations found
+[34m💡 [Sqflow Info][0m Database created successfully
+00:05 +88: /Users/interdev7/Documents/sqflow/sqflow_core/test/transaction_reactivity_test.dart: notifications are buffered and emitted only after transaction commit                                   00:05 +88: /Users/interdev7/Documents/sqflow/sqflow_core/test/transaction_reactivity_test.dart: (tearDownAll)                                                                                          00:05 +88: All tests passed!                                                                                                                                                                           

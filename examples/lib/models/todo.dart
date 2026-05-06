@@ -9,14 +9,14 @@ part 'todo.sql.g.dart';
   ],
 )
 class Category extends Model with _$SQFlowCategoryMixin {
-  @ID(type: TEXT())
+  @ID()
   @override
   final String id;
 
-  @Column(type: TEXT())
+  @Column()
   final String name;
 
-  @Column(type: TEXT())
+  @Column()
   final String color;
 
   Category({
@@ -40,17 +40,17 @@ class Category extends Model with _$SQFlowCategoryMixin {
   ],
 )
 class Task extends Model with _$SQFlowTaskMixin {
-  @ID(type: INTEGER(), autoIncrement: true)
+  @ID( autoIncrement: true)
   @override
   final int id;
 
-  @Column(type: TEXT())
+  @Column()
   final String title;
 
-  @Column(type: INTEGER(), defaultValue: false)
+  @Column( defaultValue: false)
   final bool isCompleted;
 
-  @Column(type: TEXT())
+  @Column()
   final String categoryId;
 
 

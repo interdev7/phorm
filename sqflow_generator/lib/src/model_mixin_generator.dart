@@ -2,10 +2,13 @@ import 'package:_fe_analyzer_shared/src/type_inference/nullability_suffix.dart';
 import 'package:analyzer/dart/constant/value.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:build/build.dart';
+import 'dart:convert';
 import 'package:source_gen/source_gen.dart';
 import 'package:sqflow_platform_interface/sqflow_platform_interface.dart';
 
 import 'metadata_extractor.dart';
+
+const _jsonValidatorChecker = TypeChecker.fromRuntime(IJsonValidator);
 
 class ModelMixinGenerator extends GeneratorForAnnotation<Schema> {
   @override
@@ -286,40 +289,41 @@ class ModelMixinGenerator extends GeneratorForAnnotation<Schema> {
         if (columnMeta == null) continue;
 
         final reader = ConstantReader(columnMeta.computeConstantValue());
-        final check = reader.peek('check');
+        final validatorsReader = reader.peek('validators');
 
-        if (check != null && !check.isNull) {
+        if (validatorsReader != null && validatorsReader.isList) {
           final sqlName = MetadataExtractor.getSqlColumnName(field, strategy);
-          final revived = check.revive();
-          final constString = _reviveToCheckCode(revived);
+          
+          for (final validatorObj in validatorsReader.listValue) {
+            final validatorReader = ConstantReader(validatorObj);
+            final revived = validatorReader.revive();
+            final constString = _reviveToCheckCode(revived);
 
-          // final isNullable =
-          //   field.type.nullabilitySuffix == NullabilitySuffix.question;
-          // if (!isNullable) {
-          //   buffer
-          //     ..writeln("if (json['$sqlName'] == null) {")
-          //     ..writeln('    throw SqflowCheckException(')
-          //     ..writeln('      table: tableName,')
-          //     ..writeln("      column: '$sqlName',")
-          //     ..writeln(
-          //         '      message: \'Value "\${json[\'$sqlName\']}" is required\', constraint: \'null_field\',')
-          //     ..writeln('    );')
-          //     ..writeln('  }');
-          // }
-          buffer
-            ..writeln("  if (!const $constString.isValid(json['$sqlName'])) {")
-            ..writeln('    throw SqflowCheckException(')
-            ..writeln('      table: tableName,')
-            ..writeln("      column: '$sqlName',")
-            ..writeln(
-                '      message: \'Value "\${json[\'$sqlName\']}" failed validation\',');
-          final constraint = check.peek('constraint')?.stringValue;
-          if (constraint != null) {
-            buffer.writeln("      constraint: '$constraint',");
+            final isJsonValidator = _jsonValidatorChecker.isAssignableFromType(validatorObj.type!);
+            final exceptionType = isJsonValidator
+                ? 'SqflowJSONValidatorException'
+                : 'SqflowCHECKValidatorException';
+
+            // final isNullable =
+            //   field.type.nullabilitySuffix == NullabilitySuffix.question;
+            // if (!isNullable) { ... }
+            
+            buffer
+              ..writeln("  if (!const $constString.isValid(json['$sqlName'])) {")
+              ..writeln('    throw $exceptionType(')
+              ..writeln('      table: tableName,')
+              ..writeln("      column: '$sqlName',")
+              ..writeln(
+                  '      message: \'Value "\${json[\'$sqlName\']}" failed validation\',');
+            
+            final constraint = validatorReader.peek('constraint')?.stringValue;
+            if (constraint != null) {
+              buffer.writeln("      constraint: '$constraint',");
+            }
+            buffer
+              ..writeln('    );')
+              ..writeln('  }');
           }
-          buffer
-            ..writeln('    );')
-            ..writeln('  }');
         }
       }
       buffer.writeln('}');
@@ -506,7 +510,7 @@ class ModelMixinGenerator extends GeneratorForAnnotation<Schema> {
   String _formatConstant(dynamic obj) {
     final reader =
         obj is ConstantReader ? obj : ConstantReader(obj as DartObject);
-    if (reader.isString) return "'${reader.stringValue}'";
+    if (reader.isString) return jsonEncode(reader.stringValue);
     if (reader.isBool) return reader.boolValue.toString();
     if (reader.isInt) return reader.intValue.toString();
     if (reader.isDouble) return reader.doubleValue.toString();
