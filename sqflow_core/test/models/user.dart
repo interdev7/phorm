@@ -15,8 +15,6 @@ class IsNumberValidator implements IJsonValidator {
   }
 }
 
-
-
 @Schema(
   tableName: 'users',
   paranoid: true,
@@ -31,12 +29,11 @@ class IsNumberValidator implements IJsonValidator {
   ],
 )
 class User extends Model with _$SQFlowUserMixin {
-  @ID( autoIncrement: false, unique: true)
+  @ID(autoIncrement: false, unique: true)
   @override
   final String id;
 
   @Column(
-    
     validators: [
       LengthValidator(min: 3, max: 30, constraint: 'first_name_length_check'),
       NotEmptyValidator(),
@@ -45,7 +42,6 @@ class User extends Model with _$SQFlowUserMixin {
   final String firstName;
 
   @Column(
-    
     validators: [
       LengthValidator(min: 3, max: 30, constraint: 'last_name_length_check'),
       NotEmptyValidator(),
@@ -54,7 +50,6 @@ class User extends Model with _$SQFlowUserMixin {
   final String lastName;
 
   @Column(
-    
     unique: true,
     validators: [
       EmailValidator(constraint: 'email_format_check'),
@@ -64,7 +59,6 @@ class User extends Model with _$SQFlowUserMixin {
   final String email;
 
   @Column(
-    
     validators: [
       IsNumberValidator(),
       NotEmptyValidator(),
@@ -74,7 +68,6 @@ class User extends Model with _$SQFlowUserMixin {
   final String phone;
 
   @Column(
-    
     validators: [
       RegExpValidator(
         r'\d{4}-\d{2}-\d{2}',
@@ -88,7 +81,6 @@ class User extends Model with _$SQFlowUserMixin {
   final int? age;
 
   @Column(
-    
     validators: [
       ContainsValidator(['M', 'F', 'Other'], constraint: 'gender_check'),
       NotEmptyValidator(),
@@ -96,19 +88,19 @@ class User extends Model with _$SQFlowUserMixin {
   )
   final String gender;
 
-  @Column( validators: [NotEmptyValidator()])
+  @Column(validators: [NotEmptyValidator()])
   final String city;
 
-  @Column( validators: [NotEmptyValidator()])
+  @Column(validators: [NotEmptyValidator()])
   final String country;
 
   @Column()
   final String? address;
 
-  @Column( defaultValue: true)
+  @Column(defaultValue: true)
   final bool isActive;
 
-  @Column( defaultValue: false)
+  @Column(defaultValue: false)
   final bool isVerified;
 
   User({
@@ -147,14 +139,14 @@ class User extends Model with _$SQFlowUserMixin {
   ],
 )
 class Post extends Model with _$SQFlowPostMixin {
-  @ID( autoIncrement: true)
+  @ID(autoIncrement: true)
   @override
   final int id;
 
   @Column()
   final String title;
 
-  @Column( columnName: 'user_id')
+  @Column(columnName: 'user_id')
   final String userId;
 
   Post({
@@ -180,14 +172,14 @@ class Post extends Model with _$SQFlowPostMixin {
   ],
 )
 class Profile extends Model with _$SQFlowProfileMixin {
-  @ID( autoIncrement: true)
+  @ID(autoIncrement: true)
   @override
   final int id;
 
   @Column()
   final String bio;
 
-  @Column( columnName: 'user_id')
+  @Column(columnName: 'user_id')
   final String userId;
 
   Profile({
@@ -214,14 +206,14 @@ class Profile extends Model with _$SQFlowProfileMixin {
   ],
 )
 class Order extends Model with _$SQFlowOrderMixin {
-  @ID( autoIncrement: true)
+  @ID(autoIncrement: true)
   @override
   final int id;
 
   @Column()
   final int total;
 
-  @Column( columnName: 'user_id')
+  @Column(columnName: 'user_id')
   final String userId;
 
   Order({

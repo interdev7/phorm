@@ -3,6 +3,19 @@ import 'post.dart';
 
 part 'user.sql.g.dart';
 
+class IsNumberValidator implements IJsonValidator {
+  @override
+  String? get constraint => 'is_number';
+
+  const IsNumberValidator();
+
+  @override
+  bool isValid(dynamic value) {
+    if (value is! String) return false;
+    return RegExp(r'^\+?\d+$').hasMatch(value);
+  }
+}
+
 @Schema(
   tableName: 'users',
   paranoid: true,
@@ -44,27 +57,57 @@ class User extends Model with _$SQFlowUserMixin {
   @override
   final String id;
 
-  @Column()
+  @Column(
+    validators: [
+      LengthValidator(min: 2, max: 50, constraint: 'first_name_length'),
+      NotEmptyValidator(),
+    ],
+  )
   final String firstName;
 
-  @Column()
+  @Column(
+    validators: [
+      LengthValidator(min: 2, max: 50, constraint: 'last_name_length'),
+      NotEmptyValidator(),
+    ],
+  )
   final String lastName;
 
-  @Column( unique: true)
+  @Column(
+    unique: true,
+    validators: [
+      EmailValidator(constraint: 'email_format'),
+      NotEmptyValidator(),
+    ],
+  )
   final String email;
 
-  @Column()
+  @Column(
+    validators: [
+      IsNumberValidator(),
+      NotEmptyValidator(),
+      LengthValidator(min: 6, max: 15, constraint: 'phone_length'),
+    ],
+  )
   final String phone;
 
-  @Column()
+  @Column(
+    validators: [
+      RegExpValidator(
+        r'\d{4}-\d{2}-\d{2}',
+        constraint: 'date_format',
+      ),
+    ],
+  )
   final String? birthDate;
 
   @Column()
   final int? age;
 
   @Column(
-    
-    check: ContainsValidator(['M', 'F', 'Other']),
+    validators: [
+      ContainsValidator(['M', 'F', 'Other'], constraint: 'gender_check'),
+    ],
   )
   final String gender;
 
