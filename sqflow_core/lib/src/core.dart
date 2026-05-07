@@ -33,6 +33,19 @@ class SqflowCore<T extends Model> {
   /// ```
   SqflowCore({required this.dbManager, required this.table});
 
+  /// Starts a fluent query chain.
+  /// 
+  /// **Example:**
+  /// ```dart
+  /// await userService.where(PostTable.title.like('%Hello%')).get();
+  /// ```
+  SqflowQuery<T> where(SqflowCondition condition) {
+    return SqflowQuery<T>(this).where(condition);
+  }
+
+  /// Starts an empty fluent query chain (all records).
+  SqflowQuery<T> get query => SqflowQuery<T>(this);
+
   /// The database manager instance for this service.
   final DB dbManager;
 

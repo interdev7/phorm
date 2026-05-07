@@ -2,22 +2,24 @@ import 'package:sqflow_core/sqflow_core.dart';
 
 part 'explicit_naming.sql.g.dart';
 
+late DB appDb;
+
 @Schema(
   tableName: 'explicit_table',
   columnNaming: ColumnNamingStrategy.snakeCase,
 )
 class ExplicitNaming extends Model with _$SQFlowExplicitNamingMixin {
-  @ID( columnName: 'custom_id')
+  @ID(columnName: 'custom_id')
   @override
   final String id;
 
-  @Column( columnName: 'custom_name')
+  @Column(columnName: 'custom_name')
   final String name;
 
-  @Column( columnName: 'custom_age')
+  @Column(columnName: 'custom_age')
   final int age;
 
-  @Column( columnName: 'is_verified')
+  @Column(columnName: 'is_verified')
   bool isVerified;
 
   ExplicitNaming({
@@ -29,7 +31,4 @@ class ExplicitNaming extends Model with _$SQFlowExplicitNamingMixin {
 
   factory ExplicitNaming.fromJson(Map<String, dynamic> json) =>
       _$SQFlowExplicitNamingFromJson(json);
-
-  @override
-  Map<String, dynamic> toJson() => _$SQFlowExplicitNamingToJson();
 }

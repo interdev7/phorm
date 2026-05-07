@@ -1,23 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:sqflow_core/sqflow_core.dart';
-import 'package:sqflow_example/models/todo.dart';
-import 'package:sqflow_example/models/user.dart';
-import 'package:sqflow_example/models/post.dart';
-import 'package:sqflow_example/pages/validation_demo_page.dart';
-import 'package:sqflow_example/pages/social_feed_page.dart';
 import 'package:sqflow_example/pages/reactive_todo_page.dart';
-
-// --- Global Database ---
-final appDb = DB.autoVersion(
-  databaseName: 'sqflow_showcase.db',
-  tables: [
-    usersTable,
-    postsTable,
-    categoriesTable,
-    tasksTable,
-  ],
-);
+import 'package:sqflow_example/pages/social_feed_page.dart';
+import 'package:sqflow_example/pages/validation_demo_page.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -73,7 +58,8 @@ class SqflowShowcaseApp extends StatelessWidget {
         ),
         labelStyle: TextStyle(color: Colors.white.withOpacity(0.6)),
         hintStyle: TextStyle(color: Colors.white.withOpacity(0.3)),
-        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        contentPadding:
+            const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
       ),
       cardTheme: CardTheme(
         color: const Color(0xFF1A1A2E),
@@ -88,8 +74,10 @@ class SqflowShowcaseApp extends StatelessWidget {
           backgroundColor: seed,
           foregroundColor: Colors.white,
           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-          textStyle: GoogleFonts.inter(fontWeight: FontWeight.w600, fontSize: 15),
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          textStyle:
+              GoogleFonts.inter(fontWeight: FontWeight.w600, fontSize: 15),
         ),
       ),
     );

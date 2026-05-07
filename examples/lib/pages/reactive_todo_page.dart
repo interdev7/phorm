@@ -1,9 +1,10 @@
 import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:sqflow_core/sqflow_core.dart' hide Column;
+import 'package:sqflow_example/db.dart';
 import 'package:sqflow_example/models/todo.dart';
-import 'package:sqflow_example/main.dart';
 import 'package:uuid/uuid.dart';
 
 class ReactiveTodoPage extends StatefulWidget {
@@ -15,8 +16,6 @@ class ReactiveTodoPage extends StatefulWidget {
 
 class _ReactiveTodoPageState extends State<ReactiveTodoPage>
     with SingleTickerProviderStateMixin {
-  late SqflowCore<Category> _categoryService;
-  late SqflowCore<Task> _taskService;
   late TabController _tabController;
   StreamSubscription<String>? _sub;
 
@@ -38,9 +37,6 @@ class _ReactiveTodoPageState extends State<ReactiveTodoPage>
   void initState() {
     super.initState();
     _tabController = TabController(length: 2, vsync: this);
-    _categoryService =
-        SqflowCore<Category>(dbManager: appDb, table: categoriesTable);
-    _taskService = SqflowCore<Task>(dbManager: appDb, table: tasksTable);
     _initData();
     _subscribeToChanges();
   }
@@ -56,7 +52,7 @@ class _ReactiveTodoPageState extends State<ReactiveTodoPage>
 
   Future<void> _initData() async {
     setState(() => _isLoading = true);
-    final cats = await _categoryService.readAll(limit: 100);
+    final cats = await Categories.readAll(limit: 100);
     if (cats.data.isEmpty) {
       await _seedCategories();
     } else {
@@ -70,30 +66,28 @@ class _ReactiveTodoPageState extends State<ReactiveTodoPage>
   }
 
   Future<void> _seedCategories() async {
-    final uuid = const Uuid();
+    const uuid = Uuid();
     for (final (name, color) in _defaultCategories) {
-      await _categoryService
-          .insertAsync(Category(id: uuid.v4(), name: name, color: color));
+      await Categories.insert(
+          Category(id: uuid.v4(), name: name, color: color));
     }
-    final cats = await _categoryService.readAll(limit: 100);
+    final cats = await Categories.readAll(limit: 100);
     _categories = cats.data;
   }
 
   Future<void> _loadTasks() async {
     if (_selectedCategoryId == null) return;
     // Active tasks filtered by category
-    final active = await _taskService.readAll(
-      limit: 200,
-      where: WhereBuilder().eq('category_id', _selectedCategoryId!),
-    );
+    final active =
+        await Tasks.where(Tasks.categoryId.equals(_selectedCategoryId!)).get();
     // Demonstrates: onlyDeleted — reads paranoid soft-deleted rows
-    final deleted = await _taskService.readAll(
+    final deleted = await Tasks.readAll(
       limit: 200,
       onlyDeleted: true,
     );
     if (mounted) {
       setState(() {
-        _tasks = active.data;
+        _tasks = active;
         _deletedTasks = deleted.data;
       });
     }
@@ -103,19 +97,19 @@ class _ReactiveTodoPageState extends State<ReactiveTodoPage>
     final title = _taskCtrl.text.trim();
     if (title.isEmpty || _selectedCategoryId == null) return;
     _taskCtrl.clear();
-    await _taskService.insertAsync(
+    await Tasks.insert(
         Task(id: 0, title: title, categoryId: _selectedCategoryId!));
     // onTableChanged stream fires → _loadTasks() runs automatically
   }
 
   Future<void> _toggleComplete(Task task) async {
     final updated = task.copyWith(isCompleted: !task.isCompleted);
-    await _taskService.updateAsync(updated);
+    await Tasks.update(updated);
   }
 
   Future<void> _softDelete(Task task) async {
     // paranoid: true → soft delete (sets deleted_at, does NOT remove row)
-    await _taskService.deleteAsync(task.id);
+    await Tasks.delete(task.id);
     if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
@@ -134,12 +128,12 @@ class _ReactiveTodoPageState extends State<ReactiveTodoPage>
 
   Future<void> _restore(Task task) async {
     // Demonstrates: restoreAsync — clears deleted_at
-    await _taskService.restoreAsync(task.id);
+    await Tasks.restore(task.id);
   }
 
   Future<void> _hardDelete(Task task) async {
     // force: true → actual DELETE FROM SQL, bypasses paranoid
-    await _taskService.deleteAsync(task.id, force: true);
+    await Tasks.delete(task.id, force: true);
   }
 
   @override

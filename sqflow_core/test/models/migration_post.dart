@@ -2,11 +2,13 @@ import 'package:sqflow_core/sqflow_core.dart';
 
 part 'migration_post.sql.g.dart';
 
+late DB appDb;
+
 @Schema(
   tableName: 'migration_posts',
 )
 class MigrationPost extends Model with _$SQFlowMigrationPostMixin {
-  @ID( autoIncrement: false)
+  @ID(autoIncrement: false)
   @override
   final String id;
 
@@ -28,7 +30,4 @@ class MigrationPost extends Model with _$SQFlowMigrationPostMixin {
 
   factory MigrationPost.fromJson(Map<String, dynamic> json) =>
       _$SQFlowMigrationPostFromJson(json);
-
-  @override
-  Map<String, dynamic> toJson() => _$SQFlowMigrationPostToJson();
 }
