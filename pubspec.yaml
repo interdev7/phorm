@@ -1,4 +1,4 @@
-name: sqflow_workspace
+name: sqflow
 publish_to: "none"
 repository: https://github.com/interdev7/sqflow
 issue_tracker: https://github.com/interdev7/sqflow/issues
