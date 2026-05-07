@@ -56,26 +56,44 @@ final migration_usersTable = _$SQFlowMigrationUserTable(
 );
 
 mixin _$SQFlowMigrationUserMixin {
+  Map<String, dynamic> toJson() =>
+      _$SQFlowMigrationUserToJson(this as MigrationUser);
+
+  @override
+  String toString() => _$SQFlowMigrationUserToString(this as MigrationUser);
   DateTime? createdAt;
   DateTime? updatedAt;
 }
 
-extension SQFlowMigrationUserSqlExt on MigrationUser {
-  Map<String, dynamic> _$SQFlowMigrationUserToJson() {
-    final migrationuserJson = {
-      'id': _$SQFlowToJsonValue(id),
-      'name': _$SQFlowToJsonValue(name),
-      'email': _$SQFlowToJsonValue(email),
-      'age': _$SQFlowToJsonValue(age),
-      'is_active': _$SQFlowToJsonValue(isActive),
-      'created_at': _$SQFlowToJsonValue(createdAt),
-      'updated_at': _$SQFlowToJsonValue(updatedAt),
-    };
-    _$validateMigrationUser(migrationuserJson, tableName: 'migration_users');
+Map<String, dynamic> _$SQFlowMigrationUserToJson(MigrationUser instance) {
+  final migrationuserJson = {
+    'id': _$SQFlowToJsonValue(instance.id),
+    'name': _$SQFlowToJsonValue(instance.name),
+    'email': _$SQFlowToJsonValue(instance.email),
+    'age': _$SQFlowToJsonValue(instance.age),
+    'is_active': _$SQFlowToJsonValue(instance.isActive),
+    'created_at': _$SQFlowToJsonValue(instance.createdAt),
+    'updated_at': _$SQFlowToJsonValue(instance.updatedAt),
+  };
+  _$validateMigrationUser(migrationuserJson, tableName: 'migration_users');
 
-    return migrationuserJson;
-  }
+  return migrationuserJson;
+}
 
+String _$SQFlowMigrationUserToString(MigrationUser instance) {
+  return """
+MigrationUser(
+  id: ${instance.id},
+  name: ${instance.name},
+  email: ${instance.email},
+  age: ${instance.age},
+  isActive: ${instance.isActive},
+  createdAt: ${instance.createdAt},
+  updatedAt: ${instance.updatedAt},
+)""";
+}
+
+extension SQFlowMigrationUserExt on MigrationUser {
   MigrationUser copyWith({
     String? id,
     String? name,
@@ -119,7 +137,8 @@ MigrationUser _$SQFlowMigrationUserFromJson(Map<String, dynamic> json) {
   return instance;
 }
 
-class MigrationUserTable {
+/// Pluralized service for MigrationUser
+class MigrationUsers {
   static const SqflowColumn<String> id = SqflowColumn<String>('id');
   static const SqflowColumn<String> name = SqflowColumn<String>('name');
   static const SqflowColumn<String> email = SqflowColumn<String>('email');
@@ -129,6 +148,104 @@ class MigrationUserTable {
       SqflowColumn<DateTime>('created_at');
   static const SqflowColumn<DateTime> updatedAt =
       SqflowColumn<DateTime>('updated_at');
+
+  static SqflowCore<MigrationUser> get _service =>
+      SqflowCore<MigrationUser>(dbManager: appDb, table: migration_usersTable);
+
+  static SqflowQuery<MigrationUser> where(SqflowCondition condition) =>
+      _service.where(condition);
+  static SqflowQuery<MigrationUser> get query => _service.query;
+
+  static Future<int> insert(MigrationUser item, {DatabaseExecutor? executor}) =>
+      _service.insertAsync(item, executor: executor);
+  static Future<int> update(MigrationUser item, {DatabaseExecutor? executor}) =>
+      _service.updateAsync(item, executor: executor);
+  static Future<void> upsert(MigrationUser item,
+          {DatabaseExecutor? executor}) =>
+      _service.upsertAsync(item, executor: executor);
+  static Future<int> delete(Object id,
+          {bool force = false, DatabaseExecutor? executor}) =>
+      _service.deleteAsync(id, force: force, executor: executor);
+  static Future<int> restore(Object id, {DatabaseExecutor? executor}) =>
+      _service.restoreAsync(id, executor: executor);
+
+  static Future<MigrationUser?> read(Object id,
+          {List<String>? columns,
+          Attributes? attributes,
+          bool withDeleted = false,
+          List<Includable>? include,
+          DatabaseExecutor? executor}) =>
+      _service.readAsync(id,
+          columns: columns,
+          attributes: attributes,
+          withDeleted: withDeleted,
+          include: include,
+          executor: executor);
+
+  static Future<Result<MigrationUser>> readAll(
+          {int limit = 20,
+          int offset = 0,
+          WhereBuilder? where,
+          SortBuilder? sort,
+          List<String>? columns,
+          Attributes? attributes,
+          bool withDeleted = false,
+          bool onlyDeleted = false,
+          List<Includable>? include,
+          DatabaseExecutor? executor}) =>
+      _service.readAll(
+          limit: limit,
+          offset: offset,
+          where: where,
+          sort: sort,
+          columns: columns,
+          attributes: attributes,
+          withDeleted: withDeleted,
+          onlyDeleted: onlyDeleted,
+          include: include,
+          executor: executor);
+
+  static Future<ResultWithCount<MigrationUser>> readAllWithCount(
+          {int limit = 20,
+          int offset = 0,
+          WhereBuilder? where,
+          SortBuilder? sort,
+          List<String>? columns,
+          Attributes? attributes,
+          bool withDeleted = false,
+          bool onlyDeleted = false,
+          List<Includable>? include,
+          DatabaseExecutor? executor}) =>
+      _service.readAllWithCount(
+          limit: limit,
+          offset: offset,
+          where: where,
+          sort: sort,
+          columns: columns,
+          attributes: attributes,
+          withDeleted: withDeleted,
+          onlyDeleted: onlyDeleted,
+          include: include,
+          executor: executor);
+
+  static Future<int> count(
+          {Object? column, WhereBuilder? where, DatabaseExecutor? executor}) =>
+      _service.countAsync(column: column, where: where, executor: executor);
+
+  static Future<T> transaction<T>(
+          Future<T> Function(DatabaseExecutor txn) action) =>
+      _service.transaction(action);
+
+  static Stream<String> get changeStream => _service.dbManager.changeStream;
+  static Stream<MigrationUser?> watch(Object id, {List<Includable>? include}) =>
+      _service.watch(id, include: include);
+  static Stream<List<MigrationUser>> watchAll(
+          {WhereBuilder? where,
+          List<Includable>? include,
+          SortBuilder? sort,
+          int? limit}) =>
+      _service.watchAll(
+          where: where, include: include, sort: sort, limit: limit);
 }
 
 dynamic _$SQFlowToJsonValue(dynamic value) {

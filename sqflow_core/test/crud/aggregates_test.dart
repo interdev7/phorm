@@ -26,7 +26,7 @@ void main() {
     test('countAsync with where clause', () async {
       // Find how many users are active
       final activeCount = await userService.countAsync(
-        where: WhereBuilder().eq(UserTable.isActive, true),
+        where: WhereBuilder().eq(Users.isActive, true),
       );
 
       final expectedCount = mockUsers
@@ -36,7 +36,7 @@ void main() {
     });
 
     test('sumAsync calculates correctly', () async {
-      final totalAge = await userService.sumAsync(UserTable.age);
+      final totalAge = await userService.sumAsync(Users.age);
 
       final expectedSum = mockUsers
           .where((u) => u.deletedAt == null && u.age != null)
@@ -48,8 +48,8 @@ void main() {
 
     test('sumAsync with where clause', () async {
       final totalAge = await userService.sumAsync(
-        UserTable.age,
-        where: WhereBuilder().eq(UserTable.gender, 'M'),
+        Users.age,
+        where: WhereBuilder().eq(Users.gender, 'M'),
       );
 
       final expectedSum = mockUsers
@@ -61,7 +61,7 @@ void main() {
     });
 
     test('avgAsync calculates correctly', () async {
-      final avgAge = await userService.avgAsync(UserTable.age);
+      final avgAge = await userService.avgAsync(Users.age);
 
       final validUsers =
           mockUsers.where((u) => u.deletedAt == null && u.age != null).toList();
@@ -76,7 +76,7 @@ void main() {
     });
 
     test('minAsync calculates correctly', () async {
-      final minAge = await userService.minAsync(UserTable.age);
+      final minAge = await userService.minAsync(Users.age);
 
       final expectedMin = mockUsers
           .where((u) => u.deletedAt == null && u.age != null)
@@ -87,7 +87,7 @@ void main() {
     });
 
     test('maxAsync calculates correctly', () async {
-      final maxAge = await userService.maxAsync(UserTable.age);
+      final maxAge = await userService.maxAsync(Users.age);
 
       final expectedMax = mockUsers
           .where((u) => u.deletedAt == null && u.age != null)

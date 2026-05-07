@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:sqflow_core/sqflow_core.dart' hide Column;
 import 'package:sqflow_example/models/user.dart';
-import 'package:sqflow_example/main.dart';
 import 'package:uuid/uuid.dart';
 
 class ValidationDemoPage extends StatefulWidget {
@@ -30,12 +29,10 @@ class _ValidationDemoPageState extends State<ValidationDemoPage> {
   String? _errorMessage;
   String? _errorType;
 
-  late SqflowCore<User> _userService;
 
   @override
   void initState() {
     super.initState();
-    _userService = SqflowCore<User>(dbManager: appDb, table: usersTable);
   }
 
   @override
@@ -75,7 +72,7 @@ class _ValidationDemoPageState extends State<ValidationDemoPage> {
     );
 
     try {
-      await _userService.insertAsync(user);
+      await Users.insert(user);
       setState(() {
         _successMessage =
             'User "${user.firstName} ${user.lastName}" created successfully!';

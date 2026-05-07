@@ -54,25 +54,42 @@ final explicit_tableTable = _$SQFlowExplicitNamingTable(
 );
 
 mixin _$SQFlowExplicitNamingMixin {
+  Map<String, dynamic> toJson() =>
+      _$SQFlowExplicitNamingToJson(this as ExplicitNaming);
+
+  @override
+  String toString() => _$SQFlowExplicitNamingToString(this as ExplicitNaming);
   DateTime? createdAt;
   DateTime? updatedAt;
 }
 
-extension SQFlowExplicitNamingSqlExt on ExplicitNaming {
-  Map<String, dynamic> _$SQFlowExplicitNamingToJson() {
-    final explicitnamingJson = {
-      'custom_id': _$SQFlowToJsonValue(id),
-      'custom_name': _$SQFlowToJsonValue(name),
-      'custom_age': _$SQFlowToJsonValue(age),
-      'is_verified': _$SQFlowToJsonValue(isVerified),
-      'created_at': _$SQFlowToJsonValue(createdAt),
-      'updated_at': _$SQFlowToJsonValue(updatedAt),
-    };
-    _$validateExplicitNaming(explicitnamingJson, tableName: 'explicit_table');
+Map<String, dynamic> _$SQFlowExplicitNamingToJson(ExplicitNaming instance) {
+  final explicitnamingJson = {
+    'custom_id': _$SQFlowToJsonValue(instance.id),
+    'custom_name': _$SQFlowToJsonValue(instance.name),
+    'custom_age': _$SQFlowToJsonValue(instance.age),
+    'is_verified': _$SQFlowToJsonValue(instance.isVerified),
+    'created_at': _$SQFlowToJsonValue(instance.createdAt),
+    'updated_at': _$SQFlowToJsonValue(instance.updatedAt),
+  };
+  _$validateExplicitNaming(explicitnamingJson, tableName: 'explicit_table');
 
-    return explicitnamingJson;
-  }
+  return explicitnamingJson;
+}
 
+String _$SQFlowExplicitNamingToString(ExplicitNaming instance) {
+  return """
+ExplicitNaming(
+  id: ${instance.id},
+  name: ${instance.name},
+  age: ${instance.age},
+  isVerified: ${instance.isVerified},
+  createdAt: ${instance.createdAt},
+  updatedAt: ${instance.updatedAt},
+)""";
+}
+
+extension SQFlowExplicitNamingExt on ExplicitNaming {
   ExplicitNaming copyWith({
     String? id,
     String? name,
@@ -113,7 +130,8 @@ ExplicitNaming _$SQFlowExplicitNamingFromJson(Map<String, dynamic> json) {
   return instance;
 }
 
-class ExplicitNamingTable {
+/// Pluralized service for ExplicitNaming
+class ExplicitTable {
   static const SqflowColumn<String> id = SqflowColumn<String>('custom_id');
   static const SqflowColumn<String> name = SqflowColumn<String>('custom_name');
   static const SqflowColumn<int> age = SqflowColumn<int>('custom_age');
@@ -123,6 +141,107 @@ class ExplicitNamingTable {
       SqflowColumn<DateTime>('created_at');
   static const SqflowColumn<DateTime> updatedAt =
       SqflowColumn<DateTime>('updated_at');
+
+  static SqflowCore<ExplicitNaming> get _service =>
+      SqflowCore<ExplicitNaming>(dbManager: appDb, table: explicit_tableTable);
+
+  static SqflowQuery<ExplicitNaming> where(SqflowCondition condition) =>
+      _service.where(condition);
+  static SqflowQuery<ExplicitNaming> get query => _service.query;
+
+  static Future<int> insert(ExplicitNaming item,
+          {DatabaseExecutor? executor}) =>
+      _service.insertAsync(item, executor: executor);
+  static Future<int> update(ExplicitNaming item,
+          {DatabaseExecutor? executor}) =>
+      _service.updateAsync(item, executor: executor);
+  static Future<void> upsert(ExplicitNaming item,
+          {DatabaseExecutor? executor}) =>
+      _service.upsertAsync(item, executor: executor);
+  static Future<int> delete(Object id,
+          {bool force = false, DatabaseExecutor? executor}) =>
+      _service.deleteAsync(id, force: force, executor: executor);
+  static Future<int> restore(Object id, {DatabaseExecutor? executor}) =>
+      _service.restoreAsync(id, executor: executor);
+
+  static Future<ExplicitNaming?> read(Object id,
+          {List<String>? columns,
+          Attributes? attributes,
+          bool withDeleted = false,
+          List<Includable>? include,
+          DatabaseExecutor? executor}) =>
+      _service.readAsync(id,
+          columns: columns,
+          attributes: attributes,
+          withDeleted: withDeleted,
+          include: include,
+          executor: executor);
+
+  static Future<Result<ExplicitNaming>> readAll(
+          {int limit = 20,
+          int offset = 0,
+          WhereBuilder? where,
+          SortBuilder? sort,
+          List<String>? columns,
+          Attributes? attributes,
+          bool withDeleted = false,
+          bool onlyDeleted = false,
+          List<Includable>? include,
+          DatabaseExecutor? executor}) =>
+      _service.readAll(
+          limit: limit,
+          offset: offset,
+          where: where,
+          sort: sort,
+          columns: columns,
+          attributes: attributes,
+          withDeleted: withDeleted,
+          onlyDeleted: onlyDeleted,
+          include: include,
+          executor: executor);
+
+  static Future<ResultWithCount<ExplicitNaming>> readAllWithCount(
+          {int limit = 20,
+          int offset = 0,
+          WhereBuilder? where,
+          SortBuilder? sort,
+          List<String>? columns,
+          Attributes? attributes,
+          bool withDeleted = false,
+          bool onlyDeleted = false,
+          List<Includable>? include,
+          DatabaseExecutor? executor}) =>
+      _service.readAllWithCount(
+          limit: limit,
+          offset: offset,
+          where: where,
+          sort: sort,
+          columns: columns,
+          attributes: attributes,
+          withDeleted: withDeleted,
+          onlyDeleted: onlyDeleted,
+          include: include,
+          executor: executor);
+
+  static Future<int> count(
+          {Object? column, WhereBuilder? where, DatabaseExecutor? executor}) =>
+      _service.countAsync(column: column, where: where, executor: executor);
+
+  static Future<T> transaction<T>(
+          Future<T> Function(DatabaseExecutor txn) action) =>
+      _service.transaction(action);
+
+  static Stream<String> get changeStream => _service.dbManager.changeStream;
+  static Stream<ExplicitNaming?> watch(Object id,
+          {List<Includable>? include}) =>
+      _service.watch(id, include: include);
+  static Stream<List<ExplicitNaming>> watchAll(
+          {WhereBuilder? where,
+          List<Includable>? include,
+          SortBuilder? sort,
+          int? limit}) =>
+      _service.watchAll(
+          where: where, include: include, sort: sort, limit: limit);
 }
 
 dynamic _$SQFlowToJsonValue(dynamic value) {

@@ -3,7 +3,6 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:sqflow_core/sqflow_core.dart' hide Column;
 import 'package:sqflow_example/models/post.dart';
 import 'package:sqflow_example/models/user.dart';
-import 'package:sqflow_example/main.dart';
 import 'package:uuid/uuid.dart';
 
 class SocialFeedPage extends StatefulWidget {
@@ -14,8 +13,6 @@ class SocialFeedPage extends StatefulWidget {
 }
 
 class _SocialFeedPageState extends State<SocialFeedPage> {
-  late SqflowCore<Post> _postService;
-  late SqflowCore<User> _userService;
 
   List<Post> _posts = [];
   bool _isLoading = true;
@@ -25,16 +22,13 @@ class _SocialFeedPageState extends State<SocialFeedPage> {
   @override
   void initState() {
     super.initState();
-    _postService = SqflowCore<Post>(dbManager: appDb, table: postsTable);
-    _userService = SqflowCore<User>(dbManager: appDb, table: usersTable);
     _loadPosts();
   }
 
   Future<void> _loadPosts() async {
     setState(() => _isLoading = true);
     // Demonstrates: eager loading via include (HasMany / BelongsTo)
-    final result =
-        await _postService.readAll(include: [Includable.model<User>()]);
+    final result = await Posts.readAll(include: [Includable.model<User>()]);
     setState(() {
       _posts = result.data;
       _isLoading = false;
@@ -52,7 +46,7 @@ class _SocialFeedPageState extends State<SocialFeedPage> {
     final userId = uuid.v4();
 
     try {
-      await _postService.transaction((txn) async {
+      await Posts.transaction((txn) async {
         // Step 1: Create author inside the transaction
         final author = User(
           id: userId,
@@ -66,7 +60,7 @@ class _SocialFeedPageState extends State<SocialFeedPage> {
           address: '45 Rose Valley',
           gender: 'M',
         );
-        await _userService.insertAsync(author, executor: txn);
+        await Users.insert(author, executor: txn);
 
         // Step 2: Create posts linked to the author inside same transaction
         final titles = [
@@ -76,7 +70,7 @@ class _SocialFeedPageState extends State<SocialFeedPage> {
         ];
         for (final title in titles) {
           final id = uuid.v4();
-          await _postService.insertAsync(
+          await Posts.insert(
             Post(
               id: id,
               title: title,
@@ -100,7 +94,7 @@ class _SocialFeedPageState extends State<SocialFeedPage> {
   }
 
   Future<void> _deletePost(String id) async {
-    await _postService.deleteAsync(id);
+    await Posts.delete(id);
     await _loadPosts();
   }
 

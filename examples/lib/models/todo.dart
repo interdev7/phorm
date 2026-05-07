@@ -1,4 +1,5 @@
-import 'package:sqflow_platform_interface/sqflow_platform_interface.dart';
+import 'package:sqflow_core/sqflow_core.dart';
+import 'package:sqflow_example/db.dart';
 
 part 'todo.sql.g.dart';
 
@@ -28,11 +29,6 @@ class Category extends Model with _$SQFlowCategoryMixin {
   factory Category.fromJson(Map<String, dynamic> json) =>
       _$SQFlowCategoryFromJson(json);
 
-  @override
-  Map<String, dynamic> toJson() => _$SQFlowCategoryToJson();
-
-  @override
-  String toString() => _$SQFlowCategoryToString();
 }
 
 @Schema(
@@ -66,9 +62,4 @@ class Task extends Model with _$SQFlowTaskMixin {
   factory Task.fromJson(Map<String, dynamic> json) =>
       _$SQFlowTaskFromJson(json);
 
-  @override
-  Map<String, dynamic> toJson() => _$SQFlowTaskToJson();
-
-  @override
-  String toString() => _$SQFlowTaskToString();
 }

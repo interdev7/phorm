@@ -55,25 +55,42 @@ final postsTable = _$SQFlowPostTable(
 );
 
 mixin _$SQFlowPostMixin {
+  Map<String, dynamic> toJson() => _$SQFlowPostToJson(this as Post);
+
+  @override
+  String toString() => _$SQFlowPostToString(this as Post);
   DateTime? createdAt;
   DateTime? updatedAt;
 }
 
-extension SQFlowPostSqlExt on Post {
-  Map<String, dynamic> _$SQFlowPostToJson() {
-    final postJson = {
-      'id': _$SQFlowToJsonValue(id),
-      'title': _$SQFlowToJsonValue(title),
-      'content': _$SQFlowToJsonValue(content),
-      'user_id': _$SQFlowToJsonValue(userId),
-      'created_at': _$SQFlowToJsonValue(createdAt),
-      'updated_at': _$SQFlowToJsonValue(updatedAt),
-    };
-    _$validatePost(postJson, tableName: 'posts');
+Map<String, dynamic> _$SQFlowPostToJson(Post instance) {
+  final postJson = {
+    'id': _$SQFlowToJsonValue(instance.id),
+    'title': _$SQFlowToJsonValue(instance.title),
+    'content': _$SQFlowToJsonValue(instance.content),
+    'user_id': _$SQFlowToJsonValue(instance.userId),
+    'created_at': _$SQFlowToJsonValue(instance.createdAt),
+    'updated_at': _$SQFlowToJsonValue(instance.updatedAt),
+  };
+  _$validatePost(postJson, tableName: 'posts');
 
-    return postJson;
-  }
+  return postJson;
+}
 
+String _$SQFlowPostToString(Post instance) {
+  return """
+Post(
+  id: ${instance.id},
+  title: ${instance.title},
+  content: ${instance.content},
+  userId: ${instance.userId},
+  user: ${instance.user},
+  createdAt: ${instance.createdAt},
+  updatedAt: ${instance.updatedAt},
+)""";
+}
+
+extension SQFlowPostExt on Post {
   Post copyWith({
     String? id,
     String? title,
@@ -92,19 +109,6 @@ extension SQFlowPostSqlExt on Post {
     )
       ..createdAt = createdAt ?? this.createdAt
       ..updatedAt = updatedAt ?? this.updatedAt;
-  }
-
-  String _$SQFlowPostToString() {
-    return """
-Post(
-  id: $id,
-  title: $title,
-  content: $content,
-  userId: $userId,
-  user: $user,
-  createdAt: $createdAt,
-  updatedAt: $updatedAt,
-)""";
   }
 }
 
@@ -129,7 +133,8 @@ Post _$SQFlowPostFromJson(Map<String, dynamic> json) {
   return instance;
 }
 
-class PostTable {
+/// Pluralized service for Post
+class Posts {
   static const SqflowColumn<String> id = SqflowColumn<String>('id');
   static const SqflowColumn<String> title = SqflowColumn<String>('title');
   static const SqflowColumn<String> content = SqflowColumn<String>('content');
@@ -138,6 +143,103 @@ class PostTable {
       SqflowColumn<DateTime>('created_at');
   static const SqflowColumn<DateTime> updatedAt =
       SqflowColumn<DateTime>('updated_at');
+
+  static SqflowCore<Post> get _service =>
+      SqflowCore<Post>(dbManager: appDb, table: postsTable);
+
+  static SqflowQuery<Post> where(SqflowCondition condition) =>
+      _service.where(condition);
+  static SqflowQuery<Post> get query => _service.query;
+
+  static Future<int> insert(Post item, {DatabaseExecutor? executor}) =>
+      _service.insertAsync(item, executor: executor);
+  static Future<int> update(Post item, {DatabaseExecutor? executor}) =>
+      _service.updateAsync(item, executor: executor);
+  static Future<void> upsert(Post item, {DatabaseExecutor? executor}) =>
+      _service.upsertAsync(item, executor: executor);
+  static Future<int> delete(Object id,
+          {bool force = false, DatabaseExecutor? executor}) =>
+      _service.deleteAsync(id, force: force, executor: executor);
+  static Future<int> restore(Object id, {DatabaseExecutor? executor}) =>
+      _service.restoreAsync(id, executor: executor);
+
+  static Future<Post?> read(Object id,
+          {List<String>? columns,
+          Attributes? attributes,
+          bool withDeleted = false,
+          List<Includable>? include,
+          DatabaseExecutor? executor}) =>
+      _service.readAsync(id,
+          columns: columns,
+          attributes: attributes,
+          withDeleted: withDeleted,
+          include: include,
+          executor: executor);
+
+  static Future<Result<Post>> readAll(
+          {int limit = 20,
+          int offset = 0,
+          WhereBuilder? where,
+          SortBuilder? sort,
+          List<String>? columns,
+          Attributes? attributes,
+          bool withDeleted = false,
+          bool onlyDeleted = false,
+          List<Includable>? include,
+          DatabaseExecutor? executor}) =>
+      _service.readAll(
+          limit: limit,
+          offset: offset,
+          where: where,
+          sort: sort,
+          columns: columns,
+          attributes: attributes,
+          withDeleted: withDeleted,
+          onlyDeleted: onlyDeleted,
+          include: include,
+          executor: executor);
+
+  static Future<ResultWithCount<Post>> readAllWithCount(
+          {int limit = 20,
+          int offset = 0,
+          WhereBuilder? where,
+          SortBuilder? sort,
+          List<String>? columns,
+          Attributes? attributes,
+          bool withDeleted = false,
+          bool onlyDeleted = false,
+          List<Includable>? include,
+          DatabaseExecutor? executor}) =>
+      _service.readAllWithCount(
+          limit: limit,
+          offset: offset,
+          where: where,
+          sort: sort,
+          columns: columns,
+          attributes: attributes,
+          withDeleted: withDeleted,
+          onlyDeleted: onlyDeleted,
+          include: include,
+          executor: executor);
+
+  static Future<int> count(
+          {Object? column, WhereBuilder? where, DatabaseExecutor? executor}) =>
+      _service.countAsync(column: column, where: where, executor: executor);
+
+  static Future<T> transaction<T>(
+          Future<T> Function(DatabaseExecutor txn) action) =>
+      _service.transaction(action);
+
+  static Stream<String> get changeStream => _service.dbManager.changeStream;
+  static Stream<Post?> watch(Object id, {List<Includable>? include}) =>
+      _service.watch(id, include: include);
+  static Stream<List<Post>> watchAll(
+          {WhereBuilder? where,
+          List<Includable>? include,
+          SortBuilder? sort,
+          int? limit}) =>
+      _service.watchAll(
+          where: where, include: include, sort: sort, limit: limit);
 }
 
 dynamic _$SQFlowToJsonValue(dynamic value) {

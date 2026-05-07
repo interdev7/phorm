@@ -157,12 +157,12 @@ void main() {
       expect(where.build(), 'column2 IS NULL');
       expect(where.args, isEmpty);
     });
-    test('Typed columns from UserTable', () {
+    test('Typed columns from Users', () {
       final where = WhereBuilder()
-          .eq(UserTable.isActive, 1)
-          .like(UserTable.email, '%gmail.com')
-          .gt(UserTable.age, 30)
-          .lengthEq(UserTable.firstName, 5);
+          .eq(Users.isActive, 1)
+          .like(Users.email, '%gmail.com')
+          .gt(Users.age, 30)
+          .lengthEq(Users.firstName, 5);
 
       expect(where.build(), 'is_active = ? AND email LIKE ? AND age > ? AND LENGTH(first_name) = ?');
       expect(where.args, [1, '%gmail.com', 30, 5]);
