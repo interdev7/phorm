@@ -25,14 +25,13 @@ SQFlow is a lightweight, type-safe SQLite ORM abstraction for Dart and Flutter. 
 └──────────────────┬─────────────────────┘
                    │
 ┌──────────────────▼─────────────────────┐
-│           SqflowCore<T>                │
-│  readAll · readAsync · insertAsync     │
-│  deleteAsync · transaction · batch     │
+│           Service Class (Users)        │
+│    Type-safe static methods & columns  │
 └──────┬───────────────────┬────────────┘
        │                   │
 ┌──────▼──────┐   ┌────────▼────────┐
-│ WhereBuilder│   │  SortBuilder    │
-│  (WHERE)    │   │  (ORDER BY)     │
+│ SqflowCore<T>│   │  WhereBuilder   │
+│ (The Engine) │   │  (The Query)    │
 └──────┬──────┘   └─────────────────┘
        │
 ┌──────▼──────────────────────────────┐
@@ -75,17 +74,13 @@ dev_dependencies:
 // 1. Annotate your model
 @Schema(tableName: 'users')
 class User extends Model with _$SQFlowUserMixin {
-  @ID(type: TEXT())
-  @override
+  @ID()
   final String id;
 
-  @Column(type: TEXT())
+  @Column()
   final String name;
 
   User({required this.id, required this.name});
-
-  @override
-  Map<String, dynamic> toJson() => _$SQFlowUserToJson();
 
   factory User.fromJson(Map<String, dynamic> json) => _$SQFlowUserFromJson(json);
 }
@@ -93,17 +88,16 @@ class User extends Model with _$SQFlowUserMixin {
 // 2. Run the generator
 // dart run build_runner build
 
-// 3. Create service
-final db = DB(databaseName: 'app.db', version: 1, tables: [usersTable]);
-final userService = SqflowCore<User>(dbManager: db, table: usersTable);
+// 3. Initialize app database once
+final appDb = DB(databaseName: 'app.db', version: 1, tables: [usersTable]);
 
-// 4. Use it
-await userService.insertAsync(User(id: 'u1', name: 'Alice'));
-final user = await userService.readAsync('u1');
-final result = await userService.readAll();
-final paged = await userService.readAllWithCount(
-  limit: 20,
-  offset: 0,
-);
-print('Page: ${paged.data.length} / Total: ${paged.count}');
+// 4. Use the generated service class
+await Users.insert(User(id: 'u1', name: 'Alice'));
+
+final user = await Users.read('u1');
+
+final list = await Users.where(Users.name.like('A%')).get();
+
+final paged = await Users.readAllWithCount(limit: 20);
+print('Page: ${paged.data.length} / Total: ${result.count}');
 ```

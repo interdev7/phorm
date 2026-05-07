@@ -7,10 +7,16 @@
 ## Basic Usage
 
 ```dart
+// 1. Fluent Type-Safe API (Recommended) 🌟
+final query = Users.where(Users.status.eq('active'))
+    .where(Users.age.gt(18))
+    .where(Users.name.like('John%'));
+
+// 2. Manual WhereBuilder (Alternative)
 final where = WhereBuilder()
-  .eq('status', 'active')
-  .gt('age', 18)
-  .like('name', 'John%');
+  .eq(Users.status, 'active')
+  .gt(Users.age, 18)
+  .like(Users.name, 'John%');
 
 // Produces: status = ? AND age > ? AND name LIKE ?
 // Args:     ['active', 18, 'John%']
@@ -38,11 +44,10 @@ final where = WhereBuilder(separator: ' OR ');
 | `.lte('col', val)` | `col <= ?` | |
 
 ```dart
-WhereBuilder()
-  .eq('status', 'active')    // status = ?
-  .ne('role', 'banned')      // role != ?
-  .gt('age', 18)             // age > ?
-  .lte('price', 99.99);      // price <= ?
+Users.where(Users.status.eq('active'))    // status = ?
+Users.where(Users.role.ne('banned'))     // role != ?
+Users.where(Users.age.gt(18))             // age > ?
+Users.where(Users.price.lte(99.99));      // price <= ?
 ```
 
 > [!NOTE]
@@ -61,11 +66,9 @@ WhereBuilder()
 | `.regexp('col', pattern)` | `col REGEXP ?` | depends on SQLite config |
 
 ```dart
-WhereBuilder()
-  .like('name', 'John%')         // Starts with 'John'
-  .like('email', '%@gmail.com')  // Ends with domain
-  .ilike('city', '%sofia%')      // Case-insensitive contains
-  .regexp('phone', '^[0-9]+$');  // Numbers only
+Users.where(Users.name.like('John%'))         // Starts with 'John'
+Users.where(Users.email.like('%@gmail.com'))  // Ends with domain
+Users.where(Users.city.ilike('%sofia%'))      // Case-insensitive contains
 ```
 
 > [!WARNING]
@@ -76,9 +79,8 @@ WhereBuilder()
 ### NULL Checks
 
 ```dart
-WhereBuilder()
-  .isNull('deleted_at')     // deleted_at IS NULL
-  .isNotNull('email');      // email IS NOT NULL
+Users.where(Users.deletedAt.isNull())     // deleted_at IS NULL
+Users.where(Users.email.isNotNull());      // email IS NOT NULL
 ```
 
 ---
@@ -88,9 +90,8 @@ WhereBuilder()
 SQLite stores booleans as `1` (true) or `0` (false).
 
 ```dart
-WhereBuilder()
-  .isTrue('is_active')      // is_active = 1
-  .isFalse('is_deleted');   // is_deleted = 0
+Users.where(Users.isActive.isTrue())      // is_active = 1
+Users.where(Users.isDeleted.isFalse());   // is_deleted = 0
 ```
 
 ---
@@ -99,16 +100,13 @@ WhereBuilder()
 
 ```dart
 // BETWEEN
-WhereBuilder().between('age', 18, 65);
-// Produces: age BETWEEN ? AND ?  Args: [18, 65]
+Users.where(Users.age.between(18, 65));
 
 // IN list
-WhereBuilder().inList('status', ['active', 'pending']);
-// Produces: status IN (?, ?)  Args: ['active', 'pending']
+Users.where(Users.status.inList(['active', 'pending']));
 
 // NOT IN list
-WhereBuilder().notInList('role', ['admin', 'superuser']);
-// Produces: role NOT IN (?, ?)
+Users.where(Users.role.notInList(['admin', 'superuser']));
 ```
 
 > [!IMPORTANT]
@@ -120,22 +118,16 @@ WhereBuilder().notInList('role', ['admin', 'superuser']);
 
 ```dart
 // AND group
-WhereBuilder()
-  .eq('country', 'Bulgaria')
-  .andGroup((g) {
-    g.gt('age', 18).lt('age', 65);
-  });
-// Produces: country = ? AND (age > ? AND age < ?)
-// Args: ['Bulgaria', 18, 65]   ← order is preserved!
+Users.where(Users.country.eq('Bulgaria'))
+    .andGroup((g) {
+       g.gt(Users.age, 18).lt(Users.age, 65);
+    });
 
 // OR group
-WhereBuilder()
-  .isTrue('is_active')
-  .orGroup((g) {
-    g.eq('city', 'Sofia').eq('city', 'Plovdiv');
-  });
-// Produces: is_active = 1 AND (city = ? OR city = ?)
-// Args: ['Sofia', 'Plovdiv']
+Users.where(Users.isActive.isTrue())
+    .orGroup((g) {
+       g.eq(Users.city, 'Sofia').eq(Users.city, 'Plovdiv');
+    });
 ```
 
 > [!NOTE]
@@ -149,25 +141,16 @@ Dates in SQFlow are stored as ISO-8601 strings. These helpers extract the date o
 
 ```dart
 // Date-only equality (ignores time)
-WhereBuilder().dateOnlyEq('created_at', DateTime(2024, 1, 15));
-// Produces: DATE(created_at) = ?  Args: ['2024-01-15']
+Users.where(Users.createdAt.dateOnlyEq(DateTime(2024, 1, 15)));
 
 // Date range
-WhereBuilder().dateOnlyBetween(
-  'created_at',
+Users.where(Users.createdAt.dateOnlyBetween(
   DateTime(2024, 1, 1),
   DateTime(2024, 12, 31),
-);
-// Produces: DATE(created_at) BETWEEN ? AND ?
-
-// Date comparisons
-WhereBuilder()
-  .dateOnlyGt('birth_date', DateTime(2000, 1, 1))  // DATE(col) > ?
-  .dateOnlyLt('expiry_date', DateTime(2025, 12, 31)); // DATE(col) < ?
+));
 
 // Time-only equality
-WhereBuilder().timeOnlyEq('start_time', DateTime(2024, 1, 1, 9, 0));
-// Produces: TIME(start_time) = ?  Args: ['09:00:00']
+Users.where(Users.startTime.timeOnlyEq(DateTime(2024, 1, 1, 9, 0)));
 ```
 
 ---
