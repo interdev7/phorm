@@ -30,6 +30,9 @@ class Category extends Model with _$SQFlowCategoryMixin {
 
   @override
   Map<String, dynamic> toJson() => _$SQFlowCategoryToJson();
+
+  @override
+  String toString() => _$SQFlowCategoryToString();
 }
 
 @Schema(
@@ -40,19 +43,18 @@ class Category extends Model with _$SQFlowCategoryMixin {
   ],
 )
 class Task extends Model with _$SQFlowTaskMixin {
-  @ID( autoIncrement: true)
+  @ID(autoIncrement: true)
   @override
   final int id;
 
   @Column()
   final String title;
 
-  @Column( defaultValue: false)
+  @Column(defaultValue: false)
   final bool isCompleted;
 
   @Column()
   final String categoryId;
-
 
   Task({
     required this.id,
@@ -66,4 +68,7 @@ class Task extends Model with _$SQFlowTaskMixin {
 
   @override
   Map<String, dynamic> toJson() => _$SQFlowTaskToJson();
+
+  @override
+  String toString() => _$SQFlowTaskToString();
 }

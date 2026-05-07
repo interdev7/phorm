@@ -93,6 +93,19 @@ extension SQFlowPostSqlExt on Post {
       ..createdAt = createdAt ?? this.createdAt
       ..updatedAt = updatedAt ?? this.updatedAt;
   }
+
+  String _$SQFlowPostToString() {
+    return """
+Post(
+  id: $id,
+  title: $title,
+  content: $content,
+  userId: $userId,
+  user: $user,
+  createdAt: $createdAt,
+  updatedAt: $updatedAt,
+)""";
+  }
 }
 
 void _$validatePost(Map<String, dynamic> json, {required String tableName}) {}

@@ -145,6 +145,29 @@ extension SQFlowUserSqlExt on User {
       ..updatedAt = updatedAt ?? this.updatedAt
       ..deletedAt = deletedAt ?? this.deletedAt;
   }
+
+  String _$SQFlowUserToString() {
+    return """
+User(
+  posts: $posts,
+  id: $id,
+  firstName: $firstName,
+  lastName: $lastName,
+  email: $email,
+  phone: $phone,
+  birthDate: $birthDate,
+  age: $age,
+  gender: $gender,
+  city: $city,
+  country: $country,
+  address: $address,
+  isActive: $isActive,
+  isVerified: $isVerified,
+  createdAt: $createdAt,
+  updatedAt: $updatedAt,
+  deletedAt: $deletedAt,
+)""";
+  }
 }
 
 void _$validateUser(Map<String, dynamic> json, {required String tableName}) {
