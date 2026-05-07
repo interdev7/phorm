@@ -117,6 +117,9 @@ class Schema {
   /// Whether to generate the validate() method based on column CHECK constraints.
   final bool useValidator;
 
+  /// Whether to generate the toString method helper.
+  final bool useToString;
+
   const Schema({
     this.tableName,
     this.indexes = const [],
@@ -126,6 +129,7 @@ class Schema {
     this.useToJson = true,
     this.useFromJson = true,
     this.useCopyWith = true,
+    this.useToString = true,
     this.timestamps = true,
     this.useValidator = true,
   });

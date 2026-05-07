@@ -81,6 +81,18 @@ extension SQFlowCategorySqlExt on Category {
       ..createdAt = createdAt ?? this.createdAt
       ..updatedAt = updatedAt ?? this.updatedAt;
   }
+
+  String _$SQFlowCategoryToString() {
+    return """
+Category(
+  id: $id,
+  name: $name,
+  color: $color,
+  createdAt: $createdAt,
+  updatedAt: $updatedAt,
+  tasks: $tasks,
+)""";
+  }
 }
 
 void _$validateCategory(Map<String, dynamic> json,
@@ -210,6 +222,20 @@ extension SQFlowTaskSqlExt on Task {
       ..createdAt = createdAt ?? this.createdAt
       ..updatedAt = updatedAt ?? this.updatedAt
       ..deletedAt = deletedAt ?? this.deletedAt;
+  }
+
+  String _$SQFlowTaskToString() {
+    return """
+Task(
+  id: $id,
+  title: $title,
+  isCompleted: $isCompleted,
+  categoryId: $categoryId,
+  createdAt: $createdAt,
+  updatedAt: $updatedAt,
+  deletedAt: $deletedAt,
+  category: $category,
+)""";
   }
 }
 

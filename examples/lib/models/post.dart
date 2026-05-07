@@ -34,4 +34,7 @@ class Post extends Model with _$SQFlowPostMixin {
 
   @override
   Map<String, dynamic> toJson() => _$SQFlowPostToJson();
+
+  @override
+  String toString() => _$SQFlowPostToString();
 }

@@ -128,4 +128,7 @@ class User extends Model with _$SQFlowUserMixin {
 
   @override
   Map<String, dynamic> toJson() => _$SQFlowUserToJson();
+
+  @override
+  String toString() => _$SQFlowUserToString();
 }

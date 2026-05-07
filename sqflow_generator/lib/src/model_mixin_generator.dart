@@ -30,6 +30,7 @@ class ModelMixinGenerator extends GeneratorForAnnotation<Schema> {
     final useToJson = annotation.peek('useToJson')?.boolValue ?? true;
     final useFromJson = annotation.peek('useFromJson')?.boolValue ?? true;
     final useCopyWith = annotation.peek('useCopyWith')?.boolValue ?? true;
+    final useToString = annotation.peek('useToString')?.boolValue ?? true;
     final timestamps = annotation.peek('timestamps')?.boolValue ?? true;
     final useValidator = annotation.peek('useValidator')?.boolValue ?? true;
     final paranoid = annotation.peek('paranoid')?.boolValue ?? false;
@@ -172,8 +173,8 @@ class ModelMixinGenerator extends GeneratorForAnnotation<Schema> {
     // Close the mixin
     buffer.writeln('}');
 
-    // 2. Extension for SQL and Copy utilities
-    if (useToJson || useCopyWith) {
+    // 2. Extension for SQL, Copy and ToString utilities
+    if (useToJson || useCopyWith || useToString) {
       buffer
         ..writeln()
         ..writeln('extension SQFlow${className}SqlExt on $className {');
@@ -270,6 +271,45 @@ class ModelMixinGenerator extends GeneratorForAnnotation<Schema> {
 
         buffer
           ..writeln(';')
+          ..writeln('  }');
+      }
+
+      if (useToString) {
+        if (useToJson || useCopyWith) buffer.writeln();
+        buffer
+          ..writeln('  String _\$SQFlow${className}ToString() {')
+          ..writeln('    return """')
+          ..writeln('$className(');
+
+        for (final field in fields) {
+          buffer.writeln('  ${field.name}: \$${field.name},');
+        }
+
+        if (timestamps) {
+          if (!existsCreatedAt) buffer.writeln('  createdAt: \$createdAt,');
+          if (!existsUpdatedAt) buffer.writeln('  updatedAt: \$updatedAt,');
+        }
+        if (paranoid && !existsDeletedAt) {
+          buffer.writeln('  deletedAt: \$deletedAt,');
+        }
+
+        for (final rel in relationships) {
+          final fieldName = rel['fieldName'];
+          final exists = fields.any((f) => f.name == fieldName);
+          if (!exists) {
+            buffer.writeln('  $fieldName: \$$fieldName,');
+          }
+          if (rel['type'] == 'BelongsTo') {
+            final fkName = rel['foreignKeyName'];
+            final existsFk = fields.any((f) => f.name == fkName);
+            if (!existsFk) {
+              buffer.writeln('  $fkName: \$$fkName,');
+            }
+          }
+        }
+
+        buffer
+          ..writeln(')""";')
           ..writeln('  }');
       }
 
