@@ -7,7 +7,8 @@ The magic behind SQFlow. This package uses `build_runner` to turn your Dart mode
 ## What it does
 
 - **SQL Generation**: Creates `CREATE TABLE`, `INDEX`, and `FOREIGN KEY` statements automatically.
-- **Model Mixins**: Generates `_$UserMixin` with `toJson`, `copyWith`, and relationship getters.
+- **Model Mixins**: Generates `_$UserMixin` with automatic `toJson`, `toString`, `copyWith`, and relationship getters.
+- **Pluralized Services**: Generates the `Users` service class for fluent, static-method-based interaction.
 - **JSON Helpers**: Provides optimized `_$UserFromJson` implementations.
 - **Runtime Metadata**: Produces the `Table` configuration needed for `SqflowCore`.
 
@@ -31,17 +32,13 @@ dev_dependencies:
 ```dart
 @Schema(tableName: 'users')
 class User extends Model with _$SQFlowUserMixin {
-  @ID(type: TEXT())
-  @override
+  @ID()
   final String id;
 
-  @Column(type: TEXT())
+  @Column()
   final String name;
 
   User({required this.id, required this.name});
-
-  @override
-  Map<String, dynamic> toJson() => _$SQFlowUserToJson();
 
   factory User.fromJson(Map<String, dynamic> json) => _$SQFlowUserFromJson(json);
 }
