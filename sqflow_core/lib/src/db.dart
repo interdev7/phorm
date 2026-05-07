@@ -29,8 +29,19 @@ import 'dart:convert';
 
 import 'dart:async';
 import 'package:path/path.dart';
-import 'package:sqflite/sqflite.dart';
+import 'package:sqflite/sqflite.dart' as sqflite;
+import 'package:sqlite3/sqlite3.dart' as sqlite3;
 import 'package:sqflow_platform_interface/sqflow_platform_interface.dart';
+import 'sqlite3_executor.dart';
+
+/// Supported database drivers
+enum DBDriver {
+  /// Flutter-specific driver (iOS/Android)
+  sqflite,
+
+  /// Pure Dart FFI driver (Desktop/Server/CLI)
+  sqlite3,
+}
 
 /// Main database manager that handles connection lifecycle,
 /// version management, and smart migration tracking.
@@ -70,8 +81,12 @@ class DB {
   /// List of table configurations including schemas and migrations
   final List<Table> tables;
 
+  /// Selected database driver
+  final DBDriver driver;
+
   /// Internal database instance (lazy-loaded)
-  Database? _database;
+  /// Can be [sqflite.Database] or [sqlite3.Database]
+  dynamic _database;
 
   /// Name of the migrations tracking table
   static const String _migrationsTable = '__sqflow_migrations';
@@ -139,6 +154,7 @@ class DB {
     this.slowQueryThreshold = const Duration(milliseconds: 200),
     this.singleInstance = true,
     this.isolateThreshold = 50,
+    this.driver = DBDriver.sqflite,
   }) {
     _validateMigrations();
   }
@@ -166,6 +182,7 @@ class DB {
     Duration slowQueryThreshold = const Duration(milliseconds: 200),
     bool singleInstance = true,
     int isolateThreshold = 50,
+    DBDriver driver = DBDriver.sqflite,
   }) {
     // Determine maximum version from all migrations
     final maxVersion = _calculateMaxVersion(tables);
@@ -179,6 +196,7 @@ class DB {
       slowQueryThreshold: slowQueryThreshold,
       singleInstance: singleInstance,
       isolateThreshold: isolateThreshold,
+      driver: driver,
     );
   }
 
@@ -193,32 +211,127 @@ class DB {
   /// ```dart
   /// final dbInstance = await db.database;
   /// ```
-  Future<Database> get database async {
+  Future<dynamic> get database async {
     if (_database != null) return _database!;
     _database = await _initDatabase();
     return _database!;
   }
 
+  /// Returns a [SqflowDatabaseExecutor] for the current database instance.
+  Future<SqflowDatabaseExecutor> getExecutor() async {
+    final db = await database;
+    if (driver == DBDriver.sqflite) {
+      return SqfliteExecutorWrapper(db as sqflite.Database);
+    } else {
+      return Sqlite3ExecutorWrapper(db as sqlite3.Database);
+    }
+  }
+
   /// Initializes the database connection
-  Future<Database> _initDatabase() async {
+  Future<dynamic> _initDatabase() async {
     final String path;
     if (databaseName == ':memory:') {
       path = databaseName;
     } else {
-      path = join(await getDatabasesPath(), databaseName);
+      if (driver == DBDriver.sqflite) {
+        path = join(await sqflite.getDatabasesPath(), databaseName);
+      } else {
+        // For sqlite3 FFI, we might need a custom path resolution if not in Flutter
+        // But for now, we'll assume a relative path or use standard join
+        path = databaseName;
+      }
     }
 
-    logger?.info('Initializing database: $databaseName (v$version)');
+    logger?.info('Initializing database ($driver): $databaseName (v$version)');
 
-    return await openDatabase(
-      path,
-      version: version,
-      onCreate: _onCreate,
-      onUpgrade: _onUpgrade,
-      onDowngrade: _onDowngrade,
-      onConfigure: _onConfigure,
-      singleInstance: singleInstance,
-    );
+    if (driver == DBDriver.sqflite) {
+      return await sqflite.openDatabase(
+        path,
+        version: version,
+        onCreate: _onCreate,
+        onUpgrade: _onUpgrade,
+        onDowngrade: _onDowngrade,
+        onConfigure: _onConfigure,
+        singleInstance: singleInstance,
+      );
+    } else {
+      final db = sqlite3.sqlite3.open(path);
+
+      // Manual migration handling for sqlite3
+      final currentVersion = _getSqlite3Version(db);
+
+      final executor = Sqlite3ExecutorWrapper(db);
+      if (currentVersion == 0) {
+        await _onCreateUniversal(executor, version);
+      } else if (currentVersion < version) {
+        await _onUpgradeUniversal(executor, currentVersion, version);
+      } else if (currentVersion > version) {
+        await _onDowngradeSqlite3(db, currentVersion, version);
+      }
+
+      db.execute('PRAGMA user_version = $version');
+      await _onConfigureSqlite3(db);
+      return db;
+    }
+  }
+
+  int _getSqlite3Version(sqlite3.Database db) {
+    final result = db.select('PRAGMA user_version');
+    return result.first.columnAt(0) as int;
+  }
+
+
+  Future<void> _onConfigureSqlite3(sqlite3.Database db) async {
+    db.execute('PRAGMA foreign_keys = ON');
+  }
+
+
+  Future<void> _onDowngradeSqlite3(
+      sqlite3.Database db, int oldVersion, int newVersion) async {
+    // Basic recreation for downgrade
+    db.dispose();
+    // In a real scenario, we'd delete the file and reopen
+    // For now, just re-init
+    _database = null;
+    await database;
+  }
+
+
+  Future<void> _createTable(SqflowDatabaseExecutor db, Table table) async {
+    try {
+      logger?.info('Creating table: ${table.name}');
+      final statements = _splitSchema(table.schema);
+      for (final statement in statements) {
+        await db.execute(statement);
+      }
+    } catch (e, stackTrace) {
+      logger?.error('Failed to create table ${table.name}', e, stackTrace);
+      rethrow;
+    }
+  }
+
+  List<String> _splitSchema(String schema) {
+    final statements = <String>[];
+    final rawParts = schema.split(';');
+    String currentStatement = '';
+
+    for (final part in rawParts) {
+      currentStatement += part;
+      final normalized = currentStatement.toUpperCase();
+      final beginCount = RegExp(r'\bBEGIN\b').allMatches(normalized).length;
+      final endCount = RegExp(r'\bEND\b').allMatches(normalized).length;
+
+      if (beginCount == endCount) {
+        final trimmed = currentStatement.trim();
+        if (trimmed.isNotEmpty) {
+          statements.add(trimmed);
+        }
+        currentStatement = '';
+      } else {
+        currentStatement += ';';
+      }
+    }
+    return statements;
   }
 
   /// Validates that all migrations are within the database version
@@ -251,13 +364,19 @@ class DB {
   }
 
   /// Database configuration callback
-  Future<void> _onConfigure(Database db) async {
+  Future<void> _onConfigure(sqflite.Database db) async {
     // Enable foreign keys if needed
     await db.execute('PRAGMA foreign_keys = ON');
   }
 
   /// Database creation callback (first run)
-  Future<void> _onCreate(Database db, int version) async {
+  Future<void> _onCreate(sqflite.Database db, int version) async {
+    final wrapper = SqfliteExecutorWrapper(db);
+    await _onCreateUniversal(wrapper, version);
+  }
+
+  Future<void> _onCreateUniversal(
+      SqflowDatabaseExecutor db, int version) async {
     logger?.info('Creating new database (v$version)');
 
     // 1. Create migrations tracking table
@@ -269,14 +388,20 @@ class DB {
     }
 
     // 3. Mark all migrations as applied (since we're creating from scratch)
-    // await _markAllMigrationsApplied(db);
     await _applyPendingMigrations(db, 0, version);
 
     logger?.info('Database created successfully');
   }
 
   /// Database upgrade callback (version increase)
-  Future<void> _onUpgrade(Database db, int oldVersion, int newVersion) async {
+  Future<void> _onUpgrade(
+      sqflite.Database db, int oldVersion, int newVersion) async {
+    final wrapper = SqfliteExecutorWrapper(db);
+    await _onUpgradeUniversal(wrapper, oldVersion, newVersion);
+  }
+
+  Future<void> _onUpgradeUniversal(
+      SqflowDatabaseExecutor db, int oldVersion, int newVersion) async {
     logger?.info('Upgrading database from v$oldVersion to v$newVersion');
 
     // 1. Ensure migrations table exists
@@ -302,11 +427,8 @@ class DB {
   }
 
   /// Database downgrade callback (version decrease)
-  ///
-  /// **Note:** SQLite doesn't support schema downgrades natively.
-  /// This implementation recreates the database from scratch.
-  /// For production, consider more sophisticated downgrade strategies.
-  Future<void> _onDowngrade(Database db, int oldVersion, int newVersion) async {
+  Future<void> _onDowngrade(
+      sqflite.Database db, int oldVersion, int newVersion) async {
     logger?.info('Downgrading database from v$oldVersion to v$newVersion');
 
     // Close current connection
@@ -316,8 +438,8 @@ class DB {
     if (databaseName == ':memory:') {
       // In-memory databases are destroyed when closed
     } else {
-      final path = join(await getDatabasesPath(), databaseName);
-      await deleteDatabase(path);
+      final path = join(await sqflite.getDatabasesPath(), databaseName);
+      await sqflite.deleteDatabase(path);
     }
 
     // Recreate with new version
@@ -328,7 +450,7 @@ class DB {
   }
 
   /// Creates the migrations tracking table
-  Future<void> _createMigrationsTable(Database db) async {
+  Future<void> _createMigrationsTable(SqflowDatabaseExecutor db) async {
     await db.execute('''
       CREATE TABLE IF NOT EXISTS $_migrationsTable (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -348,56 +470,13 @@ class DB {
     ''');
   }
 
-  /// Creates a single table with its schema
-  Future<void> _createTable(Database db, Table table) async {
-    try {
-      logger?.info('Creating table: ${table.name}');
 
-      // Smart splitting to avoid breaking triggers (BEGIN...END blocks)
-      final statements = <String>[];
-      final rawParts = table.schema.split(';');
-      String currentStatement = '';
-
-      for (final part in rawParts) {
-        currentStatement += part;
-        final normalized = currentStatement.toUpperCase();
-
-        // Count BEGIN and END blocks to handle triggers
-        // We use regex with word boundaries to avoid matching keywords inside other words
-        final beginCount = RegExp(r'\bBEGIN\b').allMatches(normalized).length;
-        final endCount = RegExp(r'\bEND\b').allMatches(normalized).length;
-
-        if (beginCount == endCount) {
-          final trimmed = currentStatement.trim();
-          if (trimmed.isNotEmpty) {
-            statements.add(trimmed);
-          }
-          currentStatement = '';
-        } else {
-          currentStatement += ';';
-        }
-      }
-
-      for (final statement in statements) {
-        await db.execute(statement);
-      }
-    } catch (e, stackTrace) {
-      logger?.error('Failed to create table ${table.name}', e, stackTrace);
-      rethrow;
-    }
-  }
-
-  /// Marks all migrations as applied (for initial database creation)
-  ///
-  /// **Note:** This method should be called after database creation
-  /// to ensure all migrations are tracked.
   Future<void> synchronizeHistory() async {
-    final db = await database;
+    final db = await getExecutor();
     final allMigrations = tables.expand((t) => t.migrations).toList();
 
     await db.transaction((txn) async {
       for (final migration in allMigrations) {
-        // Ensure no duplicate records before insert
         final exists = await txn.query(
           _migrationsTable,
           where: 'table_name = ? AND migration_version = ?',
@@ -420,7 +499,7 @@ class DB {
 
   /// Applies pending migrations between versions
   Future<void> _applyPendingMigrations(
-    DatabaseExecutor db,
+    SqflowDatabaseExecutor db,
     int fromVersion,
     int toVersion,
   ) async {
@@ -461,7 +540,7 @@ class DB {
 
   /// Applies a single migration with idempotency check
   Future<void> _applySingleMigration(
-    DatabaseExecutor db,
+    SqflowDatabaseExecutor db,
     Table table,
     TableMigration migration,
   ) async {
@@ -480,7 +559,7 @@ class DB {
 
     try {
       // Execute migration
-      await migration.migrate(SqfliteExecutorWrapper(db), table);
+      await migration.migrate(db, table);
 
       // Record as applied
       await db.insert(_migrationsTable, {
@@ -499,9 +578,8 @@ class DB {
     }
   }
 
-  /// Checks if a migration has already been applied
   Future<bool> _isMigrationApplied(
-    DatabaseExecutor db,
+    SqflowDatabaseExecutor db,
     String tableName,
     String hash,
   ) async {
@@ -546,11 +624,18 @@ class DB {
   ///
   /// Useful for debugging and migration reports.
   Future<List<Map<String, dynamic>>> getAppliedMigrations() async {
-    final db = await database;
-    return await db.query(
-      _migrationsTable,
-      orderBy: 'applied_at DESC',
-    );
+    final dbInstance = await database;
+    if (driver == DBDriver.sqflite) {
+      return await (dbInstance as sqflite.Database).query(
+        _migrationsTable,
+        orderBy: 'applied_at DESC',
+      );
+    } else {
+      final result = (dbInstance as sqlite3.Database).select(
+        'SELECT * FROM $_migrationsTable ORDER BY applied_at DESC',
+      );
+      return result.map((r) => Map<String, dynamic>.from(r)).toList();
+    }
   }
 
   /// Gets the current database version from the file
@@ -559,23 +644,34 @@ class DB {
   /// which may differ from the `version` property if migrations
   /// are pending.
   Future<int> getCurrentFileVersion() async {
-    final String path;
-    if (databaseName == ':memory:') {
-      path = databaseName;
-    } else {
-      path = join(await getDatabasesPath(), databaseName);
-    }
+    if (driver == DBDriver.sqflite) {
+      final String path;
+      if (databaseName == ':memory:') {
+        path = databaseName;
+      } else {
+        path = join(await sqflite.getDatabasesPath(), databaseName);
+      }
 
-    try {
-      final db = await openDatabase(
-        path,
-        readOnly: true,
-      );
-      final version = await db.getVersion();
-      await db.close();
-      return version;
-    } catch (_) {
-      return 0; // Database doesn't exist
+      try {
+        final db = await sqflite.openDatabase(
+          path,
+          readOnly: true,
+        );
+        final version = await db.getVersion();
+        await db.close();
+        return version;
+      } catch (_) {
+        return 0; // Database doesn't exist
+      }
+    } else {
+      try {
+        final db = sqlite3.sqlite3.open(databaseName);
+        final version = _getSqlite3Version(db);
+        db.dispose();
+        return version;
+      } catch (_) {
+        return 0;
+      }
     }
   }
 
@@ -584,7 +680,11 @@ class DB {
   /// **Warning:** Deletes all data! Use only in tests.
   Future<void> reset() async {
     if (_database != null) {
-      await _database!.close();
+      if (driver == DBDriver.sqflite) {
+        await (_database as sqflite.Database).close();
+      } else {
+        (_database as sqlite3.Database).dispose();
+      }
       _database = null;
     }
 
@@ -592,11 +692,13 @@ class DB {
       return;
     }
 
-    final path = join(await getDatabasesPath(), databaseName);
-    try {
-      await deleteDatabase(path);
-    } catch (_) {
-      // Ignore if file doesn't exist
+    if (driver == DBDriver.sqflite) {
+      final path = join(await sqflite.getDatabasesPath(), databaseName);
+      try {
+        await sqflite.deleteDatabase(path);
+      } catch (_) {}
+    } else {
+      // Manual delete for sqlite3 file if needed
     }
   }
 
@@ -604,7 +706,11 @@ class DB {
   Future<void> close() async {
     await _changeController.close();
     if (_database != null) {
-      await _database!.close();
+      if (driver == DBDriver.sqflite) {
+        await (_database as sqflite.Database).close();
+      } else {
+        (_database as sqlite3.Database).dispose();
+      }
       _database = null;
     }
   }
@@ -643,23 +749,38 @@ class DB {
   /// });
   /// ```
   Future<R> transaction<R>(
-      Future<R> Function(DatabaseExecutor txn) action) async {
+      Future<R> Function(SqflowDatabaseExecutor txn) action) async {
     final dbInstance = await database;
     final bufferedNotifications = <String>{};
 
     return await runZoned(
       () async {
         try {
-          final result = await dbInstance.transaction((txn) async {
-            return await action(txn);
-          });
-          // If we reached here, transaction committed successfully
-          for (final table in bufferedNotifications) {
-            _changeController.add(table);
+          if (driver == DBDriver.sqflite) {
+            final db = dbInstance as sqflite.Database;
+            final result = await db.transaction((txn) async {
+              return await action(SqfliteExecutorWrapper(txn));
+            });
+            for (final table in bufferedNotifications) {
+              _changeController.add(table);
+            }
+            return result;
+          } else {
+            final db = dbInstance as sqlite3.Database;
+            db.execute('BEGIN TRANSACTION');
+            try {
+              final result = await action(Sqlite3ExecutorWrapper(db));
+              db.execute('COMMIT');
+              for (final table in bufferedNotifications) {
+                _changeController.add(table);
+              }
+              return result;
+            } catch (e) {
+              db.execute('ROLLBACK');
+              rethrow;
+            }
           }
-          return result;
         } catch (e) {
-          // If transaction failed/rolled back, notifications are discarded
           rethrow;
         }
       },
@@ -678,7 +799,7 @@ class _PendingMigration {
 
 /// Wrapper for sqflite's [DatabaseExecutor] to satisfy [SqflowDatabaseExecutor].
 class SqfliteExecutorWrapper implements SqflowDatabaseExecutor {
-  final DatabaseExecutor _executor;
+  final sqflite.DatabaseExecutor _executor;
   SqfliteExecutorWrapper(this._executor);
 
   @override
@@ -717,13 +838,71 @@ class SqfliteExecutorWrapper implements SqflowDatabaseExecutor {
       _executor.update(table, values, where: where, whereArgs: whereArgs);
 
   @override
+  Future<List<Map<String, Object?>>> rawQuery(String sql,
+          [List<Object?>? arguments]) =>
+      _executor.rawQuery(sql, arguments);
+
+  @override
+  SqflowBatch batch() => SqfliteBatchWrapper(_executor.batch());
+
+  @override
   Future<int> insert(String table, Map<String, Object?> values,
+      {String? nullColumnHack, String? conflictAlgorithm}) async {
+    return await _executor.insert(table, values,
+        nullColumnHack: nullColumnHack,
+        conflictAlgorithm: conflictAlgorithm != null
+            ? sqflite.ConflictAlgorithm.values.firstWhere(
+                (e) => e.name == conflictAlgorithm,
+                orElse: () => sqflite.ConflictAlgorithm.abort)
+            : null);
+  }
+
+  @override
+  Future<R> transaction<R>(
+      Future<R> Function(SqflowDatabaseExecutor txn) action) async {
+    if (_executor is sqflite.Database) {
+      return await (_executor as sqflite.Database).transaction((txn) async {
+        return await action(SqfliteExecutorWrapper(txn));
+      });
+    } else {
+      return await action(this);
+    }
+  }
+}
+
+class SqfliteBatchWrapper implements SqflowBatch {
+  final sqflite.Batch _batch;
+  SqfliteBatchWrapper(this._batch);
+
+  @override
+  void delete(String table, {String? where, List<Object?>? whereArgs}) =>
+      _batch.delete(table, where: where, whereArgs: whereArgs);
+
+  @override
+  void execute(String sql, [List<Object?>? arguments]) =>
+      _batch.execute(sql, arguments);
+
+  @override
+  void insert(String table, Map<String, Object?> values,
           {String? nullColumnHack, String? conflictAlgorithm}) =>
-      _executor.insert(table, values,
+      _batch.insert(table, values,
           nullColumnHack: nullColumnHack,
           conflictAlgorithm: conflictAlgorithm != null
-              ? ConflictAlgorithm.values.firstWhere(
+              ? sqflite.ConflictAlgorithm.values.firstWhere(
                   (e) => e.name == conflictAlgorithm,
-                  orElse: () => ConflictAlgorithm.abort)
+                  orElse: () => sqflite.ConflictAlgorithm.abort)
               : null);
+
+  @override
+  void update(String table, Map<String, Object?> values,
+          {String? where, List<Object?>? whereArgs}) =>
+      _batch.update(table, values, where: where, whereArgs: whereArgs);
+
+  @override
+  Future<List<Object?>> commit(
+          {bool? exclusive, bool? noResult, bool? continueOnError}) =>
+      _batch.commit(
+          exclusive: exclusive,
+          noResult: noResult,
+          continueOnError: continueOnError);
 }

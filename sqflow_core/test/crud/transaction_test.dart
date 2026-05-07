@@ -12,7 +12,7 @@ void main() {
   });
 
   tearDown(() async {
-    final db = await userService.database;
+    final db = (await userService.database) as Database;
     await db.close();
   });
 
@@ -21,7 +21,7 @@ void main() {
       final initialCount = (await userService.readAllWithCount()).count;
 
       try {
-        await userService.transaction((txn) async {
+        await userService.transaction((SqflowDatabaseExecutor txn) async {
           // Insert a new user using ORM method with executor
           await userService.insertAsync(
             User(

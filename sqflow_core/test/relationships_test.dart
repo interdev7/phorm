@@ -48,7 +48,7 @@ void main() {
   });
 
   test('Eager load hasMany: User with Posts', () async {
-    final database = await db.database;
+    final database = (await db.database) as Database;
 
     // Seed data
     await database.insert('users', {'id': 'u1', 'name': 'John'});
@@ -73,7 +73,7 @@ void main() {
   });
 
   test('Eager load belongsTo: Post with User', () async {
-    final database = await db.database;
+    final database = (await db.database) as Database;
 
     // Seed data
     await database.insert('users', {'id': 'u1', 'name': 'John'});
@@ -93,7 +93,7 @@ void main() {
   });
 
   test('Eager load in readAll', () async {
-    final database = await db.database;
+    final database = (await db.database) as Database;
 
     await database.insert('users', {'id': 'u1', 'name': 'John'});
     await database.insert('users', {'id': 'u2', 'name': 'Jane'});

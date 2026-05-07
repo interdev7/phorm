@@ -19,7 +19,7 @@ void main() {
       databaseName: ':memory:',
       tables: [usersTable, postsTable],
     );
-    db = await dbManager.database;
+    db = (await dbManager.database) as Database;
     // Clear tables
     await db.delete('users');
     await db.delete('posts');

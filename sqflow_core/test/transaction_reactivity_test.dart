@@ -18,7 +18,7 @@ void main() {
       databaseName: ':memory:',
       tables: [usersTable],
     );
-    db = await dbManager.database;
+    db = (await dbManager.database) as Database;
     userService = SqflowCore<User>(dbManager: dbManager, table: usersTable);
   });
 

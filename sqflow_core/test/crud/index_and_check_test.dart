@@ -8,14 +8,14 @@ void main() {
       final db = await service.dbManager.database;
 
       final idxList = await db.rawQuery("PRAGMA index_list('users')");
-      final indexNames = idxList.map((r) => r['name'] as String).toList();
+      final indexNames = idxList.map((Map<String, Object?> r) => r['name'] as String).toList();
 
       expect(indexNames, contains('users_email_idx'));
       expect(indexNames, contains('users_first_name_last_name_idx'));
 
       final info = await db
           .rawQuery("PRAGMA index_info('users_first_name_last_name_idx')");
-      final cols = info.map((r) => r['name'] as String).toList();
+      final cols = info.map((Map<String, Object?> r) => r['name'] as String).toList();
       expect(cols, equals(['first_name', 'last_name']));
     });
 

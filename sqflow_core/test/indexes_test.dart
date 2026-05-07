@@ -28,7 +28,7 @@ void main() {
     // Check indices for 'users' table
     final userIndexes = await database.rawQuery(
         "SELECT name FROM sqlite_master WHERE type='index' AND tbl_name='users'");
-    final userIndexNames = userIndexes.map((i) => i['name'] as String).toList();
+    final userIndexNames = userIndexes.map((Map<String, Object?> i) => i['name'] as String).toList();
 
     expect(userIndexNames, contains('users_email_idx'));
     expect(userIndexNames, contains('users_first_name_last_name_idx'));
@@ -37,7 +37,7 @@ void main() {
     final orderIndexes = await database.rawQuery(
         "SELECT name FROM sqlite_master WHERE type='index' AND tbl_name='orders'");
     final orderIndexNames =
-        orderIndexes.map((i) => i['name'] as String).toList();
+        orderIndexes.map((Map<String, Object?> i) => i['name'] as String).toList();
 
     expect(orderIndexNames, contains('orders_user_id_idx'));
   });

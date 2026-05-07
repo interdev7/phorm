@@ -56,10 +56,10 @@ void main() {
         tables: [usersTable],
       );
 
-      final database = await db.database;
+      final database = (await db.database) as Database;
       final tables = await database
           .rawQuery("SELECT name FROM sqlite_master WHERE type='table'");
-      expect(tables.any((t) => t['name'] == 'users'), isTrue);
+      expect(tables.any((Map<String, Object?> t) => t['name'] == 'users'), isTrue);
     });
   });
 
@@ -197,13 +197,12 @@ void main() {
 
       await db.database;
 
-      final database = await db.database;
-
+      final database = (await db.database) as Database;
       final usersColumns = await database.rawQuery("PRAGMA table_info(users)");
-      expect(usersColumns.any((c) => c['name'] == 'email'), isTrue);
+      expect(usersColumns.any((Map<String, Object?> c) => c['name'] == 'email'), isTrue);
 
       final postsColumns = await database.rawQuery("PRAGMA table_info(posts)");
-      expect(postsColumns.any((c) => c['name'] == 'title'), isTrue);
+      expect(postsColumns.any((Map<String, Object?> c) => c['name'] == 'title'), isTrue);
     });
   });
 
@@ -236,9 +235,9 @@ void main() {
 
       await db.database;
 
-      final database = await db.database;
+      final database = (await db.database) as Database;
       final columns = await database.rawQuery("PRAGMA table_info(test)");
-      expect(columns.any((c) => c['name'] == 'email'), isTrue);
+      expect(columns.any((Map<String, Object?> c) => c['name'] == 'email'), isTrue);
     });
 
     test('createIndex generates correct SQL', () async {
@@ -315,9 +314,9 @@ void main() {
 
       await db.database;
 
-      final database = await db.database;
+      final database = (await db.database) as Database;
       final columns = await database.rawQuery("PRAGMA table_info(users)");
-      final columnNames = columns.map((c) => c['name'] as String).toSet();
+      final columnNames = columns.map((Map<String, Object?> c) => c['name'] as String).toSet();
 
       expect(columnNames,
           containsAll(['id', 'username', 'created_at', 'email', 'age']));
@@ -381,7 +380,7 @@ void main() {
 
       // Verify new column exists
       final tableInfo = await databaseV2.rawQuery('PRAGMA table_info(users)');
-      final hasEmail = tableInfo.any((column) => column['name'] == 'email');
+      final hasEmail = tableInfo.any((Map<String, Object?> column) => column['name'] == 'email');
       expect(hasEmail, true);
 
       await dbV2.close();

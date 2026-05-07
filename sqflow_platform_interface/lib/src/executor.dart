@@ -17,4 +17,18 @@ abstract class SqflowDatabaseExecutor {
       {String? where, List<Object?>? whereArgs});
   Future<int> insert(String table, Map<String, Object?> values,
       {String? nullColumnHack, String? conflictAlgorithm});
+  Future<List<Map<String, Object?>>> rawQuery(String sql,
+      [List<Object?>? arguments]);
+  SqflowBatch batch();
+  Future<R> transaction<R>(Future<R> Function(SqflowDatabaseExecutor txn) action);
+}
+
+abstract class SqflowBatch {
+  void insert(String table, Map<String, Object?> values,
+      {String? nullColumnHack, String? conflictAlgorithm});
+  void update(String table, Map<String, Object?> values,
+      {String? where, List<Object?>? whereArgs});
+  void delete(String table, {String? where, List<Object?>? whereArgs});
+  void execute(String sql, [List<Object?>? arguments]);
+  Future<List<Object?>> commit({bool? exclusive, bool? noResult, bool? continueOnError});
 }
