@@ -1,6 +1,6 @@
 import 'package:sqflow_core/sqflow_core.dart';
 
-part 'collation_test.sql.g.dart';
+part 'collation_model.sql.g.dart';
 
 late DB appDb;
 
