@@ -69,6 +69,7 @@ Map<String, dynamic> _$SQFlowPostToJson(Post instance) {
     'title': _$SQFlowToJsonValue(instance.title),
     'content': _$SQFlowToJsonValue(instance.content),
     'user_id': _$SQFlowToJsonValue(instance.userId),
+    'user': _$SQFlowToJsonValue(instance.user),
     'created_at': _$SQFlowToJsonValue(instance.createdAt),
     'updated_at': _$SQFlowToJsonValue(instance.updatedAt),
   };
@@ -139,6 +140,7 @@ class Posts {
   static const SqflowColumn<String> title = SqflowColumn<String>('title');
   static const SqflowColumn<String> content = SqflowColumn<String>('content');
   static const SqflowColumn<String> userId = SqflowColumn<String>('user_id');
+  static const SqflowColumn<User> user = SqflowColumn<User>('user');
   static const SqflowColumn<DateTime> createdAt =
       SqflowColumn<DateTime>('created_at');
   static const SqflowColumn<DateTime> updatedAt =

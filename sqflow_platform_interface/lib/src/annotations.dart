@@ -1,4 +1,5 @@
 import 'package:sqflow_platform_interface/src/json_validators.dart';
+import 'value_converter.dart';
 
 /// Strategy for naming database columns.
 enum ColumnNamingStrategy {
@@ -42,12 +43,16 @@ abstract class ColumnBase {
   /// Can be used to restrict allowed values.
   final List<IValidator>? validators;
 
+  /// Optional value converter for mapping between Dart and SQL types.
+  final ValueConverter<dynamic, dynamic>? converter;
+
   const ColumnBase({
     this.sqlType,
     this.columnName,
     this.unique = false,
     this.defaultValue,
     this.validators,
+    this.converter,
   });
 }
 
@@ -61,6 +66,7 @@ class Column extends ColumnBase {
     super.unique,
     super.defaultValue,
     super.validators,
+    super.converter,
   });
 }
 

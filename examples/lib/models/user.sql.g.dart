@@ -21,6 +21,8 @@ CREATE TABLE users (
   address TEXT NOT NULL,
   is_active INTEGER NOT NULL DEFAULT 1,
   is_verified INTEGER NOT NULL DEFAULT 0,
+  metadata TEXT,
+  password TEXT NOT NULL,
   created_at TEXT NOT NULL,
   updated_at TEXT NOT NULL,
   deleted_at TEXT
@@ -68,6 +70,8 @@ final usersTable = _$SQFlowUserTable(
     'address',
     'is_active',
     'is_verified',
+    'metadata',
+    'password',
     'created_at',
     'updated_at',
     'deleted_at'
@@ -100,6 +104,11 @@ Map<String, dynamic> _$SQFlowUserToJson(User instance) {
     'address': _$SQFlowToJsonValue(instance.address),
     'is_active': _$SQFlowToJsonValue(instance.isActive),
     'is_verified': _$SQFlowToJsonValue(instance.isVerified),
+    'metadata': _$SQFlowToJsonValue(instance.metadata != null
+        ? const JsonMapConverter().toSql(instance.metadata!)
+        : null),
+    'password':
+        _$SQFlowToJsonValue(const PasswordConverter().toSql(instance.password)),
     'created_at': _$SQFlowToJsonValue(instance.createdAt),
     'updated_at': _$SQFlowToJsonValue(instance.updatedAt),
     'deleted_at': _$SQFlowToJsonValue(instance.deletedAt),
@@ -126,6 +135,8 @@ User(
   address: ${instance.address},
   isActive: ${instance.isActive},
   isVerified: ${instance.isVerified},
+  metadata: ${instance.metadata},
+  password: ${instance.password},
   createdAt: ${instance.createdAt},
   updatedAt: ${instance.updatedAt},
   deletedAt: ${instance.deletedAt},
@@ -147,6 +158,8 @@ extension SQFlowUserExt on User {
     int? age,
     bool? isActive,
     bool? isVerified,
+    Map<String, dynamic>? metadata,
+    String? password,
     List<Post>? posts,
     DateTime? createdAt,
     DateTime? updatedAt,
@@ -166,6 +179,8 @@ extension SQFlowUserExt on User {
       age: age ?? this.age,
       isActive: isActive ?? this.isActive,
       isVerified: isVerified ?? this.isVerified,
+      metadata: metadata ?? this.metadata,
+      password: password ?? this.password,
       posts: posts ?? this.posts,
     )
       ..createdAt = createdAt ?? this.createdAt
@@ -285,6 +300,10 @@ User _$SQFlowUserFromJson(Map<String, dynamic> json) {
     isVerified: json['is_verified'] is bool
         ? json['is_verified'] as bool
         : (json['is_verified'] as int?) == 1,
+    metadata: json['metadata'] != null
+        ? const JsonMapConverter().fromSql(json['metadata'] as String)
+        : null,
+    password: const PasswordConverter().fromSql(json['password'] as String),
     posts: json['posts'] != null
         ? (json['posts'] as List)
             .map((e) => Post.fromJson(e as Map<String, dynamic>))
@@ -322,6 +341,9 @@ class Users {
   static const SqflowColumn<bool> isActive = SqflowColumn<bool>('is_active');
   static const SqflowColumn<bool> isVerified =
       SqflowColumn<bool>('is_verified');
+  static const SqflowColumn<Map<String, dynamic>> metadata =
+      SqflowColumn<Map<String, dynamic>>('metadata');
+  static const SqflowColumn<String> password = SqflowColumn<String>('password');
   static const SqflowColumn<DateTime> createdAt =
       SqflowColumn<DateTime>('created_at');
   static const SqflowColumn<DateTime> updatedAt =

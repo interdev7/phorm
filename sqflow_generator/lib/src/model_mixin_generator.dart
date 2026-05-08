@@ -1,8 +1,9 @@
+import 'dart:convert';
+
 import 'package:_fe_analyzer_shared/src/type_inference/nullability_suffix.dart';
 import 'package:analyzer/dart/constant/value.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:build/build.dart';
-import 'dart:convert';
 import 'package:source_gen/source_gen.dart';
 import 'package:sqflow_platform_interface/sqflow_platform_interface.dart';
 
@@ -195,8 +196,22 @@ class ModelMixinGenerator extends GeneratorForAnnotation<Schema> {
         ..writeln('  final ${className.toLowerCase()}Json = {');
       for (final field in fields.where((f) => _isColumn(f))) {
         final sqlName = MetadataExtractor.getSqlColumnName(field, strategy);
-        buffer.writeln(
-            "    '$sqlName': _\$SQFlowToJsonValue(instance.${field.name}),");
+        final info = MetadataExtractor.getConverterInfo(field);
+
+        if (info != null) {
+          final isNullable =
+              field.type.nullabilitySuffix == NullabilitySuffix.question;
+          if (isNullable) {
+            buffer.writeln(
+                "    '$sqlName': _\$SQFlowToJsonValue(instance.${field.name} != null ? ${info.code}.toSql(instance.${field.name}!) : null),");
+          } else {
+            buffer.writeln(
+                "    '$sqlName': _\$SQFlowToJsonValue(${info.code}.toSql(instance.${field.name})),");
+          }
+        } else {
+          buffer.writeln(
+              "    '$sqlName': _\$SQFlowToJsonValue(instance.${field.name}),");
+        }
       }
 
       if (timestamps) {
@@ -416,11 +431,21 @@ class ModelMixinGenerator extends GeneratorForAnnotation<Schema> {
           }
         } else if (field != null && _isColumn(field)) {
           final sqlName = MetadataExtractor.getSqlColumnName(field, strategy);
+          final info = MetadataExtractor.getConverterInfo(field);
           final type = param.type.getDisplayString();
           final isNullable =
               param.type.nullabilitySuffix == NullabilitySuffix.question;
 
-          if (type.startsWith('DateTime')) {
+          if (info != null) {
+            final sType = info.sqlType.getDisplayString();
+            if (isNullable) {
+              buffer.writeln(
+                  "    ${param.name}: json['$sqlName'] != null ? ${info.code}.fromSql(json['$sqlName'] as $sType) : null,");
+            } else {
+              buffer.writeln(
+                  "    ${param.name}: ${info.code}.fromSql(json['$sqlName'] as $sType),");
+            }
+          } else if (type.startsWith('DateTime')) {
             if (isNullable) {
               buffer.writeln(
                   "    ${param.name}: json['$sqlName'] != null ? DateTime.parse(json['$sqlName'] as String) : null,");
@@ -621,13 +646,10 @@ class ModelMixinGenerator extends GeneratorForAnnotation<Schema> {
   }
 
   bool _isColumn(FieldElement field) {
-    return field.metadata.any((m) {
-      final name = m.element?.enclosingElement3?.name;
-      return name == 'Column' ||
-          name == 'ID' ||
-          name == 'ForeignKey' ||
-          name == 'BelongsTo';
-    });
+    return MetadataExtractor.columnChecker.hasAnnotationOf(field) ||
+        MetadataExtractor.idChecker.hasAnnotationOf(field) ||
+        MetadataExtractor.foreignKeyChecker.hasAnnotationOf(field) ||
+        MetadataExtractor.belongsToChecker.hasAnnotationOf(field);
   }
 
   String _reviveToCheckCode(Revivable revived) {

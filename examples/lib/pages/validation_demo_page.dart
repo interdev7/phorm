@@ -69,6 +69,7 @@ class _ValidationDemoPageState extends State<ValidationDemoPage> {
       country: _countryCtrl.text.trim(),
       address: _addressCtrl.text.trim(),
       gender: _gender,
+      password: 'demo_password',
     );
 
     try {
