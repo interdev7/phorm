@@ -181,6 +181,8 @@ All batch operations run in a single SQLite transaction, making them significant
 
 // Pluralized Service
 await Users.insertBatch([user1, user2]);
+await Users.updateBatch([user1, user2]);
+await Users.upsertBatch([user1, user2]);
 await Users.deleteBatch(['id1', 'id2']);
 await Users.restoreBatch(['id1', 'id2']);
 ```

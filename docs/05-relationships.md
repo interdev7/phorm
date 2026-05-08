@@ -43,6 +43,22 @@ class Order extends Model with _$SQFlowOrderMixin { ... }
 | `model` | `Type` or `String` | required | Target model class or table name string |
 | `foreignKey` | `String` | required | The linking column |
 | `localKey` | `String` | `'id'` | The local side column (usually primary key) |
+| `onDelete` | `String?` | `null` | SQL action on delete (use `ReferentialAction`) |
+| `onUpdate` | `String?` | `null` | SQL action on update (use `ReferentialAction`) |
+
+### Example with Actions
+
+```dart
+HasMany(
+  model: Order, 
+  foreignKey: 'user_id', 
+  onDelete: ReferentialAction.cascade, // Auto-delete orders when user is deleted
+  onUpdate: ReferentialAction.cascade,
+)
+```
+
+> [!TIP]
+> Use the **`ReferentialAction`** class for type safety when defining relationship actions (`cascade`, `setNull`, `setDefault`, `restrict`, `noAction`).
 
 ---
 
@@ -113,43 +129,43 @@ final user = await userService.readAsync(
 ```
 
 ### With Column Filtering
-+
-+```dart
-+final result = await userService.readAll(
-+  include: [
-+    Includable.model<Order>(
-+      // Include only specific columns for the related model
-+      attributes: Attributes.include(['id', 'total', 'created_at']),
-+    ),
-+    Includable.model<Profile>(
-+      // Exclude specific columns
-+      attributes: Attributes.exclude(['bio_html', 'internal_notes']),
-+    ),
-+  ],
-+);
-+```
-+
-+### Deep Loading (Nested Relationships)
-+
-+SQFlow supports loading relationships at any depth. Simply nest `Includable` objects inside each other.
-+
-+```dart
-+// User -> Posts -> User (Author)
-+final user = await userService.readAsync(
-+  'u1',
-+  include: [
-+    Includable.model<Post>(
-+      include: [
-+        Includable.model<User>(), // Nested include
-+      ],
-+    ),
-+  ],
-+);
-+```
-+
-+> [!IMPORTANT]
-+> Deep loading is powered by recursive `fromJson` calls. SQLite generates a single JSON tree, and the ORM deserializes it into the full object graph.
-+
+
+```dart
+final result = await userService.readAll(
+  include: [
+    Includable.model<Order>(
+      // Include only specific columns for the related model
+      attributes: Attributes.include(['id', 'total', 'created_at']),
+    ),
+    Includable.model<Profile>(
+      // Exclude specific columns
+      attributes: Attributes.exclude(['bio_html', 'internal_notes']),
+    ),
+  ],
+);
+```
+
+### Deep Loading (Nested Relationships)
+
+SQFlow supports loading relationships at any depth. Simply nest `Includable` objects inside each other.
+
+```dart
+// User -> Posts -> User (Author)
+final user = await userService.readAsync(
+  'u1',
+  include: [
+    Includable.model<Post>(
+      include: [
+        Includable.model<User>(), // Nested include
+      ],
+    ),
+  ],
+);
+```
+
+> [!IMPORTANT]
+> Deep loading is powered by recursive `fromJson` calls. SQLite generates a single JSON tree, and the ORM deserializes it into the full object graph.
+
 ---
 
 ## Reading Related Data in `fromJson`

@@ -70,7 +70,6 @@ final paged = await userService.readAllWithCount(
   limit: 20,
   offset: 0,
 );
-```
 print('Showing ${paged.data.length} of ${paged.count}');
 ```
 

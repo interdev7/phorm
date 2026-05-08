@@ -132,5 +132,5 @@ final user = await Users.read('u1');
 final list = await Users.where(Users.name.like('A%')).get();
 
 final paged = await Users.readAllWithCount(limit: 20);
-print('Page: ${paged.data.length} / Total: ${result.count}');
+print('Page: ${paged.data.length} / Total: ${paged.count}');
 ```

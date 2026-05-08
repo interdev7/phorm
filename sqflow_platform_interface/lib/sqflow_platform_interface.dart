@@ -9,6 +9,8 @@ export 'src/json_validators.dart';
 export 'src/logger.dart';
 export 'src/migration_builder.dart';
 export 'src/models.dart';
+export 'src/referential_action.dart';
 export 'src/result_data.dart';
+export 'src/sql_types.dart';
 export 'src/table.dart';
 export 'src/table_migration.dart';

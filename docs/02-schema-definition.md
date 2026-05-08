@@ -145,13 +145,16 @@ SQFlow automatically infers the SQLite data type from your Dart field types. You
 
 Use `sqlType` if you need a specific SQLite type definition:
 
-```dart
-@Column(sqlType: 'TEXT COLLATE NOCASE')
-final String username;
+@Column(sqlType: SqlTypes.text)
+final String bio;
 
-@Column(sqlType: 'VARCHAR(100)')
-final String shortBio;
+// Or with extra SQLite modifiers
+@Column(sqlType: '${SqlTypes.text} COLLATE NOCASE')
+final String username;
 ```
+
+> [!TIP]
+> You can use the **`SqlTypes`** class for standard type names instead of hardcoding strings.
 
 > [!NOTE]
 > For booleans and dates, the generator handles conversion between Dart types and SQLite representations automatically.
