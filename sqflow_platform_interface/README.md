@@ -35,22 +35,23 @@ part 'user.sql.g.dart';
   ],
 )
 class User extends Model with _$SQFlowUserMixin {
-  @ID(type: TEXT(), autoIncrement: false, unique: true)
+  @ID(autoIncrement: false, unique: true)
   @override
   final String id;
 
-  @Column(type: TEXT())
+  @Column()
   final String firstName;
 
-  @Column(type: TEXT())
+  @Column()
   final String lastName;
 
-  @Column(type: TEXT(), unique: true)
+  @Column(unique: true)
   final String email;
 
   @Column(
-    type: TEXT(),
-    check: CHECK(['M', 'F', 'Other'], constraint: 'gender_check'),
+    validators: [
+      ContainsValidator(['M', 'F', 'Other'], constraint: 'gender_check'),
+    ],
   )
   final String gender;
 
@@ -61,9 +62,6 @@ class User extends Model with _$SQFlowUserMixin {
     required this.email,
     required this.gender,
   });
-
-  @override
-  Map<String, dynamic> toJson() => _$SQFlowUserToJson();
 
   factory User.fromJson(Map<String, dynamic> json) => _$SQFlowUserFromJson(json);
 }
@@ -93,24 +91,69 @@ Defines table-level configuration.
 
 ### `@Column`
 
-Standard column definition.
+Standard column definition. SQFlow automatically infers the SQLite type from the Dart field type.
 
 ```dart
-@Column(
-  type: TEXT(),
-  nullable: false,
-  defaultValue: 'Unknown',
-  check: CHECK(['A', 'B'], constraint: 'my_check'),
-)
+@Column(unique: true, defaultValue: 'active')
+final String status;
 ```
 
-### `@ID`
+| Property       | Type                | Description                                         |
+| :------------- | :------------------ | :-------------------------------------------------- |
+| `columnName`   | `String?`           | Override column name.                               |
+| `unique`       | `bool`              | Enforce `UNIQUE` constraint.                        |
+| `nullable`     | `bool`              | Mark column as `NULL` or `NOT NULL`.                |
+| `defaultValue` | `dynamic`           | SQL `DEFAULT` value.                                |
+| `validators`   | `List<IValidator>?` | List of validators (triggers SQL `CHECK` and Dart validation). |
 
-Primary key definition. Always `NOT NULL`.
+---
+
+## Automatic Type Mapping
+
+SQFlow maps Dart types to SQLite types automatically:
+
+| Dart Type   | SQLite Type | Notes                              |
+| :---------- | :---------- | :--------------------------------- |
+| `String`    | `TEXT`      | Default for strings, UUIDs         |
+| `int`       | `INTEGER`   | Standard integer                   |
+| `bool`      | `INTEGER`   | Stored as `1` (true) / `0` (false) |
+| `double`    | `REAL`      | Floating point numbers             |
+| `num`       | `NUMERIC`   | Supports both int and double       |
+| `DateTime`  | `TEXT`      | Stored as ISO-8601 strings         |
+| `Uint8List` | `BLOB`      | Binary data                        |
+
+---
+
+## Standard SQL Types
+
+For manual overrides in `@Column(sqlType: ...)` or when adding columns in migrations, use the **`SqlTypes`** class to avoid hardcoding strings:
 
 ```dart
-@ID(type: INTEGER(), autoIncrement: true)
+// In a migration
+table.addColumn(name: 'age', type: SqlTypes.integer, version: 2);
+
+// In a model
+@Column(sqlType: '${SqlTypes.text} COLLATE NOCASE')
+final String username;
 ```
+
+Available types: `SqlTypes.text`, `SqlTypes.integer`, `SqlTypes.real`, `SqlTypes.blob`, `SqlTypes.numeric`.
+
+---
+
+## Referential Actions
+
+When defining relationships, use **`ReferentialAction`** for `onDelete` and `onUpdate` parameters:
+
+```dart
+HasMany(
+  model: Order,
+  foreignKey: 'user_id',
+  onDelete: ReferentialAction.cascade,
+);
+```
+
+Available actions: `cascade`, `setNull`, `setDefault`, `restrict`, `noAction`.
 
 ---
 
@@ -131,23 +174,6 @@ Relationships define how models connect. They are used by `sqflow_core` for auto
 )
 class User extends Model with _$SQFlowUserMixin { ... }
 ```
-
----
-
-## Logical Data Types
-
-`sqflow` uses logical types mapped to concrete SQLite types. Use them as constructor calls (e.g. `TEXT()`).
-
-| Class | SQLite Type | Dart Type |
-| :----------- | :---------- | :---------- |
-| `INTEGER()`  | `INTEGER`   | `int`, `bool` |
-| `TEXT()`     | `TEXT`      | `String`    |
-| `REAL()`     | `REAL`      | `double`    |
-| `BLOB()`     | `BLOB`      | `Uint8List` |
-| `NUMERIC()`  | `NUMERIC`   | `num`       |
-
-> [!NOTE]
-> For Booleans, use `INTEGER()` (stored as 1/0). For Dates, use `TEXT()` (ISO-8601 strings).
 
 ---
 

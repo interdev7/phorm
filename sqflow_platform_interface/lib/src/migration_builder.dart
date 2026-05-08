@@ -1,7 +1,7 @@
-import '../src/table.dart';
-import '../src/models.dart';
-import '../src/table_migration.dart';
 import '../src/executor.dart';
+import '../src/models.dart';
+import '../src/table.dart';
+import '../src/table_migration.dart';
 
 // =======================================================
 // MIGRATION BUILDER (FLUENT API)
@@ -205,7 +205,8 @@ class MigrationBuilder<T extends Model> {
   MigrationBuilder<T> custom({
     required String description,
     required int version,
-    required Future<void> Function(SqflowDatabaseExecutor db, Table<T> table) migrate,
+    required Future<void> Function(SqflowDatabaseExecutor db, Table<T> table)
+        migrate,
   }) {
     _migrations.add(TableMigration<T>(
       table: _table,

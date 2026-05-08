@@ -168,7 +168,7 @@ void main() {
           .migrate()
           .addColumn(
             name: 'email',
-            type: 'TEXT',
+            type: SqlTypes.text,
             version: 2,
             description: 'Add email to users',
           )
@@ -183,7 +183,7 @@ void main() {
           .migrate()
           .addColumn(
             name: 'title',
-            type: 'TEXT',
+            type: SqlTypes.text,
             version: 2,
             description: 'Add title to posts',
           )
@@ -223,7 +223,7 @@ void main() {
           .migrate()
           .addColumn(
             name: 'email',
-            type: 'TEXT',
+            type: SqlTypes.text,
             version: 1,
           )
           .build();
@@ -294,13 +294,13 @@ void main() {
           .migrate()
           .addColumn(
             name: 'email',
-            type: 'TEXT',
+            type: SqlTypes.text,
             version: 2,
             description: 'Add email column',
           )
           .addColumn(
             name: 'age',
-            type: 'INTEGER',
+            type: SqlTypes.integer,
             version: 2,
             nullable: true,
             description: 'Add age column',
@@ -367,7 +367,12 @@ void main() {
       // --- v2 ---
       final usersV2 = usersV1
           .migrate()
-          .addColumn(name: 'email', type: 'TEXT', version: 2)
+          .addColumn(
+            name: 'email',
+            type: SqlTypes.text,
+            version: 2,
+            description: 'Add email column',
+          )
           .build();
 
       final dbV2 = DB(databaseName: dbFileName, version: 2, tables: [usersV2]);
