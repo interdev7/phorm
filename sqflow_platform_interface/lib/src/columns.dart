@@ -61,6 +61,18 @@ extension SqflowColumnExtension<T> on SqflowColumn<T> {
   SqflowCondition between(T from, T to) =>
       SqflowCondition(this, 'BETWEEN', [from, to]);
 
+  /// Creates a NOT BETWEEN condition: `column NOT BETWEEN from AND to`
+  SqflowCondition notBetween(T from, T to) =>
+      SqflowCondition(this, 'NOT BETWEEN', [from, to]);
+
+  /// Creates a STARTS WITH condition (sugar for LIKE 'pattern%')
+  SqflowCondition startsWith(String pattern) =>
+      SqflowCondition(this, 'STARTS WITH', pattern);
+
+  /// Creates an ENDS WITH condition (sugar for LIKE '%pattern')
+  SqflowCondition endsWith(String pattern) =>
+      SqflowCondition(this, 'ENDS WITH', pattern);
+
   /// Creates an IS NULL condition.
   SqflowCondition isNull() => SqflowCondition(this, 'IS NULL', null);
 

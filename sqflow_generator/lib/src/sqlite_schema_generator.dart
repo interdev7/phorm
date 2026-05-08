@@ -334,13 +334,17 @@ END;''';
     final unique = reader.peek('unique')?.boolValue ?? false;
     final defaultValue = reader.peek('defaultValue');
 
-    final buffer = StringBuffer()
-      ..write(
-          '  $columnName ${MetadataExtractor.resolveSqlType(field)}');
+    final sqlType = MetadataExtractor.resolveSqlType(field);
+    final collation = MetadataExtractor.resolveCollation(field);
+
+    final buffer = StringBuffer()..write('  $columnName $sqlType');
+
+    if (collation != null) {
+      buffer.write(' COLLATE $collation');
+    }
 
     final isId = annotationName == 'ID';
-    final isInteger =
-        MetadataExtractor.resolveSqlType(field) == 'INTEGER';
+    final isInteger = sqlType == 'INTEGER';
 
     if (isId) {
       buffer.write(' PRIMARY KEY');

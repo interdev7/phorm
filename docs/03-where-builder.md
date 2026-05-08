@@ -63,6 +63,8 @@ Users.where(Users.price.lte(99.99));      // price <= ?
 | `.notLike('col', pattern)` | `col NOT LIKE ?` | ✅ Yes |
 | `.ilike('col', pattern)` | `LOWER(col) LIKE LOWER(?)` | ❌ No |
 | `.notIlike('col', pattern)` | `LOWER(col) NOT LIKE LOWER(?)` | ❌ No |
+| `.startsWith('col', val)` | `col LIKE 'val%'` | ✅ Yes |
+| `.endsWith('col', val)` | `col LIKE '%val'` | ✅ Yes |
 | `.regexp('col', pattern)` | `col REGEXP ?` | depends on SQLite config |
 
 ```dart
@@ -98,9 +100,25 @@ Users.where(Users.isDeleted.isFalse());   // is_deleted = 0
 
 ### Range & Set Operations
 
+| Method | SQL | Note |
+| :--- | :--- | :--- |
+| `.between('col', f, t)` | `col BETWEEN ? AND ?` | |
+| `.notBetween('col', f, t)` | `col NOT BETWEEN ? AND ?` | |
+| `.inList('col', list)` | `col IN (?, ?, ...)` | `1=0` if list is empty |
+| `.notInList('col', list)` | `col NOT IN (?, ?, ...)` | Ignored if list is empty |
+
 ```dart
 // BETWEEN
 Users.where(Users.age.between(18, 65));
+
+// NOT BETWEEN
+Users.where(Users.age.notBetween(0, 17));
+
+// STARTS WITH (LIKE 'pattern%')
+Users.where(Users.name.startsWith('Jo'));
+
+// ENDS WITH (LIKE '%pattern')
+Users.where(Users.email.endsWith('.com'));
 
 // IN list
 Users.where(Users.status.inList(['active', 'pending']));
