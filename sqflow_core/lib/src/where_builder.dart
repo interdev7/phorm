@@ -378,6 +378,31 @@ class WhereBuilder {
     return this;
   }
 
+  /// Adds NOT BETWEEN condition: `column NOT BETWEEN ? AND ?`
+  WhereBuilder notBetween(Object column, Object from, Object to) {
+    _validate(column);
+    _addCondition(
+      '$column NOT BETWEEN ? AND ?',
+      [_prepareValue(from), _prepareValue(to)],
+      column,
+    );
+    return this;
+  }
+
+  /// Adds STARTS WITH condition (LIKE 'pattern%')
+  WhereBuilder startsWith(Object column, String pattern) {
+    _validate(column);
+    _addCondition('$column LIKE ?', ['$pattern%'], column);
+    return this;
+  }
+
+  /// Adds ENDS WITH condition (LIKE '%pattern')
+  WhereBuilder endsWith(Object column, String pattern) {
+    _validate(column);
+    _addCondition('$column LIKE ?', ['%$pattern'], column);
+    return this;
+  }
+
   /// Adds IN condition: `column IN (?, ?, ...)`
   ///
   /// **Example:**

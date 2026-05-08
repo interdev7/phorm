@@ -46,6 +46,11 @@ abstract class ColumnBase {
   /// Optional value converter for mapping between Dart and SQL types.
   final ValueConverter<dynamic, dynamic>? converter;
 
+  /// Optional collation sequence.
+  ///
+  /// Use [Collate.noCase], [Collate.binary], or [Collate.rtrim].
+  final String? collate;
+
   const ColumnBase({
     this.sqlType,
     this.columnName,
@@ -53,6 +58,7 @@ abstract class ColumnBase {
     this.defaultValue,
     this.validators,
     this.converter,
+    this.collate,
   });
 }
 
@@ -63,10 +69,11 @@ class Column extends ColumnBase {
   const Column({
     super.sqlType,
     super.columnName,
-    super.unique,
+    super.unique = false,
     super.defaultValue,
     super.validators,
     super.converter,
+    super.collate,
   });
 }
 
@@ -84,6 +91,7 @@ class ID extends ColumnBase {
     super.columnName,
     this.autoIncrement = false,
     super.unique = true,
+    super.collate,
   });
 }
 

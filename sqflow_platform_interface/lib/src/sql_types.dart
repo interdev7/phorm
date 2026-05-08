@@ -18,3 +18,17 @@ class SqlTypes {
   /// Private constructor to prevent instantiation.
   SqlTypes._();
 }
+
+/// SQLite collation sequences.
+class Collate {
+  /// Case-sensitive comparison (default).
+  static const String binary = 'BINARY';
+
+  /// Case-insensitive comparison.
+  static const String noCase = 'NOCASE';
+
+  /// Comparison ignoring trailing whitespace.
+  static const String rtrim = 'RTRIM';
+
+  Collate._();
+}

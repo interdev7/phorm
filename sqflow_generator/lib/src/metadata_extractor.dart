@@ -124,6 +124,17 @@ class MetadataExtractor {
     return 'TEXT';
   }
 
+  static String? resolveCollation(FieldElement field) {
+    final annotation = columnChecker.firstAnnotationOf(field) ??
+        idChecker.firstAnnotationOf(field);
+
+    if (annotation != null) {
+      final reader = ConstantReader(annotation);
+      return reader.peek('collate')?.stringValue;
+    }
+    return null;
+  }
+
   static ConverterInfo? getConverterInfo(FieldElement field) {
     final annotation = columnChecker.firstAnnotationOf(field) ?? 
                        idChecker.firstAnnotationOf(field);

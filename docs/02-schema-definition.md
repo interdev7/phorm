@@ -161,6 +161,23 @@ final String username;
 > [!NOTE]
 > For booleans and dates, the generator handles conversion between Dart types and SQLite representations automatically.
 
+### String Collations (NOCASE, BINARY)
+
+SQLite allows you to specify how strings are compared using the `COLLATE` clause. This is especially useful for case-insensitive searching or sorting.
+
+*   **`BINARY`** (default): Case-sensitive comparison. `'Alice' != 'alice'`.
+*   **`NOCASE`**: Case-insensitive comparison (for ASCII characters). `'Alice' == 'alice'`.
+
+You can apply these using the `collate` property:
+
+```dart
+@Column(collate: Collate.noCase)
+final String email;
+
+@Column(collate: Collate.binary) // Explicit binary
+final String password;
+```
+
 ---
 
 ## Value Converters

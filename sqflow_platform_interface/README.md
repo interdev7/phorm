@@ -105,6 +105,7 @@ final String status;
 | `nullable`     | `bool`              | Mark column as `NULL` or `NOT NULL`.                |
 | `defaultValue` | `dynamic`           | SQL `DEFAULT` value.                                |
 | `validators`   | `List<IValidator>?` | List of validators (triggers SQL `CHECK` and Dart validation). |
+| `collate`      | `String?`           | Specify string collation (e.g. `Collate.noCase`). |
 
 ---
 
@@ -133,7 +134,7 @@ For manual overrides in `@Column(sqlType: ...)` or when adding columns in migrat
 table.addColumn(name: 'age', type: SqlTypes.integer, version: 2);
 
 // In a model
-@Column(sqlType: '${SqlTypes.text} COLLATE NOCASE')
+@Column(collate: Collate.noCase)
 final String username;
 ```
 

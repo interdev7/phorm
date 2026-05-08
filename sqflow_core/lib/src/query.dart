@@ -57,6 +57,17 @@ class SqflowQuery<T extends Model> {
         final range = condition.value as List;
         _where.between(condition.column, range[0] as Object, range[1] as Object);
         break;
+      case 'NOT BETWEEN':
+        final range = condition.value as List;
+        _where.notBetween(
+            condition.column, range[0] as Object, range[1] as Object);
+        break;
+      case 'STARTS WITH':
+        _where.startsWith(condition.column, condition.value as String);
+        break;
+      case 'ENDS WITH':
+        _where.endsWith(condition.column, condition.value as String);
+        break;
       case 'TRUE':
         _where.isTrue(condition.column);
         break;
