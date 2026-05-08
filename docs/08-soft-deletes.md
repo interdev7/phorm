@@ -14,7 +14,7 @@ Soft deletes allow you to "delete" records without physically removing them from
 class User extends Model with _$SQFlowUserMixin { ... }
 ```
 
-The generator adds `deleted_at TEXT` column to the schema automatically. You do NOT need to declare it manually in your Dart class unless you want to read it.
+The generator adds the `deleted_at TEXT` column to the SQL schema and injects a `DateTime? deletedAt` field into your generated mixin automatically. You can access it on your model instance without any manual declaration.
 
 ---
 
@@ -83,27 +83,15 @@ await userService.deleteBatchAsync(['id1', 'id2'], force: true);
 
 ## Custom `deleted_at` Field
 
-If you need to access `deleted_at` in your Dart model:
+If you want to customize the `deletedAt` field (e.g., to use a different column name or add specific annotations), you can declare it manually in your model class:
 
 ```dart
-// Declare manually in your class
-@Column(type: TEXT(), nullable: true)
+// Declare manually in your class for customization
+@Column(columnName: 'removed_at')
 final DateTime? deletedAt;
-
-// Read in fromJson
-factory User.fromJson(Map<String, dynamic> json) => User(
-  ...
-  deletedAt: json['deleted_at'] != null
-      ? DateTime.parse(json['deleted_at'] as String)
-      : null,
-);
-
-// Write in toJson
-Map<String, dynamic> toJson() => {
-  ...
-  'deleted_at': deletedAt?.toIso8601String(),
-};
 ```
+
+When declared manually, the generator will use your field instead of creating a default one in the mixin.
 
 ---
 

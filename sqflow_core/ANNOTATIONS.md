@@ -66,32 +66,31 @@ part 'user.sql.g.dart';
   ],
 )
 class User extends Model with _$SQFlowUserMixin {
-  @ID(type: TEXT(), autoIncrement: false, unique: true)
+  @ID()
   @override
   final String id;
 
-  @Column(type: TEXT())
+  @Column()
   final String firstName;
 
-  @Column(type: TEXT())
+  @Column()
   final String lastName;
 
-  @Column(type: TEXT(), unique: true)
+  @Column(unique: true)
   final String email;
 
-  @Column(type: TEXT(), nullable: true)
+  @Column(nullable: true)
   final String? phone;
 
   @Column(
-    type: TEXT(),
-    check: CHECK(['M', 'F', 'Other']),
+    validators: [ContainsValidator(['M', 'F', 'Other'])],
   )
   final String gender;
 
-  @Column(type: TEXT())
+  @Column()
   final DateTime createdAt;
 
-  @Column(type: TEXT(), nullable: true)
+  @Column(nullable: true)
   final DateTime? deletedAt;
 
   User({
@@ -143,22 +142,21 @@ Standard column definition.
 
 ```dart
 @Column(
-  type: TEXT(),
   nullable: false,
   unique: false,
   defaultValue: 'N/A',
-  check: CHECK(['A', 'B']),
+  validators: [ContainsValidator(['A', 'B'])],
 )
 ```
 
 Supported options:
 
-- `type` (required)
+- `sqlType` (override)
 - `columnName` (override)
 - `nullable`
 - `unique`
 - `defaultValue`
-- `check`
+- `validators`
 
 ---
 
@@ -168,7 +166,6 @@ Primary key column.
 
 ```dart
 @ID(
-  type: INTEGER(),
   autoIncrement: true,
 )
 ```
@@ -230,18 +227,20 @@ final User? user;
 
 ## SQLite Type Mapping
 
-`sqflow_core` uses native SQLite data types via constructor calls.
+SQFlow automatically infers the SQLite data type from your Dart field types.
 
-| Class       | SQLite type | Dart type     | Notes                      |
-| :---------- | :---------- | :------------ | :------------------------- |
-| `TEXT()`    | `TEXT`      | `String`      | Strings, UUIDs, ISO dates  |
-| `INTEGER()` | `INTEGER`   | `int`, `bool` | Booleans stored as `1`/`0` |
-| `REAL()`    | `REAL`      | `double`      | Floating point numbers     |
-| `BLOB()`    | `BLOB`      | `Uint8List`   | Binary data                |
-| `NUMERIC()` | `NUMERIC`   | `num`         | Integer or float           |
+| Dart Type   | SQLite Type | Notes                              |
+| :---------- | :---------- | :--------------------------------- |
+| `String`    | `TEXT`      | Default for strings, UUIDs         |
+| `int`       | `INTEGER`   | Standard integer                   |
+| `bool`      | `INTEGER`   | Stored as `1` (true) / `0` (false) |
+| `double`    | `REAL`      | Floating point numbers             |
+| `num`       | `NUMERIC`   | Supports both int and double       |
+| `DateTime`  | `TEXT`      | Stored as ISO-8601 strings         |
+| `Uint8List` | `BLOB`      | Binary data                        |
 
 > [!NOTE]
-> There is no dedicated `BOOLEAN` or `DATETIME` class. Use `INTEGER()` for booleans and `TEXT()` for dates (stored as ISO-8601 strings).
+> For booleans and dates, the generator handles conversion between Dart types and SQLite representations automatically.
 
 ---
 
@@ -254,7 +253,7 @@ SQLite does **not** strictly enforce column types. Validation should be done at 
 ### 2. BOOLEAN is stored as INTEGER
 
 ```dart
-@Column(type: INTEGER(), defaultValue: 1)
+@Column(defaultValue: 1)
 final bool isActive;
 ```
 
@@ -268,11 +267,10 @@ You must convert manually in `toJson` / `fromJson`.
 
 ---
 
-### 3. CHECK constraints are limited
+### 3. Validation should be done in Dart
 
-- `CHECK` works in SQLite
-- But complex expressions are discouraged
-- Prefer enums / validation in Dart
+- `CHECK` constraints are supported via `ICheckValidator`
+- But complex logic is better handled in Dart via `IJsonValidator`
 
 ---
 
@@ -323,7 +321,7 @@ When `paranoid: true`:
 
 ## Build Flow (Annotations → SQL)
 
-````text
+```text
 ┌──────────────┐
 │ Dart Model   │
 │ + Annotations│
@@ -348,6 +346,7 @@ When `paranoid: true`:
 │ Table<T>     │
 │ Runtime Meta │
 └──────────────┘
+```
 
 ---
 
@@ -367,17 +366,17 @@ When `paranoid: true`:
   ],
 )
 class User {
-  @ID(type: TEXT())
+  @ID()
   final String id;
 
-  @Column(type: TEXT())
+  @Column()
   final String firstName;
 
-  @Column(type: DataTypes.TEXT)
+  @Column()
   final String lastName;
   // ...
 }
-````
+```
 
 Generated SQL (camelCase example):
 

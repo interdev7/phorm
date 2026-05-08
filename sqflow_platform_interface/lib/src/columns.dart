@@ -33,7 +33,8 @@ extension SqflowColumnExtension<T> on SqflowColumn<T> {
       SqflowCondition(this, '<=', value);
 
   /// Creates a LIKE condition: `column LIKE pattern`
-  SqflowCondition like(String pattern) => SqflowCondition(this, 'LIKE', pattern);
+  SqflowCondition like(String pattern) =>
+      SqflowCondition(this, 'LIKE', pattern);
 
   /// Creates an IN condition: `column IN (value1, value2, ...)`
   SqflowCondition inList(List<T> values) => SqflowCondition(this, 'IN', values);
@@ -52,10 +53,4 @@ class SqflowCondition {
   final dynamic value;
 
   SqflowCondition(this.column, this.operator, this.value);
-}
-
-/// A representation of a table definition with typed columns.
-abstract class TableType {
-  /// The name of the table.
-  String get tableName;
 }

@@ -170,19 +170,22 @@ final user = await Users.read('id123');
 
 ## Automatic Timestamp Fields
 
-When `timestamps: true` (default), the generator **does not add** Dart fields for `createdAt`/`updatedAt`/`deletedAt` to your class. Instead, these are injected at the database level by `SqflowCore._withTimestamps()`.
+When `timestamps: true` (default), the generator automatically adds the following fields to your `_$SQFlowClassNameMixin`:
+- `DateTime? createdAt`
+- `DateTime? updatedAt`
 
-> [!IMPORTANT]
-> If you need to access `createdAt` or `updatedAt` in your Dart model (e.g., to display in UI), you **must declare these fields manually** in your class and include them in `fromJson`. The generator adds them to the SQL schema but does not generate Dart fields for them.
+If `paranoid: true` is enabled, it also adds:
+- `DateTime? deletedAt`
+
+These fields are automatically handled in `toJson()` and `fromJson()`, so you can access them directly on your model instances without any manual declaration.
 
 ```dart
-// Manual timestamp fields (if you need them in Dart)
-@Column(type: TEXT())
-final DateTime? createdAt;
-
-@Column(type: TEXT())
-final DateTime? updatedAt;
+final user = await Users.read('id123');
+print(user?.createdAt); // Works automatically!
 ```
+
+> [!NOTE]
+> If you want to customize these fields (e.g., add extra annotations or use a different name), you can still declare them manually in your model class. The generator will detect your manual declaration and won't generate a duplicate field in the mixin.
 
 ---
 
