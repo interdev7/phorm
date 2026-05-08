@@ -31,25 +31,25 @@ class User extends Model with _$SQFlowUserMixin { ... }
 
 ### `@Schema` Parameters
 
-| Parameter | Type | Default | Description |
-| :--- | :--- | :--- | :--- |
-| `tableName` | `String?` | class name | Explicit SQL table name |
-| `paranoid` | `bool` | `false` | Soft delete support |
-| `timestamps` | `bool` | `true` | Auto `created_at`/`updated_at` |
-| `columnNaming` | `ColumnNamingStrategy` | `snakeCase` | Field → column mapping strategy |
-| `indexes` | `List<Index>` | `[]` | Table indexes |
-| `relationships` | `List<Relationship>` | `[]` | `HasMany`, `HasOne`, `BelongsTo` |
-| `useToJson` | `bool` | `true` | Generate toJson mixin |
-| `useFromJson` | `bool` | `true` | Generate fromJson helper |
-| `useCopyWith` | `bool` | `true` | Generate copyWith method |
+| Parameter       | Type                   | Default     | Description                      |
+| :-------------- | :--------------------- | :---------- | :------------------------------- |
+| `tableName`     | `String?`              | class name  | Explicit SQL table name          |
+| `paranoid`      | `bool`                 | `false`     | Soft delete support              |
+| `timestamps`    | `bool`                 | `true`      | Auto `created_at`/`updated_at`   |
+| `columnNaming`  | `ColumnNamingStrategy` | `snakeCase` | Field → column mapping strategy  |
+| `indexes`       | `List<Index>`          | `[]`        | Table indexes                    |
+| `relationships` | `List<Relationship>`   | `[]`        | `HasMany`, `HasOne`, `BelongsTo` |
+| `useToJson`     | `bool`                 | `true`      | Generate toJson mixin            |
+| `useFromJson`   | `bool`                 | `true`      | Generate fromJson helper         |
+| `useCopyWith`   | `bool`                 | `true`      | Generate copyWith method         |
 
 ### Column Naming Strategies
 
-| Strategy | Dart field | SQL column |
-| :--- | :--- | :--- |
+| Strategy              | Dart field  | SQL column   |
+| :-------------------- | :---------- | :----------- |
 | `snakeCase` (default) | `firstName` | `first_name` |
-| `camelCase` | `firstName` | `firstName` |
-| `pascalCase` | `firstName` | `FirstName` |
+| `camelCase`           | `firstName` | `firstName`  |
+| `pascalCase`          | `firstName` | `FirstName`  |
 
 ---
 
@@ -58,27 +58,27 @@ class User extends Model with _$SQFlowUserMixin { ... }
 Marks a field as the primary key. Always `NOT NULL`.
 
 ```dart
-@ID(type: TEXT(), autoIncrement: false, unique: true)
+@ID(autoIncrement: false)
 @override
 final String id;
 
-// Integer auto-increment PK
-@ID(type: INTEGER(), autoIncrement: true)
+// Integer auto-increment PK (sqlType inferred as INTEGER)
+@ID(autoIncrement: true)
 @override
 final int id;
 ```
 
 ### `@ID` Parameters
 
-| Parameter | Type | Default | Description |
-| :--- | :--- | :--- | :--- |
-| `type` | `DataType` | required | SQLite data type |
-| `autoIncrement` | `bool` | `false` | Auto-increment (for `INTEGER` PK) |
-| `unique` | `bool` | `true` | Enforce uniqueness |
-| `columnName` | `String?` | `null` | Override column name |
+| Parameter       | Type      | Default  | Description                   |
+| :-------------- | :-------- | :------- | :---------------------------- |
+| `sqlType`       | `String?` | inferred | Explicit SQLite type override |
+| `autoIncrement` | `bool`    | `false`  | Auto-increment (for `int` PK) |
+| `unique`        | `bool`    | `true`   | Enforce uniqueness            |
+| `columnName`    | `String?` | `null`   | Override column name          |
 
 > [!WARNING]
-> `autoIncrement: true` only works with `INTEGER()` type. For string UUIDs, use `autoIncrement: false` (default).
+> `autoIncrement: true` only works with `int` fields (mapped to `INTEGER`). For string UUIDs, use `autoIncrement: false` (default).
 
 ---
 
@@ -87,80 +87,92 @@ final int id;
 Defines a regular column.
 
 ```dart
-@Column(type: TEXT())
+@Column()
 final String firstName;
 
-@Column(type: TEXT(), unique: true)
+@Column(unique: true)
 final String email;
 
-@Column(type: INTEGER(), nullable: true)
+@Column(nullable: true)
 final int? age;
 
-@Column(type: INTEGER(), defaultValue: true)
+@Column(defaultValue: true)
 final bool isActive;
 
 @Column(
-  type: TEXT(),
-  check: CHECK(['M', 'F', 'Other'], constraint: 'gender_check'),
+  validators: [
+    ContainsValidator(['M', 'F', 'Other'], constraint: 'gender_check'),
+  ],
 )
 final String gender;
 
 // Explicit column name (overrides naming strategy)
-@Column(type: TEXT(), columnName: 'user_city')
+@Column(columnName: 'user_city')
 final String city;
+
+// Explicit SQL type override
+@Column(sqlType: 'VARCHAR(255)')
+final String bio;
 ```
 
-### `@Column` Parameters
-
-| Parameter | Type | Default | Description |
-| :--- | :--- | :--- | :--- |
-| `type` | `DataType` | required | SQLite data type |
-| `columnName` | `String?` | `null` | Override column name |
-| `unique` | `bool` | `false` | `UNIQUE` constraint |
-| `defaultValue` | `dynamic` | `null` | SQL `DEFAULT` value |
-| `check` | `CHECK?` | `null` | Value constraint |
+| Parameter      | Type                | Default  | Description                          |
+| :------------- | :------------------ | :------- | :----------------------------------- |
+| `sqlType`      | `String?`           | inferred | Explicit SQLite type override        |
+| `columnName`   | `String?`           | `null`   | Override column name                 |
+| `unique`       | `bool`              | `false`  | `UNIQUE` constraint                  |
+| `defaultValue` | `dynamic`           | `null`   | SQL `DEFAULT` value                  |
+| `validators`   | `List<IValidator>?` | `null`   | Value constraints (Check/Regex/etc.) |
 
 ---
 
 ## Data Types
 
-All types are classes from `sqflow_platform_interface`. Use them as constructor calls.
+SQFlow automatically infers the SQLite data type from your Dart field types. You generally do not need to specify `sqlType` manually.
 
-| Class | SQLite type | Dart type | Notes |
-| :--- | :--- | :--- | :--- |
-| `TEXT()` | `TEXT` | `String` | Strings, UUIDs, ISO dates |
-| `INTEGER()` | `INTEGER` | `int`, `bool` | Booleans stored as `1`/`0` |
-| `REAL()` | `REAL` | `double` | Floating point numbers |
-| `BLOB()` | `BLOB` | `Uint8List` | Binary data |
-| `NUMERIC()` | `NUMERIC` | `num` | Integer or float |
+### Automatic Mapping
+
+| Dart Type   | SQLite Type | Notes                              |
+| :---------- | :---------- | :--------------------------------- |
+| `String`    | `TEXT`      | Default for strings, UUIDs         |
+| `int`       | `INTEGER`   | Standard integer                   |
+| `bool`      | `INTEGER`   | Stored as `1` (true) / `0` (false) |
+| `double`    | `REAL`      | Floating point numbers             |
+| `num`       | `NUMERIC`   | Supports both int and double       |
+| `DateTime`  | `TEXT`      | Stored as ISO-8601 strings         |
+| `Uint8List` | `BLOB`      | Binary data                        |
+
+### Manual Override
+
+Use `sqlType` if you need a specific SQLite type definition:
+
+```dart
+@Column(sqlType: 'TEXT COLLATE NOCASE')
+final String username;
+
+@Column(sqlType: 'VARCHAR(100)')
+final String shortBio;
+```
 
 > [!NOTE]
-> There is no dedicated `BOOLEAN` or `DATETIME` class. Use `INTEGER()` for booleans and `TEXT()` for dates (stored as ISO-8601 strings). The generator handles the conversion automatically.
+> For booleans and dates, the generator handles conversion between Dart types and SQLite representations automatically.
 
 ---
 
-## `CHECK` Constraint
+## Validators
 
-Restricts allowed values at the database level.
+Validators allow you to enforce data integrity both in SQLite (via `CHECK` constraints) and in Dart (via `toJson()` validation).
 
 ```dart
-// Simple list of allowed values
 @Column(
-  type: TEXT(),
-  check: CHECK(['active', 'inactive', 'pending']),
+  validators: [
+    ContainsValidator(['active', 'inactive', 'pending']),
+    NotEmptyValidator(),
+  ],
 )
 final String status;
-
-// With explicit constraint name (useful for error messages)
-@Column(
-  type: TEXT(),
-  check: CHECK(['M', 'F', 'Other'], constraint: 'gender_check'),
-)
-final String gender;
 ```
 
-> [!TIP]
-> Use `CHECK` for small, stable domain values (enums). For complex validation, handle it in Dart before saving.
+For a full list of available validators and details on how they work, see the [Validators](file:///Users/interdev7/Documents/sqflow/docs/10-validators.md) documentation.
 
 ---
 
@@ -179,10 +191,10 @@ Indexes dramatically speed up query performance on frequently filtered columns.
 )
 ```
 
-| Parameter | Type | Description |
-| :--- | :--- | :--- |
-| `columns` | `List<String>` | Columns included in the index |
-| `unique` | `bool` | Enforces uniqueness across rows |
+| Parameter | Type           | Description                     |
+| :-------- | :------------- | :------------------------------ |
+| `columns` | `List<String>` | Columns included in the index   |
+| `unique`  | `bool`         | Enforces uniqueness across rows |
 
 > [!IMPORTANT]
 > Always add an index on foreign key columns (`user_id`, etc.). Without them, JOIN operations scan the entire table and degrade performance at scale.
@@ -209,47 +221,48 @@ part 'user.sql.g.dart';
   ],
 )
 class User extends Model with _$SQFlowUserMixin {
-  @ID(type: TEXT(), autoIncrement: false, unique: true)
+  @ID()
   @override
   final String id;
 
-  @Column(type: TEXT())
+  @Column()
   final String firstName;
 
-  @Column(type: TEXT())
+  @Column()
   final String lastName;
 
-  @Column(type: TEXT(), unique: true)
+  @Column(unique: true)
   final String email;
 
-  @Column(type: TEXT())
+  @Column()
   final String phone;
 
-  @Column(type: TEXT())
+  @Column()
   final String? birthDate;
 
-  @Column(type: INTEGER())
+  @Column()
   final int? age;
 
   @Column(
-    type: TEXT(),
-    check: CHECK(['M', 'F', 'Other'], constraint: 'gender_check'),
+    validators: [
+      ContainsValidator(['M', 'F', 'Other'], constraint: 'gender_check')
+    ],
   )
   final String gender;
 
-  @Column(type: TEXT())
+  @Column()
   final String city;
 
-  @Column(type: TEXT())
+  @Column()
   final String country;
 
-  @Column(type: TEXT())
+  @Column()
   final String? address;
 
-  @Column(type: INTEGER(), defaultValue: true)
+  @Column(defaultValue: true)
   final bool isActive;
 
-  @Column(type: INTEGER(), defaultValue: false)
+  @Column(defaultValue: false)
   final bool isVerified;
 
   User({
@@ -269,9 +282,6 @@ class User extends Model with _$SQFlowUserMixin {
   });
 
   String get fullName => '$firstName $lastName';
-
-  @override
-  Map<String, dynamic> toJson() => _$SQFlowUserToJson();
 
   factory User.fromJson(Map<String, dynamic> json) => _$SQFlowUserFromJson(json);
 }

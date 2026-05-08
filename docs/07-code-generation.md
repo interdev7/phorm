@@ -2,9 +2,9 @@
 
 `sqflow_generator` is a `build_runner` plugin that reads your `@Schema` annotated classes and generates:
 - SQL `CREATE TABLE` statement with indexes
-- `_$SQFlowClassName` mixin with `toJson()` and `copyWith()`
+- `_$SQFlowClassNameMixin` mixin with automatic `toJson()`, `toString()` and `copyWith()`
 - `_$SQFlowClassNameFromJson()` helper
-- Relationship field declarations
+- `ClassName` service class (e.g. `Users`) with static CRUD methods and type-safe columns
 
 ---
 
@@ -38,21 +38,13 @@ dart run build_runner watch --delete-conflicting-outputs
 
 For a file `lib/models/user.dart` with `part 'user.sql.g.dart';`, the generator produces `lib/models/user.sql.g.dart` containing:
 
-### Generated Mixin (`_$SQFlowUserMixin`)
+mixin _$SQFlowUserMixin {
+  // toJson — automatic TOP-LEVEL serialization
+  Map<String, dynamic> toJson() => _$SQFlowUserToJson(this as User);
 
-```dart
-mixin _$SQFlowUserMixin on Model {
-  // toJson — serializes to database format
-  Map<String, dynamic> _$SQFlowUserToJson() => {
-    'id': id,
-    'first_name': firstName,
-    'last_name': lastName,
-    'email': email,
-    'is_active': isActive ? 1 : 0,
-    'created_at': createdAt?.toIso8601String(),
-    'updated_at': updatedAt?.toIso8601String(),
-    'deleted_at': deletedAt?.toIso8601String(),
-  };
+  // toString — automatic implementation for debugging
+  @override
+  String toString() => _$SQFlowUserToString(this as User);
 
   // copyWith — immutable update pattern
   User copyWith({
@@ -60,10 +52,34 @@ mixin _$SQFlowUserMixin on Model {
     String? firstName,
     ...
   }) => User(
-    id: id ?? this.id,
-    firstName: firstName ?? this.firstName,
+    id: id ?? (this as User).id,
+    firstName: firstName ?? (this as User).firstName,
     ...
   );
+
+  // Timestamps are automatically mixed in if enabled
+  DateTime? createdAt;
+  DateTime? updatedAt;
+  DateTime? deletedAt;
+}
+```
+
+### Generated Service Class (`Users`)
+
+This class is the primary API for your model.
+
+```dart
+class Users {
+  // Type-safe columns for queries
+  static const id = SqflowColumn<String>('id');
+  static const firstName = SqflowColumn<String>('first_name');
+  ...
+
+  // Static CRUD methods
+  static Future<int> insert(User item) => ...;
+  static Future<User?> read(Object id) => ...;
+  static SqflowQuery<User> where(SqflowCondition c) => ...;
+  ...
 }
 ```
 
@@ -99,7 +115,6 @@ final usersTable = Table<User>(
     CREATE INDEX idx_users_name ON users(first_name, last_name);
   ''',
   fromJson: _$SQFlowUserFromJson,
-  type: User,
   primaryKey: 'id',
   paranoid: true,
   timestamps: true,
@@ -121,70 +136,55 @@ part 'user.sql.g.dart';
 @Schema(
   tableName: 'users',
   paranoid: true,
-  relationships: [
-    HasMany(model: Order, foreignKey: 'user_id'),
-  ],
 )
 class User extends Model with _$SQFlowUserMixin {
-  @ID(type: TEXT(), autoIncrement: false, unique: true)
-  @override
+  @ID()
   final String id;
 
-  @Column(type: TEXT())
+  @Column()
   final String firstName;
-
-  @Column(type: TEXT(), unique: true)
-  final String email;
-
-  @Column(type: INTEGER(), defaultValue: true)
-  final bool isActive;
 
   User({
     required this.id,
     required this.firstName,
-    required this.email,
-    this.isActive = true,
   });
-
-  @override
-  Map<String, dynamic> toJson() => _$SQFlowUserToJson();
 
   factory User.fromJson(Map<String, dynamic> json) => _$SQFlowUserFromJson(json);
 }
 ```
 
 ```dart
-// Service setup (in your repository or service class)
-import 'user.sql.g.dart'; // Contains usersTable
+// Service usage (No manual setup needed!)
+import 'user.sql.g.dart';
 
-final db = DB.autoVersion(
-  databaseName: 'app.db',
-  tables: [usersTable, ordersTable],
-);
+// 1. Querying
+final users = await Users.where(Users.firstName.eq('John')).get();
 
-final userService = SqflowCore<User>(
-  dbManager: db,
-  table: usersTable,
-);
+// 2. CRUD
+await Users.insert(newUser);
+final user = await Users.read('id123');
 ```
 
 ---
 
 ## Automatic Timestamp Fields
 
-When `timestamps: true` (default), the generator **does not add** Dart fields for `createdAt`/`updatedAt`/`deletedAt` to your class. Instead, these are injected at the database level by `SqflowCore._withTimestamps()`.
+When `timestamps: true` (default), the generator automatically adds the following fields to your `_$SQFlowClassNameMixin`:
+- `DateTime? createdAt`
+- `DateTime? updatedAt`
 
-> [!IMPORTANT]
-> If you need to access `createdAt` or `updatedAt` in your Dart model (e.g., to display in UI), you **must declare these fields manually** in your class and include them in `fromJson`. The generator adds them to the SQL schema but does not generate Dart fields for them.
+If `paranoid: true` is enabled, it also adds:
+- `DateTime? deletedAt`
+
+These fields are automatically handled in `toJson()` and `fromJson()`, so you can access them directly on your model instances without any manual declaration.
 
 ```dart
-// Manual timestamp fields (if you need them in Dart)
-@Column(type: TEXT())
-final DateTime? createdAt;
-
-@Column(type: TEXT())
-final DateTime? updatedAt;
+final user = await Users.read('id123');
+print(user?.createdAt); // Works automatically!
 ```
+
+> [!NOTE]
+> If you want to customize these fields (e.g., add extra annotations or use a different name), you can still declare them manually in your model class. The generator will detect your manual declaration and won't generate a duplicate field in the mixin.
 
 ---
 

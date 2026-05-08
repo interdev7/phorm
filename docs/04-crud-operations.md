@@ -12,7 +12,6 @@ final usersTable = Table<User>(
   name: 'users',
   schema: '...CREATE TABLE SQL...',
   fromJson: User.fromJson,
-  type: User,
   primaryKey: 'id',
   paranoid: true,        // soft deletes
   timestamps: true,      // auto created_at/updated_at
@@ -35,18 +34,11 @@ final userService = SqflowCore<User>(dbManager: db, table: usersTable);
 
 ---
 
-## Insert
+// Pluralized Service (Recommended)
+final rowId = await Users.insert(user);
 
-```dart
-// Async — returns the SQLite rowId (not the model's id)
+// Using traditional SqflowCore instance
 final rowId = await userService.insertAsync(user);
-
-// Fire-and-forget (sync wrapper)
-userService.insert(
-  user,
-  onSuccess: (rowId) => print('Inserted: $rowId'),
-  onError: (e, st) => print('Error: $e'),
-);
 ```
 
 > [!NOTE]
@@ -54,18 +46,11 @@ userService.insert(
 
 ---
 
-## Update
+// Pluralized Service
+await Users.update(updatedUser);
 
-```dart
-// Async — returns number of affected rows
-final rows = await userService.updateAsync(updatedUser);
-
-// Fire-and-forget
-userService.update(
-  updatedUser,
-  onSuccess: (rows) => print('Updated $rows rows'),
-  onError: (e, st) => print('Error: $e'),
-);
+// Traditional
+await userService.updateAsync(updatedUser);
 ```
 
 > [!NOTE]
@@ -73,18 +58,11 @@ userService.update(
 
 ---
 
-## Upsert (Insert or Replace)
+// Pluralized Service
+await Users.upsert(user);
 
-```dart
-// Uses ConflictAlgorithm.replace — replaces if PK conflicts
+// Traditional
 await userService.upsertAsync(user);
-
-// Fire-and-forget
-userService.upsert(
-  user,
-  onSuccess: (id) => print('Upserted: $id'),
-  onError: (e, st) => print('Error: $e'),
-);
 ```
 
 > [!CAUTION]
@@ -92,44 +70,14 @@ userService.upsert(
 
 ---
 
-## Delete
+// Soft delete
+await Users.delete('user_id_here');
 
-### Soft Delete (paranoid mode)
+// Hard delete
+await Users.delete('user_id_here', force: true);
 
-When `paranoid: true`, `deleteAsync` sets `deleted_at` instead of removing the row.
-
-```dart
-await userService.deleteAsync('user_id_here');
-// Sets deleted_at = NOW() and updated_at = NOW()
-// Record stays in the database
-```
-
-### Hard Delete (force)
-
-```dart
-await userService.deleteAsync('user_id_here', force: true);
-// Physically removes the row regardless of paranoid setting
-```
-
-### Fire-and-forget
-
-```dart
-userService.delete(
-  'user_id_here',
-  force: false,
-  onSuccess: (rows) => print('Deleted $rows rows'),
-  onError: (e, st) => print('Error: $e'),
-);
-```
-
----
-
-## Restore (Soft Delete)
-
-Clears `deleted_at` to un-delete a record.
-
-```dart
-await userService.restoreAsync('user_id_here');
+// Restore (paranoid mode only)
+await Users.restore('user_id_here');
 ```
 
 > [!WARNING]
@@ -137,32 +85,16 @@ await userService.restoreAsync('user_id_here');
 
 ---
 
-## Read by ID
+// 1. Basic read
+final user = await Users.read('user_id_here');
 
-```dart
-// Returns null if not found (or soft-deleted unless withDeleted: true)
-final user = await userService.readAsync('user_id_here');
+// 2. Include soft-deleted records
+final user = await Users.read('user_id_here', withDeleted: true);
 
-// Include soft-deleted records
-final user = await userService.readAsync('user_id_here', withDeleted: true);
-
-// With eager loading
-final user = await userService.readAsync(
+// 3. Eager loading
+final user = await Users.read(
   'user_id_here',
   include: [Includable.model<Order>()],
-);
-
-// Select specific columns
-final user = await userService.readAsync(
-  'user_id_here',
-  attributes: Attributes.include(['id', 'first_name', 'email']),
-);
-
-// Fire-and-forget
-userService.read(
-  'user_id_here',
-  onSuccess: (user) => print('Found: ${user.firstName}'),
-  onError: (e, st) => print('Error: $e'),
 );
 ```
 
@@ -172,34 +104,20 @@ userService.read(
 
 SQFlow provides two explicit methods depending on whether you need a total count:
 
-### `readAll` — without count
+// Returns List<T> — just the page of data
+final users = await Users.query
+  .where(Users.city.eq('Sofia'))
+  .orderBy(Users.firstName)
+  .limit(20)
+  .get();
 
-```dart
-// Returns Result<T> — just the page of data, no count overhead
-final result = await userService.readAll(
-  limit: 20,
-  offset: 0,
-  where: WhereBuilder().eq('city', 'Sofia').isTrue('is_active'),
-  sort: SortBuilder().asc('first_name').desc('created_at'),
-  withDeleted: false,
-  onlyDeleted: false,
-  include: [Includable.model<Order>()],
-  attributes: Attributes.include(['id', 'first_name', 'email']),
-);
-
-for (final user in result.data) { ... }
+for (final user in users) { ... }
 ```
 
-### `readAllWithCount` — with total count
-
-```dart
-// Returns ResultWithCount<T> — data + total matching rows (for pagination UI)
-final result = await userService.readAllWithCount(
+// Returns ResultWithCount<T> — data + total matching rows
+final result = await Users.readAllWithCount(
   limit: 20,
-  offset: 0,
-  where: WhereBuilder().eq('city', 'Sofia').isTrue('is_active'),
-  sort: SortBuilder().asc('first_name').desc('created_at'),
-  include: [Includable.model<Order>()],
+  where: Users.city.eq('Sofia'),
 );
 
 print('Showing ${result.data.length} of ${result.count}');
@@ -235,26 +153,19 @@ print('Showing ${result.data.length} of ${result.count}');
 
 SQFlow provides type-safe aggregate functions. These functions automatically respect soft-delete filtering (paranoid mode) and any `WhereBuilder` conditions.
 
-```dart
 // 1. Count
-final totalUsers = await userService.countAsync();
-final activeUsers = await userService.countAsync(
-  where: WhereBuilder().isTrue('is_active'),
-);
+final total = await Users.count();
+final active = await Users.count(where: Users.isActive.eq(true));
 
 // 2. Sum
-final totalRevenue = await orderService.sumAsync('total');
-final userRevenue = await orderService.sumAsync(
-  'total',
-  where: WhereBuilder().eq('user_id', 'u1'),
-);
+final revenue = await Orders.sum(Orders.total);
 
 // 3. Average
-final avgRating = await reviewService.avgAsync('rating');
+final avgRating = await Reviews.avg(Reviews.rating);
 
 // 4. Min/Max
-final minPrice = await productService.minAsync('price');
-final maxPrice = await productService.maxAsync('price');
+final minPrice = await Products.min(Products.price);
+final maxPrice = await Products.max(Products.price);
 ```
 
 > [!NOTE]
@@ -268,22 +179,10 @@ final maxPrice = await productService.maxAsync('price');
 
 All batch operations run in a single SQLite transaction, making them significantly faster than individual calls.
 
-```dart
-// Insert many
-await userService.insertBatchAsync([user1, user2, user3]);
-
-// Update many
-await userService.updateBatchAsync([user1, user2]);
-
-// Upsert many (insert or replace)
-await userService.upsertBatchAsync([user1, user2]);
-
-// Delete many
-await userService.deleteBatchAsync(['id1', 'id2', 'id3']);
-await userService.deleteBatchAsync(['id1', 'id2'], force: true); // hard delete
-
-// Restore many (paranoid mode only)
-await userService.restoreBatchAsync(['id1', 'id2']);
+// Pluralized Service
+await Users.insertBatch([user1, user2]);
+await Users.deleteBatch(['id1', 'id2']);
+await Users.restoreBatch(['id1', 'id2']);
 ```
 
 Fire-and-forget variants with callbacks:

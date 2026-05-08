@@ -1,4 +1,5 @@
-import 'package:sqflow_platform_interface/sqflow_platform_interface.dart';
+import 'package:sqflow_core/sqflow_core.dart';
+import 'package:sqflow_example/db.dart';
 import 'post.dart';
 
 part 'user.sql.g.dart';
@@ -53,7 +54,7 @@ class User extends Model with _$SQFlowUserMixin {
 
   factory User.fromJson(Map<String, dynamic> json) =>
       _$SQFlowUserFromJson(json);
-  @ID( autoIncrement: false, unique: true)
+  @ID(autoIncrement: false, unique: true)
   @override
   final String id;
 
@@ -93,10 +94,7 @@ class User extends Model with _$SQFlowUserMixin {
 
   @Column(
     validators: [
-      RegExpValidator(
-        r'\d{4}-\d{2}-\d{2}',
-        constraint: 'date_format',
-      ),
+      RegExpValidator(r'\d{4}-\d{2}-\d{2}', constraint: 'date_format'),
     ],
   )
   final String? birthDate;
@@ -120,15 +118,9 @@ class User extends Model with _$SQFlowUserMixin {
   @Column()
   final String address;
 
-  @Column( defaultValue: true)
+  @Column(defaultValue: true)
   final bool isActive;
 
-  @Column( defaultValue: false)
+  @Column(defaultValue: false)
   final bool isVerified;
-
-  @override
-  Map<String, dynamic> toJson() => _$SQFlowUserToJson();
-
-  @override
-  String toString() => _$SQFlowUserToString();
 }

@@ -72,7 +72,6 @@ final usersTable = Table<User>(
   name: 'users',
   schema: 'CREATE TABLE users (id TEXT PRIMARY KEY, name TEXT NOT NULL)',
   fromJson: User.fromJson,
-  type: User,
 ).migrate()
   .addColumn(name: 'email', type: 'TEXT', version: 2)
   .addColumn(name: 'age', type: 'INTEGER', version: 2)
@@ -197,8 +196,7 @@ final usersTable = Table<User>(
     );
     CREATE INDEX idx_users_email ON users(email);
   ''',
-  fromJson: User.fromJson,
-  type: User,
+  fromJson: _$SQFlowUserFromJson,
   primaryKey: 'id',
   paranoid: true,
   timestamps: true,

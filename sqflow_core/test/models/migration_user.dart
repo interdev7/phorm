@@ -2,11 +2,13 @@ import 'package:sqflow_core/sqflow_core.dart';
 
 part 'migration_user.sql.g.dart';
 
+late DB appDb;
+
 @Schema(
   tableName: 'migration_users',
 )
 class MigrationUser extends Model with _$SQFlowMigrationUserMixin {
-  @ID( autoIncrement: false)
+  @ID(autoIncrement: false)
   @override
   final String id;
 
@@ -19,7 +21,7 @@ class MigrationUser extends Model with _$SQFlowMigrationUserMixin {
   @Column()
   final int? age;
 
-  @Column( defaultValue: true)
+  @Column(defaultValue: true)
   final bool isActive;
 
   MigrationUser({
@@ -32,7 +34,4 @@ class MigrationUser extends Model with _$SQFlowMigrationUserMixin {
 
   factory MigrationUser.fromJson(Map<String, dynamic> json) =>
       _$SQFlowMigrationUserFromJson(json);
-
-  @override
-  Map<String, dynamic> toJson() => _$SQFlowMigrationUserToJson();
 }
