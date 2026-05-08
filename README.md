@@ -1,10 +1,12 @@
 <div align="center">
-  <img src="assets/logo/sqflow_logo.png" alt="SqFlow" height="240" />
+  <img src="assets/logo/sqflow.png" alt="SqFlow" height="240" />
 </div>
 
 # SQFlow
 
 A lightweight, type-safe SQLite ORM-like abstraction for Dart and Flutter.
+
+This package is built on top of [`sqflite`](https://pub.dev/packages/sqflite), originally created by Alexandre Roux. Thanks for the solid foundation.
 
 SQFlow uses **Single-Query JSON Aggregation** to load relationships in a single SQL query, and provides a fluent, type-safe API for all database needs — without raw string concatenation.
 
