@@ -4,7 +4,7 @@
 // _SqflowCombinedGenerator
 // **************************************************************************
 
-part of 'collation_test.dart';
+part of 'collation_model.dart';
 
 const _$SQFlowCollationTestSchema = """
 CREATE TABLE collation_tests (

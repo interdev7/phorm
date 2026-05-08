@@ -1,4 +1,4 @@
-import 'models/collation_test.dart';
+import 'models/collation_model.dart';
 import 'test_utils.dart';
 
 void main() {
