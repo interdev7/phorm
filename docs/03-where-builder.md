@@ -158,7 +158,11 @@ Users.where(Users.startTime.timeOnlyEq(DateTime(2024, 1, 1, 9, 0)));
 ### String Function Helpers (LENGTH, SUBSTR)
 
 ```dart
-// LENGTH comparisons
+// 1. Fluent API 🌟
+Users.where(Users.firstName.lengthEq(5))
+Users.where(Users.lastName.substrEq(1, 1, 'S'))
+
+// 2. Manual WhereBuilder
 WhereBuilder()
   .lengthEq('first_name', 5)   // LENGTH(first_name) = ?
   .lengthNe('code', 6)         // LENGTH(code) != ?

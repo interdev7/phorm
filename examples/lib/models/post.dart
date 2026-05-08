@@ -36,7 +36,7 @@ class Post extends Model with _$SQFlowPostMixin {
   /// Beautiful API Showcase
   static Future<void> showcase() async {
     // 1. Simple where with plural object
-    final myPosts = await Posts.where(Posts.title.equals('Hello')).get();
+    final myPosts = await Posts.where(Posts.title.eq('Hello')).get();
 
     // 2. Chained query with complex conditions
     final flutterPosts = await Posts.where(Posts.content.like('%Flutter%'))
@@ -46,7 +46,7 @@ class Post extends Model with _$SQFlowPostMixin {
         .get();
 
     // 3. Get first result
-    final firstPost = await Posts.where(Posts.id.equals('1')).first();
+    final firstPost = await Posts.where(Posts.id.eq('1')).first();
 
     print('Found ${myPosts.length} posts');
     print('Flutter posts: ${flutterPosts.length}');
