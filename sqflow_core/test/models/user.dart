@@ -1,6 +1,8 @@
-import 'package:sqflow_platform_interface/sqflow_platform_interface.dart';
+import 'package:sqflow_core/sqflow_core.dart';
 
 part 'user.sql.g.dart';
+
+late DB appDb;
 
 class IsNumberValidator implements IJsonValidator {
   @override
@@ -121,11 +123,10 @@ class User extends Model with _$SQFlowUserMixin {
 
   String get fullName => '$firstName $lastName';
 
-  @override
-  Map<String, dynamic> toJson() => _$SQFlowUserToJson();
 
   factory User.fromJson(Map<String, dynamic> json) =>
       _$SQFlowUserFromJson(json);
+
 }
 
 @Schema(
@@ -155,11 +156,10 @@ class Post extends Model with _$SQFlowPostMixin {
     required this.userId,
   });
 
-  @override
-  Map<String, dynamic> toJson() => _$SQFlowPostToJson();
 
   factory Post.fromJson(Map<String, dynamic> json) =>
       _$SQFlowPostFromJson(json);
+
 }
 
 @Schema(
@@ -188,11 +188,10 @@ class Profile extends Model with _$SQFlowProfileMixin {
     required this.userId,
   });
 
-  @override
-  Map<String, dynamic> toJson() => _$SQFlowProfileToJson();
 
   factory Profile.fromJson(Map<String, dynamic> json) =>
       _$SQFlowProfileFromJson(json);
+
 }
 
 @Schema(
@@ -222,9 +221,8 @@ class Order extends Model with _$SQFlowOrderMixin {
     required this.userId,
   });
 
-  @override
-  Map<String, dynamic> toJson() => _$SQFlowOrderToJson();
 
   factory Order.fromJson(Map<String, dynamic> json) =>
       _$SQFlowOrderFromJson(json);
+
 }

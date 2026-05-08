@@ -123,16 +123,9 @@ user.orders.where((o) => o.deletedAt == null).toList()
 
 ---
 
-### `Includable.model<T>()` requires `type` in `Table<T>`
+### `Includable.model<T>()` resolution
 
-The `type` parameter in `Table<T>` must be set correctly for `Includable.model<T>()` to resolve the table. The generator sets this automatically, but if you create `Table` manually:
-
-```dart
-Table<User>(
-  ...
-  type: User, // ← MUST be set, or Includable.model<User>() throws
-)
-```
+The generator sets up the model-to-table mapping automatically. Only a concern when creating `Table` manually.
 
 ---
 

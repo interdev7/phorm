@@ -41,36 +41,36 @@ SQFlow uses **Single-Query JSON Aggregation** to load relationships in a single 
   relationships: [HasMany(model: Post, foreignKey: 'user_id')],
 )
 class User extends Model with _$SQFlowUserMixin {
-  @ID(type: TEXT())
+  @ID()
   @override
   final String id;
 
-  @Column(type: TEXT())
+  @Column()
   final String name;
 
   User({required this.id, required this.name});
-
-  @override
-  Map<String, dynamic> toJson() => _$SQFlowUserToJson();
 
   factory User.fromJson(Map<String, dynamic> json) => _$SQFlowUserFromJson(json);
 }
 ```
 
 ```dart
-// No count needed — returns Result<User>
-final result = await userService.readAll(
-  where: WhereBuilder().like('posts.title', 'Dart%'),
-  include: [Includable.model<Post>()],
-  attributes: Attributes.include(['id', 'name']),
-);
+// 1. Fluent API (New & Recommended) 🌟
+final myPosts = await Posts.where(Posts.title.like('Dart%')).get();
 
-// With pagination count — returns ResultWithCount<User>, no cast needed
+// 2. Complex queries with relationships
+final result = await Users.query
+  .where(Posts.title.like('Dart%'))
+  .include([Includable.model<Post>()])
+  .get();
+
+// 3. Traditional SqflowCore instance (if needed)
 final paged = await userService.readAllWithCount(
   where: WhereBuilder().like('posts.title', 'Dart%'),
   limit: 20,
   offset: 0,
 );
+```
 print('Showing ${paged.data.length} of ${paged.count}');
 ```
 

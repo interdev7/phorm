@@ -122,9 +122,22 @@ class ModelMixinGenerator extends GeneratorForAnnotation<Schema> {
     }
 
     final buffer = StringBuffer()
-
-      // 1. Mixin
       ..writeln('mixin _\$SQFlow${className}Mixin {');
+
+    if (useToJson) {
+      buffer
+        ..writeln()
+        ..writeln(
+            '  Map<String, dynamic> toJson() => _\$SQFlow${className}ToJson(this as $className);');
+    }
+
+    if (useToString) {
+      buffer
+        ..writeln()
+        ..writeln('  @override')
+        ..writeln(
+            '  String toString() => _\$SQFlow${className}ToString(this as $className);');
+    }
 
     // Timestamps fields
     final existsCreatedAt = fields.any((f) => f.name == 'createdAt');
@@ -173,147 +186,148 @@ class ModelMixinGenerator extends GeneratorForAnnotation<Schema> {
     // Close the mixin
     buffer.writeln('}');
 
-    // 2. Extension for SQL, Copy and ToString utilities
-    if (useToJson || useCopyWith || useToString) {
+    // 2. Helper functions for JSON and String serialization
+    if (useToJson) {
       buffer
         ..writeln()
-        ..writeln('extension SQFlow${className}SqlExt on $className {');
+        ..writeln(
+            'Map<String, dynamic> _\$SQFlow${className}ToJson($className instance) {')
+        ..writeln('  final ${className.toLowerCase()}Json = {');
+      for (final field in fields.where((f) => _isColumn(f))) {
+        final sqlName = MetadataExtractor.getSqlColumnName(field, strategy);
+        buffer.writeln(
+            "    '$sqlName': _\$SQFlowToJsonValue(instance.${field.name}),");
+      }
 
-      if (useToJson) {
-        buffer
-          ..writeln('  Map<String, dynamic> _\$SQFlow${className}ToJson() {')
-          ..writeln('    final ${className.toLowerCase()}Json = {');
-        for (final field in fields.where((f) => _isColumn(f))) {
-          final sqlName = MetadataExtractor.getSqlColumnName(field, strategy);
+      if (timestamps) {
+        if (!existsCreatedAt) {
           buffer.writeln(
-              "      '$sqlName': _\$SQFlowToJsonValue(${field.name}),");
+              r"    'created_at': _$SQFlowToJsonValue(instance.createdAt),");
         }
-
-        if (timestamps) {
-          if (!existsCreatedAt) {
-            buffer.writeln(
-                r"      'created_at': _$SQFlowToJsonValue(createdAt),");
-          }
-          if (!existsUpdatedAt) {
-            buffer.writeln(
-                r"      'updated_at': _$SQFlowToJsonValue(updatedAt),");
-          }
-        }
-        if (paranoid && !existsDeletedAt) {
-          buffer
-              .writeln(r"      'deleted_at': _$SQFlowToJsonValue(deletedAt),");
-        }
-
-        // Output synthesized foreign keys in toJson
-        for (final rel in relationships) {
-          if (rel['type'] == 'BelongsTo') {
-            final fkName = rel['foreignKeyName'];
-            final fkSqlName = rel['foreignKey'];
-            final existsFk = fields.any((f) => f.name == fkName);
-            if (!existsFk) {
-              buffer.writeln(
-                  "      '$fkSqlName': _\$SQFlowToJsonValue($fkName),");
-            }
-          }
-        }
-
-        buffer
-          ..writeln('    };')
-          ..writeln(useValidator
-              ? "  _\$validate$className(${className.toLowerCase()}Json, tableName: '$tableName');\n"
-              : '')
-          ..writeln('    return ${className.toLowerCase()}Json;')
-          ..writeln('  }');
-      }
-
-      if (useCopyWith) {
-        final constructor =
-            element.unnamedConstructor ?? element.constructors.first;
-        if (useToJson) buffer.writeln();
-        buffer.writeln('  $className copyWith({');
-
-        for (final param in constructor.parameters) {
-          final type = param.type.getDisplayString();
-          final copyType = type.endsWith('?') ? type : '$type?';
-          buffer.writeln('    $copyType ${param.name},');
-        }
-
-        if (timestamps) {
-          if (!existsCreatedAt) buffer.writeln('    DateTime? createdAt,');
-          if (!existsUpdatedAt) buffer.writeln('    DateTime? updatedAt,');
-        }
-        if (paranoid && !existsDeletedAt) {
-          buffer.writeln('    DateTime? deletedAt,');
-        }
-
-        buffer
-          ..writeln('  }) {')
-          ..writeln('    return $className(');
-
-        for (final param in constructor.parameters) {
+        if (!existsUpdatedAt) {
           buffer.writeln(
-              '      ${param.name}: ${param.name} ?? this.${param.name},');
+              r"    'updated_at': _$SQFlowToJsonValue(instance.updatedAt),");
         }
-
-        buffer.write('    )');
-
-        if (timestamps) {
-          if (!existsCreatedAt) {
-            buffer.write('\n      ..createdAt = createdAt ?? this.createdAt');
-          }
-          if (!existsUpdatedAt) {
-            buffer.write('\n      ..updatedAt = updatedAt ?? this.updatedAt');
-          }
-        }
-        if (paranoid && !existsDeletedAt) {
-          buffer.write('\n      ..deletedAt = deletedAt ?? this.deletedAt');
-        }
-
-        buffer
-          ..writeln(';')
-          ..writeln('  }');
+      }
+      if (paranoid && !existsDeletedAt) {
+        buffer.writeln(
+            r"    'deleted_at': _$SQFlowToJsonValue(instance.deletedAt),");
       }
 
-      if (useToString) {
-        if (useToJson || useCopyWith) buffer.writeln();
-        buffer
-          ..writeln('  String _\$SQFlow${className}ToString() {')
-          ..writeln('    return """')
-          ..writeln('$className(');
-
-        for (final field in fields) {
-          buffer.writeln('  ${field.name}: \$${field.name},');
-        }
-
-        if (timestamps) {
-          if (!existsCreatedAt) buffer.writeln('  createdAt: \$createdAt,');
-          if (!existsUpdatedAt) buffer.writeln('  updatedAt: \$updatedAt,');
-        }
-        if (paranoid && !existsDeletedAt) {
-          buffer.writeln('  deletedAt: \$deletedAt,');
-        }
-
-        for (final rel in relationships) {
-          final fieldName = rel['fieldName'];
-          final exists = fields.any((f) => f.name == fieldName);
-          if (!exists) {
-            buffer.writeln('  $fieldName: \$$fieldName,');
-          }
-          if (rel['type'] == 'BelongsTo') {
-            final fkName = rel['foreignKeyName'];
-            final existsFk = fields.any((f) => f.name == fkName);
-            if (!existsFk) {
-              buffer.writeln('  $fkName: \$$fkName,');
-            }
+      // Output synthesized foreign keys in toJson
+      for (final rel in relationships) {
+        if (rel['type'] == 'BelongsTo') {
+          final fkName = rel['foreignKeyName'];
+          final fkSqlName = rel['foreignKey'];
+          final existsFk = fields.any((f) => f.name == fkName);
+          if (!existsFk) {
+            buffer.writeln(
+                "    '$fkSqlName': _\$SQFlowToJsonValue(instance.$fkName),");
           }
         }
-
-        buffer
-          ..writeln(')""";')
-          ..writeln('  }');
       }
 
-      buffer.writeln('}');
+      buffer
+        ..writeln('  };')
+        ..writeln(useValidator
+            ? "  _\$validate$className(${className.toLowerCase()}Json, tableName: '$tableName');\n"
+            : '')
+        ..writeln('  return ${className.toLowerCase()}Json;')
+        ..writeln('}');
+    }
+
+    if (useToString) {
+      buffer
+        ..writeln()
+        ..writeln('String _\$SQFlow${className}ToString($className instance) {')
+        ..writeln('  return """')
+        ..writeln('$className(');
+
+      for (final field in fields) {
+        buffer.writeln('  ${field.name}: \${instance.${field.name}},');
+      }
+
+      if (timestamps) {
+        if (!existsCreatedAt)
+          buffer.writeln('  createdAt: \${instance.createdAt},');
+        if (!existsUpdatedAt)
+          buffer.writeln('  updatedAt: \${instance.updatedAt},');
+      }
+      if (paranoid && !existsDeletedAt) {
+        buffer.writeln('  deletedAt: \${instance.deletedAt},');
+      }
+
+      for (final rel in relationships) {
+        final fieldName = rel['fieldName'];
+        final exists = fields.any((f) => f.name == fieldName);
+        if (!exists) {
+          buffer.writeln('  $fieldName: \${instance.$fieldName},');
+        }
+        if (rel['type'] == 'BelongsTo') {
+          final fkName = rel['foreignKeyName'];
+          final existsFk = fields.any((f) => f.name == fkName);
+          if (!existsFk) {
+            buffer.writeln('  $fkName: \${instance.$fkName},');
+          }
+        }
+      }
+
+      buffer
+        ..writeln(')""";')
+        ..writeln('}');
+    }
+
+    // 3. Extension for CopyWith
+    if (useCopyWith) {
+      buffer
+        ..writeln()
+        ..writeln('extension SQFlow${className}Ext on $className {');
+
+      final constructor =
+          element.unnamedConstructor ?? element.constructors.first;
+      buffer.writeln('  $className copyWith({');
+
+      for (final param in constructor.parameters) {
+        final type = param.type.getDisplayString();
+        final copyType = type.endsWith('?') ? type : '$type?';
+        buffer.writeln('    $copyType ${param.name},');
+      }
+
+      if (timestamps) {
+        if (!existsCreatedAt) buffer.writeln('    DateTime? createdAt,');
+        if (!existsUpdatedAt) buffer.writeln('    DateTime? updatedAt,');
+      }
+      if (paranoid && !existsDeletedAt) {
+        buffer.writeln('    DateTime? deletedAt,');
+      }
+
+      buffer
+        ..writeln('  }) {')
+        ..writeln('    return $className(');
+
+      for (final param in constructor.parameters) {
+        buffer.writeln(
+            '      ${param.name}: ${param.name} ?? this.${param.name},');
+      }
+
+      buffer.write('    )');
+
+      if (timestamps) {
+        if (!existsCreatedAt) {
+          buffer.write('\n      ..createdAt = createdAt ?? this.createdAt');
+        }
+        if (!existsUpdatedAt) {
+          buffer.write('\n      ..updatedAt = updatedAt ?? this.updatedAt');
+        }
+      }
+      if (paranoid && !existsDeletedAt) {
+        buffer.write('\n      ..deletedAt = deletedAt ?? this.deletedAt');
+      }
+
+      buffer
+        ..writeln(';')
+        ..writeln('  }')
+        ..writeln('}');
     }
 
     // 3. Validation Method
@@ -333,13 +347,14 @@ class ModelMixinGenerator extends GeneratorForAnnotation<Schema> {
 
         if (validatorsReader != null && validatorsReader.isList) {
           final sqlName = MetadataExtractor.getSqlColumnName(field, strategy);
-          
+
           for (final validatorObj in validatorsReader.listValue) {
             final validatorReader = ConstantReader(validatorObj);
             final revived = validatorReader.revive();
             final constString = _reviveToCheckCode(revived);
 
-            final isJsonValidator = _jsonValidatorChecker.isAssignableFromType(validatorObj.type!);
+            final isJsonValidator =
+                _jsonValidatorChecker.isAssignableFromType(validatorObj.type!);
             final exceptionType = isJsonValidator
                 ? 'SqflowJSONValidatorException'
                 : 'SqflowCHECKValidatorException';
@@ -347,15 +362,16 @@ class ModelMixinGenerator extends GeneratorForAnnotation<Schema> {
             // final isNullable =
             //   field.type.nullabilitySuffix == NullabilitySuffix.question;
             // if (!isNullable) { ... }
-            
+
             buffer
-              ..writeln("  if (!const $constString.isValid(json['$sqlName'])) {")
+              ..writeln(
+                  "  if (!const $constString.isValid(json['$sqlName'])) {")
               ..writeln('    throw $exceptionType(')
               ..writeln('      table: tableName,')
               ..writeln("      column: '$sqlName',")
               ..writeln(
                   '      message: \'Value "\${json[\'$sqlName\']}" failed validation\',');
-            
+
             final constraint = validatorReader.peek('constraint')?.stringValue;
             if (constraint != null) {
               buffer.writeln("      constraint: '$constraint',");
@@ -476,11 +492,17 @@ class ModelMixinGenerator extends GeneratorForAnnotation<Schema> {
         ..writeln('}');
     }
 
-    // 4. Type-safe Table Columns
+    // 5. Pluralized service object (e.g. Posts)
+    final serviceName = tableName
+        .split('_')
+        .map((s) => s[0].toUpperCase() + s.substring(1))
+        .join();
     buffer
       ..writeln()
-      ..writeln('class ${className}Table {');
+      ..writeln('/// Pluralized service for $className')
+      ..writeln('class $serviceName {');
 
+    // Add Columns to Service Class
     for (final field in fields.where((f) => _isColumn(f))) {
       final sqlName = MetadataExtractor.getSqlColumnName(field, strategy);
       var type = field.type.getDisplayString();
@@ -517,7 +539,83 @@ class ModelMixinGenerator extends GeneratorForAnnotation<Schema> {
       }
     }
 
-    buffer.writeln('}');
+    buffer
+      ..writeln()
+      ..writeln(
+          '  static SqflowCore<$className> get _service => SqflowCore<$className>(dbManager: appDb, table: ${tableName}Table);')
+      ..writeln()
+      ..writeln(
+          '  static SqflowQuery<$className> where(SqflowCondition condition) => _service.where(condition);')
+      ..writeln('  static SqflowQuery<$className> get query => _service.query;')
+      ..writeln()
+      ..writeln(
+          '  static Future<int> insert($className item, {DatabaseExecutor? executor}) => _service.insertAsync(item, executor: executor);')
+      ..writeln(
+          '  static Future<int> update($className item, {DatabaseExecutor? executor}) => _service.updateAsync(item, executor: executor);')
+      ..writeln(
+          '  static Future<void> upsert($className item, {DatabaseExecutor? executor}) => _service.upsertAsync(item, executor: executor);')
+      ..writeln(
+          '  static Future<int> delete(Object id, {bool force = false, DatabaseExecutor? executor}) => _service.deleteAsync(id, force: force, executor: executor);')
+      ..writeln(
+          '  static Future<int> restore(Object id, {DatabaseExecutor? executor}) => _service.restoreAsync(id, executor: executor);')
+      ..writeln()
+      ..writeln(
+          '  static Future<int> insertBatch(List<$className> items, {DatabaseExecutor? executor}) => _service.insertBatchAsync(items, executor: executor);')
+      ..writeln(
+          '  static Future<int> updateBatch(List<$className> items, {DatabaseExecutor? executor}) => _service.updateBatchAsync(items, executor: executor);')
+      ..writeln(
+          '  static Future<int> upsertBatch(List<$className> items, {DatabaseExecutor? executor}) => _service.upsertBatchAsync(items, executor: executor);')
+      ..writeln(
+          '  static Future<int> deleteBatch(List<Object> ids, {bool force = false, DatabaseExecutor? executor}) => _service.deleteBatchAsync(ids, force: force, executor: executor);');
+
+    if (paranoid) {
+      buffer.writeln(
+          '  static Future<int> restoreBatch(List<Object> ids, {DatabaseExecutor? executor}) => _service.restoreBatchAsync(ids, executor: executor);');
+    }
+
+    buffer
+      ..writeln()
+      ..writeln(
+          '  static Future<bool> exists(Object id, {bool withDeleted = false, DatabaseExecutor? executor}) => _service.existsAsync(id, withDeleted: withDeleted, executor: executor);')
+      ..writeln()
+      ..writeln(
+          '  static Future<$className?> read(Object id, {List<String>? columns, Attributes? attributes, bool withDeleted = false, List<Includable>? include, DatabaseExecutor? executor}) => ')
+      ..writeln(
+          '    _service.readAsync(id, columns: columns, attributes: attributes, withDeleted: withDeleted, include: include, executor: executor);')
+      ..writeln()
+      ..writeln(
+          '  static Future<Result<$className>> readAll({int limit = 20, int offset = 0, WhereBuilder? where, SortBuilder? sort, List<String>? columns, Attributes? attributes, bool withDeleted = false, bool onlyDeleted = false, List<Includable>? include, DatabaseExecutor? executor}) => ')
+      ..writeln(
+          '    _service.readAll(limit: limit, offset: offset, where: where, sort: sort, columns: columns, attributes: attributes, withDeleted: withDeleted, onlyDeleted: onlyDeleted, include: include, executor: executor);')
+      ..writeln()
+      ..writeln(
+          '  static Future<ResultWithCount<$className>> readAllWithCount({int limit = 20, int offset = 0, WhereBuilder? where, SortBuilder? sort, List<String>? columns, Attributes? attributes, bool withDeleted = false, bool onlyDeleted = false, List<Includable>? include, DatabaseExecutor? executor}) => ')
+      ..writeln(
+          '    _service.readAllWithCount(limit: limit, offset: offset, where: where, sort: sort, columns: columns, attributes: attributes, withDeleted: withDeleted, onlyDeleted: onlyDeleted, include: include, executor: executor);')
+      ..writeln()
+      ..writeln(
+          '  static Future<int> count({Object? column, WhereBuilder? where, DatabaseExecutor? executor}) => _service.countAsync(column: column, where: where, executor: executor);')
+      ..writeln(
+          '  static Future<num> sum(Object column, {WhereBuilder? where, DatabaseExecutor? executor}) => _service.sumAsync(column, where: where, executor: executor);')
+      ..writeln(
+          '  static Future<num> avg(Object column, {WhereBuilder? where, DatabaseExecutor? executor}) => _service.avgAsync(column, where: where, executor: executor);')
+      ..writeln(
+          '  static Future<num> min(Object column, {WhereBuilder? where, DatabaseExecutor? executor}) => _service.minAsync(column, where: where, executor: executor);')
+      ..writeln(
+          '  static Future<num> max(Object column, {WhereBuilder? where, DatabaseExecutor? executor}) => _service.maxAsync(column, where: where, executor: executor);')
+      ..writeln()
+      ..writeln(
+          '  static Future<T> transaction<T>(Future<T> Function(DatabaseExecutor txn) action) => _service.transaction(action);')
+      ..writeln()
+      ..writeln(
+          '  static Stream<String> get changeStream => _service.dbManager.changeStream;')
+      ..writeln(
+          '  static Stream<$className?> watch(Object id, {List<Includable>? include}) => _service.watch(id, include: include);')
+      ..writeln(
+          '  static Stream<List<$className>> watchAll({WhereBuilder? where, List<Includable>? include, SortBuilder? sort, int? limit}) => ')
+      ..writeln(
+          '    _service.watchAll(where: where, include: include, sort: sort, limit: limit);')
+      ..writeln('}');
 
     return buffer.toString();
   }
