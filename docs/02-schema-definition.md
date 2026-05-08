@@ -93,7 +93,7 @@ final String firstName;
 @Column(unique: true)
 final String email;
 
-@Column(nullable: true)
+@Column()
 final int? age;
 
 @Column(defaultValue: true)
@@ -122,6 +122,7 @@ final String bio;
 | `unique`       | `bool`              | `false`  | `UNIQUE` constraint                  |
 | `defaultValue` | `dynamic`           | `null`   | SQL `DEFAULT` value                  |
 | `validators`   | `List<IValidator>?` | `null`   | Value constraints (Check/Regex/etc.) |
+| `converter`    | `ValueConverter?`   | `null`   | Custom type transformer              |
 
 ---
 
@@ -145,6 +146,7 @@ SQFlow automatically infers the SQLite data type from your Dart field types. You
 
 Use `sqlType` if you need a specific SQLite type definition:
 
+```dart
 @Column(sqlType: SqlTypes.text)
 final String bio;
 
@@ -158,6 +160,79 @@ final String username;
 
 > [!NOTE]
 > For booleans and dates, the generator handles conversion between Dart types and SQLite representations automatically.
+
+---
+
+## Value Converters
+
+Value Converters allow you to transform complex Dart types into simple types supported by SQLite (and vice versa). This is useful for storing objects like `Map`, `List`, Enums, or custom domain objects as `TEXT`, `INTEGER`, or `BLOB` in the database.
+
+### Why use Value Converters?
+
+*   **Support for any data type**: Store complex objects (Colors, Points, custom classes) in standard SQL columns.
+*   **Encapsulation**: Keep transformation logic (like `jsonEncode`/`jsonDecode`) in one place instead of scattering it throughout your UI or service layers.
+*   **Type Safety**: Work with strongly-typed objects in your Dart code while the converter handles the low-level SQL representation.
+*   **Automatic Integration**: Sqflow automatically uses converters in `toJson()`, `fromJson()`, and database operations.
+
+### Creating a Converter
+
+To create a converter, inherit from `ValueConverter<DartType, SqlType>` and implement `fromSql` and `toSql`.
+
+```dart
+class JsonMapConverter extends ValueConverter<Map<String, dynamic>, String> {
+  const JsonMapConverter();
+
+  @override
+  Map<String, dynamic> fromSql(String sqlValue) {
+    return jsonDecode(sqlValue) as Map<String, dynamic>;
+  }
+
+  @override
+  String toSql(Map<String, dynamic> value) {
+    return jsonEncode(value);
+  }
+}
+```
+
+### Example: Storing an Enum
+
+Instead of manually converting Enums to strings everywhere, use a converter:
+
+```dart
+enum UserRole { admin, editor, user }
+
+class RoleConverter extends ValueConverter<UserRole, String> {
+  const RoleConverter();
+
+  @override
+  UserRole fromSql(String sqlValue) => 
+      UserRole.values.firstWhere((e) => e.name == sqlValue);
+
+  @override
+  String toSql(UserRole value) => value.name;
+}
+
+// In your model:
+@Column(converter: RoleConverter())
+final UserRole role;
+```
+
+### Using a Converter
+
+Apply the converter to a field using the `converter` parameter in `@Column`.
+
+```dart
+@Column(converter: JsonMapConverter())
+final Map<String, dynamic>? metadata;
+```
+
+### How it Works
+
+1.  **To Database**: When you save a model or call `toJson()`, SQFlow calls `converter.toSql()`.
+2.  **From Database**: When you read a model or call `fromJson()`, SQFlow calls `converter.fromSql()`.
+
+> [!IMPORTANT]
+> The converter must have a **`const`** constructor so it can be used inside the `@Column` annotation.
 
 ---
 

@@ -59,6 +59,7 @@ class _SocialFeedPageState extends State<SocialFeedPage> {
           country: 'Bulgaria',
           address: '45 Rose Valley',
           gender: 'M',
+          password: 'secret_password_123',
         );
         await Users.insert(author, executor: txn);
 

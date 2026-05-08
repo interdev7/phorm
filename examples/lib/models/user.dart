@@ -1,4 +1,5 @@
-import 'package:sqflow_core/sqflow_core.dart';
+import 'dart:convert';
+import 'package:sqflow_core/sqflow_core.dart'; // forced rebuild
 import 'package:sqflow_example/db.dart';
 import 'post.dart';
 
@@ -47,6 +48,8 @@ class User extends Model with _$SQFlowUserMixin {
     this.age,
     this.isActive = true,
     this.isVerified = false,
+    this.metadata,
+    required this.password,
     this.posts = const [],
   });
 
@@ -123,4 +126,40 @@ class User extends Model with _$SQFlowUserMixin {
 
   @Column(defaultValue: false)
   final bool isVerified;
+
+  @Column(converter: JsonMapConverter())
+  final Map<String, dynamic>? metadata;
+
+  @Column(converter: PasswordConverter())
+  final String password;
+}
+
+class PasswordConverter extends ValueConverter<String, String> {
+  const PasswordConverter();
+
+  @override
+  String fromSql(String sqlValue) {
+    // Simple mock: remove prefix
+    return sqlValue.startsWith('hash_') ? sqlValue.substring(5) : sqlValue;
+  }
+
+  @override
+  String toSql(String value) {
+    // Simple mock: add prefix
+    return 'hash_$value';
+  }
+}
+
+class JsonMapConverter extends ValueConverter<Map<String, dynamic>, String> {
+  const JsonMapConverter();
+
+  @override
+  Map<String, dynamic> fromSql(String sqlValue) {
+    return jsonDecode(sqlValue) as Map<String, dynamic>;
+  }
+
+  @override
+  String toSql(Map<String, dynamic> value) {
+    return jsonEncode(value);
+  }
 }

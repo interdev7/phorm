@@ -1,8 +1,8 @@
 // lib/builder.dart
 import 'package:build/build.dart';
 import 'package:path/path.dart' as p;
+import 'package:analyzer/dart/element/element.dart';
 import 'package:source_gen/source_gen.dart';
-import 'package:sqflow_platform_interface/src/annotations.dart';
 
 import 'src/model_mixin_generator.dart';
 import 'src/sqlite_schema_generator.dart';
@@ -28,10 +28,26 @@ class _SqflowCombinedGenerator extends Generator {
   @override
   Future<String> generate(LibraryReader library, BuildStep buildStep) async {
     final buffer = StringBuffer();
-    final annotated =
-        library.annotatedWith(const TypeChecker.fromRuntime(Schema));
 
-    if (annotated.isEmpty) return '';
+    final schemaChecker = TypeChecker.fromUrl(
+        'package:sqflow_platform_interface/src/annotations.dart#Schema');
+    var annotated = library.annotatedWith(schemaChecker);
+
+    if (annotated.isEmpty) {
+      // Fallback: manually check classes
+      final allAnnotated = <AnnotatedElement>[];
+      for (final c in library.allElements.whereType<ClassElement>()) {
+        final annotation = schemaChecker.firstAnnotationOf(c);
+        if (annotation != null) {
+          allAnnotated.add(AnnotatedElement(ConstantReader(annotation), c));
+        }
+      }
+      annotated = allAnnotated;
+    }
+
+    if (annotated.isEmpty) {
+      return '';
+    }
 
     final fileName = p.basename(buildStep.inputId.path);
     buffer.writeln("part of '$fileName';\n");

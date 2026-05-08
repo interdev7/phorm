@@ -14,3 +14,4 @@ export 'src/result_data.dart';
 export 'src/sql_types.dart';
 export 'src/table.dart';
 export 'src/table_migration.dart';
+export 'src/value_converter.dart';
