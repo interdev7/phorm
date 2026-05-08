@@ -607,11 +607,6 @@ class ModelMixinGenerator extends GeneratorForAnnotation<Schema> {
       ..writeln(
           '  static Future<T> transaction<T>(Future<T> Function(DatabaseExecutor txn) action) => _service.transaction(action);')
       ..writeln()
-      // ..writeln(
-      //     '  static String buildJoinQuery({List<String>? columns, Attributes? attributes, List<Includable>? include, WhereBuilder? where, SortBuilder? sort, int? limit, int? offset, bool includeTotalCount = false, bool explainQueryPlan = false}) => ')
-      // ..writeln(
-      //     '    _service.buildJoinQuery(columns: columns, attributes: attributes, include: include, where: where, sort: sort, limit: limit, offset: offset, includeTotalCount: includeTotalCount, explainQueryPlan: explainQueryPlan);')
-      // ..writeln()
       ..writeln(
           '  static Stream<String> get changeStream => _service.dbManager.changeStream;')
       ..writeln(

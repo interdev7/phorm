@@ -94,10 +94,7 @@ class User extends Model with _$SQFlowUserMixin {
 
   @Column(
     validators: [
-      RegExpValidator(
-        r'\d{4}-\d{2}-\d{2}',
-        constraint: 'date_format',
-      ),
+      RegExpValidator(r'\d{4}-\d{2}-\d{2}', constraint: 'date_format'),
     ],
   )
   final String? birthDate;
@@ -126,5 +123,4 @@ class User extends Model with _$SQFlowUserMixin {
 
   @Column(defaultValue: false)
   final bool isVerified;
-
 }
