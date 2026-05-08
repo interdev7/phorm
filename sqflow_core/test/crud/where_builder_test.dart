@@ -167,5 +167,50 @@ void main() {
       expect(where.build(), 'is_active = ? AND email LIKE ? AND age > ? AND LENGTH(first_name) = ?');
       expect(where.args, [1, '%gmail.com', 30, 5]);
     });
+
+    test('WhereBuilders.softDelete factory', () {
+      final where = WhereBuilders.softDelete(
+        paranoid: true,
+        withDeleted: false,
+        onlyDeleted: false,
+      );
+      expect(where.build(), 'deleted_at IS NULL');
+
+      final onlyDeleted = WhereBuilders.softDelete(
+        paranoid: true,
+        onlyDeleted: true,
+      );
+      expect(onlyDeleted.build(), 'deleted_at IS NOT NULL');
+
+      final withDeleted = WhereBuilders.softDelete(
+        paranoid: true,
+        withDeleted: true,
+      );
+      expect(withDeleted.isEmpty, true);
+    });
+
+    test('WhereBuilders.multiColumnSearch factory', () {
+      final where = WhereBuilders.multiColumnSearch(
+        'john',
+        ['first_name', 'last_name', 'email'],
+        caseSensitive: true,
+      );
+
+      expect(
+        where.build(),
+        '(first_name LIKE ? OR last_name LIKE ? OR email LIKE ?)',
+      );
+      expect(where.args, ['%john%', '%john%', '%john%']);
+
+      final caseInsensitive = WhereBuilders.multiColumnSearch(
+        'john',
+        ['first_name', 'last_name'],
+        caseSensitive: false,
+      );
+      expect(
+        caseInsensitive.build(),
+        '(LOWER(first_name) LIKE LOWER(?) OR LOWER(last_name) LIKE LOWER(?))',
+      );
+    });
   });
 }

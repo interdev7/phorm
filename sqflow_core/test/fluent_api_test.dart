@@ -38,7 +38,7 @@ void main() {
 
       // Approach B: New Fluent API via static class
       // Note: Users class is generated in user.sql.g.dart
-      final resultB = await Users.where(Users.gender.equals('M')).get();
+      final resultB = await Users.where(Users.gender.eq('M')).get();
 
       expect(resultA.data.length, resultB.length);
       expect(resultA.data.first.id, resultB.first.id);
@@ -71,7 +71,7 @@ void main() {
     test('Complex fluent query', () async {
       // Demonstrate chaining
       final users = await Users.query
-          .where(Users.age.greaterThan(25))
+          .where(Users.age.gt(25))
           .orderBy(Users.age, descending: true)
           .limit(5)
           .get();
