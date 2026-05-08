@@ -124,11 +124,11 @@ class ModelMixinGenerator extends GeneratorForAnnotation<Schema> {
     final buffer = StringBuffer()
       ..writeln('mixin _\$SQFlow${className}Mixin {');
 
-
     if (useToJson) {
       buffer
         ..writeln()
-        ..writeln('  Map<String, dynamic> toJson() => _\$SQFlow${className}ToJson(this as $className);');
+        ..writeln(
+            '  Map<String, dynamic> toJson() => _\$SQFlow${className}ToJson(this as $className);');
     }
 
     if (useToString) {
@@ -492,7 +492,6 @@ class ModelMixinGenerator extends GeneratorForAnnotation<Schema> {
         ..writeln('}');
     }
 
-
     // 5. Pluralized service object (e.g. Posts)
     final serviceName = tableName
         .split('_')
@@ -561,6 +560,25 @@ class ModelMixinGenerator extends GeneratorForAnnotation<Schema> {
           '  static Future<int> restore(Object id, {DatabaseExecutor? executor}) => _service.restoreAsync(id, executor: executor);')
       ..writeln()
       ..writeln(
+          '  static Future<int> insertBatch(List<$className> items, {DatabaseExecutor? executor}) => _service.insertBatchAsync(items, executor: executor);')
+      ..writeln(
+          '  static Future<int> updateBatch(List<$className> items, {DatabaseExecutor? executor}) => _service.updateBatchAsync(items, executor: executor);')
+      ..writeln(
+          '  static Future<int> upsertBatch(List<$className> items, {DatabaseExecutor? executor}) => _service.upsertBatchAsync(items, executor: executor);')
+      ..writeln(
+          '  static Future<int> deleteBatch(List<Object> ids, {bool force = false, DatabaseExecutor? executor}) => _service.deleteBatchAsync(ids, force: force, executor: executor);');
+
+    if (paranoid) {
+      buffer.writeln(
+          '  static Future<int> restoreBatch(List<Object> ids, {DatabaseExecutor? executor}) => _service.restoreBatchAsync(ids, executor: executor);');
+    }
+
+    buffer
+      ..writeln()
+      ..writeln(
+          '  static Future<bool> exists(Object id, {bool withDeleted = false, DatabaseExecutor? executor}) => _service.existsAsync(id, withDeleted: withDeleted, executor: executor);')
+      ..writeln()
+      ..writeln(
           '  static Future<$className?> read(Object id, {List<String>? columns, Attributes? attributes, bool withDeleted = false, List<Includable>? include, DatabaseExecutor? executor}) => ')
       ..writeln(
           '    _service.readAsync(id, columns: columns, attributes: attributes, withDeleted: withDeleted, include: include, executor: executor);')
@@ -577,10 +595,23 @@ class ModelMixinGenerator extends GeneratorForAnnotation<Schema> {
       ..writeln()
       ..writeln(
           '  static Future<int> count({Object? column, WhereBuilder? where, DatabaseExecutor? executor}) => _service.countAsync(column: column, where: where, executor: executor);')
+      ..writeln(
+          '  static Future<num> sum(Object column, {WhereBuilder? where, DatabaseExecutor? executor}) => _service.sumAsync(column, where: where, executor: executor);')
+      ..writeln(
+          '  static Future<num> avg(Object column, {WhereBuilder? where, DatabaseExecutor? executor}) => _service.avgAsync(column, where: where, executor: executor);')
+      ..writeln(
+          '  static Future<num> min(Object column, {WhereBuilder? where, DatabaseExecutor? executor}) => _service.minAsync(column, where: where, executor: executor);')
+      ..writeln(
+          '  static Future<num> max(Object column, {WhereBuilder? where, DatabaseExecutor? executor}) => _service.maxAsync(column, where: where, executor: executor);')
       ..writeln()
       ..writeln(
           '  static Future<T> transaction<T>(Future<T> Function(DatabaseExecutor txn) action) => _service.transaction(action);')
       ..writeln()
+      // ..writeln(
+      //     '  static String buildJoinQuery({List<String>? columns, Attributes? attributes, List<Includable>? include, WhereBuilder? where, SortBuilder? sort, int? limit, int? offset, bool includeTotalCount = false, bool explainQueryPlan = false}) => ')
+      // ..writeln(
+      //     '    _service.buildJoinQuery(columns: columns, attributes: attributes, include: include, where: where, sort: sort, limit: limit, offset: offset, includeTotalCount: includeTotalCount, explainQueryPlan: explainQueryPlan);')
+      // ..writeln()
       ..writeln(
           '  static Stream<String> get changeStream => _service.dbManager.changeStream;')
       ..writeln(

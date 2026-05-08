@@ -169,6 +169,23 @@ class MigrationUsers {
   static Future<int> restore(Object id, {DatabaseExecutor? executor}) =>
       _service.restoreAsync(id, executor: executor);
 
+  static Future<int> insertBatch(List<MigrationUser> items,
+          {DatabaseExecutor? executor}) =>
+      _service.insertBatchAsync(items, executor: executor);
+  static Future<int> updateBatch(List<MigrationUser> items,
+          {DatabaseExecutor? executor}) =>
+      _service.updateBatchAsync(items, executor: executor);
+  static Future<int> upsertBatch(List<MigrationUser> items,
+          {DatabaseExecutor? executor}) =>
+      _service.upsertBatchAsync(items, executor: executor);
+  static Future<int> deleteBatch(List<Object> ids,
+          {bool force = false, DatabaseExecutor? executor}) =>
+      _service.deleteBatchAsync(ids, force: force, executor: executor);
+
+  static Future<bool> exists(Object id,
+          {bool withDeleted = false, DatabaseExecutor? executor}) =>
+      _service.existsAsync(id, withDeleted: withDeleted, executor: executor);
+
   static Future<MigrationUser?> read(Object id,
           {List<String>? columns,
           Attributes? attributes,
@@ -231,6 +248,18 @@ class MigrationUsers {
   static Future<int> count(
           {Object? column, WhereBuilder? where, DatabaseExecutor? executor}) =>
       _service.countAsync(column: column, where: where, executor: executor);
+  static Future<num> sum(Object column,
+          {WhereBuilder? where, DatabaseExecutor? executor}) =>
+      _service.sumAsync(column, where: where, executor: executor);
+  static Future<num> avg(Object column,
+          {WhereBuilder? where, DatabaseExecutor? executor}) =>
+      _service.avgAsync(column, where: where, executor: executor);
+  static Future<num> min(Object column,
+          {WhereBuilder? where, DatabaseExecutor? executor}) =>
+      _service.minAsync(column, where: where, executor: executor);
+  static Future<num> max(Object column,
+          {WhereBuilder? where, DatabaseExecutor? executor}) =>
+      _service.maxAsync(column, where: where, executor: executor);
 
   static Future<T> transaction<T>(
           Future<T> Function(DatabaseExecutor txn) action) =>
