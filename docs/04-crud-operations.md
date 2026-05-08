@@ -12,7 +12,6 @@ final usersTable = Table<User>(
   name: 'users',
   schema: '...CREATE TABLE SQL...',
   fromJson: User.fromJson,
-  type: User,
   primaryKey: 'id',
   paranoid: true,        // soft deletes
   timestamps: true,      // auto created_at/updated_at

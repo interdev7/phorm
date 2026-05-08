@@ -115,7 +115,6 @@ final usersTable = Table<User>(
     CREATE INDEX idx_users_name ON users(first_name, last_name);
   ''',
   fromJson: _$SQFlowUserFromJson,
-  type: User,
   primaryKey: 'id',
   paranoid: true,
   timestamps: true,
