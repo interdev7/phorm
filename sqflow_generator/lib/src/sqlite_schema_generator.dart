@@ -186,7 +186,7 @@ class SqliteSchemaGenerator extends GeneratorForAnnotation<Schema> {
       final r = ConstantReader(item);
       final type = item.type!.element!.name;
       final modelReader = r.read('model');
-      return {
+      final res = {
         'type': type,
         'model': _resolveModelName(modelReader),
         'idType': MetadataExtractor.resolveIdSqlType(modelReader),
@@ -195,6 +195,13 @@ class SqliteSchemaGenerator extends GeneratorForAnnotation<Schema> {
         'onDelete': r.peek('onDelete')?.stringValue,
         'onUpdate': r.peek('onUpdate')?.stringValue,
       };
+
+      if (type == 'ManyToMany') {
+        res['pivotTable'] = r.read('pivotTable').stringValue;
+        res['relatedKey'] = r.read('relatedKey').stringValue;
+        res['relatedLocalKey'] = r.read('relatedLocalKey').stringValue;
+      }
+      return res;
     }).toList();
   }
 
@@ -202,7 +209,7 @@ class SqliteSchemaGenerator extends GeneratorForAnnotation<Schema> {
     final reader = ConstantReader(meta.computeConstantValue());
     final type = meta.element!.enclosingElement3!.name!;
     final modelReader = reader.read('model');
-    return {
+    final res = {
       'type': type,
       'model': _resolveModelName(modelReader),
       'idType': MetadataExtractor.resolveIdSqlType(modelReader),
@@ -211,6 +218,13 @@ class SqliteSchemaGenerator extends GeneratorForAnnotation<Schema> {
       'onDelete': reader.peek('onDelete')?.stringValue,
       'onUpdate': reader.peek('onUpdate')?.stringValue,
     };
+
+    if (type == 'ManyToMany') {
+      res['pivotTable'] = reader.read('pivotTable').stringValue;
+      res['relatedKey'] = reader.read('relatedKey').stringValue;
+      res['relatedLocalKey'] = reader.read('relatedLocalKey').stringValue;
+    }
+    return res;
   }
 
   String _resolveModelName(ConstantReader modelReader) {

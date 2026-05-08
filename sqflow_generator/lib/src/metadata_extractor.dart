@@ -19,6 +19,8 @@ class MetadataExtractor {
       'package:sqflow_platform_interface/src/annotations.dart#ForeignKey');
   static const belongsToChecker = TypeChecker.fromUrl(
       'package:sqflow_platform_interface/src/annotations.dart#BelongsTo');
+  static const manyToManyChecker = TypeChecker.fromUrl(
+      'package:sqflow_platform_interface/src/annotations.dart#ManyToMany');
   static const valueConverterChecker = TypeChecker.fromUrl(
       'package:sqflow_platform_interface/src/value_converter.dart#ValueConverter');
 
