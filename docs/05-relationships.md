@@ -11,6 +11,7 @@ SQFlow provides three relationship types: `HasMany`, `HasOne`, and `BelongsTo` (
 | `HasMany` | One → Many | User has many Orders | `List<T>` (empty if none) |
 | `HasOne` | One → One | User has one Profile | `Map?` (null if none) |
 | `BelongsTo` | Many → One | Order belongs to User | `Map?` (null if none) |
+| `ManyToMany` | Many ↔ Many | User belongs to many Roles | `List<T>` (empty if none) |
 | `Join` | alias of `BelongsTo` | Same as BelongsTo | `Map?` |
 
 ---
@@ -34,6 +35,19 @@ class User extends Model with _$SQFlowUserMixin { ... }
   ],
 )
 class Order extends Model with _$SQFlowOrderMixin { ... }
+
+@Schema(
+  tableName: 'users',
+  relationships: [
+    ManyToMany(
+      model: Role,
+      pivotTable: 'user_roles',
+      foreignKey: 'user_id',    // Key for current model in pivot
+      relatedKey: 'role_id',    // Key for related model in pivot
+    ),
+  ],
+)
+class User extends Model with _$SQFlowUserMixin { ... }
 ```
 
 ### Relationship Parameters
@@ -45,6 +59,14 @@ class Order extends Model with _$SQFlowOrderMixin { ... }
 | `localKey` | `String` | `'id'` | The local side column (usually primary key) |
 | `onDelete` | `String?` | `null` | SQL action on delete (use `ReferentialAction`) |
 | `onUpdate` | `String?` | `null` | SQL action on update (use `ReferentialAction`) |
+
+### ManyToMany Specific Parameters
+
+| Parameter | Type | Default | Description |
+| :--- | :--- | :--- | :--- |
+| `pivotTable` | `String` | required | Name of the join table |
+| `relatedKey` | `String` | required | Pivot column pointing to the related table |
+| `relatedLocalKey` | `String` | `'id'` | Local key of the related table |
 
 ### Example with Actions
 
@@ -77,6 +99,19 @@ SELECT
    WHERE orders.user_id = users.id) AS orders
 FROM users
 WHERE users.deleted_at IS NULL
+```
+
+### ManyToMany (JSON aggregation with JOIN)
+
+```sql
+SELECT
+  users.id,
+  users.name,
+  (SELECT json_group_array(json_object('id', roles.id, 'title', roles.title))
+   FROM roles
+   INNER JOIN user_roles ON user_roles.role_id = roles.id
+   WHERE user_roles.user_id = users.id) AS roles
+FROM users
 ```
 
 ### HasOne / BelongsTo (json_object subquery)
@@ -193,6 +228,7 @@ factory User.fromJson(Map<String, dynamic> json) {
 
 > [!WARNING]
 > The key in `json` is always the **SQL table name**, not the Dart class name or field name.
+>
 > - `HasMany(model: Order, ...)` where Orders table is `'orders'` → key is `json['orders']`
 > - `HasOne(model: Profile, ...)` where Profiles table is `'profiles'` → key is `json['profiles']`
 
@@ -222,6 +258,7 @@ final result = await userService.readAll(
 ```
 
 Generated SQL:
+
 ```sql
 SELECT users.*
 FROM users

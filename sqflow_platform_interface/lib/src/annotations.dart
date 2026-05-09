@@ -25,7 +25,7 @@ abstract class ColumnBase {
   final String? columnName;
 
   /// Database data type of the column.
-  /// 
+  ///
   /// By default, the generator infers this from the Dart field type.
   /// If you want to explicitly override the SQLite type (e.g. 'VARCHAR(255)', 'JSON'), set this field.
   final String? sqlType;
@@ -224,6 +224,31 @@ class Join extends BelongsTo {
   });
 }
 
+class ManyToMany extends Relationship {
+  /// The name of the pivot (join) table.
+  final String pivotTable;
+
+  /// The column in the pivot table that points to the related model.
+  final String relatedKey;
+
+  /// The column in the related model that is referenced by [relatedKey].
+  final String relatedLocalKey;
+
+  const ManyToMany({
+    required super.model,
+    required this.pivotTable,
+    required super.foreignKey,
+    required this.relatedKey,
+    super.localKey = 'id',
+    this.relatedLocalKey = 'id',
+    super.onDelete,
+    super.onUpdate,
+  });
+
+  @override
+  bool get isCollection => true;
+}
+
 /// Database index definition.
 class Index {
   /// Columns included in the index.
@@ -255,16 +280,12 @@ abstract interface class Includable {
   List<Includable>? get include;
 
   /// Includes a relationship by its explicit table name.
-  static Includable table(String name,
-          {Attributes? attributes, List<Includable>? include}) =>
-      _TableIncludable(name, attributes: attributes, include: include);
+  static Includable table(String name, {Attributes? attributes, List<Includable>? include}) => _TableIncludable(name, attributes: attributes, include: include);
 
   /// Includes a relationship by its model class type.
   ///
   /// Provides compile-time safety and refactoring support.
-  static Includable model<T>(
-          {Attributes? attributes, List<Includable>? include}) =>
-      _ModelIncludable<T>(attributes: attributes, include: include);
+  static Includable model<T>({Attributes? attributes, List<Includable>? include}) => _ModelIncludable<T>(attributes: attributes, include: include);
 }
 
 class _TableIncludable implements Includable {
@@ -296,20 +317,17 @@ class _ModelIncludable<T> implements Includable {
       // But in practice, we know it's a list of Table objects.
       if (table.type == T) return table.name as String;
     }
-    throw ArgumentError(
-        'Table for model type $T not found in registered tables.');
+    throw ArgumentError('Table for model type $T not found in registered tables.');
   }
 }
 
 /// Interface for attribute filtering in queries (columns selection).
 abstract interface class Attributes {
   /// Includes only the specified columns.
-  static Attributes include(List<String> columns) =>
-      _IncludeAttributes(columns);
+  static Attributes include(List<String> columns) => _IncludeAttributes(columns);
 
   /// Excludes the specified columns.
-  static Attributes exclude(List<String> columns) =>
-      _ExcludeAttributes(columns);
+  static Attributes exclude(List<String> columns) => _ExcludeAttributes(columns);
 
   /// Applies the filter to the given list of columns.
   List<String> apply(List<String> allColumns);
