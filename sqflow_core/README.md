@@ -78,11 +78,13 @@ All methods have fire-and-forget variants: `insert(item, onSuccess: ..., onError
 ## WhereBuilder Highlights
 
 Users.where(Users.status.eq('active'))
-  .where(Users.age.gt(18))
-  .where(Users.name.like('%John%'))
-  .get();
+.where(Users.age.gt(18))
+.where(Users.name.like('%John%'))
+.get();
 
 // Manual WhereBuilder still works
+
+```dart
 WhereBuilder().eq(Users.status, 'active').gt(Users.age, 18);
 ```
 
