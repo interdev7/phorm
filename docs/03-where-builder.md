@@ -25,7 +25,7 @@ final where = WhereBuilder()
 All conditions are joined by `AND` by default. To use `OR` as the default separator:
 
 ```dart
-final where = WhereBuilder(separator: ' OR ');
+final where = WhereBuilder(separator: 'OR');
 ```
 
 ---
@@ -34,14 +34,14 @@ final where = WhereBuilder(separator: ' OR ');
 
 ### Comparison Operators
 
-| Method | SQL | Note |
-| :--- | :--- | :--- |
-| `.eq('col', val)` | `col = ?` | Skipped silently if `val` is `null` |
-| `.ne('col', val)` | `col != ?` | Skipped silently if `val` is `null` |
-| `.gt('col', val)` | `col > ?` | |
-| `.gte('col', val)` | `col >= ?` | |
-| `.lt('col', val)` | `col < ?` | |
-| `.lte('col', val)` | `col <= ?` | |
+| Method             | SQL        | Note                                |
+| :----------------- | :--------- | :---------------------------------- |
+| `.eq('col', val)`  | `col = ?`  | Skipped silently if `val` is `null` |
+| `.ne('col', val)`  | `col != ?` | Skipped silently if `val` is `null` |
+| `.gt('col', val)`  | `col > ?`  |                                     |
+| `.gte('col', val)` | `col >= ?` |                                     |
+| `.lt('col', val)`  | `col < ?`  |                                     |
+| `.lte('col', val)` | `col <= ?` |                                     |
 
 ```dart
 Users.where(Users.status.eq('active'))    // status = ?
@@ -57,15 +57,15 @@ Users.where(Users.price.lte(99.99));      // price <= ?
 
 ### Pattern Matching
 
-| Method | SQL | Case sensitive |
-| :--- | :--- | :--- |
-| `.like('col', pattern)` | `col LIKE ?` | ✅ Yes |
-| `.notLike('col', pattern)` | `col NOT LIKE ?` | ✅ Yes |
-| `.ilike('col', pattern)` | `LOWER(col) LIKE LOWER(?)` | ❌ No |
-| `.notIlike('col', pattern)` | `LOWER(col) NOT LIKE LOWER(?)` | ❌ No |
-| `.startsWith('col', val)` | `col LIKE 'val%'` | ✅ Yes |
-| `.endsWith('col', val)` | `col LIKE '%val'` | ✅ Yes |
-| `.regexp('col', pattern)` | `col REGEXP ?` | depends on SQLite config |
+| Method                      | SQL                            | Case sensitive           |
+| :-------------------------- | :----------------------------- | :----------------------- |
+| `.like('col', pattern)`     | `col LIKE ?`                   | ✅ Yes                   |
+| `.notLike('col', pattern)`  | `col NOT LIKE ?`               | ✅ Yes                   |
+| `.ilike('col', pattern)`    | `LOWER(col) LIKE LOWER(?)`     | ❌ No                    |
+| `.notIlike('col', pattern)` | `LOWER(col) NOT LIKE LOWER(?)` | ❌ No                    |
+| `.startsWith('col', val)`   | `col LIKE 'val%'`              | ✅ Yes                   |
+| `.endsWith('col', val)`     | `col LIKE '%val'`              | ✅ Yes                   |
+| `.regexp('col', pattern)`   | `col REGEXP ?`                 | depends on SQLite config |
 
 ```dart
 Users.where(Users.name.like('John%'))         // Starts with 'John'
@@ -100,12 +100,12 @@ Users.where(Users.isDeleted.isFalse());   // is_deleted = 0
 
 ### Range & Set Operations
 
-| Method | SQL | Note |
-| :--- | :--- | :--- |
-| `.between('col', f, t)` | `col BETWEEN ? AND ?` | |
-| `.notBetween('col', f, t)` | `col NOT BETWEEN ? AND ?` | |
-| `.inList('col', list)` | `col IN (?, ?, ...)` | `1=0` if list is empty |
-| `.notInList('col', list)` | `col NOT IN (?, ?, ...)` | Ignored if list is empty |
+| Method                     | SQL                       | Note                     |
+| :------------------------- | :------------------------ | :----------------------- |
+| `.between('col', f, t)`    | `col BETWEEN ? AND ?`     |                          |
+| `.notBetween('col', f, t)` | `col NOT BETWEEN ? AND ?` |                          |
+| `.inList('col', list)`     | `col IN (?, ?, ...)`      | `1=0` if list is empty   |
+| `.notInList('col', list)`  | `col NOT IN (?, ?, ...)`  | Ignored if list is empty |
 
 ```dart
 // BETWEEN
@@ -210,6 +210,7 @@ final result = await userService.readAll(
 ```
 
 Behind the scenes:
+
 ```sql
 SELECT users.* FROM users
 LEFT JOIN posts ON posts.user_id = users.id
@@ -219,6 +220,7 @@ GROUP BY users.id   -- Prevents duplicates from HasMany JOINs
 
 > [!IMPORTANT]
 > **Automatic JOIN requirements:**
+>
 > 1. The dot-notation column must reference a table that is in the `relationships` list of the model's `@Schema`.
 > 2. The related table must be registered in `DB(tables: [...])`.
 > 3. `GROUP BY` is automatically added on the primary table's key to prevent row duplication.
@@ -355,5 +357,6 @@ No error is thrown, but the `comments.status` column will not resolve correctly.
 ### 4. `GROUP BY` side effect with cross-table filtering
 
 When a dot-notation filter is used, `GROUP BY` is added automatically. This means:
+
 - `SELECT COUNT(*)` columns in your query may behave differently.
 - Any aggregation in `readAll` is on the grouped (deduplicated) result.

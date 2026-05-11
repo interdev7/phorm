@@ -38,27 +38,26 @@ class WhereBuilder {
   /// Stores all conditions with their arguments in the order they were added
   final List<_Condition> _conditions = [];
 
-  /// Logical operator to join conditions (default: ' AND ')
+  /// Logical operator to join conditions (default: 'AND')
   final String _separator;
 
   /// Tracks which columns have been used in conditions
   final Set<String> _usedColumns = {};
 
   /// Column name validation regex (letters, numbers, underscores, and dots for joined tables)
-  static final RegExp _columnRegExp =
-      RegExp(r'^[a-zA-Z_][a-zA-Z0-9_]*(\.[a-zA-Z_][a-zA-Z0-9_]*)*$');
+  static final RegExp _columnRegExp = RegExp(r'^[a-zA-Z_][a-zA-Z0-9_]*(\.[a-zA-Z_][a-zA-Z0-9_]*)*$');
 
   /// Creates a new WhereBuilder instance
   ///
   /// **Parameters:**
-  /// - `separator`: Logical operator to join conditions (default: ' AND ')
+  /// - `separator`: Logical operator to join conditions (default: 'AND')
   ///
   /// **Example:**
   /// ```dart
   /// final where = WhereBuilder(); // Uses AND by default
   /// final orWhere = WhereBuilder(separator: ' OR ');
   /// ```
-  WhereBuilder({String separator = ' AND '}) : _separator = separator;
+  WhereBuilder({String separator = 'AND'}) : _separator = separator;
 
   // =======================================================
   // VALIDATION & UTILITY METHODS
@@ -333,26 +332,21 @@ class WhereBuilder {
   /// and avoid embedding literals directly into SQL.
   WhereBuilder substrEq(Object column, int start, int len, String value) {
     _validate(column);
-    _addCondition(
-        'SUBSTR($column, ?, ?) = ?',
-        [_prepareValue(start), _prepareValue(len), _prepareValue(value)],
-        column);
+    _addCondition('SUBSTR($column, ?, ?) = ?', [_prepareValue(start), _prepareValue(len), _prepareValue(value)], column);
     return this;
   }
 
   /// Adds SUBSTR LIKE condition: `SUBSTR(column, start, len) LIKE ?`
   WhereBuilder substrLike(Object column, int start, int len, String pattern) {
     _validate(column);
-    _addCondition('SUBSTR($column, ?, ?) LIKE ?',
-        [_prepareValue(start), _prepareValue(len), pattern], column);
+    _addCondition('SUBSTR($column, ?, ?) LIKE ?', [_prepareValue(start), _prepareValue(len), pattern], column);
     return this;
   }
 
   /// Adds case-insensitive SUBSTR LIKE: `LOWER(SUBSTR(column, start, len)) LIKE LOWER(?)`
   WhereBuilder substrIlike(Object column, int start, int len, String pattern) {
     _validate(column);
-    _addCondition('LOWER(SUBSTR($column, ?, ?)) LIKE LOWER(?)',
-        [_prepareValue(start), _prepareValue(len), pattern], column);
+    _addCondition('LOWER(SUBSTR($column, ?, ?)) LIKE LOWER(?)', [_prepareValue(start), _prepareValue(len), pattern], column);
     return this;
   }
 
@@ -544,7 +538,7 @@ class WhereBuilder {
   /// // Args: [1, 'Sofia', 'Plovdiv'] ← Correct order!
   /// ```
   WhereBuilder orGroup(void Function(WhereBuilder) builder) {
-    final group = WhereBuilder(separator: ' OR ');
+    final group = WhereBuilder(separator: 'OR');
     builder(group);
 
     if (group._conditions.isEmpty) return this;
@@ -705,7 +699,7 @@ class WhereBuilder {
       }
     }
 
-    return parts.join(_separator);
+    return parts.join(" $_separator ");
   }
 
   /// Gets all argument values in order for placeholders
@@ -748,7 +742,7 @@ class WhereBuilder {
   /// copy.eq('is_verified', 1);
   ///
   /// // original still has only 'status' condition
-  /// // copy has both 'status' and 'is_verified' conditions
+  /// // copy has both 'status'AND'is_verified' conditions
   /// ```
   WhereBuilder copy() {
     final copy = WhereBuilder(separator: _separator);

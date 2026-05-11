@@ -165,8 +165,8 @@ final String username;
 
 SQLite allows you to specify how strings are compared using the `COLLATE` clause. This is especially useful for case-insensitive searching or sorting.
 
-*   **`BINARY`** (default): Case-sensitive comparison. `'Alice' != 'alice'`.
-*   **`NOCASE`**: Case-insensitive comparison (for ASCII characters). `'Alice' == 'alice'`.
+- **`BINARY`** (default): Case-sensitive comparison. `'Alice' != 'alice'`.
+- **`NOCASE`**: Case-insensitive comparison (for ASCII characters). `'Alice' == 'alice'`.
 
 You can apply these using the `collate` property:
 
@@ -186,10 +186,10 @@ Value Converters allow you to transform complex Dart types into simple types sup
 
 ### Why use Value Converters?
 
-*   **Support for any data type**: Store complex objects (Colors, Points, custom classes) in standard SQL columns.
-*   **Encapsulation**: Keep transformation logic (like `jsonEncode`/`jsonDecode`) in one place instead of scattering it throughout your UI or service layers.
-*   **Type Safety**: Work with strongly-typed objects in your Dart code while the converter handles the low-level SQL representation.
-*   **Automatic Integration**: Sqflow automatically uses converters in `toJson()`, `fromJson()`, and database operations.
+- **Support for any data type**: Store complex objects (Colors, Points, custom classes) in standard SQL columns.
+- **Encapsulation**: Keep transformation logic (like `jsonEncode`/`jsonDecode`) in one place instead of scattering it throughout your UI or service layers.
+- **Type Safety**: Work with strongly-typed objects in your Dart code while the converter handles the low-level SQL representation.
+- **Automatic Integration**: Sqflow automatically uses converters in `toJson()`, `fromJson()`, and database operations.
 
 ### Creating a Converter
 
@@ -222,7 +222,7 @@ class RoleConverter extends ValueConverter<UserRole, String> {
   const RoleConverter();
 
   @override
-  UserRole fromSql(String sqlValue) => 
+  UserRole fromSql(String sqlValue) =>
       UserRole.values.firstWhere((e) => e.name == sqlValue);
 
   @override

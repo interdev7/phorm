@@ -32,8 +32,7 @@ class SqliteSchemaGenerator extends GeneratorForAnnotation<Schema> {
     }
 
     final className = element.name;
-    final tableName =
-        schemaReader.peek('tableName')?.stringValue ?? _camelToSnake(className);
+    final tableName = schemaReader.peek('tableName')?.stringValue ?? _camelToSnake(className);
     final useFromJson = schemaReader.peek('useFromJson')?.boolValue ?? true;
 
     final strategyReader = schemaReader.peek('columnNaming');
@@ -113,18 +112,13 @@ class SqliteSchemaGenerator extends GeneratorForAnnotation<Schema> {
       }
     }
 
-    final List<Map<String, dynamic>> relationships = [
-      ..._extractRelationships(schemaReader)
-    ];
+    final List<Map<String, dynamic>> relationships = [..._extractRelationships(schemaReader)];
 
     // Also scan fields for @BelongsTo, @HasMany, @HasOne, @Join
     for (final field in fields) {
       final fieldMeta = field.metadata.where((m) {
         final name = m.element?.enclosingElement3?.name;
-        return name == 'BelongsTo' ||
-            name == 'HasMany' ||
-            name == 'HasOne' ||
-            name == 'Join';
+        return name == 'BelongsTo' || name == 'HasMany' || name == 'HasOne' || name == 'Join';
       }).firstOrNull;
 
       if (fieldMeta != null) {
@@ -155,8 +149,7 @@ class SqliteSchemaGenerator extends GeneratorForAnnotation<Schema> {
         final onDelete = rel['onDelete'] as String?;
         final onUpdate = rel['onUpdate'] as String?;
 
-        final fk = StringBuffer()
-          ..write('  FOREIGN KEY($fkSqlName) REFERENCES $refTable($refColumn)');
+        final fk = StringBuffer()..write('  FOREIGN KEY($fkSqlName) REFERENCES $refTable($refColumn)');
         if (onDelete != null) fk.write(' ON DELETE $onDelete');
         if (onUpdate != null) fk.write(' ON UPDATE $onUpdate');
 
@@ -237,13 +230,10 @@ class SqliteSchemaGenerator extends GeneratorForAnnotation<Schema> {
       final element = type.element;
       if (element is ClassElement) {
         // Try to find @Schema annotation on the class
-        final schemaMeta = element.metadata
-            .where((m) => m.element?.enclosingElement3?.name == 'Schema')
-            .firstOrNull;
+        final schemaMeta = element.metadata.where((m) => m.element?.enclosingElement3?.name == 'Schema').firstOrNull;
 
         if (schemaMeta != null) {
-          final schemaReader =
-              ConstantReader(schemaMeta.computeConstantValue());
+          final schemaReader = ConstantReader(schemaMeta.computeConstantValue());
           final tableName = schemaReader.peek('tableName')?.stringValue;
           if (tableName != null) return tableName;
         }
@@ -292,11 +282,7 @@ END;''';
 
     for (final index in indexes.listValue) {
       final reader = ConstantReader(index);
-      final columns = reader
-          .read('columns')
-          .listValue
-          .map((c) => c.toStringValue())
-          .join(', ');
+      final columns = reader.read('columns').listValue.map((c) => c.toStringValue()).join(', ');
       final unique = reader.peek('unique')?.boolValue ?? false;
 
       final indexName = '${tableName}_${columns.replaceAll(', ', '_')}_idx';
@@ -342,8 +328,7 @@ END;''';
       }
     }
 
-    final nullable = reader.peek('nullable')?.boolValue ??
-        field.type.nullabilitySuffix == NullabilitySuffix.question;
+    final nullable = reader.peek('nullable')?.boolValue ?? field.type.nullabilitySuffix == NullabilitySuffix.question;
 
     final unique = reader.peek('unique')?.boolValue ?? false;
     final defaultValue = reader.peek('defaultValue');
@@ -378,34 +363,31 @@ END;''';
 
     final validatorsReader = reader.peek('validators');
     if (validatorsReader != null && !validatorsReader.isNull && validatorsReader.isList) {
-        final checkSqls = <String>[];
-        String? lastConstraintName;
+      final checkSqls = <String>[];
+      String? lastConstraintName;
 
-        for (final validatorObj in validatorsReader.listValue) {
-          final validatorReader = ConstantReader(validatorObj);
-          
-          if (const TypeChecker.fromRuntime(ICheckValidator)
-              .isAssignableFromType(validatorObj.type!)) {
-            final sql = _getCheckSql(validatorReader, columnName);
-            if (sql != null && sql.isNotEmpty) {
-              checkSqls.add(sql);
-              final constraint = validatorReader.peek('constraint')?.stringValue;
-              if (constraint != null) lastConstraintName = constraint;
-            }
+      for (final validatorObj in validatorsReader.listValue) {
+        final validatorReader = ConstantReader(validatorObj);
+
+        if (const TypeChecker.fromRuntime(ICheckValidator).isAssignableFromType(validatorObj.type!)) {
+          final sql = _getCheckSql(validatorReader, columnName);
+          if (sql != null && sql.isNotEmpty) {
+            checkSqls.add(sql);
+            final constraint = validatorReader.peek('constraint')?.stringValue;
+            if (constraint != null) lastConstraintName = constraint;
           }
         }
+      }
 
-        if (checkSqls.isNotEmpty) {
-          final combinedSql = checkSqls.length > 1 
-              ? checkSqls.map((c) => '($c)').join(' AND ') 
-              : checkSqls.first;
-              
-          if (lastConstraintName != null) {
-            buffer.write(' CONSTRAINT $lastConstraintName CHECK($combinedSql)');
-          } else {
-            buffer.write(' CHECK($combinedSql)');
-          }
+      if (checkSqls.isNotEmpty) {
+        final combinedSql = checkSqls.length > 1 ? checkSqls.map((c) => '($c)').join('AND') : checkSqls.first;
+
+        if (lastConstraintName != null) {
+          buffer.write(' CONSTRAINT $lastConstraintName CHECK($combinedSql)');
+        } else {
+          buffer.write(' CHECK($combinedSql)');
         }
+      }
     }
 
     return _ColumnResult(
@@ -425,8 +407,6 @@ END;''';
     if (value.isString) return "'${value.stringValue}'";
     return 'NULL';
   }
-
-
 
   String _camelToSnake(String input) {
     return input
