@@ -2,23 +2,6 @@
 
 SQFlow is a lightweight, type-safe SQLite ORM abstraction for Dart and Flutter. It is built on top of [sqflite](https://pub.dev/packages/sqflite) and provides a fluent, declarative API for defining schemas, loading related data, and performing CRUD operations — all without raw SQL concatenation.
 
----
-
-## Documentation Index
-
-1. [Overview](file:///Users/interdev7/Documents/sqflow/docs/01-overview.md)
-2. [Schema Definition](file:///Users/interdev7/Documents/sqflow/docs/02-schema-definition.md)
-3. [Where Builder](file:///Users/interdev7/Documents/sqflow/docs/03-where-builder.md)
-4. [CRUD Operations](file:///Users/interdev7/Documents/sqflow/docs/04-crud-operations.md)
-5. [Relationships](file:///Users/interdev7/Documents/sqflow/docs/05-relationships.md)
-6. [DB and Migrations](file:///Users/interdev7/Documents/sqflow/docs/06-db-and-migrations.md)
-7. [Code Generation](file:///Users/interdev7/Documents/sqflow/docs/07-code-generation.md)
-8. [Soft Deletes (Paranoid)](file:///Users/interdev7/Documents/sqflow/docs/08-soft-deletes.md)
-9. [Pitfalls and Limitations](file:///Users/interdev7/Documents/sqflow/docs/09-pitfalls-and-limitations.md)
-10. [Validators](file:///Users/interdev7/Documents/sqflow/docs/10-validators.md)
-
----
-
 ## Motivation
 
 Modern database management in Flutter often forces a trade-off between **performance** and **developer experience**. SQFlow is designed to eliminate that trade-off by focusing on four core pillars:
