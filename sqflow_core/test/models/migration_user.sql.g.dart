@@ -8,7 +8,7 @@ part of 'migration_user.dart';
 
 const _$SQFlowMigrationUserSchema = """
 CREATE TABLE migration_users (
-  id TEXT PRIMARY KEY NOT NULL UNIQUE,
+  custom_id TEXT PRIMARY KEY NOT NULL UNIQUE,
   name TEXT NOT NULL,
   email TEXT,
   age INTEGER,
@@ -33,6 +33,7 @@ class _$SQFlowMigrationUserTable extends Table<MigrationUser> {
     required super.fromJson,
     super.relationships = const [],
     super.columns = const [],
+    super.primaryKey = 'custom_id',
     super.timestamps = true,
   }) : super(type: MigrationUser, paranoid: Table.detectSoftDelete(schema));
 }
@@ -44,7 +45,7 @@ final migration_usersTable = _$SQFlowMigrationUserTable(
   fromJson: _$SQFlowMigrationUserFromJson,
   relationships: [],
   columns: const [
-    'id',
+    'custom_id',
     'name',
     'email',
     'age',
@@ -52,6 +53,7 @@ final migration_usersTable = _$SQFlowMigrationUserTable(
     'created_at',
     'updated_at'
   ],
+  primaryKey: 'custom_id',
   timestamps: true,
 );
 
@@ -67,7 +69,7 @@ mixin _$SQFlowMigrationUserMixin {
 
 Map<String, dynamic> _$SQFlowMigrationUserToJson(MigrationUser instance) {
   final migrationuserJson = {
-    'id': _$SQFlowToJsonValue(instance.id),
+    'custom_id': _$SQFlowToJsonValue(instance.id),
     'name': _$SQFlowToJsonValue(instance.name),
     'email': _$SQFlowToJsonValue(instance.email),
     'age': _$SQFlowToJsonValue(instance.age),
@@ -120,7 +122,7 @@ void _$validateMigrationUser(Map<String, dynamic> json,
 
 MigrationUser _$SQFlowMigrationUserFromJson(Map<String, dynamic> json) {
   final instance = MigrationUser(
-    id: json['id'] as String,
+    id: json['custom_id'] as String,
     name: json['name'] as String,
     email: json['email'] as String?,
     age: json['age'] as int?,
@@ -139,7 +141,7 @@ MigrationUser _$SQFlowMigrationUserFromJson(Map<String, dynamic> json) {
 
 /// Pluralized service for MigrationUser
 class MigrationUsers {
-  static const SqflowColumn<String> id = SqflowColumn<String>('id');
+  static const SqflowColumn<String> id = SqflowColumn<String>('custom_id');
   static const SqflowColumn<String> name = SqflowColumn<String>('name');
   static const SqflowColumn<String> email = SqflowColumn<String>('email');
   static const SqflowColumn<int> age = SqflowColumn<int>('age');
@@ -266,8 +268,9 @@ class MigrationUsers {
       _service.transaction(action);
 
   static Stream<String> get changeStream => _service.dbManager.changeStream;
-  static Stream<MigrationUser?> watch(Object id, {List<Includable>? include}) =>
-      _service.watch(id, include: include);
+  static Stream<MigrationUser?> watchOne(Object id,
+          {List<Includable>? include}) =>
+      _service.watchOne(id, include: include);
   static Stream<List<MigrationUser>> watchAll(
           {WhereBuilder? where,
           List<Includable>? include,

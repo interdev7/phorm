@@ -44,6 +44,7 @@ class _$SQFlowUserTable extends Table<User> {
     required super.fromJson,
     super.relationships = const [],
     super.columns = const [],
+    super.primaryKey = 'id',
     super.timestamps = true,
   }) : super(type: User, paranoid: Table.detectSoftDelete(schema));
 }
@@ -76,6 +77,7 @@ final usersTable = _$SQFlowUserTable(
     'updated_at',
     'deleted_at'
   ],
+  primaryKey: 'id',
   timestamps: true,
 );
 
@@ -135,7 +137,6 @@ User(
   address: ${instance.address},
   isActive: ${instance.isActive},
   isVerified: ${instance.isVerified},
-  fullName: ${instance.fullName},
   createdAt: ${instance.createdAt},
   updatedAt: ${instance.updatedAt},
   deletedAt: ${instance.deletedAt},
@@ -490,8 +491,8 @@ class Users {
       _service.transaction(action);
 
   static Stream<String> get changeStream => _service.dbManager.changeStream;
-  static Stream<User?> watch(Object id, {List<Includable>? include}) =>
-      _service.watch(id, include: include);
+  static Stream<User?> watchOne(Object id, {List<Includable>? include}) =>
+      _service.watchOne(id, include: include);
   static Stream<List<User>> watchAll(
           {WhereBuilder? where,
           List<Includable>? include,
@@ -529,6 +530,7 @@ class _$SQFlowPostTable extends Table<Post> {
     required super.fromJson,
     super.relationships = const [],
     super.columns = const [],
+    super.primaryKey = 'id',
     super.timestamps = true,
   }) : super(type: Post, paranoid: Table.detectSoftDelete(schema));
 }
@@ -547,6 +549,7 @@ final postsTable = _$SQFlowPostTable(
     'updated_at',
     'deleted_at'
   ],
+  primaryKey: 'id',
   timestamps: true,
 );
 
@@ -763,8 +766,8 @@ class Posts {
       _service.transaction(action);
 
   static Stream<String> get changeStream => _service.dbManager.changeStream;
-  static Stream<Post?> watch(Object id, {List<Includable>? include}) =>
-      _service.watch(id, include: include);
+  static Stream<Post?> watchOne(Object id, {List<Includable>? include}) =>
+      _service.watchOne(id, include: include);
   static Stream<List<Post>> watchAll(
           {WhereBuilder? where,
           List<Includable>? include,
@@ -801,6 +804,7 @@ class _$SQFlowProfileTable extends Table<Profile> {
     required super.fromJson,
     super.relationships = const [],
     super.columns = const [],
+    super.primaryKey = 'id',
     super.timestamps = true,
   }) : super(type: Profile, paranoid: Table.detectSoftDelete(schema));
 }
@@ -812,6 +816,7 @@ final profilesTable = _$SQFlowProfileTable(
   fromJson: _$SQFlowProfileFromJson,
   relationships: const [BelongsTo(model: 'users', foreignKey: 'user_id')],
   columns: const ['id', 'bio', 'user_id', 'created_at', 'updated_at'],
+  primaryKey: 'id',
   timestamps: true,
 );
 
@@ -1016,8 +1021,8 @@ class Profiles {
       _service.transaction(action);
 
   static Stream<String> get changeStream => _service.dbManager.changeStream;
-  static Stream<Profile?> watch(Object id, {List<Includable>? include}) =>
-      _service.watch(id, include: include);
+  static Stream<Profile?> watchOne(Object id, {List<Includable>? include}) =>
+      _service.watchOne(id, include: include);
   static Stream<List<Profile>> watchAll(
           {WhereBuilder? where,
           List<Includable>? include,
@@ -1055,6 +1060,7 @@ class _$SQFlowOrderTable extends Table<Order> {
     required super.fromJson,
     super.relationships = const [],
     super.columns = const [],
+    super.primaryKey = 'id',
     super.timestamps = true,
   }) : super(type: Order, paranoid: Table.detectSoftDelete(schema));
 }
@@ -1073,6 +1079,7 @@ final ordersTable = _$SQFlowOrderTable(
     'updated_at',
     'deleted_at'
   ],
+  primaryKey: 'id',
   timestamps: true,
 );
 
@@ -1289,8 +1296,8 @@ class Orders {
       _service.transaction(action);
 
   static Stream<String> get changeStream => _service.dbManager.changeStream;
-  static Stream<Order?> watch(Object id, {List<Includable>? include}) =>
-      _service.watch(id, include: include);
+  static Stream<Order?> watchOne(Object id, {List<Includable>? include}) =>
+      _service.watchOne(id, include: include);
   static Stream<List<Order>> watchAll(
           {WhereBuilder? where,
           List<Includable>? include,

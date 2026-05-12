@@ -155,7 +155,7 @@ SQFlow enables `PRAGMA foreign_keys = ON` on every database open via `onConfigur
 - Deleting a parent row that has related children will fail unless you've defined `ON DELETE CASCADE`.
 
 > [!NOTE]
-> The `@Schema` annotation and `sqflow_generator` do not currently generate `FOREIGN KEY` constraints in the `CREATE TABLE` SQL automatically. You need to add them manually in the `schema` string if you want DB-level enforcement.
+> The `@Schema` annotation and `sqflow_generator` **automatically generate** `FOREIGN KEY` constraints in the `CREATE TABLE` SQL based on your `relationships` definition. There is no need to add them manually in the `schema` string.
 
 ---
 
@@ -200,7 +200,9 @@ final usersTable = Table<User>(
     CREATE INDEX idx_users_email ON users(email);
   ''',
   fromJson: _$SQFlowUserFromJson,
-  primaryKey: 'id',
+  // These values are typically generated automatically!
+  // The primaryKey is detected from the @ID annotation.
+  primaryKey: 'id', 
   paranoid: true,
   timestamps: true,
   columns: ['id', 'first_name', 'email', 'created_at', 'updated_at', 'deleted_at'],

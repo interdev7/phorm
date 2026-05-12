@@ -18,7 +18,6 @@ class Post extends Model with _$SQFlowPostMixin {
       _$SQFlowPostFromJson(json);
 
   @ID()
-  @override
   final String id;
 
   @Column()

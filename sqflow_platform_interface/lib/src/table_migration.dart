@@ -1,6 +1,6 @@
-import '../src/table.dart';
-import '../src/models.dart';
 import '../src/executor.dart';
+import '../src/models.dart';
+import '../src/table.dart';
 
 // =======================================================
 // TABLE MIGRATION
@@ -18,7 +18,8 @@ class TableMigration<T extends Model> {
   final Table<T> table;
   final int targetVersion;
   final String description;
-  final Future<void> Function(SqflowDatabaseExecutor db, Table<Model> table) migrate;
+  final Future<void> Function(SqflowDatabaseExecutor db, Table<Model> table)
+      migrate;
   final int priority;
 
   TableMigration({

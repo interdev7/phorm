@@ -92,6 +92,11 @@ Full documentation is in the [`docs/`](./docs) folder:
 | [07-code-generation.md](./docs/07-code-generation.md) | Generator setup, commands, generated code anatomy |
 | [08-soft-deletes.md](./docs/08-soft-deletes.md) | Paranoid mode, restore, hard delete |
 | [09-pitfalls-and-limitations.md](./docs/09-pitfalls-and-limitations.md) | Known issues, gotchas, design trade-offs |
+| [10-validators.md](./docs/10-validators.md) | Built-in validators (NotEmpty, Email, Range, etc.) |
+| [11-many-to-many.md](./docs/11-many-to-many.md) | Detailed guide on pivot tables and Many-to-Many setup |
+| [12-query-builder.md](./docs/12-query-builder.md) | Fluent API reference — .get(), .first(), chaining |
+
+
 
 ---
 

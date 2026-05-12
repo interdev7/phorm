@@ -32,7 +32,6 @@ class IsNumberValidator implements IJsonValidator {
 )
 class User extends Model with _$SQFlowUserMixin {
   @ID(autoIncrement: false, unique: true)
-  @override
   final String id;
 
   @Column(
@@ -121,12 +120,8 @@ class User extends Model with _$SQFlowUserMixin {
     this.isVerified = false,
   });
 
-  String get fullName => '$firstName $lastName';
-
-
   factory User.fromJson(Map<String, dynamic> json) =>
       _$SQFlowUserFromJson(json);
-
 }
 
 @Schema(
@@ -141,7 +136,6 @@ class User extends Model with _$SQFlowUserMixin {
 )
 class Post extends Model with _$SQFlowPostMixin {
   @ID(autoIncrement: true)
-  @override
   final int id;
 
   @Column()
@@ -156,10 +150,8 @@ class Post extends Model with _$SQFlowPostMixin {
     required this.userId,
   });
 
-
   factory Post.fromJson(Map<String, dynamic> json) =>
       _$SQFlowPostFromJson(json);
-
 }
 
 @Schema(
@@ -173,7 +165,6 @@ class Post extends Model with _$SQFlowPostMixin {
 )
 class Profile extends Model with _$SQFlowProfileMixin {
   @ID(autoIncrement: true)
-  @override
   final int id;
 
   @Column()
@@ -188,10 +179,8 @@ class Profile extends Model with _$SQFlowProfileMixin {
     required this.userId,
   });
 
-
   factory Profile.fromJson(Map<String, dynamic> json) =>
       _$SQFlowProfileFromJson(json);
-
 }
 
 @Schema(
@@ -206,7 +195,6 @@ class Profile extends Model with _$SQFlowProfileMixin {
 )
 class Order extends Model with _$SQFlowOrderMixin {
   @ID(autoIncrement: true)
-  @override
   final int id;
 
   @Column()
@@ -221,8 +209,6 @@ class Order extends Model with _$SQFlowOrderMixin {
     required this.userId,
   });
 
-
   factory Order.fromJson(Map<String, dynamic> json) =>
       _$SQFlowOrderFromJson(json);
-
 }

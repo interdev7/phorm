@@ -9,7 +9,6 @@ late DB appDb;
 )
 class MigrationPost extends Model with _$SQFlowMigrationPostMixin {
   @ID(autoIncrement: false)
-  @override
   final String id;
 
   @Column()

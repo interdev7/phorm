@@ -32,6 +32,7 @@ class _$SQFlowExplicitNamingTable extends Table<ExplicitNaming> {
     required super.fromJson,
     super.relationships = const [],
     super.columns = const [],
+    super.primaryKey = 'custom_id',
     super.timestamps = true,
   }) : super(type: ExplicitNaming, paranoid: Table.detectSoftDelete(schema));
 }
@@ -50,6 +51,7 @@ final explicit_tableTable = _$SQFlowExplicitNamingTable(
     'created_at',
     'updated_at'
   ],
+  primaryKey: 'custom_id',
   timestamps: true,
 );
 
@@ -261,9 +263,9 @@ class ExplicitTable {
       _service.transaction(action);
 
   static Stream<String> get changeStream => _service.dbManager.changeStream;
-  static Stream<ExplicitNaming?> watch(Object id,
+  static Stream<ExplicitNaming?> watchOne(Object id,
           {List<Includable>? include}) =>
-      _service.watch(id, include: include);
+      _service.watchOne(id, include: include);
   static Stream<List<ExplicitNaming>> watchAll(
           {WhereBuilder? where,
           List<Includable>? include,

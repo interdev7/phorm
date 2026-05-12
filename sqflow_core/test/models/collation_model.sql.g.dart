@@ -31,6 +31,7 @@ class _$SQFlowCollationTestTable extends Table<CollationTest> {
     required super.fromJson,
     super.relationships = const [],
     super.columns = const [],
+    super.primaryKey = 'id',
     super.timestamps = true,
   }) : super(type: CollationTest, paranoid: Table.detectSoftDelete(schema));
 }
@@ -48,6 +49,7 @@ final collation_testsTable = _$SQFlowCollationTestTable(
     'created_at',
     'updated_at'
   ],
+  primaryKey: 'id',
   timestamps: true,
 );
 
@@ -250,8 +252,9 @@ class CollationTests {
       _service.transaction(action);
 
   static Stream<String> get changeStream => _service.dbManager.changeStream;
-  static Stream<CollationTest?> watch(Object id, {List<Includable>? include}) =>
-      _service.watch(id, include: include);
+  static Stream<CollationTest?> watchOne(Object id,
+          {List<Includable>? include}) =>
+      _service.watchOne(id, include: include);
   static Stream<List<CollationTest>> watchAll(
           {WhereBuilder? where,
           List<Includable>? include,

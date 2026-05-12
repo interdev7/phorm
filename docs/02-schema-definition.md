@@ -66,7 +66,24 @@ final String id;
 @ID(autoIncrement: true)
 @override
 final int id;
+
+// Custom primary key column name (runtime primaryKey: 'user_uid')
+@ID(columnName: 'user_uid')
+@override
+final String uid;
 ```
+
+### Automatic Primary Key Resolution
+
+The `sqflow_generator` automatically identifies the primary key of your model by looking for the `@ID` annotation. 
+
+1. **SQL Schema**: It adds the `PRIMARY KEY` constraint to the corresponding column in the generated `CREATE TABLE` statement.
+2. **Table Configuration**: It automatically injects the `primaryKey` column name into the generated `Table` instance (e.g., `primaryKey: 'user_uid'`).
+3. **Runtime Support**: The `SqflowCore` engine uses `table.primaryKey` to perform ID-based lookups (`readAsync`, `deleteAsync`, etc.), ensuring that custom primary key names work seamlessly.
+4. **Relationship Resolution**: Other models referencing this model via `BelongsTo` or `ManyToMany` will automatically use this primary key name for foreign key serialization.
+
+> [!NOTE]
+> If no field is annotated with `@ID`, the generator will default to `id`, but it is highly recommended to explicitly annotate your primary key field.
 
 ### `@ID` Parameters
 

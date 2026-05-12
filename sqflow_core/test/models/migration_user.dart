@@ -8,8 +8,7 @@ late DB appDb;
   tableName: 'migration_users',
 )
 class MigrationUser extends Model with _$SQFlowMigrationUserMixin {
-  @ID(autoIncrement: false)
-  @override
+  @ID(autoIncrement: false, columnName: 'custom_id')
   final String id;
 
   @Column()

@@ -7,6 +7,7 @@ analyzer:
     avoid_returning_this: ignore
     avoid_void_async: ignore
     cast_nullable_to_non_nullable: ignore
+    implementation_imports: ignore
     inference_failure_on_function_invocation: ignore
     inference_failure_on_instance_creation: ignore
     inference_failure_on_uninitialized_variable: ignore

@@ -118,7 +118,6 @@ void main() {
 
 // Test Models
 class User extends Model {
-  @override
   final String id;
   final String name;
   final List<Post> posts;
@@ -142,7 +141,6 @@ class User extends Model {
 }
 
 class Post extends Model {
-  @override
   final int id;
   final String title;
   final String userId;

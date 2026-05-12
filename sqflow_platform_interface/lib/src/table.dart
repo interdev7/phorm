@@ -1,7 +1,7 @@
+import '../src/annotations.dart';
+import '../src/migration_builder.dart';
 import '../src/models.dart';
 import '../src/table_migration.dart';
-import '../src/migration_builder.dart';
-import '../src/annotations.dart';
 
 /// Represents a fully generated table schema.
 ///
