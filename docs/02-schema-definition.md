@@ -42,6 +42,8 @@ class User extends Model with _$SQFlowUserMixin { ... }
 | `useToJson`     | `bool`                 | `true`      | Generate toJson mixin            |
 | `useFromJson`   | `bool`                 | `true`      | Generate fromJson helper         |
 | `useCopyWith`   | `bool`                 | `true`      | Generate copyWith method         |
+| `useValidator`  | `bool`                 | `true`      | Generate validate() method       |
+| `useToString`   | `bool`                 | `true`      | Generate toString() helper       |
 
 ### Column Naming Strategies
 
@@ -93,6 +95,8 @@ The `sqflow_generator` automatically identifies the primary key of your model by
 | `autoIncrement` | `bool`    | `false`  | Auto-increment (for `int` PK) |
 | `unique`        | `bool`    | `true`   | Enforce uniqueness            |
 | `columnName`    | `String?` | `null`   | Override column name          |
+| `collate`       | `String?` | `null`   | SQLite collation (NOCASE, etc.)|
+
 
 > [!WARNING]
 > `autoIncrement: true` only works with `int` fields (mapped to `INTEGER`). For string UUIDs, use `autoIncrement: false` (default).
@@ -140,6 +144,8 @@ final String bio;
 | `defaultValue` | `dynamic`           | `null`   | SQL `DEFAULT` value                  |
 | `validators`   | `List<IValidator>?` | `null`   | Value constraints (Check/Regex/etc.) |
 | `converter`    | `ValueConverter?`   | `null`   | Custom type transformer              |
+| `collate`      | `String?`          | `null`   | SQLite collation (NOCASE, etc.) |
+
 
 ---
 
