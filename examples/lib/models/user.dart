@@ -58,7 +58,6 @@ class User extends Model with _$SQFlowUserMixin {
   factory User.fromJson(Map<String, dynamic> json) =>
       _$SQFlowUserFromJson(json);
   @ID(autoIncrement: false, unique: true)
-  @override
   final String id;
 
   @Column(

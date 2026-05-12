@@ -60,7 +60,8 @@ void main() {
     final database = await db.database;
 
     // Create pivot table (usually created by migrations or manually)
-    await database.execute('CREATE TABLE user_roles (user_id TEXT, role_id TEXT, PRIMARY KEY (user_id, role_id))');
+    await database.execute(
+        'CREATE TABLE user_roles (user_id TEXT, role_id TEXT, PRIMARY KEY (user_id, role_id))');
 
     // Seed data
     await database.insert('users', {'id': 'u1', 'name': 'John'});
@@ -78,7 +79,8 @@ void main() {
     final userService = SqflowCore<User>(dbManager: db, table: usersTable);
 
     // Test readAsync with include
-    final user = await userService.readAsync('u1', include: [Includable.model<Role>()]);
+    final user =
+        await userService.readAsync('u1', include: [Includable.model<Role>()]);
 
     expect(user, isNotNull);
     expect(user!.name, 'John');
@@ -87,7 +89,8 @@ void main() {
     expect(user.roles.any((r) => r.title == 'Editor'), isTrue);
     expect(user.roles.any((r) => r.title == 'Viewer'), isFalse);
 
-    final jane = await userService.readAsync('u2', include: [Includable.model<Role>()]);
+    final jane =
+        await userService.readAsync('u2', include: [Includable.model<Role>()]);
     expect(jane!.roles, hasLength(2));
     expect(jane.roles.any((r) => r.title == 'Editor'), isTrue);
     expect(jane.roles.any((r) => r.title == 'Viewer'), isTrue);
@@ -95,7 +98,8 @@ void main() {
 
   test('Filter by ManyToMany: Users with specific Role', () async {
     final database = await db.database;
-    await database.execute('CREATE TABLE user_roles (user_id TEXT, role_id TEXT, PRIMARY KEY (user_id, role_id))');
+    await database.execute(
+        'CREATE TABLE user_roles (user_id TEXT, role_id TEXT, PRIMARY KEY (user_id, role_id))');
 
     await database.insert('users', {'id': 'u1', 'name': 'John'});
     await database.insert('users', {'id': 'u2', 'name': 'Jane'});
@@ -105,7 +109,9 @@ void main() {
     final userService = SqflowCore<User>(dbManager: db, table: usersTable);
 
     // This should trigger the LEFT JOIN logic in buildJoinQuery
-    final users = await userService.where(const SqflowColumn<String>('roles.title').eq('Admin')).get();
+    final users = await userService
+        .where(const SqflowColumn<String>('roles.title').eq('Admin'))
+        .get();
 
     expect(users, hasLength(1));
     expect(users[0].name, 'John');
@@ -114,7 +120,6 @@ void main() {
 
 // Test Models
 class User extends Model {
-  @override
   final String id;
   final String name;
   final List<Role> roles;
@@ -125,7 +130,11 @@ class User extends Model {
     return User(
       id: json['id'] as String,
       name: json['name'] as String,
-      roles: json['roles'] != null ? (json['roles'] as List).map((r) => Role.fromJson(r as Map<String, dynamic>)).toList() : const [],
+      roles: json['roles'] != null
+          ? (json['roles'] as List)
+              .map((r) => Role.fromJson(r as Map<String, dynamic>))
+              .toList()
+          : const [],
     );
   }
 
@@ -134,7 +143,6 @@ class User extends Model {
 }
 
 class Role extends Model {
-  @override
   final String id;
   final String title;
   final List<User> users;
@@ -145,7 +153,11 @@ class Role extends Model {
     return Role(
       id: json['id'] as String,
       title: json['title'] as String,
-      users: json['users'] != null ? (json['users'] as List).map((u) => User.fromJson(u as Map<String, dynamic>)).toList() : const [],
+      users: json['users'] != null
+          ? (json['users'] as List)
+              .map((u) => User.fromJson(u as Map<String, dynamic>))
+              .toList()
+          : const [],
     );
   }
 

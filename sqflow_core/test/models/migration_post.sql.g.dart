@@ -32,6 +32,7 @@ class _$SQFlowMigrationPostTable extends Table<MigrationPost> {
     required super.fromJson,
     super.relationships = const [],
     super.columns = const [],
+    super.primaryKey = 'id',
     super.timestamps = true,
   }) : super(type: MigrationPost, paranoid: Table.detectSoftDelete(schema));
 }
@@ -50,6 +51,7 @@ final migration_postsTable = _$SQFlowMigrationPostTable(
     'created_at',
     'updated_at'
   ],
+  primaryKey: 'id',
   timestamps: true,
 );
 
@@ -256,8 +258,9 @@ class MigrationPosts {
       _service.transaction(action);
 
   static Stream<String> get changeStream => _service.dbManager.changeStream;
-  static Stream<MigrationPost?> watch(Object id, {List<Includable>? include}) =>
-      _service.watch(id, include: include);
+  static Stream<MigrationPost?> watchOne(Object id,
+          {List<Includable>? include}) =>
+      _service.watchOne(id, include: include);
   static Stream<List<MigrationPost>> watchAll(
           {WhereBuilder? where,
           List<Includable>? include,

@@ -10,7 +10,6 @@ late DB appDb;
 )
 class ExplicitNaming extends Model with _$SQFlowExplicitNamingMixin {
   @ID(columnName: 'custom_id')
-  @override
   final String id;
 
   @Column(columnName: 'custom_name')

@@ -92,7 +92,6 @@ void main() {
 
 // Minimal models for testing
 class User extends Model {
-  @override
   final String id;
   final String name;
 
@@ -108,7 +107,6 @@ class User extends Model {
 }
 
 class Post extends Model {
-  @override
   final int id;
   final String title;
   final String userId;

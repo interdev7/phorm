@@ -115,10 +115,7 @@ class SqflowCore<T extends Model> {
 
   /// Inserts a single item synchronously (fire-and-forget).
   /// Wraps [insertAsync] with callbacks.
-  void insert(T item,
-      {void Function(int id)? onSuccess,
-      ErrorCallback? onError,
-      DatabaseExecutor? executor}) async {
+  void insert(T item, {void Function(int id)? onSuccess, ErrorCallback? onError, DatabaseExecutor? executor}) async {
     try {
       final id = await insertAsync(item, executor: executor);
       if (onSuccess != null) onSuccess(id);
@@ -140,12 +137,12 @@ class SqflowCore<T extends Model> {
     final json = _withTimestamps(item.toJson());
     final res = await dbManager.logAction(
       'UPDATE ${table.name}',
-      [json, item.id],
+      [json, item.toJson()[table.primaryKey]],
       () => db.update(
         table.name,
         json,
         where: '${table.primaryKey} = ?',
-        whereArgs: [item.id],
+        whereArgs: [item.toJson()[table.primaryKey]],
       ),
     );
     _notify();
@@ -153,10 +150,7 @@ class SqflowCore<T extends Model> {
   }
 
   /// Updates a single item synchronously.
-  void update(T item,
-      {void Function(int rows)? onSuccess,
-      ErrorCallback? onError,
-      DatabaseExecutor? executor}) async {
+  void update(T item, {void Function(int rows)? onSuccess, ErrorCallback? onError, DatabaseExecutor? executor}) async {
     try {
       final rows = await updateAsync(item, executor: executor);
       if (onSuccess != null) onSuccess(rows);
@@ -187,13 +181,10 @@ class SqflowCore<T extends Model> {
   }
 
   /// Upserts a single item synchronously.
-  void upsert(T item,
-      {void Function(Object id)? onSuccess,
-      ErrorCallback? onError,
-      DatabaseExecutor? executor}) async {
+  void upsert(T item, {void Function(Object id)? onSuccess, ErrorCallback? onError, DatabaseExecutor? executor}) async {
     try {
       await upsertAsync(item, executor: executor);
-      if (onSuccess != null) onSuccess(item.id);
+      if (onSuccess != null) onSuccess(item.toJson()[table.primaryKey] as Object);
     } catch (e, st) {
       if (onError != null) onError(e, st);
     }
@@ -210,15 +201,13 @@ class SqflowCore<T extends Model> {
   /// ```dart
   /// await userService.deleteAsync('1'); // soft delete
   /// ```
-  Future<int> deleteAsync(Object id,
-      {bool force = false, DatabaseExecutor? executor}) async {
+  Future<int> deleteAsync(Object id, {bool force = false, DatabaseExecutor? executor}) async {
     final db = executor ?? await database;
     if (!table.paranoid || force) {
       final res = await dbManager.logAction(
         'DELETE FROM ${table.name}',
         [id],
-        () => db.delete(table.name,
-            where: '${table.primaryKey} = ?', whereArgs: [id]),
+        () => db.delete(table.name, where: '${table.primaryKey} = ?', whereArgs: [id]),
       );
       _notify();
       return res;
@@ -238,11 +227,7 @@ class SqflowCore<T extends Model> {
   }
 
   /// Deletes a single item synchronously.
-  void delete(Object id,
-      {bool force = false,
-      void Function(int rows)? onSuccess,
-      ErrorCallback? onError,
-      DatabaseExecutor? executor}) async {
+  void delete(Object id, {bool force = false, void Function(int rows)? onSuccess, ErrorCallback? onError, DatabaseExecutor? executor}) async {
     try {
       final rows = await deleteAsync(id, force: force, executor: executor);
       if (onSuccess != null) onSuccess(rows);
@@ -271,10 +256,7 @@ class SqflowCore<T extends Model> {
   }
 
   /// Restores a soft-deleted item synchronously.
-  void restore(Object id,
-      {void Function(int rows)? onSuccess,
-      ErrorCallback? onError,
-      DatabaseExecutor? executor}) async {
+  void restore(Object id, {void Function(int rows)? onSuccess, ErrorCallback? onError, DatabaseExecutor? executor}) async {
     try {
       final rows = await restoreAsync(id, executor: executor);
       if (onSuccess != null) onSuccess(rows);
@@ -288,8 +270,7 @@ class SqflowCore<T extends Model> {
   // -------------------------------------------------------
 
   /// Inserts multiple items in a batch asynchronously.
-  Future<int> insertBatchAsync(List<T> items,
-      {DatabaseExecutor? executor}) async {
+  Future<int> insertBatchAsync(List<T> items, {DatabaseExecutor? executor}) async {
     if (items.isEmpty) return 0;
     final db = executor ?? await database;
     final count = await dbManager.logAction(
@@ -298,8 +279,7 @@ class SqflowCore<T extends Model> {
       () async {
         final batch = db.batch();
         for (final item in items) {
-          batch.insert(
-              table.name, _withTimestamps(item.toJson(), isInsert: true));
+          batch.insert(table.name, _withTimestamps(item.toJson(), isInsert: true));
         }
         final results = await batch.commit(noResult: true);
         return results.length;
@@ -310,8 +290,7 @@ class SqflowCore<T extends Model> {
   }
 
   /// Updates multiple items in a batch asynchronously.
-  Future<int> updateBatchAsync(List<T> items,
-      {DatabaseExecutor? executor}) async {
+  Future<int> updateBatchAsync(List<T> items, {DatabaseExecutor? executor}) async {
     if (items.isEmpty) return 0;
     final db = executor ?? await database;
     final count = await dbManager.logAction(
@@ -324,7 +303,7 @@ class SqflowCore<T extends Model> {
             table.name,
             _withTimestamps(item.toJson()),
             where: '${table.primaryKey} = ?',
-            whereArgs: [item.id],
+            whereArgs: [item.toJson()[table.primaryKey]],
           );
         }
         final results = await batch.commit(noResult: true);
@@ -336,8 +315,7 @@ class SqflowCore<T extends Model> {
   }
 
   /// Upserts multiple items in a batch asynchronously.
-  Future<int> upsertBatchAsync(List<T> items,
-      {DatabaseExecutor? executor}) async {
+  Future<int> upsertBatchAsync(List<T> items, {DatabaseExecutor? executor}) async {
     if (items.isEmpty) return 0;
     final db = executor ?? await database;
     final count = await dbManager.logAction(
@@ -361,8 +339,7 @@ class SqflowCore<T extends Model> {
   }
 
   /// Deletes multiple items in a batch asynchronously.
-  Future<int> deleteBatchAsync(List<Object> ids,
-      {bool force = false, DatabaseExecutor? executor}) async {
+  Future<int> deleteBatchAsync(List<Object> ids, {bool force = false, DatabaseExecutor? executor}) async {
     if (ids.isEmpty) return 0;
     final db = executor ?? await database;
     final count = await dbManager.logAction(
@@ -372,8 +349,7 @@ class SqflowCore<T extends Model> {
         final batch = db.batch();
         if (!table.paranoid || force) {
           for (final id in ids) {
-            batch.delete(table.name,
-                where: '${table.primaryKey} = ?', whereArgs: [id]);
+            batch.delete(table.name, where: '${table.primaryKey} = ?', whereArgs: [id]);
           }
         } else {
           for (final id in ids) {
@@ -394,8 +370,7 @@ class SqflowCore<T extends Model> {
   }
 
   /// Restores multiple soft-deleted items in a batch asynchronously.
-  Future<int> restoreBatchAsync(List<Object> ids,
-      {DatabaseExecutor? executor}) async {
+  Future<int> restoreBatchAsync(List<Object> ids, {DatabaseExecutor? executor}) async {
     if (!table.paranoid) {
       throw StateError('Restore not supported on non-paranoid tables.');
     }
@@ -423,10 +398,7 @@ class SqflowCore<T extends Model> {
   }
 
   /// Restores multiple soft-deleted items in a batch synchronously.
-  void restoreBatch(List<Object> ids,
-      {void Function(int count)? onSuccess,
-      ErrorCallback? onError,
-      DatabaseExecutor? executor}) async {
+  void restoreBatch(List<Object> ids, {void Function(int count)? onSuccess, ErrorCallback? onError, DatabaseExecutor? executor}) async {
     try {
       final count = await restoreBatchAsync(ids, executor: executor);
       if (onSuccess != null) onSuccess(count);
@@ -445,12 +417,7 @@ class SqflowCore<T extends Model> {
   /// ```dart
   /// final user = await userService.readAsync('1', include: ['posts']);
   /// ```
-  Future<T?> readAsync(Object id,
-      {List<String>? columns,
-      Attributes? attributes,
-      bool withDeleted = false,
-      List<Includable>? include,
-      DatabaseExecutor? executor}) async {
+  Future<T?> readAsync(Object id, {List<String>? columns, Attributes? attributes, bool withDeleted = false, List<Includable>? include, DatabaseExecutor? executor}) async {
     final db = executor ?? await database;
     final where = WhereBuilder().eq(table.primaryKey, id);
     if (table.paranoid && !withDeleted) {
@@ -491,13 +458,7 @@ class SqflowCore<T extends Model> {
   /// );
   /// ```
   void read(Object id,
-      {List<String>? columns,
-      Attributes? attributes,
-      void Function(T)? onSuccess,
-      ErrorCallback? onError,
-      bool withDeleted = false,
-      List<Includable>? include,
-      DatabaseExecutor? executor}) async {
+      {List<String>? columns, Attributes? attributes, void Function(T)? onSuccess, ErrorCallback? onError, bool withDeleted = false, List<Includable>? include, DatabaseExecutor? executor}) async {
     try {
       final item = await readAsync(
         id,
@@ -533,8 +494,7 @@ class SqflowCore<T extends Model> {
         var current = result;
         for (var i = 0; i < parts.length - 1; i++) {
           final part = parts[i];
-          current = current.putIfAbsent(part, () => <String, dynamic>{})
-              as Map<String, dynamic>;
+          current = current.putIfAbsent(part, () => <String, dynamic>{}) as Map<String, dynamic>;
         }
         current[parts.last] = _tryParseJson(value);
       } else {
@@ -555,15 +515,10 @@ class SqflowCore<T extends Model> {
     return value;
   }
 
-  String _buildJsonObjectArgs(
-      Table currentTable, Attributes? attributes, List<Includable>? include) {
-    final relCols = attributes != null
-        ? attributes.apply(currentTable.columns)
-        : currentTable.columns;
+  String _buildJsonObjectArgs(Table currentTable, Attributes? attributes, List<Includable>? include) {
+    final relCols = attributes != null ? attributes.apply(currentTable.columns) : currentTable.columns;
 
-    final baseFields = relCols.isNotEmpty
-        ? relCols.map((c) => "'$c', ${currentTable.name}.$c").join(', ')
-        : "'id', ${currentTable.name}.${currentTable.primaryKey}";
+    final baseFields = relCols.isNotEmpty ? relCols.map((c) => "'$c', ${currentTable.name}.$c").join(', ') : "'id', ${currentTable.name}.${currentTable.primaryKey}";
 
     if (include == null || include.isEmpty) return baseFields;
 
@@ -574,8 +529,7 @@ class SqflowCore<T extends Model> {
         final model = r.model;
         if (model is String) return model == relName;
         if (model is Type) {
-          final relatedTable =
-              dbManager.tables.where((t) => t.type == model).firstOrNull;
+          final relatedTable = dbManager.tables.where((t) => t.type == model).firstOrNull;
           return relatedTable?.name == relName;
         }
         return false;
@@ -586,8 +540,7 @@ class SqflowCore<T extends Model> {
       final relatedTable = _findTable(rel.model);
       if (relatedTable == null) continue;
 
-      final subArgs =
-          _buildJsonObjectArgs(relatedTable, inc.attributes, inc.include);
+      final subArgs = _buildJsonObjectArgs(relatedTable, inc.attributes, inc.include);
 
       if (rel is HasMany) {
         includeFields.add('''
@@ -650,8 +603,7 @@ class SqflowCore<T extends Model> {
           final model = r.model;
           if (model is String) return model == relName;
           if (model is Type) {
-            final relatedTable =
-                dbManager.tables.where((t) => t.type == model).firstOrNull;
+            final relatedTable = dbManager.tables.where((t) => t.type == model).firstOrNull;
             return relatedTable?.name == relName;
           }
           return false;
@@ -661,17 +613,13 @@ class SqflowCore<T extends Model> {
           final relatedTable = _findTable(rel.model);
           if (relatedTable != null) {
             if (rel is HasMany || rel is HasOne) {
-              joins.add(
-                  'LEFT JOIN ${relatedTable.name} ON ${relatedTable.name}.${rel.foreignKey} = ${table.name}.${rel.localKey}');
+              joins.add('LEFT JOIN ${relatedTable.name} ON ${relatedTable.name}.${rel.foreignKey} = ${table.name}.${rel.localKey}');
             } else if (rel is BelongsTo) {
-              joins.add(
-                  'LEFT JOIN ${relatedTable.name} ON ${relatedTable.name}.${rel.localKey} = ${table.name}.${rel.foreignKey}');
+              joins.add('LEFT JOIN ${relatedTable.name} ON ${relatedTable.name}.${rel.localKey} = ${table.name}.${rel.foreignKey}');
             } else if (rel is ManyToMany) {
               joins
-                ..add(
-                    'LEFT JOIN ${rel.pivotTable} ON ${rel.pivotTable}.${rel.foreignKey} = ${table.name}.${rel.localKey}')
-                ..add(
-                    'LEFT JOIN ${relatedTable.name} ON ${relatedTable.name}.${rel.relatedLocalKey} = ${rel.pivotTable}.${rel.relatedKey}');
+                ..add('LEFT JOIN ${rel.pivotTable} ON ${rel.pivotTable}.${rel.foreignKey} = ${table.name}.${rel.localKey}')
+                ..add('LEFT JOIN ${relatedTable.name} ON ${relatedTable.name}.${rel.relatedLocalKey} = ${rel.pivotTable}.${rel.relatedKey}');
             }
           }
         }
@@ -706,8 +654,7 @@ class SqflowCore<T extends Model> {
           final model = r.model;
           if (model is String) return model == relName;
           if (model is Type) {
-            final relatedTable =
-                dbManager.tables.where((t) => t.type == model).firstOrNull;
+            final relatedTable = dbManager.tables.where((t) => t.type == model).firstOrNull;
             return relatedTable?.name == relName;
           }
           return false;
@@ -718,8 +665,7 @@ class SqflowCore<T extends Model> {
         final relatedTable = _findTable(rel.model);
         if (relatedTable == null) continue;
 
-        final subArgs =
-            _buildJsonObjectArgs(relatedTable, inc.attributes, inc.include);
+        final subArgs = _buildJsonObjectArgs(relatedTable, inc.attributes, inc.include);
 
         if (rel is HasMany) {
           selectFields.add('''
@@ -782,8 +728,7 @@ class SqflowCore<T extends Model> {
   /// ```dart
   /// final exists = await userService.existsAsync('1');
   /// ```
-  Future<bool> existsAsync(Object id,
-      {bool withDeleted = false, DatabaseExecutor? executor}) async {
+  Future<bool> existsAsync(Object id, {bool withDeleted = false, DatabaseExecutor? executor}) async {
     final db = executor ?? await database;
     final where = WhereBuilder().eq(table.primaryKey, id);
     if (table.paranoid && !withDeleted) {
@@ -792,11 +737,7 @@ class SqflowCore<T extends Model> {
     final result = await dbManager.logAction(
       'EXISTS in ${table.name}',
       [id, ...where.args],
-      () => db.query(table.name,
-          columns: [table.primaryKey],
-          where: where.build(),
-          whereArgs: where.args,
-          limit: 1),
+      () => db.query(table.name, columns: [table.primaryKey], where: where.build(), whereArgs: where.args, limit: 1),
     );
     return result.isNotEmpty;
   }
@@ -814,14 +755,9 @@ class SqflowCore<T extends Model> {
   ///   }
   /// );
   /// ```
-  void exists(Object id,
-      {void Function(bool exists)? onResult,
-      ErrorCallback? onError,
-      bool withDeleted = false,
-      DatabaseExecutor? executor}) async {
+  void exists(Object id, {void Function(bool exists)? onResult, ErrorCallback? onError, bool withDeleted = false, DatabaseExecutor? executor}) async {
     try {
-      final ex =
-          await existsAsync(id, withDeleted: withDeleted, executor: executor);
+      final ex = await existsAsync(id, withDeleted: withDeleted, executor: executor);
       if (onResult != null) onResult(ex);
     } catch (e, st) {
       if (onError != null) onError(e, st);
@@ -832,8 +768,7 @@ class SqflowCore<T extends Model> {
   // AGGREGATES 📊
   // -------------------------------------------------------
 
-  Future<num> _aggregateAsync(String function, String column,
-      {WhereBuilder? where, DatabaseExecutor? executor}) async {
+  Future<num> _aggregateAsync(String function, String column, {WhereBuilder? where, DatabaseExecutor? executor}) async {
     final db = executor ?? await database;
     final effectiveWhere = where?.copy() ?? WhereBuilder();
     if (table.paranoid && !effectiveWhere.hasConditionOn('deleted_at')) {
@@ -848,25 +783,15 @@ class SqflowCore<T extends Model> {
         if (col.contains('.')) joinTableNames.add(col.split('.').first);
       }
       for (final relName in joinTableNames) {
-        final rel = table.relationships
-            .where((r) => (r.model is String
-                ? r.model == relName
-                : (dbManager.tables
-                        .where((t) => t.type == r.model)
-                        .firstOrNull
-                        ?.name ==
-                    relName)))
-            .firstOrNull;
+        final rel = table.relationships.where((r) => (r.model is String ? r.model == relName : (dbManager.tables.where((t) => t.type == r.model).firstOrNull?.name == relName))).firstOrNull;
 
         if (rel != null) {
           final relatedTable = _findTable(rel.model);
           if (relatedTable != null) {
             if (rel is HasMany || rel is HasOne) {
-              sql +=
-                  ' LEFT JOIN ${relatedTable.name} ON ${relatedTable.name}.${rel.foreignKey} = ${table.name}.${rel.localKey}';
+              sql += ' LEFT JOIN ${relatedTable.name} ON ${relatedTable.name}.${rel.foreignKey} = ${table.name}.${rel.localKey}';
             } else if (rel is BelongsTo) {
-              sql +=
-                  ' LEFT JOIN ${relatedTable.name} ON ${relatedTable.name}.${rel.localKey} = ${table.name}.${rel.foreignKey}';
+              sql += ' LEFT JOIN ${relatedTable.name} ON ${relatedTable.name}.${rel.localKey} = ${table.name}.${rel.foreignKey}';
             }
           }
         }
@@ -890,11 +815,9 @@ class SqflowCore<T extends Model> {
   /// ```dart
   /// final total = await userService.countAsync(where: WhereBuilder().gt('age', 18));
   /// ```
-  Future<int> countAsync(
-      {Object? column, WhereBuilder? where, DatabaseExecutor? executor}) async {
+  Future<int> countAsync({Object? column, WhereBuilder? where, DatabaseExecutor? executor}) async {
     final colStr = column?.toString() ?? '*';
-    final result = await _aggregateAsync('COUNT', colStr,
-        where: where, executor: executor);
+    final result = await _aggregateAsync('COUNT', colStr, where: where, executor: executor);
     return result.toInt();
   }
 
@@ -904,10 +827,7 @@ class SqflowCore<T extends Model> {
   /// ```dart
   /// final totalPoints = await scoreService.sumAsync('points');
   /// ```
-  Future<num> sumAsync(Object column,
-          {WhereBuilder? where, DatabaseExecutor? executor}) =>
-      _aggregateAsync('SUM', column.toString(),
-          where: where, executor: executor);
+  Future<num> sumAsync(Object column, {WhereBuilder? where, DatabaseExecutor? executor}) => _aggregateAsync('SUM', column.toString(), where: where, executor: executor);
 
   /// Calculates the average of a specific column.
   ///
@@ -915,10 +835,7 @@ class SqflowCore<T extends Model> {
   /// ```dart
   /// final averageAge = await userService.avgAsync('age');
   /// ```
-  Future<num> avgAsync(Object column,
-          {WhereBuilder? where, DatabaseExecutor? executor}) =>
-      _aggregateAsync('AVG', column.toString(),
-          where: where, executor: executor);
+  Future<num> avgAsync(Object column, {WhereBuilder? where, DatabaseExecutor? executor}) => _aggregateAsync('AVG', column.toString(), where: where, executor: executor);
 
   /// Finds the minimum value of a specific column.
   ///
@@ -926,10 +843,7 @@ class SqflowCore<T extends Model> {
   /// ```dart
   /// final minScore = await scoreService.minAsync('score');
   /// ```
-  Future<num> minAsync(Object column,
-          {WhereBuilder? where, DatabaseExecutor? executor}) =>
-      _aggregateAsync('MIN', column.toString(),
-          where: where, executor: executor);
+  Future<num> minAsync(Object column, {WhereBuilder? where, DatabaseExecutor? executor}) => _aggregateAsync('MIN', column.toString(), where: where, executor: executor);
 
   /// Finds the maximum value of a specific column.
   ///
@@ -937,10 +851,7 @@ class SqflowCore<T extends Model> {
   /// ```dart
   /// final maxScore = await scoreService.maxAsync('score');
   /// ```
-  Future<num> maxAsync(Object column,
-          {WhereBuilder? where, DatabaseExecutor? executor}) =>
-      _aggregateAsync('MAX', column.toString(),
-          where: where, executor: executor);
+  Future<num> maxAsync(Object column, {WhereBuilder? where, DatabaseExecutor? executor}) => _aggregateAsync('MAX', column.toString(), where: where, executor: executor);
 
   // -------------------------------------------------------
   // READ ALL 🔍
@@ -1010,8 +921,7 @@ class SqflowCore<T extends Model> {
       rethrow;
     }
 
-    final count =
-        rows.isNotEmpty ? (rows.first['total_count'] as int? ?? 0) : 0;
+    final count = rows.isNotEmpty ? (rows.first['total_count'] as int? ?? 0) : 0;
 
     return (data: data, count: count);
   }
@@ -1159,27 +1069,21 @@ class SqflowCore<T extends Model> {
   /// - `attributes`: Column selection filter.
   /// - `withDeleted`: Whether to include soft-deleted record.
   /// - `dependencies`: Extra table names to watch for changes.
-  Stream<T?> watch(
+  Stream<T?> watchOne(
     Object id, {
     List<Includable>? include,
     Attributes? attributes,
     bool withDeleted = false,
     List<String>? dependencies,
   }) async* {
-    final tablesToWatch = {
-      table.name,
-      ..._extractIncludedTables(include),
-      ...?dependencies
-    };
+    final tablesToWatch = {table.name, ..._extractIncludedTables(include), ...?dependencies};
     // Initial load
-    yield await readAsync(id,
-        include: include, attributes: attributes, withDeleted: withDeleted);
+    yield await readAsync(id, include: include, attributes: attributes, withDeleted: withDeleted);
 
     // Listen for changes
     await for (final changedTable in dbManager.changeStream) {
       if (tablesToWatch.contains(changedTable)) {
-        yield await readAsync(id,
-            include: include, attributes: attributes, withDeleted: withDeleted);
+        yield await readAsync(id, include: include, attributes: attributes, withDeleted: withDeleted);
       }
     }
   }
@@ -1208,11 +1112,7 @@ class SqflowCore<T extends Model> {
     bool onlyDeleted = false,
     List<String>? dependencies,
   }) async* {
-    final tablesToWatch = {
-      table.name,
-      ..._extractIncludedTables(include),
-      ...?dependencies
-    };
+    final tablesToWatch = {table.name, ..._extractIncludedTables(include), ...?dependencies};
 
     // Initial load
     final initial = await readAll(

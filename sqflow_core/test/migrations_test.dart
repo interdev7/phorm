@@ -6,6 +6,9 @@ import 'package:sqflow_core/sqflow_core.dart';
 import 'models/migration_post.dart';
 import 'models/migration_user.dart';
 
+// migration_usersTable is available via `part of 'migration_user.dart'`
+// It has: name='migration_users', primaryKey='custom_id'
+
 void main() {
   setUpAll(() {
     sqfliteFfiInit();
@@ -15,23 +18,6 @@ void main() {
   late DB db;
 
   group('Database Initialization Tests:', () {
-    late Table<MigrationUser> usersTable;
-
-    setUp(() {
-      usersTable = Table<MigrationUser>(
-        type: MigrationUser,
-        name: 'users',
-        schema: '''
-          CREATE TABLE users (
-            id TEXT PRIMARY KEY,
-            name TEXT NOT NULL,
-            created_at TEXT NOT NULL
-          )
-        ''',
-        fromJson: (json) => MigrationUser.fromJson(json),
-      );
-    });
-
     tearDown(() async {
       await db.close();
       await db.reset();
@@ -41,7 +27,7 @@ void main() {
       db = DB(
         databaseName: ':memory:',
         version: 1,
-        tables: [usersTable],
+        tables: [migration_usersTable],
       );
 
       final database = await db.database;
@@ -53,13 +39,13 @@ void main() {
       db = DB(
         databaseName: ':memory:',
         version: 1,
-        tables: [usersTable],
+        tables: [migration_usersTable],
       );
 
       final database = await db.database;
       final tables = await database
           .rawQuery("SELECT name FROM sqlite_master WHERE type='table'");
-      expect(tables.any((t) => t['name'] == 'users'), isTrue);
+      expect(tables.any((t) => t['name'] == 'migration_users'), isTrue);
     });
   });
 
@@ -76,18 +62,8 @@ void main() {
     });
 
     test('Migrations are applied on creation', () async {
-      final usersTable = Table<MigrationUser>(
-        type: MigrationUser,
-        name: 'users',
-        schema: '''
-          CREATE TABLE users (
-            id TEXT PRIMARY KEY,
-            name TEXT NOT NULL,
-            created_at TEXT NOT NULL
-          )
-        ''',
-        fromJson: (json) => MigrationUser.fromJson(json),
-      )
+      // Use the generated table as base, add a custom migration on top
+      final tableWithMigration = migration_usersTable
           .migrate()
           .custom(
             description: 'Test migration',
@@ -101,7 +77,7 @@ void main() {
       db = DB(
         databaseName: 'test_migrations.db',
         version: 1,
-        tables: [usersTable],
+        tables: [tableWithMigration],
       );
 
       await db.database;
@@ -111,11 +87,13 @@ void main() {
     test('Migration order is correct', () async {
       final migrationsApplied = <String>[];
 
+      // This test uses a custom table name ('tracked') — keep manual construction
+      // but reference MigrationUser.fromJson directly
       final trackedTable = Table<MigrationUser>(
         type: MigrationUser,
         name: 'tracked',
         schema: 'CREATE TABLE tracked (id TEXT)',
-        fromJson: (json) => MigrationUser.fromJson(json),
+        fromJson: MigrationUser.fromJson,
       )
           .migrate()
           .custom(
@@ -159,18 +137,15 @@ void main() {
     });
 
     test('Migration with same version from different tables', () async {
-      final usersTable = Table<MigrationUser>(
-        type: MigrationUser,
-        name: 'users',
-        schema: 'CREATE TABLE users (id TEXT)',
-        fromJson: (json) => MigrationUser.fromJson(json),
-      )
+      // Use generated migration_usersTable as base, add a new column via migration
+      final usersTable = migration_usersTable
           .migrate()
           .addColumn(
-            name: 'email',
+            name: 'phone',
             type: SqlTypes.text,
             version: 2,
-            description: 'Add email to users',
+            nullable: true,
+            description: 'Add phone to migration_users',
           )
           .build();
 
@@ -178,7 +153,7 @@ void main() {
         type: MigrationPost,
         name: 'posts',
         schema: 'CREATE TABLE posts (id TEXT)',
-        fromJson: (json) => MigrationPost.fromJson(json),
+        fromJson: MigrationPost.fromJson,
       )
           .migrate()
           .addColumn(
@@ -199,10 +174,12 @@ void main() {
 
       final database = await db.database;
 
-      final usersColumns = await database.rawQuery("PRAGMA table_info(users)");
-      expect(usersColumns.any((c) => c['name'] == 'email'), isTrue);
+      final usersColumns =
+          await database.rawQuery('PRAGMA table_info(migration_users)');
+      expect(usersColumns.any((c) => c['name'] == 'phone'), isTrue);
 
-      final postsColumns = await database.rawQuery("PRAGMA table_info(posts)");
+      final postsColumns =
+          await database.rawQuery('PRAGMA table_info(posts)');
       expect(postsColumns.any((c) => c['name'] == 'title'), isTrue);
     });
   });
@@ -214,11 +191,12 @@ void main() {
     });
 
     test('addColumn generates correct SQL', () async {
+      // Uses custom table name 'test' — keep manual construction
       final table = Table<MigrationUser>(
         type: MigrationUser,
         name: 'test',
         schema: 'CREATE TABLE test (id TEXT)',
-        fromJson: (json) => MigrationUser.fromJson(json),
+        fromJson: MigrationUser.fromJson,
       )
           .migrate()
           .addColumn(
@@ -237,7 +215,7 @@ void main() {
       await db.database;
 
       final database = await db.database;
-      final columns = await database.rawQuery("PRAGMA table_info(test)");
+      final columns = await database.rawQuery('PRAGMA table_info(test)');
       expect(columns.any((c) => c['name'] == 'email'), isTrue);
     });
 
@@ -246,7 +224,7 @@ void main() {
         type: MigrationUser,
         name: 'test',
         schema: 'CREATE TABLE test (id TEXT, email TEXT)',
-        fromJson: (json) => MigrationUser.fromJson(json),
+        fromJson: MigrationUser.fromJson,
       )
           .migrate()
           .createIndex(
@@ -278,49 +256,44 @@ void main() {
     });
 
     test('Simple table evolution', () async {
-      // Create table with migrations
-      final usersTable = Table<MigrationUser>(
-        type: MigrationUser,
-        name: 'users',
-        schema: '''
-          CREATE TABLE users (
-            id TEXT PRIMARY KEY,
-            username TEXT NOT NULL,
-            created_at TEXT NOT NULL
-          )
-        ''',
-        fromJson: (json) => MigrationUser.fromJson(json),
-      )
+      // Start from the generated table, add new column at v2
+      final evolvedTable = migration_usersTable
           .migrate()
           .addColumn(
-            name: 'email',
+            name: 'phone',
             type: SqlTypes.text,
             version: 2,
-            description: 'Add email column',
-          )
-          .addColumn(
-            name: 'age',
-            type: SqlTypes.integer,
-            version: 2,
             nullable: true,
-            description: 'Add age column',
+            description: 'Add phone column',
           )
           .build();
 
       db = DB(
         databaseName: 'evolution_test.db',
         version: 2,
-        tables: [usersTable],
+        tables: [evolvedTable],
       );
 
       await db.database;
 
       final database = await db.database;
-      final columns = await database.rawQuery("PRAGMA table_info(users)");
+      final columns =
+          await database.rawQuery('PRAGMA table_info(migration_users)');
       final columnNames = columns.map((c) => c['name'] as String).toSet();
 
-      expect(columnNames,
-          containsAll(['id', 'username', 'created_at', 'email', 'age']));
+      expect(
+        columnNames,
+        containsAll([
+          'custom_id',
+          'name',
+          'email',
+          'age',
+          'is_active',
+          'created_at',
+          'updated_at',
+          'phone',
+        ]),
+      );
     });
   });
 
@@ -338,56 +311,61 @@ void main() {
       }
     }
 
-    setUp(() async => await cleanDb());
-    tearDown(() async => await cleanDb());
+    setUp(() async => cleanDb());
+    tearDown(() async => cleanDb());
 
     test('Data persists and migrations apply when app updates (v1 -> v2)',
         () async {
-      final usersV1 = Table<MigrationUser>(
-        type: MigrationUser,
-        name: 'users',
-        schema:
-            'CREATE TABLE users (id TEXT PRIMARY KEY, name TEXT, created_at TEXT)',
-        fromJson: (json) => MigrationUser.fromJson(json),
+      // --- v1: use the generated table as-is ---
+      final dbv1 = DB(
+        databaseName: dbFileName,
+        version: 1,
+        tables: [migration_usersTable],
       );
-
-      // --- v1 ---
-      final dbv1 = DB(databaseName: dbFileName, version: 1, tables: [usersV1]);
       final databaseV1 = await dbv1.database;
-      await databaseV1.insert('users', {
-        'id': '1',
+
+      // Insert using generated schema column names (custom_id, not id)
+      await databaseV1.insert('migration_users', {
+        'custom_id': '1',
         'name': 'John',
-        'created_at': DateTime.now().toIso8601String()
+        'created_at': DateTime.now().toIso8601String(),
+        'updated_at': DateTime.now().toIso8601String(),
       });
       await dbv1.close();
 
       // Small delay for FFI to ensure file is released
       await Future.delayed(const Duration(milliseconds: 200));
 
-      // --- v2 ---
-      final usersV2 = usersV1
+      // --- v2: add phone column via migration ---
+      final usersV2 = migration_usersTable
           .migrate()
           .addColumn(
-            name: 'email',
+            name: 'phone',
             type: SqlTypes.text,
             version: 2,
-            description: 'Add email column',
+            nullable: true,
+            description: 'Add phone column',
           )
           .build();
 
-      final dbV2 = DB(databaseName: dbFileName, version: 2, tables: [usersV2]);
+      final dbV2 =
+          DB(databaseName: dbFileName, version: 2, tables: [usersV2]);
       final databaseV2 = await dbV2.database;
 
-      // Verify data persists
-      final where = WhereBuilder().eq('id', '1');
-      final rows = await databaseV2.query('users',
-          where: where.build(), whereArgs: where.args);
+      // Verify data persists (use custom_id as PK)
+      final where = WhereBuilder().eq('custom_id', '1');
+      final rows = await databaseV2.query(
+        'migration_users',
+        where: where.build(),
+        whereArgs: where.args,
+      );
       expect(rows.first['name'], 'John');
 
       // Verify new column exists
-      final tableInfo = await databaseV2.rawQuery('PRAGMA table_info(users)');
-      final hasEmail = tableInfo.any((column) => column['name'] == 'email');
-      expect(hasEmail, true);
+      final tableInfo =
+          await databaseV2.rawQuery('PRAGMA table_info(migration_users)');
+      final hasPhone = tableInfo.any((column) => column['name'] == 'phone');
+      expect(hasPhone, true);
 
       await dbV2.close();
     });
@@ -395,16 +373,12 @@ void main() {
     test(
         'Transaction rollback: If migration fails, version should NOT increase',
         () async {
-      final brokenTable = Table<MigrationUser>(
-        type: MigrationUser,
-        name: 'users',
-        schema: 'CREATE TABLE users (id TEXT PRIMARY KEY, name TEXT)',
-        fromJson: (json) => MigrationUser.fromJson(json),
-      )
+      // Use the generated table as base, add a broken migration
+      final brokenTable = migration_usersTable
           .migrate()
           .custom(
             description: 'Broken migration',
-            version: 1, // Fail during creation
+            version: 1,
             migrate: (db, table) async {
               throw Exception('Boom! Migration failed');
             },
@@ -422,8 +396,10 @@ void main() {
 
       // 3. Check file version directly via factory, not through our DB class
       final path = join(await getDatabasesPath(), dbFileName);
-      final checkDb = await databaseFactory.openDatabase(path,
-          options: OpenDatabaseOptions(readOnly: true));
+      final checkDb = await databaseFactory.openDatabase(
+        path,
+        options: OpenDatabaseOptions(readOnly: true),
+      );
       final version = await checkDb.getVersion();
       await checkDb.close();
 

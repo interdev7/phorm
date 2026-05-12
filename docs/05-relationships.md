@@ -14,6 +14,9 @@ SQFlow provides three relationship types: `HasMany`, `HasOne`, and `BelongsTo` (
 | `ManyToMany` | Many ↔ Many | User belongs to many Roles | `List<T>` (empty if none) |
 | `Join` | alias of `BelongsTo` | Same as BelongsTo | `Map?` |
 
+> [!NOTE]
+> For a detailed guide on setting up pivot tables and cross-references, see the [Many-to-Many](./11-many-to-many.md) documentation.
+
 ---
 
 ## Defining Relationships
@@ -57,8 +60,9 @@ class User extends Model with _$SQFlowUserMixin { ... }
 | `model` | `Type` or `String` | required | Target model class or table name string |
 | `foreignKey` | `String` | required | The linking column |
 | `localKey` | `String` | `'id'` | The local side column (usually primary key) |
-| `onDelete` | `String?` | `null` | SQL action on delete (use `ReferentialAction`) |
-| `onUpdate` | `String?` | `null` | SQL action on update (use `ReferentialAction`) |
+
+> [!TIP]
+> While `localKey` defaults to `'id'`, the generator now automatically resolves the correct primary key name for `BelongsTo` relationships at build-time. For other relationship types, it is recommended to explicitly set `localKey` if your primary key is not named `id`.
 
 ### ManyToMany Specific Parameters
 

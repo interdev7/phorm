@@ -6,7 +6,6 @@ late DB appDb;
 
 @Schema(tableName: 'collation_tests')
 class CollationTest extends Model with _$SQFlowCollationTestMixin {
-  @override
   @ID()
   final String id;
 

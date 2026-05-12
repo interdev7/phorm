@@ -11,7 +11,6 @@ part 'todo.sql.g.dart';
 )
 class Category extends Model with _$SQFlowCategoryMixin {
   @ID()
-  @override
   final String id;
 
   @Column()
@@ -28,7 +27,6 @@ class Category extends Model with _$SQFlowCategoryMixin {
 
   factory Category.fromJson(Map<String, dynamic> json) =>
       _$SQFlowCategoryFromJson(json);
-
 }
 
 @Schema(
@@ -40,7 +38,6 @@ class Category extends Model with _$SQFlowCategoryMixin {
 )
 class Task extends Model with _$SQFlowTaskMixin {
   @ID(autoIncrement: true)
-  @override
   final int id;
 
   @Column()
@@ -61,5 +58,4 @@ class Task extends Model with _$SQFlowTaskMixin {
 
   factory Task.fromJson(Map<String, dynamic> json) =>
       _$SQFlowTaskFromJson(json);
-
 }

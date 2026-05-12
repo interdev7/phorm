@@ -208,3 +208,16 @@ In-memory databases are destroyed when closed, ensuring test isolation.
 ### `@visibleForTesting` on `buildJoinQuery`
 
 `SqflowCore.buildJoinQuery` is exposed with `@visibleForTesting` to allow unit testing of the SQL generation logic. It is not part of the public API and may change without notice.
+---
+
+## SQLite Specifics
+
+### SQLite is weakly typed
+
+Unlike other relational databases, SQLite does **not** strictly enforce column types (except for `INTEGER PRIMARY KEY`). You can technically insert a string into an integer column.
+
+**Recommendation:** Always perform validation at the application layer using `sqflow_generator`'s built-in validators or custom logic in `fromJson`.
+
+### Booleans are stored as Integers
+
+SQLite does not have a native `BOOLEAN` type. SQFlow stores them as `1` (true) and `0` (false). The generator automatically handles the conversion in `toJson` and `fromJson`, but if you are writing raw SQL queries, you must use `1` and `0`.

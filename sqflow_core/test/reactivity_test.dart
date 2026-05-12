@@ -33,7 +33,7 @@ void main() {
   });
 
   group('Reactivity Tests (Streams)', () {
-    test('watch() emits initial value and updates on change', () async {
+    test('watchOne() emits initial value and updates on change', () async {
       final user = User(
         id: 'u1',
         firstName: 'John',
@@ -48,10 +48,10 @@ void main() {
       await userService.insertAsync(user);
 
       // Initial load
-      expect((await userService.watch('u1').first)?.firstName, 'John');
+      expect((await userService.watchOne('u1').first)?.firstName, 'John');
 
       // Now we start listening for the next emission
-      final stream = userService.watch('u1');
+      final stream = userService.watchOne('u1');
       final futureValue = stream.skip(1).first;
 
       await Future.delayed(const Duration(milliseconds: 100));
@@ -88,7 +88,7 @@ void main() {
       expect(secondEmission.first.firstName, 'John');
     });
 
-    test('watch() re-emits when a dependency changes', () async {
+    test('watchOne() re-emits when a dependency changes', () async {
       final user = User(
         id: 'u1',
         firstName: 'John',
@@ -102,11 +102,10 @@ void main() {
       await userService.insertAsync(user);
 
       // Verify initial
-      expect((await userService.watch('u1', dependencies: ['posts']).first)?.id,
-          'u1');
+      expect((await userService.watchOne('u1', dependencies: ['posts']).first)?.id, 'u1');
 
       // Watch user and specify 'posts' as a dependency
-      final stream = userService.watch('u1', dependencies: ['posts']);
+      final stream = userService.watchOne('u1', dependencies: ['posts']);
       final futureValue = stream.skip(1).first;
 
       await Future.delayed(const Duration(milliseconds: 100));
@@ -125,8 +124,7 @@ void main() {
       // and want to see the new post in the user object.
     });
 
-    test('watchAll() automatically detects dependencies from includes',
-        () async {
+    test('watchAll() automatically detects dependencies from includes', () async {
       final user = User(
         id: 'u1',
         firstName: 'John',
@@ -140,12 +138,7 @@ void main() {
       await userService.insertAsync(user);
 
       // Watch all users with posts included
-      expect(
-          (await userService
-                  .watchAll(include: [Includable.table('posts')]).first)
-              .first
-              .id,
-          'u1');
+      expect((await userService.watchAll(include: [Includable.table('posts')]).first).first.id, 'u1');
 
       final stream = userService.watchAll(
         include: [Includable.table('posts')],

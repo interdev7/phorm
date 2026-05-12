@@ -1,7 +1,7 @@
 // lib/builder.dart
+import 'package:analyzer/dart/element/element.dart';
 import 'package:build/build.dart';
 import 'package:path/path.dart' as p;
-import 'package:analyzer/dart/element/element.dart';
 import 'package:source_gen/source_gen.dart';
 
 import 'src/model_mixin_generator.dart';
@@ -29,8 +29,7 @@ class _SqflowCombinedGenerator extends Generator {
   Future<String> generate(LibraryReader library, BuildStep buildStep) async {
     final buffer = StringBuffer();
 
-    final schemaChecker = TypeChecker.fromUrl(
-        'package:sqflow_platform_interface/src/annotations.dart#Schema');
+    const schemaChecker = TypeChecker.fromUrl('package:sqflow_platform_interface/src/annotations.dart#Schema');
     var annotated = library.annotatedWith(schemaChecker);
 
     if (annotated.isEmpty) {
@@ -60,7 +59,7 @@ class _SqflowCombinedGenerator extends Generator {
       );
       buffer.writeln(schemaResult);
 
-      final mixinResult = await _mixinGen.generateForAnnotatedElement(
+      final mixinResult = _mixinGen.generateForAnnotatedElement(
         annotatedElement.element,
         annotatedElement.annotation,
         buildStep,
