@@ -1,5 +1,4 @@
-import 'package:sqflow_platform_interface/src/json_validators.dart';
-import 'value_converter.dart';
+import 'package:sqflow_platform_interface/sqflow_platform_interface.dart';
 
 /// Strategy for naming database columns.
 enum ColumnNamingStrategy {
@@ -271,7 +270,7 @@ abstract interface class Includable {
   /// Resolves the table name for the relationship.
   ///
   /// Takes a list of available tables to perform type-to-name lookup.
-  String getTableName(List<dynamic> availableTables);
+  String getTableName(List<Table> availableTables);
 
   /// Optional attribute filter for the included model.
   Attributes? get attributes;
@@ -310,12 +309,12 @@ class _ModelIncludable<T> implements Includable {
   _ModelIncludable({this.attributes, this.include});
 
   @override
-  String getTableName(List<dynamic> availableTables) {
+  String getTableName(List<Table> availableTables) {
     for (final table in availableTables) {
       // Use dynamic access because we don't want to depend on Table class here
       // to avoid circular dependencies in platform interface if any.
       // But in practice, we know it's a list of Table objects.
-      if (table.type == T) return table.name as String;
+      if (table.type == T) return table.name;
     }
     throw ArgumentError('Table for model type $T not found in registered tables.');
   }

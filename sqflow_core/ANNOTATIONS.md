@@ -110,8 +110,6 @@ class User extends Model with _$SQFlowUserMixin {
 
 ---
 
-## Annotations
-
 ### `@Schema`
 
 Defines table-level configuration.
