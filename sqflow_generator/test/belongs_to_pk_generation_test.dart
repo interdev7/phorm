@@ -67,13 +67,13 @@ void main() {
     });
 
     test('contains fallback to raw stored field', () {
-      expect(line, contains(r'?? _\$userId'));
+      expect(line, contains(r'?? _$userId'));
     });
 
     test('full line matches expected pattern', () {
       expect(
         line,
-        equals(r"  dynamic get userId => user?.toJson()['id'] ?? _\$userId;"),
+        equals(r"  dynamic get userId => user?.toJson()['id'] ?? _$userId;"),
       );
     });
   });
@@ -99,7 +99,7 @@ void main() {
       expect(
         line,
         equals(
-            r"  dynamic get customUserId => customUser?.toJson()['user_uid'] ?? _\$customUserId;"),
+            r"  dynamic get customUserId => customUser?.toJson()['user_uid'] ?? _$customUserId;"),
       );
     });
   });
