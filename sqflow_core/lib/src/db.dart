@@ -33,6 +33,7 @@ import 'dart:convert';
 import 'package:path/path.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:sqflow_platform_interface/sqflow_platform_interface.dart';
+import 'package:sqflow_core/src/seeder.dart';
 
 /// Main database manager that handles connection lifecycle,
 /// version management, and smart migration tracking.
@@ -609,6 +610,21 @@ class DB {
       await _database!.close();
       _database = null;
     }
+  }
+
+  /// Executes a list of seeders to populate the database.
+  ///
+  /// **Example:**
+  /// ```dart
+  /// await db.seed([UserSeeder(), PostSeeder()]);
+  /// ```
+  Future<void> seed(List<Seeder> seeders) async {
+    logger?.info('Starting database seeding (${seeders.length} seeders)...');
+    for (final seeder in seeders) {
+      logger?.info('Running seeder: ${seeder.runtimeType}');
+      await seeder.run(this);
+    }
+    logger?.info('Seeding completed successfully');
   }
 
   /// Helper to execute an action and log its performance
