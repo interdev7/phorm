@@ -137,7 +137,7 @@ FROM orders
 
 ## Eager Loading (Includable API)
 
-Use `Includable` in `readAsync` and `readAll` to fetch related data.
+Use `Includable` in `readOneAsync` and `readAll` to fetch related data.
 
 ### By Model Type (recommended)
 

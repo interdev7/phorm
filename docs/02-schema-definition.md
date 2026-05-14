@@ -81,7 +81,7 @@ The `sqflow_generator` automatically identifies the primary key of your model by
 
 1. **SQL Schema**: It adds the `PRIMARY KEY` constraint to the corresponding column in the generated `CREATE TABLE` statement.
 2. **Table Configuration**: It automatically injects the `primaryKey` column name into the generated `Table` instance (e.g., `primaryKey: 'user_uid'`).
-3. **Runtime Support**: The `SqflowCore` engine uses `table.primaryKey` to perform ID-based lookups (`readAsync`, `deleteAsync`, etc.), ensuring that custom primary key names work seamlessly.
+3. **Runtime Support**: The `SqflowCore` engine uses `table.primaryKey` to perform ID-based lookups (`readOneAsync`, `deleteAsync`, etc.), ensuring that custom primary key names work seamlessly.
 4. **Relationship Resolution**: Other models referencing this model via `BelongsTo` or `ManyToMany` will automatically use this primary key name for foreign key serialization.
 
 > [!NOTE]

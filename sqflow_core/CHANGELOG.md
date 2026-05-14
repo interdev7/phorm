@@ -2,13 +2,33 @@
 
 All notable changes for the sqflow_core package.
 
+## 1.4.0 — 2026-05-14
+
+- **Seeders & Factories**: Added `Seeder` abstract class and `Factory<T>` interface to `sqflow_platform_interface`.
+- **`db.seed()`**: `DB` now exposes a `seed(List<Seeder>)` method for populating the database.
+- **Validators**: Added `NotEmpty`, `Email`, `Range`, `MinLength`, `MaxLength`, and custom validators via the `json_validators.dart` API.
+- **Fluent Query Builder**: Introduced `SqflowQuery<T>` with `.where()`, `.include()`, `.sort()`, `.limit()`, `.offset()`, `.get()`, `.first()` chaining.
+- **Tests**: Added `seeders_test.dart` covering Factory creation and multi-seeder execution.
+
+## 1.3.0 — 2026-05-08
+
+- **Many-to-Many relationships**: Added `ManyToMany` relationship type with pivot table support.
+- **Cross-table filtering**: Dot-notation in `WhereBuilder` now triggers automatic `LEFT JOIN` for ManyToMany, HasMany, HasOne, and BelongsTo.
+
+## 1.2.0 — 2026-05-01
+
+- **`readOneAsync`**: Renamed `readAsync` → `readOneAsync` for API consistency. `readOne` sync variant added.
+- **Deep loading**: Nested `Includable` support for arbitrary-depth relationship loading.
+- **`watchOne` / `watchAll`**: Reactive streams for single record and collection watching.
+- **Transactions with buffered notifications**: `DB.transaction()` buffers `changeStream` events and emits them only after a successful commit.
+
 ## 1.1.0 — 2026-04-28
 
 - **ORM Relationships & Eager Loading**: Added support for `HasMany`, `HasOne`, and `BelongsTo` relationships.
-- **`include` parameter**: Added `include` support to `readAsync` and `readAll` for automatic fetching of related records.
+- **`include` parameter**: Added `include` support to `readOneAsync` and `readAll` for automatic fetching of related records.
 - **Batch Loader**: Implemented an efficient batch loader for relationships to prevent the N+1 query problem.
 - **New Annotations**: Integrated new relationship annotations for declarative schema definition.
-- **Documentation**: Comprehensive updates to README.md and ANNOTATIONS.md with relationship usage examples.
+- **Documentation**: Comprehensive updates to README.md with relationship usage examples.
 
 ## 1.0.0 — 2026-01-23
 

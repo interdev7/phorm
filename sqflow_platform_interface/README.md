@@ -9,10 +9,12 @@ Annotation library for declarative SQL table and schema definitions in **Dart**.
 ## Features
 
 - **Declarative Schemas**: Define tables and columns using `@Schema`, `@Column`, and `@ID`.
-- **Relationships**: Simple annotations for `HasMany`, `BelongsTo`, and `HasOne`.
+- **Relationships**: Annotations for `HasMany`, `BelongsTo`, `HasOne`, and `ManyToMany` (with pivot tables).
 - **Type Safety**: Database-agnostic logical types mapped to SQLite.
 - **Constraints**: Support for `UNIQUE`, `CHECK`, and `DEFAULT` values.
 - **Paranoid Mode**: Built-in support for soft deletes via `deletedAt`.
+- **Factories**: `Factory<T>` interface for generating test/seed data.
+- **Value Converters**: `ValueConverter<D, S>` for custom Dart ↔ SQL type transformations.
 
 ---
 
@@ -171,10 +173,21 @@ Relationships define how models connect. They are used by `sqflow_core` for auto
   tableName: 'users',
   relationships: [
     HasMany(model: Post, foreignKey: 'user_id'),
+    ManyToMany(
+      model: Role,
+      pivotTable: 'user_roles',
+      foreignKey: 'user_id',
+      relatedKey: 'role_id',
+    ),
   ],
 )
 class User extends Model with _$SQFlowUserMixin { ... }
 ```
+
+- **`HasMany`**: One-to-Many (e.g., User has many Posts).
+- **`HasOne`**: One-to-One (e.g., User has one Profile).
+- **`BelongsTo`**: Many-to-One (e.g., Post belongs to User).
+- **`ManyToMany`**: Many-to-Many via a pivot table (e.g., User belongs to many Roles).
 
 ---
 
@@ -198,6 +211,27 @@ print('Page 3: ${paged.data.length} of ${paged.count} total');
 ```
 
 ---
+
+## Factories
+
+Use the `Factory<T>` interface to generate model instances for testing or seeding:
+
+```dart
+class UserFactory extends Factory<User> {
+  int _i = 0;
+
+  @override
+  User create() {
+    _i++;
+    return User(id: 'user_$_i', name: 'User $_i', email: 'user$_i@example.com');
+  }
+}
+
+final users = UserFactory().createMany(50); // List<User>
+```
+
+---
+
 
 ## Status
 
