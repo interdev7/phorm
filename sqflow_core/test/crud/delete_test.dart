@@ -37,11 +37,11 @@ void main() {
       expect(deleteRows, 1);
 
       // Verify user not present in normal read
-      final normalRead = await userService.readAsync('soft_delete_test');
+      final normalRead = await userService.readOneAsync('soft_delete_test');
       expect(normalRead, isNull);
 
       // Verify user available with withDeleted
-      final withDeletedRead = await userService.readAsync(
+      final withDeletedRead = await userService.readOneAsync(
         'soft_delete_test',
         withDeleted: true,
       );
@@ -52,7 +52,7 @@ void main() {
       final restoreRows = await userService.restoreAsync('soft_delete_test');
       expect(restoreRows, 1);
 
-      final restored = await userService.readAsync('soft_delete_test');
+      final restored = await userService.readOneAsync('soft_delete_test');
       expect(restored, isNotNull);
       expect(restored!.deletedAt, isNull);
     });
@@ -80,7 +80,7 @@ void main() {
       expect(deleteRows, 1);
 
       // Verify user absent even with withDeleted
-      final read = await userService.readAsync(
+      final read = await userService.readOneAsync(
         'force_delete_test',
         withDeleted: true,
       );

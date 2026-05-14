@@ -1,6 +1,7 @@
 # Code Generation (sqflow_generator)
 
 `sqflow_generator` is a `build_runner` plugin that reads your `@Schema` annotated classes and generates:
+
 - SQL `CREATE TABLE` statement with indexes
 - `_$SQFlowClassNameMixin` mixin with automatic `toJson()`, `toString()` and `copyWith()`
 - `_$SQFlowClassNameFromJson()` helper
@@ -38,6 +39,7 @@ dart run build_runner watch --delete-conflicting-outputs
 
 For a file `lib/models/user.dart` with `part 'user.sql.g.dart';`, the generator produces `lib/models/user.sql.g.dart` containing:
 
+```dart
 mixin _$SQFlowUserMixin {
   // toJson — automatic TOP-LEVEL serialization
   Map<String, dynamic> toJson() => _$SQFlowUserToJson(this as User);
@@ -162,7 +164,7 @@ final users = await Users.where(Users.firstName.eq('John')).get();
 
 // 2. CRUD
 await Users.insert(newUser);
-final user = await Users.read('id123');
+final user = await Users.readOne('id123');
 ```
 
 ---
@@ -170,16 +172,18 @@ final user = await Users.read('id123');
 ## Automatic Timestamp Fields
 
 When `timestamps: true` (default), the generator automatically adds the following fields to your `_$SQFlowClassNameMixin`:
+
 - `DateTime? createdAt`
 - `DateTime? updatedAt`
 
 If `paranoid: true` is enabled, it also adds:
+
 - `DateTime? deletedAt`
 
 These fields are automatically handled in `toJson()` and `fromJson()`, so you can access them directly on your model instances without any manual declaration.
 
 ```dart
-final user = await Users.read('id123');
+final user = await Users.readOne('id123');
 print(user?.createdAt); // Works automatically!
 ```
 
@@ -211,6 +215,7 @@ This is useful when you have custom serialization logic that conflicts with gene
 ### `part 'file.sql.g.dart'` not found
 
 Run the generator:
+
 ```bash
 dart run build_runner build --delete-conflicting-outputs
 ```
@@ -228,6 +233,7 @@ dart run build_runner build --delete-conflicting-outputs
 ### `_$SQFlowUserMixin` not found
 
 Make sure:
+
 1. The file has `part 'user.sql.g.dart';`
 2. The class has `with _$SQFlowUserMixin` (capital `SQ`, capital `F`, capital `U`)
 3. The generator has been run successfully

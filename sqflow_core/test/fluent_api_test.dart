@@ -63,7 +63,7 @@ void main() {
       });
 
       // Verify with instance
-      final exists = await userService.readAsync('new-123');
+      final exists = await userService.readOneAsync('new-123');
       expect(exists, isNotNull);
       expect(exists!.firstName, 'Test');
     });

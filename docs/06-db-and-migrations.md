@@ -49,7 +49,7 @@ The database connection is established **lazily** on first access. You don't nee
 
 ```dart
 // No manual init needed — triggers on first use
-final user = await userService.readAsync('id');
+final user = await userService.readOneAsync('id');
 ```
 
 During initialization, the `DB` class:

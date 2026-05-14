@@ -20,14 +20,14 @@ The generator adds the `deleted_at TEXT` column to the SQL schema and injects a 
 
 ## How It Works
 
-| Operation | `paranoid: false` | `paranoid: true` |
-| :--- | :--- | :--- |
-| `deleteAsync(id)` | `DELETE FROM ... WHERE id = ?` | `UPDATE ... SET deleted_at = NOW()` |
-| `deleteAsync(id, force: true)` | `DELETE FROM ...` | `DELETE FROM ...` (bypasses soft delete) |
-| `readAsync(id)` | Returns record | Returns `null` if `deleted_at IS NOT NULL` |
-| `readAll()` | All records | Only records where `deleted_at IS NULL` |
-| `readAll(withDeleted: true)` | All records | All records including deleted |
-| `readAll(onlyDeleted: true)` | All records | Only records where `deleted_at IS NOT NULL` |
+| Operation                      | `paranoid: false`              | `paranoid: true`                            |
+| :----------------------------- | :----------------------------- | :------------------------------------------ |
+| `deleteAsync(id)`              | `DELETE FROM ... WHERE id = ?` | `UPDATE ... SET deleted_at = NOW()`         |
+| `deleteAsync(id, force: true)` | `DELETE FROM ...`              | `DELETE FROM ...` (bypasses soft delete)    |
+| `readOneAsync(id)`             | Returns record                 | Returns `null` if `deleted_at IS NOT NULL`  |
+| `readAll()`                    | All records                    | Only records where `deleted_at IS NULL`     |
+| `readAll(withDeleted: true)`   | All records                    | All records including deleted               |
+| `readAll(onlyDeleted: true)`   | All records                    | Only records where `deleted_at IS NOT NULL` |
 
 ---
 
@@ -44,7 +44,7 @@ final result = await userService.readAll(withDeleted: true);
 final result = await userService.readAll(onlyDeleted: true);
 
 // Read a specific record regardless of deletion status
-final user = await userService.readAsync('id', withDeleted: true);
+final user = await userService.readOneAsync('id', withDeleted: true);
 
 // Check if ID exists including deleted
 final exists = await userService.existsAsync('id', withDeleted: true);

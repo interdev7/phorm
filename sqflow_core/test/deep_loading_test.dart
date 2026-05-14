@@ -53,7 +53,7 @@ void main() {
     final userService = SqflowCore<User>(dbManager: db, table: usersTable);
 
     // 3. Load User with Posts, and for each Post load its User again
-    final user = await userService.readAsync('u1', include: [
+    final user = await userService.readOneAsync('u1', include: [
       Includable.model<Post>(include: [
         Includable.model<User>(),
       ]),
@@ -100,7 +100,7 @@ void main() {
 
     final userService = SqflowCore<User>(dbManager: db, table: usersTable);
 
-    final user = await userService.readAsync('u1', include: [
+    final user = await userService.readOneAsync('u1', include: [
       Includable.model<Post>(
         attributes: Attributes.include(['id', 'title', 'user_id']),
         include: [
@@ -163,7 +163,7 @@ void main() {
     // We exclude 'phone' from User. 
     // WARNING: Since User.phone is non-nullable in Dart, excluding it will cause fromJson to throw if it's missing.
     // So for this test, I will exclude NULLABLE fields: 'address', 'birth_date'.
-    final user = await userService.readAsync('u1', include: [
+    final user = await userService.readOneAsync('u1', include: [
       Includable.model<Post>(
         attributes: Attributes.exclude(['created_at', 'updated_at', 'deleted_at']),
         include: [

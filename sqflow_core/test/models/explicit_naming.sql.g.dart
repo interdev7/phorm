@@ -183,13 +183,13 @@ class ExplicitTable {
           {bool withDeleted = false, DatabaseExecutor? executor}) =>
       _service.existsAsync(id, withDeleted: withDeleted, executor: executor);
 
-  static Future<ExplicitNaming?> read(Object id,
+  static Future<ExplicitNaming?> readOne(Object id,
           {List<String>? columns,
           Attributes? attributes,
           bool withDeleted = false,
           List<Includable>? include,
           DatabaseExecutor? executor}) =>
-      _service.readAsync(id,
+      _service.readOneAsync(id,
           columns: columns,
           attributes: attributes,
           withDeleted: withDeleted,

@@ -39,6 +39,7 @@ final rowId = await Users.insert(user);
 
 // Using traditional SqflowCore instance
 final rowId = await userService.insertAsync(user);
+
 ```
 
 > [!NOTE]
@@ -63,6 +64,7 @@ await Users.upsert(user);
 
 // Traditional
 await userService.upsertAsync(user);
+
 ```
 
 > [!CAUTION]
@@ -85,14 +87,15 @@ await Users.restore('user_id_here');
 
 ---
 
+```dart
 // 1. Basic read
-final user = await Users.read('user_id_here');
+final user = await Users.readOne('user_id_here');
 
 // 2. Include soft-deleted records
-final user = await Users.read('user_id_here', withDeleted: true);
+final user = await Users.readOne('user_id_here', withDeleted: true);
 
 // 3. Eager loading
-final user = await Users.read(
+final user = await Users.readOne(
   'user_id_here',
   include: [Includable.model<Order>()],
 );
@@ -104,6 +107,7 @@ final user = await Users.read(
 
 SQFlow provides two explicit methods depending on whether you need a total count:
 
+```dart
 // Returns List<T> — just the page of data
 final users = await Users.query
   .where(Users.city.eq('Sofia'))
@@ -112,7 +116,7 @@ final users = await Users.query
   .get();
 
 for (final user in users) { ... }
-```
+
 
 // Returns ResultWithCount<T> — data + total matching rows
 final result = await Users.readAllWithCount(
@@ -125,23 +129,23 @@ print('Showing ${result.data.length} of ${result.count}');
 
 ### Parameters (shared by both methods)
 
-| Parameter | Type | Default | Description |
-| :--- | :--- | :--- | :--- |
-| `limit` | `int` | `20` | Max rows to return |
-| `offset` | `int` | `0` | Number of rows to skip |
-| `where` | `WhereBuilder?` | `null` | Filter conditions |
-| `sort` | `SortBuilder?` | `null` | ORDER BY clause |
-| `withDeleted` | `bool` | `false` | Include soft-deleted records |
-| `onlyDeleted` | `bool` | `false` | Return only soft-deleted records |
-| `include` | `List<Includable>?` | `null` | Eager-load relationships |
-| `attributes` | `Attributes?` | `null` | Column selection |
-| `columns` | `List<String>?` | `null` | Raw column list (alternative to attributes) |
+| Parameter     | Type                | Default | Description                                 |
+| :------------ | :------------------ | :------ | :------------------------------------------ |
+| `limit`       | `int`               | `20`    | Max rows to return                          |
+| `offset`      | `int`               | `0`     | Number of rows to skip                      |
+| `where`       | `WhereBuilder?`     | `null`  | Filter conditions                           |
+| `sort`        | `SortBuilder?`      | `null`  | ORDER BY clause                             |
+| `withDeleted` | `bool`              | `false` | Include soft-deleted records                |
+| `onlyDeleted` | `bool`              | `false` | Return only soft-deleted records            |
+| `include`     | `List<Includable>?` | `null`  | Eager-load relationships                    |
+| `attributes`  | `Attributes?`       | `null`  | Column selection                            |
+| `columns`     | `List<String>?`     | `null`  | Raw column list (alternative to attributes) |
 
 ### Return Types
 
-| Method | Return type | Properties |
-| :--- | :--- | :--- |
-| `readAll(...)` | `Result<T>` | `.data` only |
+| Method                  | Return type          | Properties         |
+| :---------------------- | :------------------- | :----------------- |
+| `readAll(...)`          | `Result<T>`          | `.data` only       |
 | `readAllWithCount(...)` | `ResultWithCount<T>` | `.data` + `.count` |
 
 > [!IMPORTANT]
@@ -153,6 +157,7 @@ print('Showing ${result.data.length} of ${result.count}');
 
 SQFlow provides type-safe aggregate functions. These functions automatically respect soft-delete filtering (paranoid mode) and any `WhereBuilder` conditions.
 
+```dart
 // 1. Count
 final total = await Users.count();
 final active = await Users.count(where: Users.isActive.eq(true));
@@ -179,17 +184,16 @@ final maxPrice = await Products.max(Products.price);
 
 All batch operations run in a single SQLite transaction, making them significantly faster than individual calls.
 
+```dart
 // Pluralized Service
 await Users.insertBatch([user1, user2]);
 await Users.updateBatch([user1, user2]);
 await Users.upsertBatch([user1, user2]);
 await Users.deleteBatch(['id1', 'id2']);
 await Users.restoreBatch(['id1', 'id2']);
-```
 
-Fire-and-forget variants with callbacks:
 
-```dart
+// Fire-and-forget variants with callbacks:
 userService.insertBatch(
   [user1, user2],
   onSuccess: (count) => print('Inserted $count'),

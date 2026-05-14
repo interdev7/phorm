@@ -38,7 +38,7 @@ class User extends Model with _$SQFlowUserMixin { ... }
 | `timestamps`    | `bool`                 | `true`      | Auto `created_at`/`updated_at`   |
 | `columnNaming`  | `ColumnNamingStrategy` | `snakeCase` | Field → column mapping strategy  |
 | `indexes`       | `List<Index>`          | `[]`        | Table indexes                    |
-| `relationships` | `List<Relationship>`   | `[]`        | `HasMany`, `HasOne`, `BelongsTo` |
+| `relationships` | `List<Relationship>`   | `[]`        | `HasMany`, `HasOne`, `BelongsTo`/`Join`, `ManyToMany` |
 | `useToJson`     | `bool`                 | `true`      | Generate toJson mixin            |
 | `useFromJson`   | `bool`                 | `true`      | Generate fromJson helper         |
 | `useCopyWith`   | `bool`                 | `true`      | Generate copyWith method         |
