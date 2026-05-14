@@ -45,7 +45,7 @@ final paged = await userService.readAllWithCount(limit: 20);
 
 ## Key Features
 
-- **Full CRUD** — `insertAsync`, `readAsync`, `updateAsync`, `deleteAsync`, `restoreAsync`, `existsAsync`
+- **Full CRUD** — `insertAsync`, `readOneAsync`, `updateAsync`, `deleteAsync`, `restoreAsync`, `existsAsync`
 - **Batch operations** — `insertBatchAsync`, `updateBatchAsync`, `deleteBatchAsync`, etc. (all in a single transaction)
 - **Fluent query builder** — `WhereBuilder` with 30+ operators, SQL-injection safe
 - **Two read methods** — `readAll()` → `Result<T>`, `readAllWithCount()` → `ResultWithCount<T>` (no cast required)
@@ -62,8 +62,8 @@ final paged = await userService.readAllWithCount(limit: 20);
 | :---------------------- | :--------------------------- | :------------------------ |
 | `insertAsync(item)`     | `Future<int>`                | Row ID                    |
 | `updateAsync(item)`     | `Future<int>`                | Affected rows             |
-| `upsertAsync(item)`     | `Future<int>`                | Insert or replace         |
-| `readAsync(id)`         | `Future<T?>`                 | By primary key            |
+| `upsertAsync(item)`     | `Future<void>`               | Insert or replace         |
+| `readOneAsync(id)`      | `Future<T?>`                 | By primary key            |
 | `readAll(...)`          | `Future<Result<T>>`          | Paginated list            |
 | `readAllWithCount(...)` | `Future<ResultWithCount<T>>` | List + total count        |
 | `deleteAsync(id)`       | `Future<int>`                | Soft or hard delete       |
@@ -105,6 +105,11 @@ Full documentation is in the [`docs/`](../docs) folder:
 | [07-code-generation.md](../docs/07-code-generation.md)                   | Generator setup, generated code anatomy |
 | [08-soft-deletes.md](../docs/08-soft-deletes.md)                         | Paranoid mode, restore, hard delete     |
 | [09-pitfalls-and-limitations.md](../docs/09-pitfalls-and-limitations.md) | Known issues and gotchas                |
+
+| [10-validators.md](../docs/10-validators.md)                             | Built-in validators (NotEmpty, Email, Range…) |
+| [11-many-to-many.md](../docs/11-many-to-many.md)                         | Pivot tables and Many-to-Many setup           |
+| [12-query-builder.md](../docs/12-query-builder.md)                       | Fluent API reference — `.get()`, `.first()`   |
+| [13-seeders-and-factories.md](../docs/13-seeders-and-factories.md)       | Data seeding and mock factories               |
 
 ---
 

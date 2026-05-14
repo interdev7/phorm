@@ -1,5 +1,5 @@
 name: sqflow_generator
-version: 1.0.0
+version: 1.1.0
 description: SQL Table Schema Generator for Flutter
 repository: https://github.com/interdev7/sqflow
 homepage: https://github.com/interdev7/sqflow

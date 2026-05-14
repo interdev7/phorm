@@ -1,6 +1,6 @@
 name: sqflow_core
 description: A flexible CRUD service for SQLite in Flutter/Dart with soft delete, advanced querying (WhereBuilder), sorting, and schema management.
-version: 1.0.0
+version: 1.4.0
 repository: https://github.com/interdev7/sqflow
 homepage: https://github.com/interdev7/sqflow
 issues: https://github.com/interdev7/sqflow/issues
