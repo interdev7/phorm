@@ -178,13 +178,13 @@ class MigrationPosts {
           {bool withDeleted = false, DatabaseExecutor? executor}) =>
       _service.existsAsync(id, withDeleted: withDeleted, executor: executor);
 
-  static Future<MigrationPost?> read(Object id,
+  static Future<MigrationPost?> readOne(Object id,
           {List<String>? columns,
           Attributes? attributes,
           bool withDeleted = false,
           List<Includable>? include,
           DatabaseExecutor? executor}) =>
-      _service.readAsync(id,
+      _service.readOneAsync(id,
           columns: columns,
           attributes: attributes,
           withDeleted: withDeleted,

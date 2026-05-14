@@ -110,7 +110,7 @@ final appDb = DB(databaseName: 'app.db', version: 1, tables: [usersTable]);
 // 4. Use the generated service class
 await Users.insert(User(id: 'u1', name: 'Alice'));
 
-final user = await Users.read('u1');
+final user = await Users.readOne('u1');
 
 final list = await Users.where(Users.name.like('A%')).get();
 

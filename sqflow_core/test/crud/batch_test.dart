@@ -46,8 +46,8 @@ void main() {
       await userService.insertBatchAsync(newUsers);
 
       // Verify both users were added
-      final user1 = await userService.readAsync('batch001');
-      final user2 = await userService.readAsync('batch002');
+      final user1 = await userService.readOneAsync('batch001');
+      final user2 = await userService.readOneAsync('batch002');
 
       expect(user1, isNotNull);
       expect(user2, isNotNull);
@@ -94,7 +94,7 @@ void main() {
 
       // Verify updates
       for (final user in updatedUsers) {
-        final retrieved = await userService.readAsync(user.id);
+        final retrieved = await userService.readOneAsync(user.id);
         expect(retrieved!.city, 'Updated City');
         expect(retrieved.isVerified, true);
       }
@@ -134,8 +134,8 @@ void main() {
 
       // Verify they are deleted
       for (final id in ['batch_del1', 'batch_del2']) {
-        final normal = await userService.readAsync(id);
-        final withDeleted = await userService.readAsync(id, withDeleted: true);
+        final normal = await userService.readOneAsync(id);
+        final withDeleted = await userService.readOneAsync(id, withDeleted: true);
 
         expect(normal, isNull);
         expect(withDeleted, isNotNull);

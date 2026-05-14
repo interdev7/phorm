@@ -59,12 +59,12 @@ Users.where(Users.price.lte(99.99));      // price <= ?
 
 | Method                      | SQL                            | Case sensitive           |
 | :-------------------------- | :----------------------------- | :----------------------- |
-| `.like('col', pattern)`     | `col LIKE ?`                   | ✅ Yes                   |
-| `.notLike('col', pattern)`  | `col NOT LIKE ?`               | ✅ Yes                   |
+| `.like('col', pattern)`     | `col LIKE ?`                   | ❌ No (SQLite default)   |
+| `.notLike('col', pattern)`  | `col NOT LIKE ?`               | ❌ No (SQLite default)   |
 | `.ilike('col', pattern)`    | `LOWER(col) LIKE LOWER(?)`     | ❌ No                    |
 | `.notIlike('col', pattern)` | `LOWER(col) NOT LIKE LOWER(?)` | ❌ No                    |
-| `.startsWith('col', val)`   | `col LIKE 'val%'`              | ✅ Yes                   |
-| `.endsWith('col', val)`     | `col LIKE '%val'`              | ✅ Yes                   |
+| `.startsWith('col', val)`   | `col LIKE 'val%'`              | ❌ No (SQLite default)   |
+| `.endsWith('col', val)`     | `col LIKE '%val'`              | ❌ No (SQLite default)   |
 | `.regexp('col', pattern)`   | `col REGEXP ?`                 | depends on SQLite config |
 
 ```dart

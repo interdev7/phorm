@@ -51,7 +51,7 @@ void main() {
       expect(finalCount, initialCount);
 
       // Verify user was not inserted
-      final user = await userService.readAsync('txn_test');
+      final user = await userService.readOneAsync('txn_test');
       expect(user, isNull);
     });
 
@@ -77,7 +77,7 @@ void main() {
         );
 
         // Update an existing user using ORM method
-        final userToUpdate = await userService.readAsync('u001', executor: txn);
+        final userToUpdate = await userService.readOneAsync('u001', executor: txn);
         if (userToUpdate != null) {
           final updatedData = userToUpdate.toJson();
           updatedData['first_name'] = 'UpdatedInTxn';
@@ -92,11 +92,11 @@ void main() {
       final finalCount = (await userService.readAllWithCount()).count;
       expect(finalCount, initialCount + 1);
 
-      final newUser = await userService.readAsync('txn_success');
+      final newUser = await userService.readOneAsync('txn_success');
       expect(newUser, isNotNull);
       expect(newUser!.email, 'success.txn@test.com');
 
-      final updatedUser = await userService.readAsync('u001');
+      final updatedUser = await userService.readOneAsync('u001');
       expect(updatedUser!.firstName, 'UpdatedInTxn');
     });
   });

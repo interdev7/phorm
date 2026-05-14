@@ -415,9 +415,9 @@ class SqflowCore<T extends Model> {
   ///
   /// **Example:**
   /// ```dart
-  /// final user = await userService.readAsync('1', include: ['posts']);
+  /// final user = await userService.readOneAsync('1', include: ['posts']);
   /// ```
-  Future<T?> readAsync(Object id, {List<String>? columns, Attributes? attributes, bool withDeleted = false, List<Includable>? include, DatabaseExecutor? executor}) async {
+  Future<T?> readOneAsync(Object id, {List<String>? columns, Attributes? attributes, bool withDeleted = false, List<Includable>? include, DatabaseExecutor? executor}) async {
     final db = executor ?? await database;
     final where = WhereBuilder().eq(table.primaryKey, id);
     if (table.paranoid && !withDeleted) {
@@ -448,7 +448,7 @@ class SqflowCore<T extends Model> {
   ///
   /// **Example:**
   /// ```dart
-  /// await userService.read('1',
+  /// await userService.readOne('1',
   ///   onSuccess: (user) {
   ///     print('User found: ${user.name}');
   ///   },
@@ -457,10 +457,10 @@ class SqflowCore<T extends Model> {
   ///   }
   /// );
   /// ```
-  void read(Object id,
+  void readOne(Object id,
       {List<String>? columns, Attributes? attributes, void Function(T)? onSuccess, ErrorCallback? onError, bool withDeleted = false, List<Includable>? include, DatabaseExecutor? executor}) async {
     try {
-      final item = await readAsync(
+      final item = await readOneAsync(
         id,
         columns: columns,
         attributes: attributes,
@@ -1078,12 +1078,12 @@ class SqflowCore<T extends Model> {
   }) async* {
     final tablesToWatch = {table.name, ..._extractIncludedTables(include), ...?dependencies};
     // Initial load
-    yield await readAsync(id, include: include, attributes: attributes, withDeleted: withDeleted);
+    yield await readOneAsync(id, include: include, attributes: attributes, withDeleted: withDeleted);
 
     // Listen for changes
     await for (final changedTable in dbManager.changeStream) {
       if (tablesToWatch.contains(changedTable)) {
-        yield await readAsync(id, include: include, attributes: attributes, withDeleted: withDeleted);
+        yield await readOneAsync(id, include: include, attributes: attributes, withDeleted: withDeleted);
       }
     }
   }

@@ -35,7 +35,7 @@
 - **Что добавить:** Возможность подгружать вложенные связи (вложенные `include`).
 - **Пример:** `User` -> `Posts` -> `Comments` -> `Author`.
   ```dart
-  userService.readAsync('1', include: [
+  userService.readOneAsync('1', include: [
     Includable.model<Post>(include: [
       Includable.model<Comment>()
     ])

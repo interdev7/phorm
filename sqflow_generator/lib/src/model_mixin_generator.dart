@@ -623,9 +623,9 @@ class ModelMixinGenerator extends GeneratorForAnnotation<Schema> {
           '  static Future<bool> exists(Object id, {bool withDeleted = false, DatabaseExecutor? executor}) => _service.existsAsync(id, withDeleted: withDeleted, executor: executor);')
       ..writeln()
       ..writeln(
-          '  static Future<$className?> read(Object id, {List<String>? columns, Attributes? attributes, bool withDeleted = false, List<Includable>? include, DatabaseExecutor? executor}) => ')
+          '  static Future<$className?> readOne(Object id, {List<String>? columns, Attributes? attributes, bool withDeleted = false, List<Includable>? include, DatabaseExecutor? executor}) => ')
       ..writeln(
-          '    _service.readAsync(id, columns: columns, attributes: attributes, withDeleted: withDeleted, include: include, executor: executor);')
+          '    _service.readOneAsync(id, columns: columns, attributes: attributes, withDeleted: withDeleted, include: include, executor: executor);')
       ..writeln()
       ..writeln(
           '  static Future<Result<$className>> readAll({int limit = 20, int offset = 0, WhereBuilder? where, SortBuilder? sort, List<String>? columns, Attributes? attributes, bool withDeleted = false, bool onlyDeleted = false, List<Includable>? include, DatabaseExecutor? executor}) => ')

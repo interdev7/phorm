@@ -172,13 +172,13 @@ class CollationTests {
           {bool withDeleted = false, DatabaseExecutor? executor}) =>
       _service.existsAsync(id, withDeleted: withDeleted, executor: executor);
 
-  static Future<CollationTest?> read(Object id,
+  static Future<CollationTest?> readOne(Object id,
           {List<String>? columns,
           Attributes? attributes,
           bool withDeleted = false,
           List<Includable>? include,
           DatabaseExecutor? executor}) =>
-      _service.readAsync(id,
+      _service.readOneAsync(id,
           columns: columns,
           attributes: attributes,
           withDeleted: withDeleted,

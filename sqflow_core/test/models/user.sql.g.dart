@@ -411,13 +411,13 @@ class Users {
           {bool withDeleted = false, DatabaseExecutor? executor}) =>
       _service.existsAsync(id, withDeleted: withDeleted, executor: executor);
 
-  static Future<User?> read(Object id,
+  static Future<User?> readOne(Object id,
           {List<String>? columns,
           Attributes? attributes,
           bool withDeleted = false,
           List<Includable>? include,
           DatabaseExecutor? executor}) =>
-      _service.readAsync(id,
+      _service.readOneAsync(id,
           columns: columns,
           attributes: attributes,
           withDeleted: withDeleted,
@@ -686,13 +686,13 @@ class Posts {
           {bool withDeleted = false, DatabaseExecutor? executor}) =>
       _service.existsAsync(id, withDeleted: withDeleted, executor: executor);
 
-  static Future<Post?> read(Object id,
+  static Future<Post?> readOne(Object id,
           {List<String>? columns,
           Attributes? attributes,
           bool withDeleted = false,
           List<Includable>? include,
           DatabaseExecutor? executor}) =>
-      _service.readAsync(id,
+      _service.readOneAsync(id,
           columns: columns,
           attributes: attributes,
           withDeleted: withDeleted,
@@ -941,13 +941,13 @@ class Profiles {
           {bool withDeleted = false, DatabaseExecutor? executor}) =>
       _service.existsAsync(id, withDeleted: withDeleted, executor: executor);
 
-  static Future<Profile?> read(Object id,
+  static Future<Profile?> readOne(Object id,
           {List<String>? columns,
           Attributes? attributes,
           bool withDeleted = false,
           List<Includable>? include,
           DatabaseExecutor? executor}) =>
-      _service.readAsync(id,
+      _service.readOneAsync(id,
           columns: columns,
           attributes: attributes,
           withDeleted: withDeleted,
@@ -1216,13 +1216,13 @@ class Orders {
           {bool withDeleted = false, DatabaseExecutor? executor}) =>
       _service.existsAsync(id, withDeleted: withDeleted, executor: executor);
 
-  static Future<Order?> read(Object id,
+  static Future<Order?> readOne(Object id,
           {List<String>? columns,
           Attributes? attributes,
           bool withDeleted = false,
           List<Includable>? include,
           DatabaseExecutor? executor}) =>
-      _service.readAsync(id,
+      _service.readOneAsync(id,
           columns: columns,
           attributes: attributes,
           withDeleted: withDeleted,

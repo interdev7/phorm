@@ -31,7 +31,7 @@ final appDb = DB.autoVersion(
 
 // 3. Service API (Recommended) 🌟
 await Users.insert(user);
-final user = await Users.read('id123');
+final user = await Users.readOne('id123');
 
 // 4. Fluent Queries
 final result = await Users.where(Users.age.gt(18)).get();

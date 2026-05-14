@@ -33,6 +33,7 @@ class _$SQFlowPostTable extends Table<Post> {
     required super.fromJson,
     super.relationships = const [],
     super.columns = const [],
+    super.primaryKey = 'id',
     super.timestamps = true,
   }) : super(type: Post, paranoid: Table.detectSoftDelete(schema));
 }
@@ -43,7 +44,15 @@ final postsTable = _$SQFlowPostTable(
   name: 'posts',
   fromJson: _$SQFlowPostFromJson,
   relationships: const [Join(model: 'users', foreignKey: 'user_id')],
-  columns: const ['id', 'title', 'content', 'user_id', 'created_at', 'updated_at'],
+  columns: const [
+    'id',
+    'title',
+    'content',
+    'user_id',
+    'created_at',
+    'updated_at'
+  ],
+  primaryKey: 'id',
   timestamps: true,
 );
 
@@ -114,10 +123,16 @@ Post _$SQFlowPostFromJson(Map<String, dynamic> json) {
     title: json['title'] as String,
     content: json['content'] as String,
     userId: json['user_id'] as String,
-    user: json['users'] != null ? User.fromJson(json['users'] as Map<String, dynamic>) : null,
+    user: json['users'] != null
+        ? User.fromJson(json['users'] as Map<String, dynamic>)
+        : null,
   )
-    ..createdAt = json['created_at'] != null ? DateTime.parse(json['created_at'] as String) : null
-    ..updatedAt = json['updated_at'] != null ? DateTime.parse(json['updated_at'] as String) : null;
+    ..createdAt = json['created_at'] != null
+        ? DateTime.parse(json['created_at'] as String)
+        : null
+    ..updatedAt = json['updated_at'] != null
+        ? DateTime.parse(json['updated_at'] as String)
+        : null;
   return instance;
 }
 
@@ -128,29 +143,59 @@ class Posts {
   static const SqflowColumn<String> content = SqflowColumn<String>('content');
   static const SqflowColumn<String> userId = SqflowColumn<String>('user_id');
   static const SqflowColumn<User> user = SqflowColumn<User>('user');
-  static const SqflowColumn<DateTime> createdAt = SqflowColumn<DateTime>('created_at');
-  static const SqflowColumn<DateTime> updatedAt = SqflowColumn<DateTime>('updated_at');
+  static const SqflowColumn<DateTime> createdAt =
+      SqflowColumn<DateTime>('created_at');
+  static const SqflowColumn<DateTime> updatedAt =
+      SqflowColumn<DateTime>('updated_at');
 
-  static SqflowCore<Post> get _service => SqflowCore<Post>(dbManager: appDb, table: postsTable);
+  static SqflowCore<Post> get _service =>
+      SqflowCore<Post>(dbManager: appDb, table: postsTable);
 
-  static SqflowQuery<Post> where(SqflowCondition condition) => _service.where(condition);
+  static SqflowQuery<Post> where(SqflowCondition condition) =>
+      _service.where(condition);
   static SqflowQuery<Post> get query => _service.query;
 
-  static Future<int> insert(Post item, {DatabaseExecutor? executor}) => _service.insertAsync(item, executor: executor);
-  static Future<int> update(Post item, {DatabaseExecutor? executor}) => _service.updateAsync(item, executor: executor);
-  static Future<void> upsert(Post item, {DatabaseExecutor? executor}) => _service.upsertAsync(item, executor: executor);
-  static Future<int> delete(Object id, {bool force = false, DatabaseExecutor? executor}) => _service.deleteAsync(id, force: force, executor: executor);
-  static Future<int> restore(Object id, {DatabaseExecutor? executor}) => _service.restoreAsync(id, executor: executor);
+  static Future<int> insert(Post item, {DatabaseExecutor? executor}) =>
+      _service.insertAsync(item, executor: executor);
+  static Future<int> update(Post item, {DatabaseExecutor? executor}) =>
+      _service.updateAsync(item, executor: executor);
+  static Future<void> upsert(Post item, {DatabaseExecutor? executor}) =>
+      _service.upsertAsync(item, executor: executor);
+  static Future<int> delete(Object id,
+          {bool force = false, DatabaseExecutor? executor}) =>
+      _service.deleteAsync(id, force: force, executor: executor);
+  static Future<int> restore(Object id, {DatabaseExecutor? executor}) =>
+      _service.restoreAsync(id, executor: executor);
 
-  static Future<int> insertBatch(List<Post> items, {DatabaseExecutor? executor}) => _service.insertBatchAsync(items, executor: executor);
-  static Future<int> updateBatch(List<Post> items, {DatabaseExecutor? executor}) => _service.updateBatchAsync(items, executor: executor);
-  static Future<int> upsertBatch(List<Post> items, {DatabaseExecutor? executor}) => _service.upsertBatchAsync(items, executor: executor);
-  static Future<int> deleteBatch(List<Object> ids, {bool force = false, DatabaseExecutor? executor}) => _service.deleteBatchAsync(ids, force: force, executor: executor);
+  static Future<int> insertBatch(List<Post> items,
+          {DatabaseExecutor? executor}) =>
+      _service.insertBatchAsync(items, executor: executor);
+  static Future<int> updateBatch(List<Post> items,
+          {DatabaseExecutor? executor}) =>
+      _service.updateBatchAsync(items, executor: executor);
+  static Future<int> upsertBatch(List<Post> items,
+          {DatabaseExecutor? executor}) =>
+      _service.upsertBatchAsync(items, executor: executor);
+  static Future<int> deleteBatch(List<Object> ids,
+          {bool force = false, DatabaseExecutor? executor}) =>
+      _service.deleteBatchAsync(ids, force: force, executor: executor);
 
-  static Future<bool> exists(Object id, {bool withDeleted = false, DatabaseExecutor? executor}) => _service.existsAsync(id, withDeleted: withDeleted, executor: executor);
+  static Future<bool> exists(Object id,
+          {bool withDeleted = false, DatabaseExecutor? executor}) =>
+      _service.existsAsync(id, withDeleted: withDeleted, executor: executor);
 
-  static Future<Post?> read(Object id, {List<String>? columns, Attributes? attributes, bool withDeleted = false, List<Includable>? include, DatabaseExecutor? executor}) =>
-      _service.readAsync(id, columns: columns, attributes: attributes, withDeleted: withDeleted, include: include, executor: executor);
+  static Future<Post?> readOne(Object id,
+          {List<String>? columns,
+          Attributes? attributes,
+          bool withDeleted = false,
+          List<Includable>? include,
+          DatabaseExecutor? executor}) =>
+      _service.readOneAsync(id,
+          columns: columns,
+          attributes: attributes,
+          withDeleted: withDeleted,
+          include: include,
+          executor: executor);
 
   static Future<Result<Post>> readAll(
           {int limit = 20,
@@ -164,7 +209,16 @@ class Posts {
           List<Includable>? include,
           DatabaseExecutor? executor}) =>
       _service.readAll(
-          limit: limit, offset: offset, where: where, sort: sort, columns: columns, attributes: attributes, withDeleted: withDeleted, onlyDeleted: onlyDeleted, include: include, executor: executor);
+          limit: limit,
+          offset: offset,
+          where: where,
+          sort: sort,
+          columns: columns,
+          attributes: attributes,
+          withDeleted: withDeleted,
+          onlyDeleted: onlyDeleted,
+          include: include,
+          executor: executor);
 
   static Future<ResultWithCount<Post>> readAllWithCount(
           {int limit = 20,
@@ -178,19 +232,47 @@ class Posts {
           List<Includable>? include,
           DatabaseExecutor? executor}) =>
       _service.readAllWithCount(
-          limit: limit, offset: offset, where: where, sort: sort, columns: columns, attributes: attributes, withDeleted: withDeleted, onlyDeleted: onlyDeleted, include: include, executor: executor);
+          limit: limit,
+          offset: offset,
+          where: where,
+          sort: sort,
+          columns: columns,
+          attributes: attributes,
+          withDeleted: withDeleted,
+          onlyDeleted: onlyDeleted,
+          include: include,
+          executor: executor);
 
-  static Future<int> count({Object? column, WhereBuilder? where, DatabaseExecutor? executor}) => _service.countAsync(column: column, where: where, executor: executor);
-  static Future<num> sum(Object column, {WhereBuilder? where, DatabaseExecutor? executor}) => _service.sumAsync(column, where: where, executor: executor);
-  static Future<num> avg(Object column, {WhereBuilder? where, DatabaseExecutor? executor}) => _service.avgAsync(column, where: where, executor: executor);
-  static Future<num> min(Object column, {WhereBuilder? where, DatabaseExecutor? executor}) => _service.minAsync(column, where: where, executor: executor);
-  static Future<num> max(Object column, {WhereBuilder? where, DatabaseExecutor? executor}) => _service.maxAsync(column, where: where, executor: executor);
+  static Future<int> count(
+          {Object? column, WhereBuilder? where, DatabaseExecutor? executor}) =>
+      _service.countAsync(column: column, where: where, executor: executor);
+  static Future<num> sum(Object column,
+          {WhereBuilder? where, DatabaseExecutor? executor}) =>
+      _service.sumAsync(column, where: where, executor: executor);
+  static Future<num> avg(Object column,
+          {WhereBuilder? where, DatabaseExecutor? executor}) =>
+      _service.avgAsync(column, where: where, executor: executor);
+  static Future<num> min(Object column,
+          {WhereBuilder? where, DatabaseExecutor? executor}) =>
+      _service.minAsync(column, where: where, executor: executor);
+  static Future<num> max(Object column,
+          {WhereBuilder? where, DatabaseExecutor? executor}) =>
+      _service.maxAsync(column, where: where, executor: executor);
 
-  static Future<T> transaction<T>(Future<T> Function(DatabaseExecutor txn) action) => _service.transaction(action);
+  static Future<T> transaction<T>(
+          Future<T> Function(DatabaseExecutor txn) action) =>
+      _service.transaction(action);
 
   static Stream<String> get changeStream => _service.dbManager.changeStream;
-  static Stream<Post?> watchOne(Object id, {List<Includable>? include}) => _service.watchOne(id, include: include);
-  static Stream<List<Post>> watchAll({WhereBuilder? where, List<Includable>? include, SortBuilder? sort, int? limit}) => _service.watchAll(where: where, include: include, sort: sort, limit: limit);
+  static Stream<Post?> watchOne(Object id, {List<Includable>? include}) =>
+      _service.watchOne(id, include: include);
+  static Stream<List<Post>> watchAll(
+          {WhereBuilder? where,
+          List<Includable>? include,
+          SortBuilder? sort,
+          int? limit}) =>
+      _service.watchAll(
+          where: where, include: include, sort: sort, limit: limit);
 }
 
 dynamic _$SQFlowToJsonValue(dynamic value) {

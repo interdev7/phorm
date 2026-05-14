@@ -33,7 +33,7 @@ void main() {
       final id = await userService.insertAsync(newUser);
       expect(id, greaterThan(0));
 
-      final retrieved = await userService.readAsync('test001');
+      final retrieved = await userService.readOneAsync('test001');
       expect(retrieved, isNotNull);
       expect(retrieved!.id, 'test001');
       expect(retrieved.email, 'test@example.com');

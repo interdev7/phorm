@@ -40,7 +40,7 @@ void main() {
     });
 
     test('Read nonexistent record', () async {
-      final user = await userService.readAsync('nonexistent_id');
+      final user = await userService.readOneAsync('nonexistent_id');
       expect(user, isNull);
     });
   });
