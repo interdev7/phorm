@@ -113,8 +113,8 @@ void main() {
 
     test('Only deleted records', () async {
       // First mark some users as deleted
-      await userService.deleteAsync('u001');
-      await userService.deleteAsync('u002');
+      await userService.delete('u001');
+      await userService.delete('u002');
 
       final result = await userService.readAll(
         limit: 10,

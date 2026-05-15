@@ -19,20 +19,20 @@ void main() {
   group('SqflowCore Read Tests:', () {
     test('Existence check', () async {
       // Existing user (seeded in createTestService)
-      final exists = await userService.existsAsync('u001');
+      final exists = await userService.exists('u001');
       expect(exists, true);
 
       // Nonexistent user
-      final notExists = await userService.existsAsync('nonexistent');
+      final notExists = await userService.exists('nonexistent');
       expect(notExists, false);
 
       // Deleted user (without withDeleted)
-      await userService.deleteAsync('u002');
-      final deletedExists = await userService.existsAsync('u002');
+      await userService.delete('u002');
+      final deletedExists = await userService.exists('u002');
       expect(deletedExists, false);
 
       // Deleted user (with withDeleted)
-      final deletedExistsWith = await userService.existsAsync(
+      final deletedExistsWith = await userService.exists(
         'u002',
         withDeleted: true,
       );
@@ -40,7 +40,7 @@ void main() {
     });
 
     test('Read nonexistent record', () async {
-      final user = await userService.readOneAsync('nonexistent_id');
+      final user = await userService.readOne('nonexistent_id');
       expect(user, isNull);
     });
   });

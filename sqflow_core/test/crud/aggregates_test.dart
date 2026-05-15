@@ -17,15 +17,15 @@ void main() {
   });
 
   group('SqflowCore Aggregates:', () {
-    test('countAsync without where clause', () async {
-      final count = await userService.countAsync();
+    test('count without where clause', () async {
+      final count = await userService.count();
       final expectedCount = mockUsers.where((u) => u.deletedAt == null).length;
       expect(count, expectedCount);
     });
 
-    test('countAsync with where clause', () async {
+    test('count with where clause', () async {
       // Find how many users are active
-      final activeCount = await userService.countAsync(
+      final activeCount = await userService.count(
         where: WhereBuilder().eq(Users.isActive, true),
       );
 
@@ -35,8 +35,8 @@ void main() {
       expect(activeCount, expectedCount);
     });
 
-    test('sumAsync calculates correctly', () async {
-      final totalAge = await userService.sumAsync(Users.age);
+    test('sum calculates correctly', () async {
+      final totalAge = await userService.sum(Users.age);
 
       final expectedSum = mockUsers
           .where((u) => u.deletedAt == null && u.age != null)
@@ -46,8 +46,8 @@ void main() {
       expect(totalAge, expectedSum);
     });
 
-    test('sumAsync with where clause', () async {
-      final totalAge = await userService.sumAsync(
+    test('sum with where clause', () async {
+      final totalAge = await userService.sum(
         Users.age,
         where: WhereBuilder().eq(Users.gender, 'M'),
       );
@@ -60,8 +60,8 @@ void main() {
       expect(totalAge, expectedSum);
     });
 
-    test('avgAsync calculates correctly', () async {
-      final avgAge = await userService.avgAsync(Users.age);
+    test('avg calculates correctly', () async {
+      final avgAge = await userService.avg(Users.age);
 
       final validUsers =
           mockUsers.where((u) => u.deletedAt == null && u.age != null).toList();
@@ -75,8 +75,8 @@ void main() {
       expect((avgAge - expectedAvg).abs(), lessThan(0.0001));
     });
 
-    test('minAsync calculates correctly', () async {
-      final minAge = await userService.minAsync(Users.age);
+    test('min calculates correctly', () async {
+      final minAge = await userService.min(Users.age);
 
       final expectedMin = mockUsers
           .where((u) => u.deletedAt == null && u.age != null)
@@ -86,8 +86,8 @@ void main() {
       expect(minAge, expectedMin);
     });
 
-    test('maxAsync calculates correctly', () async {
-      final maxAge = await userService.maxAsync(Users.age);
+    test('max calculates correctly', () async {
+      final maxAge = await userService.max(Users.age);
 
       final expectedMax = mockUsers
           .where((u) => u.deletedAt == null && u.age != null)

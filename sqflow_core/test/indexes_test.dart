@@ -43,7 +43,7 @@ void main() {
   });
 
   test('Unique index prevents duplicate emails', () async {
-    await userService.insertAsync(User(
+    await userService.insert(User(
       id: 'u1',
       firstName: 'John',
       lastName: 'Doe',
@@ -56,7 +56,7 @@ void main() {
 
     // Inserting another user with same email should fail
     expect(
-        () => userService.insertAsync(User(
+        () => userService.insert(User(
               id: 'u2',
               firstName: 'Jane',
               lastName: 'Doe',

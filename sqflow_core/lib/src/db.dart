@@ -656,8 +656,8 @@ class DB {
   /// **Example:**
   /// ```dart
   /// await dbManager.transaction((txn) async {
-  ///   final userId = await userService.insertAsync(user, executor: txn);
-  ///   await profileService.insertAsync(profile.copyWith(userId: userId), executor: txn);
+  ///   final userId = await userService.insert(user, executor: txn);
+  ///   await profileService.insert(profile.copyWith(userId: userId), executor: txn);
   /// });
   /// ```
   Future<R> transaction<R>(

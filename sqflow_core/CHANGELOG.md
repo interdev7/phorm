@@ -17,7 +17,7 @@ All notable changes for the sqflow_core package.
 
 ## 1.2.0 — 2026-05-01
 
-- **`readOneAsync`**: Renamed `readAsync` → `readOneAsync` for API consistency. `readOne` sync variant added.
+- **`readOne`**: Renamed `readAsync` → `readOne` for API consistency. `readOne` sync variant added.
 - **Deep loading**: Nested `Includable` support for arbitrary-depth relationship loading.
 - **`watchOne` / `watchAll`**: Reactive streams for single record and collection watching.
 - **Transactions with buffered notifications**: `DB.transaction()` buffers `changeStream` events and emits them only after a successful commit.
@@ -25,7 +25,7 @@ All notable changes for the sqflow_core package.
 ## 1.1.0 — 2026-04-28
 
 - **ORM Relationships & Eager Loading**: Added support for `HasMany`, `HasOne`, and `BelongsTo` relationships.
-- **`include` parameter**: Added `include` support to `readOneAsync` and `readAll` for automatic fetching of related records.
+- **`include` parameter**: Added `include` support to `readOne` and `readAll` for automatic fetching of related records.
 - **Batch Loader**: Implemented an efficient batch loader for relationships to prevent the N+1 query problem.
 - **New Annotations**: Integrated new relationship annotations for declarative schema definition.
 - **Documentation**: Comprehensive updates to README.md with relationship usage examples.
@@ -35,7 +35,7 @@ All notable changes for the sqflow_core package.
 - First public release.
 - CRUD service for SQLite with soft delete support.
 - WhereBuilder for complex filters (AND/OR groups, inList, like, dateOnlyBetween, isNull/isTrue).
-- Batch operations: insertBatchAsync, updateBatchAsync, deleteBatchAsync, restoreBatchAsync.
+- Batch operations: insertBatch, updateBatch, deleteBatch, restoreBatch.
 - SortBuilder for sorting by multiple fields.
 - Table schema and index management (IndexProps).
 - Tests based on sqflite_common_ffi for in-memory environment.

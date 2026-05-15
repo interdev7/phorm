@@ -38,7 +38,7 @@ void main() {
     await Future.delayed(const Duration(milliseconds: 50));
 
     await dbManager.transaction((txn) async {
-      await userService.insertAsync(
+      await userService.insert(
           User(
             id: 'u1',
             firstName: 'John',
@@ -75,7 +75,7 @@ void main() {
 
     try {
       await dbManager.transaction((txn) async {
-        await userService.insertAsync(User(
+        await userService.insert(User(
           id: 'u1',
           firstName: 'John',
           lastName: 'Doe',

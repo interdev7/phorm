@@ -31,7 +31,7 @@ void main() {
 
       );
 
-      await userService.insertAsync(user);
+      await userService.insert(user);
 
       // Update
       final updatedUser = user.copyWith(
@@ -39,10 +39,10 @@ void main() {
         city: 'New City',
       );
 
-      final rows = await userService.updateAsync(updatedUser);
+      final rows = await userService.update(updatedUser);
       expect(rows, 1);
 
-      final retrieved = await userService.readOneAsync('update_test');
+      final retrieved = await userService.readOne('update_test');
       expect(retrieved!.firstName, 'Updated');
       expect(retrieved.city, 'New City');
     });
@@ -61,14 +61,14 @@ void main() {
       );
 
       // First time - insert
-      await userService.upsertAsync(user);
-      var retrieved = await userService.readOneAsync('upsert_test');
+      await userService.upsert(user);
+      var retrieved = await userService.readOne('upsert_test');
       expect(retrieved!.firstName, 'Upsert');
 
       // Second time with same id - replace
       final updatedUser = user.copyWith(firstName: 'UpdatedUpsert');
-      await userService.upsertAsync(updatedUser);
-      retrieved = await userService.readOneAsync('upsert_test');
+      await userService.upsert(updatedUser);
+      retrieved = await userService.readOne('upsert_test');
       expect(retrieved!.firstName, 'UpdatedUpsert');
     });
 
@@ -85,7 +85,7 @@ void main() {
 
       );
 
-      final rows = await userService.updateAsync(nonExistentUser);
+      final rows = await userService.update(nonExistentUser);
       expect(rows, 0);
     });
   });

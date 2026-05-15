@@ -71,18 +71,18 @@ While `SortBuilder` supports dot notation, the query will fail at runtime if the
 
 ## CRUD Operations
 
-### `upsertAsync` deletes and re-inserts rows
+### `upsert` deletes and re-inserts rows
 
 SQLite's `INSERT OR REPLACE` deletes the existing row and inserts a new one when there's a conflict. This means:
 - The internal `rowid` changes.
 - `ON DELETE CASCADE` foreign key constraints may trigger.
 - Any columns not present in `toJson()` are lost.
 
-Use `updateAsync` for partial updates.
+Use `update` for partial updates.
 
 ---
 
-### `insertBatchAsync` uses `ConflictAlgorithm.replace`
+### `insertBatch` uses `ConflictAlgorithm.replace`
 
 The batch insert silently replaces existing rows with the same primary key. This may be surprising if you expect duplicate key errors.
 
@@ -93,12 +93,12 @@ The batch insert silently replaces existing rows with the same primary key. This
 ```dart
 // WRONG — operations inside transaction() must use the txn object
 await db.transaction((txn) async {
-  await userService.insertAsync(user); // ← This uses the global connection, NOT txn!
+  await userService.insert(user); // ← This uses the global connection, NOT txn!
 });
 
 // CORRECT — pass the txn as executor
 await db.transaction((txn) async {
-  await userService.insertAsync(user, executor: txn);
+  await userService.insert(user, executor: txn);
 });
 ```
 
@@ -160,7 +160,7 @@ The generator adds `created_at`, `updated_at` to the SQL schema when `timestamps
 
 ### `paranoid: true` requires `deleted_at` in schema
 
-If you set `paranoid: true` but your `CREATE TABLE` SQL doesn't have a `deleted_at TEXT` column, soft delete operations (`deleteAsync`, `readAll` filter) will fail silently or throw a database error.
+If you set `paranoid: true` but your `CREATE TABLE` SQL doesn't have a `deleted_at TEXT` column, soft delete operations (`delete`, `readAll` filter) will fail silently or throw a database error.
 
 The generator adds this automatically. Only a concern when creating `Table` manually.
 

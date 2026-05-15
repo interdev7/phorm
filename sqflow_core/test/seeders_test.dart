@@ -25,7 +25,7 @@ class MigrationUserSeeder extends Seeder {
     final userFactory = MigrationUserFactory();
     
     // Seed 5 users
-    await userService.insertBatchAsync(userFactory.createMany(5));
+    await userService.insertBatch(userFactory.createMany(5));
   }
 }
 
@@ -64,14 +64,14 @@ void main() {
 
     test('db.seed() executes seeders and populates data', () async {
       // Initially empty
-      final initialCount = await userService.countAsync();
+      final initialCount = await userService.count();
       expect(initialCount, 0);
 
       // Run seeding
       await db.seed([MigrationUserSeeder()]);
 
       // Verify 5 users were inserted
-      final countAfterSeed = await userService.countAsync();
+      final countAfterSeed = await userService.count();
       expect(countAfterSeed, 5);
 
       final result = await userService.readAll();
@@ -85,8 +85,8 @@ void main() {
         _SpecialSeeder(), // inserts special
       ]);
 
-      expect(await userService.countAsync(), 6);
-      expect(await userService.existsAsync('special_id'), isTrue);
+      expect(await userService.count(), 6);
+      expect(await userService.exists('special_id'), isTrue);
     });
   });
 }
@@ -95,6 +95,6 @@ class _SpecialSeeder extends Seeder {
   @override
   Future<void> run(DB db) async {
     final userService = SqflowCore<MigrationUser>(dbManager: db, table: migration_usersTable);
-    await userService.insertAsync(MigrationUser(id: 'special_id', name: 'Special User'));
+    await userService.insert(MigrationUser(id: 'special_id', name: 'Special User'));
   }
 }

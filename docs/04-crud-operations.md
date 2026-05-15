@@ -39,12 +39,12 @@ final userService = SqflowCore<User>(dbManager: db, table: usersTable);
 final rowId = await Users.insert(user);
 
 // Using traditional SqflowCore instance
-final rowId = await userService.insertAsync(user);
+final rowId = await userService.insert(user);
 
 ```
 
 > [!NOTE]
-> `insertAsync` automatically injects `created_at` and `updated_at` if `table.timestamps = true`. If `created_at` is already set in the model's `toJson()`, it is preserved; `updated_at` is always overwritten.
+> `insert` automatically injects `created_at` and `updated_at` if `table.timestamps = true`. If `created_at` is already set in the model's `toJson()`, it is preserved; `updated_at` is always overwritten.
 
 ---
 
@@ -53,11 +53,11 @@ final rowId = await userService.insertAsync(user);
 await Users.update(updatedUser);
 
 // Traditional
-await userService.updateAsync(updatedUser);
+await userService.update(updatedUser);
 ```
 
 > [!NOTE]
-> `updateAsync` always updates `updated_at` but **removes** `created_at` from the update payload to prevent accidental overwrite.
+> `update` always updates `updated_at` but **removes** `created_at` from the update payload to prevent accidental overwrite.
 
 ---
 
@@ -66,12 +66,12 @@ await userService.updateAsync(updatedUser);
 await Users.upsert(user);
 
 // Traditional
-await userService.upsertAsync(user);
+await userService.upsert(user);
 
 ```
 
 > [!CAUTION]
-> `upsertAsync` uses SQLite's `INSERT OR REPLACE` which **deletes and re-inserts** the row if there's a conflict. This resets the `rowid` and may affect foreign key constraints. For partial updates, prefer `updateAsync`.
+> `upsert` uses SQLite's `INSERT OR REPLACE` which **deletes and re-inserts** the row if there's a conflict. This resets the `rowid` and may affect foreign key constraints. For partial updates, prefer `update`.
 
 ---
 
@@ -87,7 +87,7 @@ await Users.restore('user_id_here');
 ```
 
 > [!WARNING]
-> `restoreAsync` throws `StateError` if `table.paranoid` is `false`. Always check the table configuration before calling restore.
+> `restore` throws `StateError` if `table.paranoid` is `false`. Always check the table configuration before calling restore.
 
 ---
 
@@ -178,7 +178,7 @@ final maxPrice = await Products.max(Products.price);
 ```
 
 > [!NOTE]
-> `sumAsync`, `avgAsync`, `minAsync`, and `maxAsync` return a `double?` (null if no records match). `countAsync` returns an `int`.
+> `sum`, `avg`, `min`, and `max` return a `double?` (null if no records match). `count` returns an `int`.
 
 ---
 
@@ -197,12 +197,6 @@ await Users.deleteBatch(['id1', 'id2']);
 await Users.restoreBatch(['id1', 'id2']);
 
 
-// Fire-and-forget variants with callbacks:
-userService.insertBatch(
-  [user1, user2],
-  onSuccess: (count) => print('Inserted $count'),
-  onError: (e, st) => print('Error: $e'),
-);
 ```
 
 > [!NOTE]
@@ -217,8 +211,8 @@ Use when multiple operations must succeed or fail together.
 ```dart
 await db.transaction((txn) async {
   // You can use SqflowCore methods inside transaction by passing the executor
-  await userService.insertAsync(user, executor: txn);
-  await orderService.insertAsync(order, executor: txn);
+  await userService.insert(user, executor: txn);
+  await orderService.insert(order, executor: txn);
 });
 ```
 

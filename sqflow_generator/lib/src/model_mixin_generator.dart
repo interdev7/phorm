@@ -593,39 +593,39 @@ class ModelMixinGenerator extends GeneratorForAnnotation<Schema> {
       ..writeln('  static SqflowQuery<$className> get query => _service.query;')
       ..writeln()
       ..writeln(
-          '  static Future<int> insert($className item, {DatabaseExecutor? executor}) => _service.insertAsync(item, executor: executor);')
+          '  static Future<int> insert($className item, {DatabaseExecutor? executor}) => _service.insert(item, executor: executor);')
       ..writeln(
-          '  static Future<int> update($className item, {DatabaseExecutor? executor}) => _service.updateAsync(item, executor: executor);')
+          '  static Future<int> update($className item, {DatabaseExecutor? executor}) => _service.update(item, executor: executor);')
       ..writeln(
-          '  static Future<void> upsert($className item, {DatabaseExecutor? executor}) => _service.upsertAsync(item, executor: executor);')
+          '  static Future<void> upsert($className item, {DatabaseExecutor? executor}) => _service.upsert(item, executor: executor);')
       ..writeln(
-          '  static Future<int> delete(Object id, {bool force = false, DatabaseExecutor? executor}) => _service.deleteAsync(id, force: force, executor: executor);')
+          '  static Future<int> delete(Object id, {bool force = false, DatabaseExecutor? executor}) => _service.delete(id, force: force, executor: executor);')
       ..writeln(
-          '  static Future<int> restore(Object id, {DatabaseExecutor? executor}) => _service.restoreAsync(id, executor: executor);')
+          '  static Future<int> restore(Object id, {DatabaseExecutor? executor}) => _service.restore(id, executor: executor);')
       ..writeln()
       ..writeln(
-          '  static Future<int> insertBatch(List<$className> items, {DatabaseExecutor? executor}) => _service.insertBatchAsync(items, executor: executor);')
+          '  static Future<int> insertBatch(List<$className> items, {DatabaseExecutor? executor}) => _service.insertBatch(items, executor: executor);')
       ..writeln(
-          '  static Future<int> updateBatch(List<$className> items, {DatabaseExecutor? executor}) => _service.updateBatchAsync(items, executor: executor);')
+          '  static Future<int> updateBatch(List<$className> items, {DatabaseExecutor? executor}) => _service.updateBatch(items, executor: executor);')
       ..writeln(
-          '  static Future<int> upsertBatch(List<$className> items, {DatabaseExecutor? executor}) => _service.upsertBatchAsync(items, executor: executor);')
+          '  static Future<int> upsertBatch(List<$className> items, {DatabaseExecutor? executor}) => _service.upsertBatch(items, executor: executor);')
       ..writeln(
-          '  static Future<int> deleteBatch(List<Object> ids, {bool force = false, DatabaseExecutor? executor}) => _service.deleteBatchAsync(ids, force: force, executor: executor);');
+          '  static Future<int> deleteBatch(List<Object> ids, {bool force = false, DatabaseExecutor? executor}) => _service.deleteBatch(ids, force: force, executor: executor);');
 
     if (paranoid) {
       buffer.writeln(
-          '  static Future<int> restoreBatch(List<Object> ids, {DatabaseExecutor? executor}) => _service.restoreBatchAsync(ids, executor: executor);');
+          '  static Future<int> restoreBatch(List<Object> ids, {DatabaseExecutor? executor}) => _service.restoreBatch(ids, executor: executor);');
     }
 
     buffer
       ..writeln()
       ..writeln(
-          '  static Future<bool> exists(Object id, {bool withDeleted = false, DatabaseExecutor? executor}) => _service.existsAsync(id, withDeleted: withDeleted, executor: executor);')
+          '  static Future<bool> exists(Object id, {bool withDeleted = false, DatabaseExecutor? executor}) => _service.exists(id, withDeleted: withDeleted, executor: executor);')
       ..writeln()
       ..writeln(
           '  static Future<$className?> readOne(Object id, {List<String>? columns, Attributes? attributes, bool withDeleted = false, List<Includable>? include, DatabaseExecutor? executor}) => ')
       ..writeln(
-          '    _service.readOneAsync(id, columns: columns, attributes: attributes, withDeleted: withDeleted, include: include, executor: executor);')
+          '    _service.readOne(id, columns: columns, attributes: attributes, withDeleted: withDeleted, include: include, executor: executor);')
       ..writeln()
       ..writeln(
           '  static Future<Result<$className>> readAll({int limit = 20, int offset = 0, WhereBuilder? where, SortBuilder? sort, List<String>? columns, Attributes? attributes, bool withDeleted = false, bool onlyDeleted = false, List<Includable>? include, DatabaseExecutor? executor}) => ')
@@ -638,15 +638,15 @@ class ModelMixinGenerator extends GeneratorForAnnotation<Schema> {
           '    _service.readAllWithCount(limit: limit, offset: offset, where: where, sort: sort, columns: columns, attributes: attributes, withDeleted: withDeleted, onlyDeleted: onlyDeleted, include: include, executor: executor);')
       ..writeln()
       ..writeln(
-          '  static Future<int> count({Object? column, WhereBuilder? where, DatabaseExecutor? executor}) => _service.countAsync(column: column, where: where, executor: executor);')
+          '  static Future<int> count({Object? column, WhereBuilder? where, DatabaseExecutor? executor}) => _service.count(column: column, where: where, executor: executor);')
       ..writeln(
-          '  static Future<num> sum(Object column, {WhereBuilder? where, DatabaseExecutor? executor}) => _service.sumAsync(column, where: where, executor: executor);')
+          '  static Future<num> sum(Object column, {WhereBuilder? where, DatabaseExecutor? executor}) => _service.sum(column, where: where, executor: executor);')
       ..writeln(
-          '  static Future<num> avg(Object column, {WhereBuilder? where, DatabaseExecutor? executor}) => _service.avgAsync(column, where: where, executor: executor);')
+          '  static Future<num> avg(Object column, {WhereBuilder? where, DatabaseExecutor? executor}) => _service.avg(column, where: where, executor: executor);')
       ..writeln(
-          '  static Future<num> min(Object column, {WhereBuilder? where, DatabaseExecutor? executor}) => _service.minAsync(column, where: where, executor: executor);')
+          '  static Future<num> min(Object column, {WhereBuilder? where, DatabaseExecutor? executor}) => _service.min(column, where: where, executor: executor);')
       ..writeln(
-          '  static Future<num> max(Object column, {WhereBuilder? where, DatabaseExecutor? executor}) => _service.maxAsync(column, where: where, executor: executor);')
+          '  static Future<num> max(Object column, {WhereBuilder? where, DatabaseExecutor? executor}) => _service.max(column, where: where, executor: executor);')
       ..writeln()
       ..writeln(
           '  static Future<T> transaction<T>(Future<T> Function(DatabaseExecutor txn) action) => _service.transaction(action);')
