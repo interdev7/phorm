@@ -156,33 +156,33 @@ class Posts {
   static SqflowQuery<Post> get query => _service.query;
 
   static Future<int> insert(Post item, {DatabaseExecutor? executor}) =>
-      _service.insertAsync(item, executor: executor);
+      _service.insert(item, executor: executor);
   static Future<int> update(Post item, {DatabaseExecutor? executor}) =>
-      _service.updateAsync(item, executor: executor);
+      _service.update(item, executor: executor);
   static Future<void> upsert(Post item, {DatabaseExecutor? executor}) =>
-      _service.upsertAsync(item, executor: executor);
+      _service.upsert(item, executor: executor);
   static Future<int> delete(Object id,
           {bool force = false, DatabaseExecutor? executor}) =>
-      _service.deleteAsync(id, force: force, executor: executor);
+      _service.delete(id, force: force, executor: executor);
   static Future<int> restore(Object id, {DatabaseExecutor? executor}) =>
-      _service.restoreAsync(id, executor: executor);
+      _service.restore(id, executor: executor);
 
   static Future<int> insertBatch(List<Post> items,
           {DatabaseExecutor? executor}) =>
-      _service.insertBatchAsync(items, executor: executor);
+      _service.insertBatch(items, executor: executor);
   static Future<int> updateBatch(List<Post> items,
           {DatabaseExecutor? executor}) =>
-      _service.updateBatchAsync(items, executor: executor);
+      _service.updateBatch(items, executor: executor);
   static Future<int> upsertBatch(List<Post> items,
           {DatabaseExecutor? executor}) =>
-      _service.upsertBatchAsync(items, executor: executor);
+      _service.upsertBatch(items, executor: executor);
   static Future<int> deleteBatch(List<Object> ids,
           {bool force = false, DatabaseExecutor? executor}) =>
-      _service.deleteBatchAsync(ids, force: force, executor: executor);
+      _service.deleteBatch(ids, force: force, executor: executor);
 
   static Future<bool> exists(Object id,
           {bool withDeleted = false, DatabaseExecutor? executor}) =>
-      _service.existsAsync(id, withDeleted: withDeleted, executor: executor);
+      _service.exists(id, withDeleted: withDeleted, executor: executor);
 
   static Future<Post?> readOne(Object id,
           {List<String>? columns,
@@ -190,7 +190,7 @@ class Posts {
           bool withDeleted = false,
           List<Includable>? include,
           DatabaseExecutor? executor}) =>
-      _service.readOneAsync(id,
+      _service.readOne(id,
           columns: columns,
           attributes: attributes,
           withDeleted: withDeleted,
@@ -245,19 +245,19 @@ class Posts {
 
   static Future<int> count(
           {Object? column, WhereBuilder? where, DatabaseExecutor? executor}) =>
-      _service.countAsync(column: column, where: where, executor: executor);
+      _service.count(column: column, where: where, executor: executor);
   static Future<num> sum(Object column,
           {WhereBuilder? where, DatabaseExecutor? executor}) =>
-      _service.sumAsync(column, where: where, executor: executor);
+      _service.sum(column, where: where, executor: executor);
   static Future<num> avg(Object column,
           {WhereBuilder? where, DatabaseExecutor? executor}) =>
-      _service.avgAsync(column, where: where, executor: executor);
+      _service.avg(column, where: where, executor: executor);
   static Future<num> min(Object column,
           {WhereBuilder? where, DatabaseExecutor? executor}) =>
-      _service.minAsync(column, where: where, executor: executor);
+      _service.min(column, where: where, executor: executor);
   static Future<num> max(Object column,
           {WhereBuilder? where, DatabaseExecutor? executor}) =>
-      _service.maxAsync(column, where: where, executor: executor);
+      _service.max(column, where: where, executor: executor);
 
   static Future<T> transaction<T>(
           Future<T> Function(DatabaseExecutor txn) action) =>

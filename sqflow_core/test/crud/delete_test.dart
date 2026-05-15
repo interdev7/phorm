@@ -30,18 +30,18 @@ void main() {
 
       );
 
-      await userService.insertAsync(user);
+      await userService.insert(user);
 
       // Soft delete
-      final deleteRows = await userService.deleteAsync('soft_delete_test');
+      final deleteRows = await userService.delete('soft_delete_test');
       expect(deleteRows, 1);
 
       // Verify user not present in normal read
-      final normalRead = await userService.readOneAsync('soft_delete_test');
+      final normalRead = await userService.readOne('soft_delete_test');
       expect(normalRead, isNull);
 
       // Verify user available with withDeleted
-      final withDeletedRead = await userService.readOneAsync(
+      final withDeletedRead = await userService.readOne(
         'soft_delete_test',
         withDeleted: true,
       );
@@ -49,10 +49,10 @@ void main() {
       expect(withDeletedRead!.deletedAt, isNotNull);
 
       // Restore
-      final restoreRows = await userService.restoreAsync('soft_delete_test');
+      final restoreRows = await userService.restore('soft_delete_test');
       expect(restoreRows, 1);
 
-      final restored = await userService.readOneAsync('soft_delete_test');
+      final restored = await userService.readOne('soft_delete_test');
       expect(restored, isNotNull);
       expect(restored!.deletedAt, isNull);
     });
@@ -70,17 +70,17 @@ void main() {
 
       );
 
-      await userService.insertAsync(user);
+      await userService.insert(user);
 
       // Hard delete
-      final deleteRows = await userService.deleteAsync(
+      final deleteRows = await userService.delete(
         'force_delete_test',
         force: true,
       );
       expect(deleteRows, 1);
 
       // Verify user absent even with withDeleted
-      final read = await userService.readOneAsync(
+      final read = await userService.readOne(
         'force_delete_test',
         withDeleted: true,
       );
@@ -88,12 +88,12 @@ void main() {
     });
 
     test('Delete nonexistent record', () async {
-      final rows = await userService.deleteAsync('non_existent');
+      final rows = await userService.delete('non_existent');
       expect(rows, 0);
     });
 
     test('Restore nonexistent record', () async {
-      final rows = await userService.restoreAsync('non_existent');
+      final rows = await userService.restore('non_existent');
       expect(rows, 0);
     });
   });

@@ -20,7 +20,7 @@ void main() {
       );
       appDb = db;
       service = SqflowCore<User>(dbManager: db, table: usersTable);
-      await service.insertBatchAsync(mockUsers);
+      await service.insertBatch(mockUsers);
     });
 
     test('startsWith', () async {

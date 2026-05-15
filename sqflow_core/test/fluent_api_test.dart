@@ -27,7 +27,7 @@ void main() {
       userService = SqflowCore<User>(dbManager: db, table: usersTable);
 
       // Seed data
-      await userService.insertBatchAsync(mockUsers);
+      await userService.insertBatch(mockUsers);
     });
 
     test('Both approaches should return the same data', () async {
@@ -63,7 +63,7 @@ void main() {
       });
 
       // Verify with instance
-      final exists = await userService.readOneAsync('new-123');
+      final exists = await userService.readOne('new-123');
       expect(exists, isNotNull);
       expect(exists!.firstName, 'Test');
     });

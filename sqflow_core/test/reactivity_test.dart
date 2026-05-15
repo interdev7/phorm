@@ -45,7 +45,7 @@ void main() {
         country: 'USA',
       );
 
-      await userService.insertAsync(user);
+      await userService.insert(user);
 
       // Initial load
       expect((await userService.watchOne('u1').first)?.firstName, 'John');
@@ -57,7 +57,7 @@ void main() {
       await Future.delayed(const Duration(milliseconds: 100));
 
       // Update the user
-      await userService.updateAsync(user.copyWith(firstName: 'Johnny'));
+      await userService.update(user.copyWith(firstName: 'Johnny'));
 
       final secondEmission = await futureValue;
       expect(secondEmission?.firstName, 'Johnny');
@@ -72,7 +72,7 @@ void main() {
 
       await Future.delayed(const Duration(milliseconds: 100));
 
-      await userService.insertAsync(User(
+      await userService.insert(User(
         id: 'u1',
         firstName: 'John',
         lastName: 'Doe',
@@ -99,7 +99,7 @@ void main() {
         city: 'NY',
         country: 'USA',
       );
-      await userService.insertAsync(user);
+      await userService.insert(user);
 
       // Verify initial
       expect((await userService.watchOne('u1', dependencies: ['posts']).first)?.id, 'u1');
@@ -112,7 +112,7 @@ void main() {
 
       // Insert a post for the user. Even if we don't 'include' posts in the watch,
       // the stream should re-emit because we marked 'posts' as a dependency.
-      await postService.insertAsync(Post(
+      await postService.insert(Post(
         id: 1,
         title: 'New Post',
         userId: 'u1',
@@ -135,7 +135,7 @@ void main() {
         city: 'NY',
         country: 'USA',
       );
-      await userService.insertAsync(user);
+      await userService.insert(user);
 
       // Watch all users with posts included
       expect((await userService.watchAll(include: [Includable.table('posts')]).first).first.id, 'u1');
@@ -149,7 +149,7 @@ void main() {
       await Future.delayed(const Duration(milliseconds: 100));
 
       // Add a post. watchAll should detect 'posts' is in 'include' and re-emit.
-      await postService.insertAsync(Post(
+      await postService.insert(Post(
         id: 1,
         title: 'Post 1',
         userId: 'u1',

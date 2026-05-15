@@ -131,7 +131,7 @@ You can also load relationships of the related models.
 
 ```dart
 // Fetch user -> roles -> permissions
-final user = await Users.readOneAsync('u1', include: [
+final user = await Users.readOne('u1', include: [
   Includable.model<Role>(include: [
     Includable.model<Permission>(),
   ]),

@@ -22,9 +22,9 @@ The generator adds the `deleted_at TEXT` column to the SQL schema and injects a 
 
 | Operation                      | `paranoid: false`              | `paranoid: true`                            |
 | :----------------------------- | :----------------------------- | :------------------------------------------ |
-| `deleteAsync(id)`              | `DELETE FROM ... WHERE id = ?` | `UPDATE ... SET deleted_at = NOW()`         |
-| `deleteAsync(id, force: true)` | `DELETE FROM ...`              | `DELETE FROM ...` (bypasses soft delete)    |
-| `readOneAsync(id)`             | Returns record                 | Returns `null` if `deleted_at IS NOT NULL`  |
+| `delete(id)`              | `DELETE FROM ... WHERE id = ?` | `UPDATE ... SET deleted_at = NOW()`         |
+| `delete(id, force: true)` | `DELETE FROM ...`              | `DELETE FROM ...` (bypasses soft delete)    |
+| `readOne(id)`             | Returns record                 | Returns `null` if `deleted_at IS NOT NULL`  |
 | `readAll()`                    | All records                    | Only records where `deleted_at IS NULL`     |
 | `readAll(withDeleted: true)`   | All records                    | All records including deleted               |
 | `readAll(onlyDeleted: true)`   | All records                    | Only records where `deleted_at IS NOT NULL` |
@@ -44,10 +44,10 @@ final result = await userService.readAll(withDeleted: true);
 final result = await userService.readAll(onlyDeleted: true);
 
 // Read a specific record regardless of deletion status
-final user = await userService.readOneAsync('id', withDeleted: true);
+final user = await userService.readOne('id', withDeleted: true);
 
 // Check if ID exists including deleted
-final exists = await userService.existsAsync('id', withDeleted: true);
+final exists = await userService.exists('id', withDeleted: true);
 ```
 
 ---
@@ -56,14 +56,14 @@ final exists = await userService.existsAsync('id', withDeleted: true);
 
 ```dart
 // Un-delete a record (clears deleted_at, updates updated_at)
-await userService.restoreAsync('user_id');
+await userService.restore('user_id');
 
 // Bulk restore
-await userService.restoreBatchAsync(['id1', 'id2', 'id3']);
+await userService.restoreBatch(['id1', 'id2', 'id3']);
 ```
 
 > [!WARNING]
-> Calling `restoreAsync` on a table with `paranoid: false` throws `StateError: Soft delete not enabled`. Always check your table configuration.
+> Calling `restore` on a table with `paranoid: false` throws `StateError: Soft delete not enabled`. Always check your table configuration.
 
 ---
 
@@ -73,10 +73,10 @@ Even with `paranoid: true`, you can permanently delete a record:
 
 ```dart
 // Permanent delete, bypasses soft delete
-await userService.deleteAsync('user_id', force: true);
+await userService.delete('user_id', force: true);
 
 // Bulk hard delete
-await userService.deleteBatchAsync(['id1', 'id2'], force: true);
+await userService.deleteBatch(['id1', 'id2'], force: true);
 ```
 
 ---
@@ -108,9 +108,9 @@ final result = await userService.readAll(
 );
 ```
 
-### 2. `upsertAsync` with soft-deleted records
+### 2. `upsert` with soft-deleted records
 
-`upsertAsync` uses `INSERT OR REPLACE`. If the ID already exists (even with `deleted_at` set), the entire row is **replaced** — including `deleted_at`, which will be set by `_withTimestamps` as `null`. This effectively restores a soft-deleted record silently.
+`upsert` uses `INSERT OR REPLACE`. If the ID already exists (even with `deleted_at` set), the entire row is **replaced** — including `deleted_at`, which will be set by `_withTimestamps` as `null`. This effectively restores a soft-deleted record silently.
 
 ### 3. Relationship queries and soft-deleted related records
 

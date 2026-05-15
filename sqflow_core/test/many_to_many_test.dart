@@ -78,9 +78,9 @@ void main() {
 
     final userService = SqflowCore<User>(dbManager: db, table: usersTable);
 
-    // Test readOneAsync with include
+    // Test readOne with include
     final user = await userService
-        .readOneAsync('u1', include: [Includable.model<Role>()]);
+        .readOne('u1', include: [Includable.model<Role>()]);
 
     expect(user, isNotNull);
     expect(user!.name, 'John');
@@ -90,7 +90,7 @@ void main() {
     expect(user.roles.any((r) => r.title == 'Viewer'), isFalse);
 
     final jane = await userService
-        .readOneAsync('u2', include: [Includable.model<Role>()]);
+        .readOne('u2', include: [Includable.model<Role>()]);
     expect(jane!.roles, hasLength(2));
     expect(jane.roles.any((r) => r.title == 'Editor'), isTrue);
     expect(jane.roles.any((r) => r.title == 'Viewer'), isTrue);

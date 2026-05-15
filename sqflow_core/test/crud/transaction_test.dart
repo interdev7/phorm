@@ -23,7 +23,7 @@ void main() {
       try {
         await userService.transaction((txn) async {
           // Insert a new user using ORM method with executor
-          await userService.insertAsync(
+          await userService.insert(
             User(
               id: 'txn_test',
               firstName: 'Transaction',
@@ -51,7 +51,7 @@ void main() {
       expect(finalCount, initialCount);
 
       // Verify user was not inserted
-      final user = await userService.readOneAsync('txn_test');
+      final user = await userService.readOne('txn_test');
       expect(user, isNull);
     });
 
@@ -60,7 +60,7 @@ void main() {
 
       await userService.transaction((txn) async {
         // Insert a user using ORM method
-        await userService.insertAsync(
+        await userService.insert(
           User(
             id: 'txn_success',
             firstName: 'Success',
@@ -77,11 +77,11 @@ void main() {
         );
 
         // Update an existing user using ORM method
-        final userToUpdate = await userService.readOneAsync('u001', executor: txn);
+        final userToUpdate = await userService.readOne('u001', executor: txn);
         if (userToUpdate != null) {
           final updatedData = userToUpdate.toJson();
           updatedData['first_name'] = 'UpdatedInTxn';
-          await userService.updateAsync(
+          await userService.update(
             User.fromJson(updatedData),
             executor: txn,
           );
@@ -92,11 +92,11 @@ void main() {
       final finalCount = (await userService.readAllWithCount()).count;
       expect(finalCount, initialCount + 1);
 
-      final newUser = await userService.readOneAsync('txn_success');
+      final newUser = await userService.readOne('txn_success');
       expect(newUser, isNotNull);
       expect(newUser!.email, 'success.txn@test.com');
 
-      final updatedUser = await userService.readOneAsync('u001');
+      final updatedUser = await userService.readOne('u001');
       expect(updatedUser!.firstName, 'UpdatedInTxn');
     });
   });

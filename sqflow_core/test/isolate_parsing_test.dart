@@ -38,7 +38,7 @@ void main() {
               isVerified: false,
             ));
 
-    await userService.insertBatchAsync(users);
+    await userService.insertBatch(users);
 
     // Read all users - this should trigger the isolate path
     final result = await userService.readAll(limit: 100);

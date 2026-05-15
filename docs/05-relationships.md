@@ -137,13 +137,13 @@ FROM orders
 
 ## Eager Loading (Includable API)
 
-Use `Includable` in `readOneAsync` and `readAll` to fetch related data.
+Use `Includable` in `readOne` and `readAll` to fetch related data.
 
 ### By Model Type (recommended)
 
 ```dart
 // Fetches user with all their orders
-final user = await userService.readOneAsync(
+final user = await userService.readOne(
   'user_id',
   include: [Includable.model<Order>()],
 );
@@ -161,7 +161,7 @@ final result = await userService.readAll(
 
 ```dart
 // Useful when the model type is not available at compile time
-final user = await userService.readOneAsync(
+final user = await userService.readOne(
   'user_id',
   include: [Includable.table('orders')],
 );
@@ -190,7 +190,7 @@ SQFlow supports loading relationships at any depth. Simply nest `Includable` obj
 
 ```dart
 // User -> Posts -> User (Author)
-final user = await userService.readOneAsync(
+final user = await userService.readOne(
   'u1',
   include: [
     Includable.model<Post>(

@@ -39,7 +39,7 @@ Future<SqflowCore<User>> createTestService() async {
   final userService = SqflowCore<User>(dbManager: dbManager, table: usersTable);
 
   // Seed initial data
-  await userService.insertBatchAsync(mockUsers);
+  await userService.insertBatch(mockUsers);
 
   return userService;
 }

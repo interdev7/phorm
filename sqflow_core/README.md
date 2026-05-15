@@ -55,13 +55,13 @@ final paged = await userService.readAllWithCount(limit: 20);
 
 ## Key Features
 
-- **Full CRUD** — `insertAsync`, `readOneAsync`, `updateAsync`, `deleteAsync`, `restoreAsync`, `existsAsync`
-- **Batch operations** — `insertBatchAsync`, `updateBatchAsync`, `deleteBatchAsync`, etc. (all in a single transaction)
+- **Full CRUD** — `insert`, `readOne`, `update`, `delete`, `restore`, `exists`
+- **Batch operations** — `insertBatch`, `updateBatch`, `deleteBatch`, etc. (all in a single transaction)
 - **Fluent query builder** — `WhereBuilder` with 30+ operators, SQL-injection safe
 - **Two read methods** — `readAll()` → `Result<T>`, `readAllWithCount()` → `ResultWithCount<T>` (no cast required)
 - **Eager loading** — `Includable.model<T>()` resolves relationships in a single query via JSON aggregation
 - **Cross-table filtering** — dot-notation in `WhereBuilder` triggers automatic `LEFT JOIN`
-- **Soft deletes** — paranoid mode with `withDeleted`, `onlyDeleted`, `restoreAsync`
+- **Soft deletes** — paranoid mode with `withDeleted`, `onlyDeleted`, `restore`
 - **Smart migrations** — versioned, idempotent, hash-tracked via `__sqflow_migrations` table
 
 ---
@@ -70,15 +70,15 @@ final paged = await userService.readAllWithCount(limit: 20);
 
 | Method                  | Returns                      | Description               |
 | :---------------------- | :--------------------------- | :------------------------ |
-| `insertAsync(item)`     | `Future<int>`                | Row ID                    |
-| `updateAsync(item)`     | `Future<int>`                | Affected rows             |
-| `upsertAsync(item)`     | `Future<void>`               | Insert or replace         |
-| `readOneAsync(id)`      | `Future<T?>`                 | By primary key            |
+| `insert(item)`     | `Future<int>`                | Row ID                    |
+| `update(item)`     | `Future<int>`                | Affected rows             |
+| `upsert(item)`     | `Future<void>`               | Insert or replace         |
+| `readOne(id)`      | `Future<T?>`                 | By primary key            |
 | `readAll(...)`          | `Future<Result<T>>`          | Paginated list            |
 | `readAllWithCount(...)` | `Future<ResultWithCount<T>>` | List + total count        |
-| `deleteAsync(id)`       | `Future<int>`                | Soft or hard delete       |
-| `restoreAsync(id)`      | `Future<int>`                | Un-delete (paranoid only) |
-| `existsAsync(id)`       | `Future<bool>`               | Check presence            |
+| `delete(id)`       | `Future<int>`                | Soft or hard delete       |
+| `restore(id)`      | `Future<int>`                | Un-delete (paranoid only) |
+| `exists(id)`       | `Future<bool>`               | Check presence            |
 | `transaction(fn)`       | `Future<R>`                  | Raw transaction           |
 
 All methods have fire-and-forget variants: `insert(item, onSuccess: ..., onError: ...)`.

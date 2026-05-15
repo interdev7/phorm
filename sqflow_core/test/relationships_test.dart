@@ -61,9 +61,9 @@ void main() {
 
     final userService = SqflowCore<User>(dbManager: db, table: usersTable);
 
-    // Test readOneAsync with include
+    // Test readOne with include
     final user = await userService
-        .readOneAsync('u1', include: [Includable.model<Post>()]);
+        .readOne('u1', include: [Includable.model<Post>()]);
 
     expect(user, isNotNull);
     expect(user!.name, 'John');
@@ -82,9 +82,9 @@ void main() {
 
     final postService = SqflowCore<Post>(dbManager: db, table: postsTable);
 
-    // Test readOneAsync with include
+    // Test readOne with include
     final post =
-        await postService.readOneAsync(1, include: [Includable.model<User>()]);
+        await postService.readOne(1, include: [Includable.model<User>()]);
 
     expect(post, isNotNull);
     expect(post!.title, 'Post 1');

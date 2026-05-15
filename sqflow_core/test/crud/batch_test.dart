@@ -43,11 +43,11 @@ void main() {
         ),
       ];
 
-      await userService.insertBatchAsync(newUsers);
+      await userService.insertBatch(newUsers);
 
       // Verify both users were added
-      final user1 = await userService.readOneAsync('batch001');
-      final user2 = await userService.readOneAsync('batch002');
+      final user1 = await userService.readOne('batch001');
+      final user2 = await userService.readOne('batch002');
 
       expect(user1, isNotNull);
       expect(user2, isNotNull);
@@ -80,7 +80,7 @@ void main() {
         ),
       ];
 
-      await userService.insertBatchAsync(users);
+      await userService.insertBatch(users);
 
       // Prepare updated versions
       final updatedUsers = users
@@ -90,11 +90,11 @@ void main() {
               ))
           .toList();
 
-      await userService.updateBatchAsync(updatedUsers);
+      await userService.updateBatch(updatedUsers);
 
       // Verify updates
       for (final user in updatedUsers) {
-        final retrieved = await userService.readOneAsync(user.id);
+        final retrieved = await userService.readOne(user.id);
         expect(retrieved!.city, 'Updated City');
         expect(retrieved.isVerified, true);
       }
@@ -127,15 +127,15 @@ void main() {
         ),
       ];
 
-      await userService.insertBatchAsync(usersToDelete);
+      await userService.insertBatch(usersToDelete);
 
       // Soft delete
-      await userService.deleteBatchAsync(['batch_del1', 'batch_del2']);
+      await userService.deleteBatch(['batch_del1', 'batch_del2']);
 
       // Verify they are deleted
       for (final id in ['batch_del1', 'batch_del2']) {
-        final normal = await userService.readOneAsync(id);
-        final withDeleted = await userService.readOneAsync(id, withDeleted: true);
+        final normal = await userService.readOne(id);
+        final withDeleted = await userService.readOne(id, withDeleted: true);
 
         expect(normal, isNull);
         expect(withDeleted, isNotNull);
@@ -144,10 +144,10 @@ void main() {
 
     test('Batch operations with empty list', () async {
       // Should not throw
-      await userService.insertBatchAsync([]);
-      await userService.updateBatchAsync([]);
-      await userService.deleteBatchAsync([]);
-      await userService.restoreBatchAsync([]);
+      await userService.insertBatch([]);
+      await userService.updateBatch([]);
+      await userService.deleteBatch([]);
+      await userService.restoreBatch([]);
     });
   });
 }

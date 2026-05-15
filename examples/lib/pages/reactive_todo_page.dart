@@ -127,7 +127,7 @@ class _ReactiveTodoPageState extends State<ReactiveTodoPage>
   }
 
   Future<void> _restore(Task task) async {
-    // Demonstrates: restoreAsync — clears deleted_at
+    // Demonstrates: restore — clears deleted_at
     await Tasks.restore(task.id);
   }
 

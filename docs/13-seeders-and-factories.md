@@ -66,7 +66,7 @@ class UserSeeder extends Seeder {
     final users = UserFactory().createMany(50);
     
     // Insert into DB
-    await userService.insertBatchAsync(users);
+    await userService.insertBatch(users);
   }
 }
 ```
@@ -133,6 +133,6 @@ test('UserSeeder populates the database', () async {
   await db.seed([UserSeeder()]);
 
   // Verify
-  expect(await userService.countAsync(), 50);
+  expect(await userService.count(), 50);
 });
 ```

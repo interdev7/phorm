@@ -21,7 +21,7 @@ void main() {
       service =
           SqflowCore<CollationTest>(dbManager: db, table: collation_testsTable);
 
-      await service.insertAsync(CollationTest(
+      await service.insert(CollationTest(
         id: '1',
         nameNoCase: 'Alice',
         nameBinary: 'Alice',
@@ -53,12 +53,12 @@ void main() {
     });
 
     test('Sorting with NOCASE', () async {
-      await service.insertAsync(CollationTest(
+      await service.insert(CollationTest(
         id: '2',
         nameNoCase: 'bob',
         nameBinary: 'bob',
       ));
-      await service.insertAsync(CollationTest(
+      await service.insert(CollationTest(
         id: '3',
         nameNoCase: 'Charlie',
         nameBinary: 'Charlie',
