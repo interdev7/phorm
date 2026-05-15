@@ -7,6 +7,16 @@ The runtime engine of the SQFlow ORM — CRUD, batch operations, pagination, eag
 
 ---
 
+## Motivation 🎯
+
+SQFlow was created to solve three main problems in Flutter database management:
+
+1.  **Type Safety over Strings**: Most SQLite wrappers rely on `Map<String, dynamic>`. SQFlow generates type-safe columns and models, catching errors at compile-time rather than runtime.
+2.  **Active Record DX**: Instead of managing complex DAO/Repository layers, SQFlow provides a clean, declarative API directly on your models (`Users.insert()`, `Users.where(...)`).
+3.  **Performance & Relationships**: Fetching complex graphs (Many-to-Many, HasMany) usually leads to N+1 query problems. SQFlow uses JSON aggregation to resolve entire dependency trees in a **single SQL query**.
+
+---
+
 ## Installation
 
 ```yaml
@@ -106,10 +116,10 @@ Full documentation is in the [`docs/`](../docs) folder:
 | [08-soft-deletes.md](../docs/08-soft-deletes.md)                         | Paranoid mode, restore, hard delete     |
 | [09-pitfalls-and-limitations.md](../docs/09-pitfalls-and-limitations.md) | Known issues and gotchas                |
 
-| [10-validators.md](../docs/10-validators.md)                             | Built-in validators (NotEmpty, Email, Range…) |
-| [11-many-to-many.md](../docs/11-many-to-many.md)                         | Pivot tables and Many-to-Many setup           |
-| [12-query-builder.md](../docs/12-query-builder.md)                       | Fluent API reference — `.get()`, `.first()`   |
-| [13-seeders-and-factories.md](../docs/13-seeders-and-factories.md)       | Data seeding and mock factories               |
+| [10-validators.md](../docs/10-validators.md) | Built-in validators (NotEmpty, Email, Range…) |
+| [11-many-to-many.md](../docs/11-many-to-many.md) | Pivot tables and Many-to-Many setup |
+| [12-query-builder.md](../docs/12-query-builder.md) | Fluent API reference — `.get()`, `.first()` |
+| [13-seeders-and-factories.md](../docs/13-seeders-and-factories.md) | Data seeding and mock factories |
 
 ---
 

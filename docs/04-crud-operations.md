@@ -34,6 +34,7 @@ final userService = SqflowCore<User>(dbManager: db, table: usersTable);
 
 ---
 
+```dart
 // Pluralized Service (Recommended)
 final rowId = await Users.insert(user);
 
@@ -47,6 +48,7 @@ final rowId = await userService.insertAsync(user);
 
 ---
 
+```dart
 // Pluralized Service
 await Users.update(updatedUser);
 
@@ -59,6 +61,7 @@ await userService.updateAsync(updatedUser);
 
 ---
 
+```dart
 // Pluralized Service
 await Users.upsert(user);
 
@@ -72,6 +75,7 @@ await userService.upsertAsync(user);
 
 ---
 
+```dart
 // Soft delete
 await Users.delete('user_id_here');
 
