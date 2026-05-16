@@ -74,7 +74,7 @@ Users.where(Users.city.ilike('%sofia%'))      // Case-insensitive contains
 ```
 
 > [!WARNING]
-> `REGEXP` requires SQLite to have a regexp function registered. In standard `sqflite`, this is **not available** by default. Use `.like()` or `.raw()` for pattern matching without external plugins.
+> `REGEXP` requires SQLite to have a regexp function registered. In standard `sqlite3`, this is **not available** by default. Use `.like()` or `.raw()` for pattern matching without external plugins.
 
 ---
 

@@ -3,7 +3,6 @@ import 'common.dart';
 void main() {
   group('Indexes and CHECK constraint tests:', () {
     test('Indexes exist and have correct columns', () async {
-      initSqflite();
       final service = await createTestService();
       final db = await service.dbManager.database;
 
@@ -20,7 +19,6 @@ void main() {
     });
 
     test('CHECK constraint rejects invalid gender', () async {
-      initSqflite();
       final service = await createTestService();
 
       final badUser = User(

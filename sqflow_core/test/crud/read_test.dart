@@ -3,10 +3,6 @@ import 'common.dart';
 void main() {
   late SqflowCore<User> userService;
 
-  setUpAll(() {
-    initSqflite();
-  });
-
   setUp(() async {
     userService = await createTestService();
   });

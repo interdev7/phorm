@@ -4,9 +4,6 @@ export 'package:flutter_test/flutter_test.dart';
 export 'package:sqflow_core/sqflow_core.dart';
 export 'package:sqflow_platform_interface/sqflow_platform_interface.dart';
 
-void initSqflite() {
-}
-
 extension SqflowCoreTestExt on SqflowCore {
   String getBuildJoinQuery({
     List<String>? columns,

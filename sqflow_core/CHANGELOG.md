@@ -2,6 +2,15 @@
 
 All notable changes for the sqflow_core package.
 
+## 1.5.0 — 2026-05-16
+
+- **BREAKING: Migrated from sqflite to sqlite3**: Complete rewrite of database layer using `sqlite3` package with isolate-based architecture.
+- **Non-blocking operations**: All database operations now run in a separate isolate, preventing UI thread blocking.
+- **Improved performance**: Direct FFI bindings to SQLite provide better performance than sqflite.
+- **Cross-platform support**: Enhanced platform support with `path_provider` integration.
+- **API compatibility**: Maintained full backward compatibility with existing sqflite-based API.
+- **Test coverage**: All 117 tests passing with new sqlite3 implementation.
+
 ## 1.4.0 — 2026-05-14
 
 - **Seeders & Factories**: Added `Seeder` abstract class and `Factory<T>` interface to `sqflow_platform_interface`.
@@ -38,4 +47,4 @@ All notable changes for the sqflow_core package.
 - Batch operations: insertBatch, updateBatch, deleteBatch, restoreBatch.
 - SortBuilder for sorting by multiple fields.
 - Table schema and index management (IndexProps).
-- Tests based on sqflite_common_ffi for in-memory environment.
+- Tests based on in-memory SQLite environment.

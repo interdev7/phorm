@@ -3,10 +3,6 @@ import 'models/user.dart';
 import 'test_utils.dart';
 
 void main() {
-  setUpAll(() {
-    initSqflite();
-  });
-
   group('New Operators (startsWith, endsWith, notBetween)', () {
     late DB db;
     late SqflowCore<User> service;

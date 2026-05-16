@@ -2,10 +2,6 @@ import 'models/collation_model.dart';
 import 'test_utils.dart';
 
 void main() {
-  setUpAll(() {
-    initSqflite();
-  });
-
   group('String Collation', () {
     late DB db;
     late SqflowCore<CollationTest> service;

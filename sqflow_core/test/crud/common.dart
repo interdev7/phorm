@@ -13,9 +13,6 @@ export '../mock_users.dart';
 export '../models/user.dart';
 export '../test_utils.dart';
 
-void initSqflite() {
-}
-
 Table<User> createUsersTable() {
   return usersTable;
 }

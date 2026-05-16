@@ -6,7 +6,7 @@
 
 A lightweight, type-safe SQLite ORM-like abstraction for Dart and Flutter.
 
-This package is built on top of [`sqflite`](https://pub.dev/packages/sqflite), originally created by Alexandre Roux. Thanks for the solid foundation.
+This package is built on top of [`sqlite3`](https://pub.dev/packages/sqlite3) with isolate-based architecture for non-blocking database operations.
 
 SQFlow uses **Single-Query JSON Aggregation** to load relationships in a single SQL query, and provides a fluent, type-safe API for all database needs — without raw string concatenation.
 
@@ -14,11 +14,11 @@ SQFlow uses **Single-Query JSON Aggregation** to load relationships in a single 
 
 ## Packages
 
-| Package | Description |
-| :--- | :--- |
-| [sqflow_core](./sqflow_core) | Runtime engine — CRUD, WhereBuilder, Transactions, Eager Loading |
-| [sqflow_platform_interface](./sqflow_platform_interface) | Annotation library — `@Schema`, `@Column`, `@ID`, relationships |
-| [sqflow_generator](./sqflow_generator) | Code generator — automates SQL schemas, `toJson`/`fromJson`, mixins |
+| Package                                                  | Description                                                         |
+| :------------------------------------------------------- | :------------------------------------------------------------------ |
+| [sqflow_core](./sqflow_core)                             | Runtime engine — CRUD, WhereBuilder, Transactions, Eager Loading    |
+| [sqflow_platform_interface](./sqflow_platform_interface) | Annotation library — `@Schema`, `@Column`, `@ID`, relationships     |
+| [sqflow_generator](./sqflow_generator)                   | Code generator — automates SQL schemas, `toJson`/`fromJson`, mixins |
 
 ---
 
@@ -81,23 +81,21 @@ print('Showing ${paged.data.length} of ${paged.count}');
 
 Full documentation is in the [`docs/`](./docs) folder:
 
-| File | Contents |
-| :--- | :--- |
-| [01-overview.md](./docs/01-overview.md) | Architecture, why SQFlow, package structure |
-| [02-schema-definition.md](./docs/02-schema-definition.md) | `@Schema`, `@Column`, `@ID`, data types, indexes, CHECK |
-| [03-where-builder.md](./docs/03-where-builder.md) | All WhereBuilder methods, groups, cross-table filtering, pitfalls |
-| [04-crud-operations.md](./docs/04-crud-operations.md) | Insert, Read, Update, Delete, Batch, Transactions, Attributes |
-| [05-relationships.md](./docs/05-relationships.md) | HasMany, HasOne, BelongsTo, Includable API, fromJson patterns |
-| [06-db-and-migrations.md](./docs/06-db-and-migrations.md) | DB manager, MigrationBuilder, version lifecycle |
-| [07-code-generation.md](./docs/07-code-generation.md) | Generator setup, commands, generated code anatomy |
-| [08-soft-deletes.md](./docs/08-soft-deletes.md) | Paranoid mode, restore, hard delete |
-| [09-pitfalls-and-limitations.md](./docs/09-pitfalls-and-limitations.md) | Known issues, gotchas, design trade-offs |
-| [10-validators.md](./docs/10-validators.md) | Built-in validators (NotEmpty, Email, Range, etc.) |
-| [11-many-to-many.md](./docs/11-many-to-many.md) | Detailed guide on pivot tables and Many-to-Many setup |
-| [12-query-builder.md](./docs/12-query-builder.md) | Fluent API reference — .get(), .first(), chaining |
-| [13-seeders-and-factories.md](./docs/13-seeders-and-factories.md) | Data seeding and mock generation for testing |
-
-
+| File                                                                    | Contents                                                          |
+| :---------------------------------------------------------------------- | :---------------------------------------------------------------- |
+| [01-overview.md](./docs/01-overview.md)                                 | Architecture, why SQFlow, package structure                       |
+| [02-schema-definition.md](./docs/02-schema-definition.md)               | `@Schema`, `@Column`, `@ID`, data types, indexes, CHECK           |
+| [03-where-builder.md](./docs/03-where-builder.md)                       | All WhereBuilder methods, groups, cross-table filtering, pitfalls |
+| [04-crud-operations.md](./docs/04-crud-operations.md)                   | Insert, Read, Update, Delete, Batch, Transactions, Attributes     |
+| [05-relationships.md](./docs/05-relationships.md)                       | HasMany, HasOne, BelongsTo, Includable API, fromJson patterns     |
+| [06-db-and-migrations.md](./docs/06-db-and-migrations.md)               | DB manager, MigrationBuilder, version lifecycle                   |
+| [07-code-generation.md](./docs/07-code-generation.md)                   | Generator setup, commands, generated code anatomy                 |
+| [08-soft-deletes.md](./docs/08-soft-deletes.md)                         | Paranoid mode, restore, hard delete                               |
+| [09-pitfalls-and-limitations.md](./docs/09-pitfalls-and-limitations.md) | Known issues, gotchas, design trade-offs                          |
+| [10-validators.md](./docs/10-validators.md)                             | Built-in validators (NotEmpty, Email, Range, etc.)                |
+| [11-many-to-many.md](./docs/11-many-to-many.md)                         | Detailed guide on pivot tables and Many-to-Many setup             |
+| [12-query-builder.md](./docs/12-query-builder.md)                       | Fluent API reference — .get(), .first(), chaining                 |
+| [13-seeders-and-factories.md](./docs/13-seeders-and-factories.md)       | Data seeding and mock generation for testing                      |
 
 ---
 

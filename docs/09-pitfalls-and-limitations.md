@@ -55,7 +55,7 @@ No error is thrown at build time. The generated SQL will reference a table that 
 
 ### `regexp()` requires custom SQLite setup
 
-The `REGEXP` operator is **not available** in standard `sqflite` builds. Using `.regexp()` will throw a `DatabaseException` at runtime unless you register a custom function with the underlying `sqflite` `Database` object.
+The `REGEXP` operator is **not available** in standard `sqlite3` builds. Using `.regexp()` will throw a `DatabaseException` at runtime unless you register a custom function with the underlying `sqlite3` `Database` object.
 
 ---
 
