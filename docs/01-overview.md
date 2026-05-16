@@ -1,6 +1,6 @@
 # SQFlow — Overview
 
-SQFlow is a lightweight, type-safe SQLite ORM abstraction for Dart and Flutter. It is built on top of [sqflite](https://pub.dev/packages/sqflite) and provides a fluent, declarative API for defining schemas, loading related data, and performing CRUD operations — all without raw SQL concatenation.
+SQFlow is a lightweight, type-safe SQLite ORM abstraction for Dart and Flutter. It is built on top of [sqlite3](https://pub.dev/packages/sqlite3) with isolate-based architecture for non-blocking database operations, and provides a fluent, declarative API for defining schemas, loading related data, and performing CRUD operations — all without raw SQL concatenation.
 
 ## Motivation
 
@@ -35,7 +35,7 @@ Most apps need the same patterns: "When was this created?", "Don't actually dele
 
 ## Architecture
 
-```
+```text
 ┌────────────────────────────────────────┐
 │             Your Flutter App           │
 └──────────────────┬─────────────────────┘
@@ -74,7 +74,7 @@ Most apps need the same patterns: "When was this created?", "Don't actually dele
 # pubspec.yaml
 dependencies:
   sqflow_core: ^latest
-  sqflite: ^latest
+  sqlite3: ^2.4.6
 
 dev_dependencies:
   sqflow_platform_interface: ^latest

@@ -3,10 +3,6 @@ import 'models/user.dart';
 import 'test_utils.dart';
 
 void main() {
-  setUpAll(() {
-    initSqflite();
-  });
-
   group('Fluent API vs SqflowCore Instance', () {
     late DB db;
     late SqflowCore<User> userService;
