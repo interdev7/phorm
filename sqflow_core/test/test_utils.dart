@@ -1,14 +1,10 @@
-import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 import 'package:sqflow_core/sqflow_core.dart';
 
 export 'package:flutter_test/flutter_test.dart';
-export 'package:sqflite_common_ffi/sqflite_ffi.dart';
 export 'package:sqflow_core/sqflow_core.dart';
 export 'package:sqflow_platform_interface/sqflow_platform_interface.dart';
 
 void initSqflite() {
-  sqfliteFfiInit();
-  databaseFactory = databaseFactoryFfi;
 }
 
 extension SqflowCoreTestExt on SqflowCore {
