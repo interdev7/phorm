@@ -1,5 +1,4 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 import 'package:sqflow_core/sqflow_core.dart';
 
 import '../mock_users.dart';
@@ -7,7 +6,6 @@ import '../models/user.dart';
 
 // Re-export needed packages
 export 'package:flutter_test/flutter_test.dart';
-export 'package:sqflite_common_ffi/sqflite_ffi.dart';
 export 'package:sqflow_core/sqflow_core.dart';
 export 'package:sqflow_platform_interface/sqflow_platform_interface.dart';
 
@@ -16,8 +14,6 @@ export '../models/user.dart';
 export '../test_utils.dart';
 
 void initSqflite() {
-  sqfliteFfiInit();
-  databaseFactory = databaseFactoryFfi;
 }
 
 Table<User> createUsersTable() {

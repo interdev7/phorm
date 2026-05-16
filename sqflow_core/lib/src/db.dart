@@ -29,11 +29,27 @@ library;
 
 import 'dart:async';
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:path/path.dart';
-import 'package:sqflite/sqflite.dart';
-import 'package:sqflow_platform_interface/sqflow_platform_interface.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:sqflow_core/src/seeder.dart';
+import 'package:sqflow_platform_interface/sqflow_platform_interface.dart';
+
+import 'database_adapter.dart';
+
+/// Gets the database directory path
+Future<String> getDatabasesPath() async {
+  if (Platform.isAndroid || Platform.isIOS) {
+    final dir = await getApplicationDocumentsDirectory();
+    return dir.path;
+  } else if (Platform.isLinux || Platform.isMacOS || Platform.isWindows) {
+    final dir = await getApplicationSupportDirectory();
+    return join(dir.path, 'databases');
+  } else {
+    return '.';
+  }
+}
 
 /// Main database manager that handles connection lifecycle,
 /// version management, and smart migration tracking.
@@ -206,22 +222,35 @@ class DB {
   Future<Database> _initDatabase() async {
     final String path;
     if (databaseName == ':memory:') {
+      path = ':memory:';
+    } else if (databaseName.startsWith('/') || databaseName.contains(':\\')) {
+      // Absolute path provided
       path = databaseName;
     } else {
+      // Relative path - use getDatabasesPath
       path = join(await getDatabasesPath(), databaseName);
     }
 
     logger?.info('Initializing database: $databaseName (v$version)');
 
-    return await openDatabase(
-      path,
-      version: version,
-      onCreate: _onCreate,
-      onUpgrade: _onUpgrade,
-      onDowngrade: _onDowngrade,
-      onConfigure: _onConfigure,
-      singleInstance: singleInstance,
-    );
+    final db = await Database.open(path);
+
+    await _onConfigure(db);
+
+    final currentVersion = await db.getVersion();
+
+    if (currentVersion == 0) {
+      await _onCreate(db, version);
+      await db.setVersion(version);
+    } else if (currentVersion < version) {
+      await _onUpgrade(db, currentVersion, version);
+      await db.setVersion(version);
+    } else if (currentVersion > version) {
+      await _onDowngrade(db, currentVersion, version);
+      await db.setVersion(version);
+    }
+
+    return db;
   }
 
   /// Validates that all migrations are within the database version
@@ -316,11 +345,12 @@ class DB {
     await db.close();
 
     // Delete database file
-    if (databaseName == ':memory:') {
-      // In-memory databases are destroyed when closed
-    } else {
+    if (databaseName != ':memory:') {
       final path = join(await getDatabasesPath(), databaseName);
-      await deleteDatabase(path);
+      final file = File(path);
+      if (await file.exists()) {
+        await file.delete();
+      }
     }
 
     // Recreate with new version
@@ -423,7 +453,7 @@ class DB {
 
   /// Applies pending migrations between versions
   Future<void> _applyPendingMigrations(
-    DatabaseExecutor db,
+    Database db,
     int fromVersion,
     int toVersion,
   ) async {
@@ -454,17 +484,17 @@ class DB {
 
     logger?.info('Found ${pendingMigrations.length} pending migrations');
 
-    // Apply migrations
-    // Note: onCreate/onUpgrade are already running in a transaction,
-    // so we don't need to start a new one here.
-    for (final pending in pendingMigrations) {
-      await _applySingleMigration(db, pending.table, pending.migration);
-    }
+    // Apply migrations in a transaction
+    await db.transaction((txn) async {
+      for (final pending in pendingMigrations) {
+        await _applySingleMigration(db, pending.table, pending.migration);
+      }
+    });
   }
 
   /// Applies a single migration with idempotency check
   Future<void> _applySingleMigration(
-    DatabaseExecutor db,
+    Database db,
     Table table,
     TableMigration migration,
   ) async {
@@ -483,7 +513,7 @@ class DB {
 
     try {
       // Execute migration
-      await migration.migrate(SqfliteExecutorWrapper(db), table);
+      await migration.migrate(SqflowDatabaseExecutorWrapper(db), table);
 
       // Record as applied
       await db.insert(_migrationsTable, {
@@ -504,7 +534,7 @@ class DB {
 
   /// Checks if a migration has already been applied
   Future<bool> _isMigrationApplied(
-    DatabaseExecutor db,
+    Database db,
     String tableName,
     String hash,
   ) async {
@@ -564,16 +594,16 @@ class DB {
   Future<int> getCurrentFileVersion() async {
     final String path;
     if (databaseName == ':memory:') {
-      path = databaseName;
+      return 0;
     } else {
       path = join(await getDatabasesPath(), databaseName);
     }
 
     try {
-      final db = await openDatabase(
-        path,
-        readOnly: true,
-      );
+      final file = File(path);
+      if (!await file.exists()) return 0;
+
+      final db = await Database.open(path);
       final version = await db.getVersion();
       await db.close();
       return version;
@@ -595,9 +625,19 @@ class DB {
       return;
     }
 
-    final path = join(await getDatabasesPath(), databaseName);
+    // Check if it's an absolute path
+    final String path;
+    if (databaseName.startsWith('/') || databaseName.contains(':\\')) {
+      path = databaseName;
+    } else {
+      path = join(await getDatabasesPath(), databaseName);
+    }
+
     try {
-      await deleteDatabase(path);
+      final file = File(path);
+      if (await file.exists()) {
+        await file.delete();
+      }
     } catch (_) {
       // Ignore if file doesn't exist
     }
@@ -694,10 +734,10 @@ class _PendingMigration {
   _PendingMigration(this.table, this.migration);
 }
 
-/// Wrapper for sqflite's [DatabaseExecutor] to satisfy [SqflowDatabaseExecutor].
-class SqfliteExecutorWrapper implements SqflowDatabaseExecutor {
-  final DatabaseExecutor _executor;
-  SqfliteExecutorWrapper(this._executor);
+/// Wrapper for Database to satisfy [SqflowDatabaseExecutor].
+class SqflowDatabaseExecutorWrapper implements SqflowDatabaseExecutor {
+  final Database _executor;
+  SqflowDatabaseExecutorWrapper(this._executor);
 
   @override
   Future<void> execute(String sql, [List<Object?>? arguments]) =>
