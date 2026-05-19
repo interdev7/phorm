@@ -3,8 +3,7 @@ import 'package:sqflow_core/sqflow_core.dart';
 import 'models/user.dart';
 
 void main() {
-  setUpAll(() {
-  });
+  setUpAll(() {});
 
   late DB db;
 
@@ -197,8 +196,8 @@ void main() {
 
     final postService = SqflowCore<Post>(dbManager: db, table: postsTable);
 
-    final post = await postService
-        .readOne(100, include: [Includable.model<User>()]);
+    final post =
+        await postService.readOne(100, include: [Includable.model<User>()]);
 
     expect(post, isNotNull);
     expect(post!.title, 'Hello World');
@@ -490,11 +489,12 @@ void main() {
 
     // Query: Users who have a post with 'Dart' in title
     // 'posts' is the tableName/relationship name
-    final where = WhereBuilder().like('posts.title', 'Dart%');
+    final where = WhereBuilder().like(Posts.title, 'Dart%');
 
     final result = await userService.readAll(where: where);
 
-    expect(result.data, hasLength(1));
+    expect(where.build(), 'posts.title LIKE ?');
     expect(result.data[0].lastName, 'Someone');
+    expect(result.data, hasLength(1));
   });
 }

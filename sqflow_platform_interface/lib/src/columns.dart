@@ -4,10 +4,13 @@ class SqflowColumn<T> {
   /// The name of the column as it exists in the database.
   final String name;
 
-  const SqflowColumn(this.name);
+  /// The name of the table this column belongs to.
+  final String? tableName;
+
+  const SqflowColumn(this.name, {this.tableName});
 
   @override
-  String toString() => name;
+  String toString() => tableName != null ? '$tableName.$name' : name;
 }
 
 /// Extensions for [SqflowColumn] to enable fluent query building.

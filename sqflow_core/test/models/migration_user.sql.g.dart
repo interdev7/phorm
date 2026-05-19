@@ -141,15 +141,20 @@ MigrationUser _$SQFlowMigrationUserFromJson(Map<String, dynamic> json) {
 
 /// Pluralized service for MigrationUser
 class MigrationUsers {
-  static const SqflowColumn<String> id = SqflowColumn<String>('custom_id');
-  static const SqflowColumn<String> name = SqflowColumn<String>('name');
-  static const SqflowColumn<String> email = SqflowColumn<String>('email');
-  static const SqflowColumn<int> age = SqflowColumn<int>('age');
-  static const SqflowColumn<bool> isActive = SqflowColumn<bool>('is_active');
+  static const SqflowColumn<String> id =
+      SqflowColumn<String>('custom_id', tableName: 'migration_users');
+  static const SqflowColumn<String> name =
+      SqflowColumn<String>('name', tableName: 'migration_users');
+  static const SqflowColumn<String> email =
+      SqflowColumn<String>('email', tableName: 'migration_users');
+  static const SqflowColumn<int> age =
+      SqflowColumn<int>('age', tableName: 'migration_users');
+  static const SqflowColumn<bool> isActive =
+      SqflowColumn<bool>('is_active', tableName: 'migration_users');
   static const SqflowColumn<DateTime> createdAt =
-      SqflowColumn<DateTime>('created_at');
+      SqflowColumn<DateTime>('created_at', tableName: 'migration_users');
   static const SqflowColumn<DateTime> updatedAt =
-      SqflowColumn<DateTime>('updated_at');
+      SqflowColumn<DateTime>('updated_at', tableName: 'migration_users');
 
   static SqflowCore<MigrationUser> get _service =>
       SqflowCore<MigrationUser>(dbManager: appDb, table: migration_usersTable);

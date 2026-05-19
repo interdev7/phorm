@@ -164,7 +164,7 @@ void main() {
           .gt(Users.age, 30)
           .lengthEq(Users.firstName, 5);
 
-      expect(where.build(), 'is_active = ? AND email LIKE ? AND age > ? AND LENGTH(first_name) = ?');
+      expect(where.build(), 'users.is_active = ? AND users.email LIKE ? AND users.age > ? AND LENGTH(users.first_name) = ?');
       expect(where.args, [1, '%gmail.com', 30, 5]);
     });
 

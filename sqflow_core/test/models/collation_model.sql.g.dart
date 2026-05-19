@@ -125,15 +125,16 @@ CollationTest _$SQFlowCollationTestFromJson(Map<String, dynamic> json) {
 
 /// Pluralized service for CollationTest
 class CollationTests {
-  static const SqflowColumn<String> id = SqflowColumn<String>('id');
+  static const SqflowColumn<String> id =
+      SqflowColumn<String>('id', tableName: 'collation_tests');
   static const SqflowColumn<String> nameNoCase =
-      SqflowColumn<String>('name_no_case');
+      SqflowColumn<String>('name_no_case', tableName: 'collation_tests');
   static const SqflowColumn<String> nameBinary =
-      SqflowColumn<String>('name_binary');
+      SqflowColumn<String>('name_binary', tableName: 'collation_tests');
   static const SqflowColumn<DateTime> createdAt =
-      SqflowColumn<DateTime>('created_at');
+      SqflowColumn<DateTime>('created_at', tableName: 'collation_tests');
   static const SqflowColumn<DateTime> updatedAt =
-      SqflowColumn<DateTime>('updated_at');
+      SqflowColumn<DateTime>('updated_at', tableName: 'collation_tests');
 
   static SqflowCore<CollationTest> get _service =>
       SqflowCore<CollationTest>(dbManager: appDb, table: collation_testsTable);

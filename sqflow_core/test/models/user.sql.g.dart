@@ -348,29 +348,38 @@ User _$SQFlowUserFromJson(Map<String, dynamic> json) {
 
 /// Pluralized service for User
 class Users {
-  static const SqflowColumn<String> id = SqflowColumn<String>('id');
+  static const SqflowColumn<String> id =
+      SqflowColumn<String>('id', tableName: 'users');
   static const SqflowColumn<String> firstName =
-      SqflowColumn<String>('first_name');
+      SqflowColumn<String>('first_name', tableName: 'users');
   static const SqflowColumn<String> lastName =
-      SqflowColumn<String>('last_name');
-  static const SqflowColumn<String> email = SqflowColumn<String>('email');
-  static const SqflowColumn<String> phone = SqflowColumn<String>('phone');
+      SqflowColumn<String>('last_name', tableName: 'users');
+  static const SqflowColumn<String> email =
+      SqflowColumn<String>('email', tableName: 'users');
+  static const SqflowColumn<String> phone =
+      SqflowColumn<String>('phone', tableName: 'users');
   static const SqflowColumn<String> birthDate =
-      SqflowColumn<String>('birth_date');
-  static const SqflowColumn<int> age = SqflowColumn<int>('age');
-  static const SqflowColumn<String> gender = SqflowColumn<String>('gender');
-  static const SqflowColumn<String> city = SqflowColumn<String>('city');
-  static const SqflowColumn<String> country = SqflowColumn<String>('country');
-  static const SqflowColumn<String> address = SqflowColumn<String>('address');
-  static const SqflowColumn<bool> isActive = SqflowColumn<bool>('is_active');
+      SqflowColumn<String>('birth_date', tableName: 'users');
+  static const SqflowColumn<int> age =
+      SqflowColumn<int>('age', tableName: 'users');
+  static const SqflowColumn<String> gender =
+      SqflowColumn<String>('gender', tableName: 'users');
+  static const SqflowColumn<String> city =
+      SqflowColumn<String>('city', tableName: 'users');
+  static const SqflowColumn<String> country =
+      SqflowColumn<String>('country', tableName: 'users');
+  static const SqflowColumn<String> address =
+      SqflowColumn<String>('address', tableName: 'users');
+  static const SqflowColumn<bool> isActive =
+      SqflowColumn<bool>('is_active', tableName: 'users');
   static const SqflowColumn<bool> isVerified =
-      SqflowColumn<bool>('is_verified');
+      SqflowColumn<bool>('is_verified', tableName: 'users');
   static const SqflowColumn<DateTime> createdAt =
-      SqflowColumn<DateTime>('created_at');
+      SqflowColumn<DateTime>('created_at', tableName: 'users');
   static const SqflowColumn<DateTime> updatedAt =
-      SqflowColumn<DateTime>('updated_at');
+      SqflowColumn<DateTime>('updated_at', tableName: 'users');
   static const SqflowColumn<DateTime> deletedAt =
-      SqflowColumn<DateTime>('deleted_at');
+      SqflowColumn<DateTime>('deleted_at', tableName: 'users');
 
   static SqflowCore<User> get _service =>
       SqflowCore<User>(dbManager: appDb, table: usersTable);
@@ -637,15 +646,18 @@ Post _$SQFlowPostFromJson(Map<String, dynamic> json) {
 
 /// Pluralized service for Post
 class Posts {
-  static const SqflowColumn<int> id = SqflowColumn<int>('id');
-  static const SqflowColumn<String> title = SqflowColumn<String>('title');
-  static const SqflowColumn<String> userId = SqflowColumn<String>('user_id');
+  static const SqflowColumn<int> id =
+      SqflowColumn<int>('id', tableName: 'posts');
+  static const SqflowColumn<String> title =
+      SqflowColumn<String>('title', tableName: 'posts');
+  static const SqflowColumn<String> userId =
+      SqflowColumn<String>('user_id', tableName: 'posts');
   static const SqflowColumn<DateTime> createdAt =
-      SqflowColumn<DateTime>('created_at');
+      SqflowColumn<DateTime>('created_at', tableName: 'posts');
   static const SqflowColumn<DateTime> updatedAt =
-      SqflowColumn<DateTime>('updated_at');
+      SqflowColumn<DateTime>('updated_at', tableName: 'posts');
   static const SqflowColumn<DateTime> deletedAt =
-      SqflowColumn<DateTime>('deleted_at');
+      SqflowColumn<DateTime>('deleted_at', tableName: 'posts');
 
   static SqflowCore<Post> get _service =>
       SqflowCore<Post>(dbManager: appDb, table: postsTable);
@@ -897,13 +909,16 @@ Profile _$SQFlowProfileFromJson(Map<String, dynamic> json) {
 
 /// Pluralized service for Profile
 class Profiles {
-  static const SqflowColumn<int> id = SqflowColumn<int>('id');
-  static const SqflowColumn<String> bio = SqflowColumn<String>('bio');
-  static const SqflowColumn<String> userId = SqflowColumn<String>('user_id');
+  static const SqflowColumn<int> id =
+      SqflowColumn<int>('id', tableName: 'profiles');
+  static const SqflowColumn<String> bio =
+      SqflowColumn<String>('bio', tableName: 'profiles');
+  static const SqflowColumn<String> userId =
+      SqflowColumn<String>('user_id', tableName: 'profiles');
   static const SqflowColumn<DateTime> createdAt =
-      SqflowColumn<DateTime>('created_at');
+      SqflowColumn<DateTime>('created_at', tableName: 'profiles');
   static const SqflowColumn<DateTime> updatedAt =
-      SqflowColumn<DateTime>('updated_at');
+      SqflowColumn<DateTime>('updated_at', tableName: 'profiles');
 
   static SqflowCore<Profile> get _service =>
       SqflowCore<Profile>(dbManager: appDb, table: profilesTable);
@@ -1167,15 +1182,18 @@ Order _$SQFlowOrderFromJson(Map<String, dynamic> json) {
 
 /// Pluralized service for Order
 class Orders {
-  static const SqflowColumn<int> id = SqflowColumn<int>('id');
-  static const SqflowColumn<int> total = SqflowColumn<int>('total');
-  static const SqflowColumn<String> userId = SqflowColumn<String>('user_id');
+  static const SqflowColumn<int> id =
+      SqflowColumn<int>('id', tableName: 'orders');
+  static const SqflowColumn<int> total =
+      SqflowColumn<int>('total', tableName: 'orders');
+  static const SqflowColumn<String> userId =
+      SqflowColumn<String>('user_id', tableName: 'orders');
   static const SqflowColumn<DateTime> createdAt =
-      SqflowColumn<DateTime>('created_at');
+      SqflowColumn<DateTime>('created_at', tableName: 'orders');
   static const SqflowColumn<DateTime> updatedAt =
-      SqflowColumn<DateTime>('updated_at');
+      SqflowColumn<DateTime>('updated_at', tableName: 'orders');
   static const SqflowColumn<DateTime> deletedAt =
-      SqflowColumn<DateTime>('deleted_at');
+      SqflowColumn<DateTime>('deleted_at', tableName: 'orders');
 
   static SqflowCore<Order> get _service =>
       SqflowCore<Order>(dbManager: appDb, table: ordersTable);
