@@ -38,6 +38,24 @@ final result = await Users.query
     .get();
 ```
 
+### `.whereIf(flag, conditionBuilder)`
+Adds a filter condition only if the provided boolean `flag` is true. This helps avoid complex conditional blocks when constructing dynamic filters.
+
+```dart
+final result = await Users.query
+    .whereIf(onlyActive, () => Users.isActive.isTrue())
+    .get();
+```
+
+### `.whereNotNull(value, conditionBuilder)`
+Adds a filter condition only if the provided `value` is not null. Extremely useful for handling optional query parameters or search filters.
+
+```dart
+final result = await Users.query
+    .whereNotNull(searchQuery, (val) => Users.name.like('%$val%'))
+    .get();
+```
+
 ### `.orderBy(column, {bool descending = false})`
 Adds an `ORDER BY` clause.
 
@@ -103,6 +121,36 @@ Executes the query (automatically adding `LIMIT 1`) and returns the **first resu
 User? user = await Users.query.where(Users.email.eq('john@example.com')).first();
 ```
 
+### `.count({Object? column})`
+Executes the query and returns the **total count of rows** matching the filtering conditions.
+
+```dart
+int activeCount = await Users.query.where(Users.isActive.isTrue()).count();
+```
+
+### `.getWithCount()`
+Executes the query with pagination and simultaneously returns the **current page of results** and the **total matching rows** (extremely useful for paginated lists).
+
+```dart
+ResultWithCount<User> result = await Users.query.where(Users.city.eq('Sofia')).limit(10).getWithCount();
+print('Loaded ${result.data.length} of ${result.count}');
+```
+
+### Aggregations (`.sum()`, `.avg()`, `.min()`, `.max()`)
+Executes the respective SQL aggregations directly on the database level for the specified column:
+
+```dart
+// Sum up column values
+num totalAge = await Users.query.where(Users.city.eq('Sofia')).sum(Users.age);
+
+// Calculate the average
+num averageAge = await Users.query.where(Users.city.eq('Sofia')).avg(Users.age);
+
+// Find minimum and maximum values
+num minAge = await Users.query.where(Users.city.eq('Sofia')).min(Users.age);
+num maxAge = await Users.query.where(Users.city.eq('Sofia')).max(Users.age);
+```
+
 ---
 
 ## Example: Complex Query
@@ -129,8 +177,9 @@ final users = await Users.query
 | :--- | :--- | :--- |
 | **Readability** | ✅ High (chains) | ⚠️ Moderate (many parameters) |
 | **Type Safety** | ✅ Full | ✅ Full |
-| **Total Count** | ❌ Not supported | ✅ Supported via `readAllWithCount` |
-| **Complexity** | Best for simple to moderate queries | Best for advanced pagination with total count |
+| **Total Count** | ✅ Supported via `.getWithCount()` | ✅ Supported via `readAllWithCount` |
+| **Aggregates** | ✅ Supported (`.count()`, `.sum()`, etc.) | ✅ Supported (`.count()`, `.sum()`, etc.) |
+| **Complexity** | Best for almost all query scenarios | Alternative fallback |
 
 > [!TIP]
-> Use the **Fluent API** for most of your application logic as it is much more expressive. Use `readAllWithCount` only when you explicitly need the total number of matching rows for a pagination UI.
+> Use the **Fluent API** for the primary business logic of your application—it is far more expressive, flexible, and fully supports retrieval, aggregation, and pagination.

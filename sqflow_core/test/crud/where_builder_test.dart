@@ -212,5 +212,35 @@ void main() {
         '(LOWER(first_name) LIKE LOWER(?) OR LOWER(last_name) LIKE LOWER(?))',
       );
     });
+
+    test('WhereBuilderExtensions new conditional methods', () {
+      // 1. eqIfNotNull with SqflowColumn and Object
+      final where1 = WhereBuilder().eqIfNotNull(Users.email, 'test@example.com').eqIfNotNull(Users.firstName, null).eqIfNotNull(Users.lastName, '');
+      expect(where1.build(), 'users.email = ?');
+      expect(where1.args, ['test@example.com']);
+
+      // 2. inListIfNotEmpty with SqflowColumn
+      final where2 = WhereBuilder().inListIfNotEmpty(Users.city, ['Sofia', 'Plovdiv']).inListIfNotEmpty(Users.country, null).inListIfNotEmpty(Users.gender, []);
+      expect(where2.build(), 'users.city IN (?, ?)');
+      expect(where2.args, ['Sofia', 'Plovdiv']);
+
+      // 3. dateRangeIfProvided with SqflowColumn
+      final now = DateTime(2026, 5, 19);
+      final where3 = WhereBuilder().dateRangeIfProvided(Users.createdAt, now, null);
+      expect(where3.build(), 'users.created_at >= ?');
+      expect(where3.args, [now.toIso8601String()]);
+
+      // 4. addIf
+      final where4 = WhereBuilder().addIf(true, (w) => w.eq(Users.isActive, true)).addIf(false, (w) => w.eq(Users.gender, 'F'));
+      expect(where4.build(), 'users.is_active = ?');
+      expect(where4.args, [1]);
+
+      // 5. addNotNull
+      final String? search = 'Sofia';
+      final String? country = null;
+      final where5 = WhereBuilder().addNotNull(search, (w, val) => w.eq(Users.city, val)).addNotNull(country, (w, val) => w.eq(Users.country, val));
+      expect(where5.build(), 'users.city = ?');
+      expect(where5.args, ['Sofia']);
+    });
   });
 }
