@@ -1,26 +1,8 @@
 import 'package:sqflow_core/sqflow_core.dart';
 import 'package:test/test.dart';
+
 import 'models/user.dart';
-
-/// Simulated user-defined SQL functions class
-class UserSqlFunctions {
-  static SqflowColumn<int> double_(SqflowColumn<int> col) {
-    return SqlFunctions.apply<int, int>('DOUBLE', col);
-  }
-
-  static SqflowColumn<String> toSlug(SqflowColumn<String> col) {
-    return SqlFunctions.apply<String, String>('TO_SLUG', col);
-  }
-}
-
-/// Simulated user-defined custom extensions on columns
-extension UserSqlColumnExtensions on SqflowColumn<int> {
-  SqflowColumn<int> double_() => sqlFunction<int>('DOUBLE');
-}
-
-extension UserSqlStringColumnExtensions on SqflowColumn<String> {
-  SqflowColumn<String> toSlug() => sqlFunction<String>('TO_SLUG');
-}
+import 'src/custom_functions.dart';
 
 void main() {
   group('SqlFunction', () {
@@ -69,26 +51,7 @@ void main() {
           tables: [usersTable],
           customFunctions: [
             SqlFunction.regexp(),
-            SqlFunction.custom(
-              name: 'DOUBLE',
-              argumentCount: 1,
-              function: (args) {
-                if (args[0] == null) return null;
-                return (args[0] as int) * 2;
-              },
-            ),
-            SqlFunction.custom(
-              name: 'TO_SLUG',
-              argumentCount: 1,
-              function: (args) {
-                if (args[0] == null) return null;
-                return args[0]
-                    .toString()
-                    .toLowerCase()
-                    // ignore: unnecessary_raw_strings
-                    .replaceAll(RegExp(r'[^a-z0-9]+'), '-');
-              },
-            ),
+            ...customSqlFunctions,
           ],
         );
       });
@@ -164,7 +127,9 @@ void main() {
         expect(slugs[1]['slug'], equals('john-doe'));
       });
 
-      test('custom functions work dynamically and type-safely with ORM queries via SqlFunctions helper', () async {
+      test(
+          'custom functions work dynamically and type-safely with ORM queries via SqlFunctions helper',
+          () async {
         final userService = SqflowCore<User>(dbManager: db, table: usersTable);
 
         final now = DateTime.now().toIso8601String();
@@ -180,8 +145,9 @@ void main() {
           country: 'USA',
           isActive: true,
           isVerified: true,
-        )..createdAt = DateTime.parse(now)
-         ..updatedAt = DateTime.parse(now));
+        )
+          ..createdAt = DateTime.parse(now)
+          ..updatedAt = DateTime.parse(now));
 
         await userService.insert(User(
           id: '2',
@@ -195,26 +161,28 @@ void main() {
           country: 'USA',
           isActive: true,
           isVerified: true,
-        )..createdAt = DateTime.parse(now)
-         ..updatedAt = DateTime.parse(now));
+        )
+          ..createdAt = DateTime.parse(now)
+          ..updatedAt = DateTime.parse(now));
 
-        // 1. Query using user-defined UserSqlFunctions.double_ on integer column age: Users where DOUBLE(age) > 50 -> (John: 30*2=60 > 50; Jane: 20*2=40 <= 50)
+        // 1. Query using generated extension doubleValue() on integer column age: Users where DOUBLE(age) > 50 -> (John: 30*2=60 > 50; Jane: 20*2=40 <= 50)
         final results = await userService.readAll(
-          where: WhereBuilder().gt(UserSqlFunctions.double_(Users.age), 50),
+          where: WhereBuilder().gt(Users.age.doubleValue(), 50),
         );
         expect(results.data.length, equals(1));
         expect(results.data.first.firstName, equals('John'));
 
-        // 2. Query using user-defined UserSqlFunctions.toSlug on string column first_name: Users where TO_SLUG(first_name) = 'jane'
+        // 2. Query using generated extension toSlug() on string column first_name: Users where TO_SLUG(first_name) = 'jane'
         final results2 = await userService.readAll(
-          where: WhereBuilder().eq(UserSqlFunctions.toSlug(Users.firstName), 'jane'),
+          where: WhereBuilder().eq(Users.firstName.toSlug(), 'jane'),
         );
         expect(results2.data.length, equals(1));
         expect(results2.data.first.firstName, equals('Jane'));
 
         // 3. Query using generic SqlFunctions.apply helper: Users where DOUBLE(age) = 40 (Jane: 20*2=40)
         final results3 = await userService.readAll(
-          where: WhereBuilder().eq(SqlFunctions.apply<int, int>('DOUBLE', Users.age), 40),
+          where: WhereBuilder()
+              .eq(SqlFunctions.apply<int, int>('DOUBLE', Users.age), 40),
         );
         expect(results3.data.length, equals(1));
         expect(results3.data.first.firstName, equals('Jane'));
@@ -226,12 +194,18 @@ void main() {
         expect(results4.data.length, equals(1));
         expect(results4.data.first.firstName, equals('John'));
 
-        // 5. Query using user-defined custom column extension double_(): Users where age.double_() = 60
+        // 5. Query using generated extension doubleValue(): Users where age.doubleValue() = 60
         final results5 = await userService.readAll(
-          where: WhereBuilder().eq(Users.age.double_(), 60),
+          where: WhereBuilder().eq(Users.age.doubleValue(), 60),
         );
         expect(results5.data.length, equals(1));
         expect(results5.data.first.firstName, equals('John'));
+
+        // 6. Query using generated extension isAdult() on integer column age: Users where IS_ADULT(age) = true
+        final results6 = await userService.readAll(
+          where: WhereBuilder().eq(Users.age.isAdult(), true),
+        );
+        expect(results6.data.length, equals(2));
       });
     });
   });
