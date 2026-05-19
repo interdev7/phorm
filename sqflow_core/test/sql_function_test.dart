@@ -1,5 +1,6 @@
-import 'package:sqflow_core/src/sql_function.dart';
+import 'package:sqflow_core/sqflow_core.dart';
 import 'package:test/test.dart';
+import 'models/user.dart';
 
 void main() {
   group('SqlFunction', () {
@@ -83,7 +84,8 @@ void main() {
       });
 
       test('matches email pattern', () {
-        const emailPattern = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$';
+        const emailPattern =
+            r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$';
         final result1 = regexpFn.function([emailPattern, 'user@example.com']);
         expect(result1, equals(1));
 
@@ -167,7 +169,7 @@ void main() {
         final concatFn = SqlFunction.custom(
           name: 'CONCAT_ALL',
           argumentCount: -1,
-          function: (args) => args.whereType<String>().join(''),
+          function: (args) => args.whereType<String>().join(),
         );
 
         expect(concatFn.argumentCount, equals(-1));
@@ -289,7 +291,6 @@ void main() {
           name: 'UPPER',
           argumentCount: 1,
           function: (args) => (args[0] as String).toUpperCase(),
-          deterministic: true,
         );
 
         expect(deterministicFn.deterministic, isTrue);
@@ -338,12 +339,15 @@ void main() {
           argumentCount: 1,
           function: (args) {
             final str = (args[0] as String).toLowerCase();
-            return str.replaceAll(RegExp('[^a-z0-9]+'), '-').replaceAll(RegExp(r'^-|-$'), '');
+            return str
+                .replaceAll(RegExp('[^a-z0-9]+'), '-')
+                .replaceAll(RegExp(r'^-|-$'), '');
           },
         );
 
         expect(slugFn.function(['Hello World!']), equals('hello-world'));
-        expect(slugFn.function(['  Multiple   Spaces  ']), equals('multiple-spaces'));
+        expect(slugFn.function(['  Multiple   Spaces  ']),
+            equals('multiple-spaces'));
       });
 
       test('hash function', () {
@@ -374,17 +378,17 @@ void main() {
 
         // Valid gmail addresses
         expect(
-          regexpFn.function([r'.*gmail.*', 'john@gmail.com']),
+          regexpFn.function(['.*gmail.*', 'john@gmail.com']),
           equals(1),
         );
         expect(
-          regexpFn.function([r'.*gmail.*', 'jane@gmail.com']),
+          regexpFn.function(['.*gmail.*', 'jane@gmail.com']),
           equals(1),
         );
 
         // Invalid gmail addresses
         expect(
-          regexpFn.function([r'.*gmail.*', 'user@yahoo.com']),
+          regexpFn.function(['.*gmail.*', 'user@yahoo.com']),
           equals(0),
         );
       });
@@ -413,7 +417,9 @@ void main() {
           argumentCount: 1,
           function: (args) {
             final str = (args[0] as String).toLowerCase();
-            return str.replaceAll(RegExp(r'[^a-z0-9]+'), '-').replaceAll(RegExp(r'^-|-$'), '');
+            return str
+                .replaceAll(RegExp('[^a-z0-9]+'), '-')
+                .replaceAll(RegExp(r'^-|-$'), '');
           },
         );
 
@@ -467,8 +473,12 @@ void main() {
           name: 'GET_INITIALS',
           argumentCount: 2,
           function: (args) {
-            final firstName = (args[0] as String).isNotEmpty ? (args[0] as String)[0].toUpperCase() : '';
-            final lastName = (args[1] as String).isNotEmpty ? (args[1] as String)[0].toUpperCase() : '';
+            final firstName = (args[0] as String).isNotEmpty
+                ? (args[0] as String)[0].toUpperCase()
+                : '';
+            final lastName = (args[1] as String).isNotEmpty
+                ? (args[1] as String)[0].toUpperCase()
+                : '';
             return '$firstName$lastName';
           },
         );
@@ -508,9 +518,12 @@ void main() {
           },
         );
 
-        expect(locationFn.function(['New York', 'USA']), equals('New York, USA'));
-        expect(locationFn.function(['Paris', 'France']), equals('Paris, France'));
-        expect(locationFn.function(['Moscow', 'Russia']), equals('Moscow, Russia'));
+        expect(
+            locationFn.function(['New York', 'USA']), equals('New York, USA'));
+        expect(
+            locationFn.function(['Paris', 'France']), equals('Paris, France'));
+        expect(locationFn.function(['Moscow', 'Russia']),
+            equals('Moscow, Russia'));
       });
 
       /// Check if user email is from corporate domain
@@ -525,9 +538,13 @@ void main() {
           },
         );
 
-        expect(corporateFn.function(['john@company.com', 'company.com']), equals(1));
-        expect(corporateFn.function(['user@gmail.com', 'company.com']), equals(0));
-        expect(corporateFn.function(['admin@internal.company.com', 'company.com']), equals(0));
+        expect(corporateFn.function(['john@company.com', 'company.com']),
+            equals(1));
+        expect(
+            corporateFn.function(['user@gmail.com', 'company.com']), equals(0));
+        expect(
+            corporateFn.function(['admin@internal.company.com', 'company.com']),
+            equals(0));
       });
 
       /// Hash password representation (simplified)
@@ -571,22 +588,128 @@ void main() {
         );
 
         // Simulate: WHERE email REGEXP '.*gmail.*' AND age BETWEEN 18 AND 65
-        final user1Email = 'john@gmail.com';
-        final user1Age = 28;
-        final isGmailUser = regexpFn.function([r'.*gmail.*', user1Email]);
+        const user1Email = 'john@gmail.com';
+        const user1Age = 28;
+        final isGmailUser = regexpFn.function(['.*gmail.*', user1Email]);
         final isInAgeRange = ageCheckFn.function([user1Age, 18, 65]);
 
         expect(isGmailUser, equals(1));
         expect(isInAgeRange, equals(1));
 
         // Non-gmail user
-        final user2Email = 'jane@yahoo.com';
-        final user2Age = 32;
-        final isGmailUser2 = regexpFn.function([r'.*gmail.*', user2Email]);
+        const user2Email = 'jane@yahoo.com';
+        const user2Age = 32;
+        final isGmailUser2 = regexpFn.function(['.*gmail.*', user2Email]);
         final isInAgeRange2 = ageCheckFn.function([user2Age, 18, 65]);
 
         expect(isGmailUser2, equals(0));
         expect(isInAgeRange2, equals(1));
+      });
+    });
+
+    group('Database Integration', () {
+      late DB db;
+
+      setUp(() async {
+        db = DB(
+          databaseName: ':memory:',
+          version: 1,
+          tables: [usersTable],
+          customFunctions: [
+            SqlFunction.regexp(),
+            SqlFunction.custom(
+              name: 'DOUBLE',
+              argumentCount: 1,
+              function: (args) {
+                if (args[0] == null) return null;
+                return (args[0] as int) * 2;
+              },
+            ),
+            SqlFunction.custom(
+              name: 'TO_SLUG',
+              argumentCount: 1,
+              function: (args) {
+                if (args[0] == null) return null;
+                return args[0]
+                    .toString()
+                    .toLowerCase()
+                    // ignore: unnecessary_raw_strings
+                    .replaceAll(RegExp(r'[^a-z0-9]+'), '-');
+              },
+            ),
+          ],
+        );
+      });
+
+      tearDown(() async {
+        await db.close();
+      });
+
+      test('custom functions are registered and work in database queries',
+          () async {
+        final database = await db.database;
+
+        final now = DateTime.now().toIso8601String();
+        // Insert test data using real columns of usersTable
+        await database.insert('users', {
+          'id': '1',
+          'first_name': 'John',
+          'last_name': 'Doe',
+          'email': 'john@gmail.com',
+          'age': 30,
+          'phone': '123456',
+          'gender': 'M',
+          'city': 'New York',
+          'country': 'USA',
+          'is_active': 1,
+          'is_verified': 1,
+          'created_at': now,
+          'updated_at': now,
+        });
+        await database.insert('users', {
+          'id': '2',
+          'first_name': 'Jane',
+          'last_name': 'Smith',
+          'email': 'jane@yahoo.com',
+          'age': 25,
+          'phone': '654321',
+          'gender': 'F',
+          'city': 'Los Angeles',
+          'country': 'USA',
+          'is_active': 1,
+          'is_verified': 1,
+          'created_at': now,
+          'updated_at': now,
+        });
+
+        // 1. Test REGEXP function
+        final gmailUsers = await database.rawQuery(
+          r"SELECT * FROM users WHERE email REGEXP '.*@gmail\.com'",
+        );
+        expect(gmailUsers.length, equals(1));
+        expect(gmailUsers.first['first_name'], equals('John'));
+
+        final yahooUsers = await database.rawQuery(
+          r"SELECT * FROM users WHERE email REGEXP '.*@yahoo\.com'",
+        );
+        expect(yahooUsers.length, equals(1));
+        expect(yahooUsers.first['first_name'], equals('Jane'));
+
+        // 2. Test DOUBLE function
+        final doubleAges = await database.rawQuery(
+          "SELECT DOUBLE(age) as double_age FROM users ORDER BY age DESC",
+        );
+        expect(doubleAges.length, equals(2));
+        expect(doubleAges[0]['double_age'], equals(60)); // John: 30 * 2
+        expect(doubleAges[1]['double_age'], equals(50)); // Jane: 25 * 2
+
+        // 3. Test TO_SLUG function
+        final slugs = await database.rawQuery(
+          "SELECT TO_SLUG(first_name || ' ' || last_name) as slug FROM users ORDER BY first_name ASC",
+        );
+        expect(slugs.length, equals(2));
+        expect(slugs[0]['slug'], equals('jane-smith'));
+        expect(slugs[1]['slug'], equals('john-doe'));
       });
     });
   });

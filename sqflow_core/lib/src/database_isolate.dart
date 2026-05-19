@@ -147,7 +147,13 @@ class _IsolateMessage {
 }
 
 /// Database isolate entry point
-void _databaseIsolateEntryPoint(SendPort mainSendPort) {
+void _databaseIsolateEntryPoint(Map<String, dynamic> args) {
+  final mainSendPort = args['port'] as SendPort;
+  final customFunctions = args['functions'] as List<SqlFunction>;
+
+  // Register custom functions in this isolate
+  _FunctionRegistry.registerAll(customFunctions);
+
   final receivePort = ReceivePort();
   mainSendPort.send(receivePort.sendPort);
 
@@ -354,13 +360,13 @@ class DatabaseIsolate {
   Future<void> start() async {
     if (_isolate != null) return;
 
-    // Register functions in the isolate's registry before spawning
-    _FunctionRegistry.registerAll(_customFunctions);
-
     final receivePort = ReceivePort();
-    _isolate = await Isolate.spawn(
+    _isolate = await Isolate.spawn<Map<String, dynamic>>(
       _databaseIsolateEntryPoint,
-      receivePort.sendPort,
+      {
+        'port': receivePort.sendPort,
+        'functions': _customFunctions,
+      },
       debugName: 'SQFlow_DatabaseIsolate',
     );
 

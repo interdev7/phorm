@@ -242,7 +242,7 @@ class DB {
 
     logger?.info('Initializing database: $databaseName (v$version)');
 
-    final db = await Database.open(path);
+    final db = await Database.open(path, customFunctions: customFunctions);
 
     await _onConfigure(db);
 
