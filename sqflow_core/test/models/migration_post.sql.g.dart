@@ -132,14 +132,18 @@ MigrationPost _$SQFlowMigrationPostFromJson(Map<String, dynamic> json) {
 
 /// Pluralized service for MigrationPost
 class MigrationPosts {
-  static const SqflowColumn<String> id = SqflowColumn<String>('id');
-  static const SqflowColumn<String> title = SqflowColumn<String>('title');
-  static const SqflowColumn<String> content = SqflowColumn<String>('content');
-  static const SqflowColumn<String> userId = SqflowColumn<String>('user_id');
+  static const SqflowColumn<String> id =
+      SqflowColumn<String>('id', tableName: 'migration_posts');
+  static const SqflowColumn<String> title =
+      SqflowColumn<String>('title', tableName: 'migration_posts');
+  static const SqflowColumn<String> content =
+      SqflowColumn<String>('content', tableName: 'migration_posts');
+  static const SqflowColumn<String> userId =
+      SqflowColumn<String>('user_id', tableName: 'migration_posts');
   static const SqflowColumn<DateTime> createdAt =
-      SqflowColumn<DateTime>('created_at');
+      SqflowColumn<DateTime>('created_at', tableName: 'migration_posts');
   static const SqflowColumn<DateTime> updatedAt =
-      SqflowColumn<DateTime>('updated_at');
+      SqflowColumn<DateTime>('updated_at', tableName: 'migration_posts');
 
   static SqflowCore<MigrationPost> get _service =>
       SqflowCore<MigrationPost>(dbManager: appDb, table: migration_postsTable);

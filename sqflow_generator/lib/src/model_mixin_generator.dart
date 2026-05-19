@@ -552,22 +552,22 @@ class ModelMixinGenerator extends GeneratorForAnnotation<Schema> {
       var type = field.type.getDisplayString();
       if (type.endsWith('?')) type = type.substring(0, type.length - 1);
       buffer.writeln(
-          "  static const SqflowColumn<$type> ${field.name} = SqflowColumn<$type>('$sqlName');");
+          "  static const SqflowColumn<$type> ${field.name} = SqflowColumn<$type>('$sqlName', tableName: '$tableName');");
     }
 
     if (timestamps) {
       if (!existsCreatedAt) {
         buffer.writeln(
-            "  static const SqflowColumn<DateTime> createdAt = SqflowColumn<DateTime>('created_at');");
+            "  static const SqflowColumn<DateTime> createdAt = SqflowColumn<DateTime>('created_at', tableName: '$tableName');");
       }
       if (!existsUpdatedAt) {
         buffer.writeln(
-            "  static const SqflowColumn<DateTime> updatedAt = SqflowColumn<DateTime>('updated_at');");
+            "  static const SqflowColumn<DateTime> updatedAt = SqflowColumn<DateTime>('updated_at', tableName: '$tableName');");
       }
     }
     if (paranoid && !existsDeletedAt) {
       buffer.writeln(
-          "  static const SqflowColumn<DateTime> deletedAt = SqflowColumn<DateTime>('deleted_at');");
+          "  static const SqflowColumn<DateTime> deletedAt = SqflowColumn<DateTime>('deleted_at', tableName: '$tableName');");
     }
 
     // Synthesized FKs
@@ -578,7 +578,7 @@ class ModelMixinGenerator extends GeneratorForAnnotation<Schema> {
         final existsFk = fields.any((f) => f.name == fkName);
         if (!existsFk) {
           buffer.writeln(
-              "  static const SqflowColumn<dynamic> $fkName = SqflowColumn<dynamic>('$fkSqlName');");
+              "  static const SqflowColumn<dynamic> $fkName = SqflowColumn<dynamic>('$fkSqlName', tableName: '$tableName');");
         }
       }
     }

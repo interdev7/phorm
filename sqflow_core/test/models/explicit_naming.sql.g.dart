@@ -134,15 +134,18 @@ ExplicitNaming _$SQFlowExplicitNamingFromJson(Map<String, dynamic> json) {
 
 /// Pluralized service for ExplicitNaming
 class ExplicitTable {
-  static const SqflowColumn<String> id = SqflowColumn<String>('custom_id');
-  static const SqflowColumn<String> name = SqflowColumn<String>('custom_name');
-  static const SqflowColumn<int> age = SqflowColumn<int>('custom_age');
+  static const SqflowColumn<String> id =
+      SqflowColumn<String>('custom_id', tableName: 'explicit_table');
+  static const SqflowColumn<String> name =
+      SqflowColumn<String>('custom_name', tableName: 'explicit_table');
+  static const SqflowColumn<int> age =
+      SqflowColumn<int>('custom_age', tableName: 'explicit_table');
   static const SqflowColumn<bool> isVerified =
-      SqflowColumn<bool>('is_verified');
+      SqflowColumn<bool>('is_verified', tableName: 'explicit_table');
   static const SqflowColumn<DateTime> createdAt =
-      SqflowColumn<DateTime>('created_at');
+      SqflowColumn<DateTime>('created_at', tableName: 'explicit_table');
   static const SqflowColumn<DateTime> updatedAt =
-      SqflowColumn<DateTime>('updated_at');
+      SqflowColumn<DateTime>('updated_at', tableName: 'explicit_table');
 
   static SqflowCore<ExplicitNaming> get _service =>
       SqflowCore<ExplicitNaming>(dbManager: appDb, table: explicit_tableTable);
