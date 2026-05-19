@@ -37,6 +37,7 @@ import 'package:sqflow_core/src/seeder.dart';
 import 'package:sqflow_platform_interface/sqflow_platform_interface.dart';
 
 import 'database_adapter.dart';
+import 'sql_function.dart';
 
 /// Gets the database directory path
 Future<String> getDatabasesPath() async {
@@ -89,6 +90,9 @@ class DB {
   /// List of table configurations including schemas and migrations
   final List<Table> tables;
 
+  /// Custom SQL functions to register with the database
+  final List<SqlFunction> customFunctions;
+
   /// Internal database instance (lazy-loaded)
   Database? _database;
 
@@ -135,6 +139,7 @@ class DB {
   /// - `databaseName`: SQLite database file name
   /// - `version`: Current schema version (must be >= all migration versions)
   /// - `tables`: List of table configurations
+  /// - `customFunctions`: Custom SQL functions to register
   /// - `logger`: Custom logger (defaults to SqflowConsoleLogger)
   /// - `logQueries`: Whether to log all executed queries
   /// - `slowQueryThreshold`: Threshold for slow query warning
@@ -147,12 +152,14 @@ class DB {
   ///   databaseName: 'app_v3.db',
   ///   version: 3,
   ///   tables: [usersTable, postsTable],
+  ///   customFunctions: [SqlFunction.regexp()],
   /// );
   /// ```
   DB({
     required this.version,
     required this.tables,
     this.databaseName = 'app_database.db',
+    this.customFunctions = const [],
     this.logger = const SqflowConsoleLogger(),
     this.logQueries = false,
     this.slowQueryThreshold = const Duration(milliseconds: 200),
@@ -180,6 +187,7 @@ class DB {
   factory DB.autoVersion({
     required String databaseName,
     required List<Table> tables,
+    List<SqlFunction> customFunctions = const [],
     SqflowLogger? logger = const SqflowConsoleLogger(),
     bool logQueries = false,
     Duration slowQueryThreshold = const Duration(milliseconds: 200),
@@ -193,6 +201,7 @@ class DB {
       databaseName: databaseName,
       version: maxVersion,
       tables: tables,
+      customFunctions: customFunctions,
       logger: logger,
       logQueries: logQueries,
       slowQueryThreshold: slowQueryThreshold,
@@ -258,8 +267,7 @@ class DB {
     for (final table in tables) {
       for (final migration in table.migrations) {
         if (migration.targetVersion > version) {
-          throw ArgumentError(
-              'Table "${table.name}" has migration "${migration.description}" '
+          throw ArgumentError('Table "${table.name}" has migration "${migration.description}" '
               'for version ${migration.targetVersion}, but database version is $version. '
               'Either increase database version or remove the migration.');
         }
@@ -462,8 +470,7 @@ class DB {
 
     for (final table in tables) {
       for (final migration in table.migrations) {
-        if (migration.targetVersion > fromVersion &&
-            migration.targetVersion <= toVersion) {
+        if (migration.targetVersion > fromVersion && migration.targetVersion <= toVersion) {
           pendingMigrations.add(_PendingMigration(table, migration));
         }
       }
@@ -476,8 +483,7 @@ class DB {
 
     // Sort by version and priority
     pendingMigrations.sort((a, b) {
-      final versionCompare =
-          a.migration.targetVersion.compareTo(b.migration.targetVersion);
+      final versionCompare = a.migration.targetVersion.compareTo(b.migration.targetVersion);
       if (versionCompare != 0) return versionCompare;
       return a.migration.priority.compareTo(b.migration.priority);
     });
@@ -508,8 +514,7 @@ class DB {
       return;
     }
 
-    logger?.info(
-        'Applying: ${migration.description} (v${migration.targetVersion})');
+    logger?.info('Applying: ${migration.description} (v${migration.targetVersion})');
 
     try {
       // Execute migration
@@ -526,8 +531,7 @@ class DB {
 
       logger?.info('Migration Success');
     } catch (e, stackTrace) {
-      logger?.error(
-          'Migration Failed: ${migration.description}', e, stackTrace);
+      logger?.error('Migration Failed: ${migration.description}', e, stackTrace);
       rethrow;
     }
   }
@@ -668,8 +672,7 @@ class DB {
   }
 
   /// Helper to execute an action and log its performance
-  Future<T> logAction<T>(
-      String sql, List<Object?>? arguments, Future<T> Function() action) async {
+  Future<T> logAction<T>(String sql, List<Object?>? arguments, Future<T> Function() action) async {
     if (!logQueries) return action();
     final stopwatch = Stopwatch()..start();
     try {
@@ -700,8 +703,7 @@ class DB {
   ///   await profileService.insert(profile.copyWith(userId: userId), executor: txn);
   /// });
   /// ```
-  Future<R> transaction<R>(
-      Future<R> Function(DatabaseExecutor txn) action) async {
+  Future<R> transaction<R>(Future<R> Function(DatabaseExecutor txn) action) async {
     final dbInstance = await database;
     final bufferedNotifications = <String>{};
 
@@ -740,48 +742,21 @@ class SqflowDatabaseExecutorWrapper implements SqflowDatabaseExecutor {
   SqflowDatabaseExecutorWrapper(this._executor);
 
   @override
-  Future<void> execute(String sql, [List<Object?>? arguments]) =>
-      _executor.execute(sql, arguments);
+  Future<void> execute(String sql, [List<Object?>? arguments]) => _executor.execute(sql, arguments);
 
   @override
   Future<List<Map<String, Object?>>> query(String table,
-          {bool? distinct,
-          List<String>? columns,
-          String? where,
-          List<Object?>? whereArgs,
-          String? groupBy,
-          String? having,
-          String? orderBy,
-          int? limit,
-          int? offset}) =>
-      _executor.query(table,
-          distinct: distinct,
-          columns: columns,
-          where: where,
-          whereArgs: whereArgs,
-          groupBy: groupBy,
-          having: having,
-          orderBy: orderBy,
-          limit: limit,
-          offset: offset);
+          {bool? distinct, List<String>? columns, String? where, List<Object?>? whereArgs, String? groupBy, String? having, String? orderBy, int? limit, int? offset}) =>
+      _executor.query(table, distinct: distinct, columns: columns, where: where, whereArgs: whereArgs, groupBy: groupBy, having: having, orderBy: orderBy, limit: limit, offset: offset);
 
   @override
-  Future<int> delete(String table, {String? where, List<Object?>? whereArgs}) =>
-      _executor.delete(table, where: where, whereArgs: whereArgs);
+  Future<int> delete(String table, {String? where, List<Object?>? whereArgs}) => _executor.delete(table, where: where, whereArgs: whereArgs);
 
   @override
-  Future<int> update(String table, Map<String, Object?> values,
-          {String? where, List<Object?>? whereArgs}) =>
-      _executor.update(table, values, where: where, whereArgs: whereArgs);
+  Future<int> update(String table, Map<String, Object?> values, {String? where, List<Object?>? whereArgs}) => _executor.update(table, values, where: where, whereArgs: whereArgs);
 
   @override
-  Future<int> insert(String table, Map<String, Object?> values,
-          {String? nullColumnHack, String? conflictAlgorithm}) =>
-      _executor.insert(table, values,
-          nullColumnHack: nullColumnHack,
-          conflictAlgorithm: conflictAlgorithm != null
-              ? ConflictAlgorithm.values.firstWhere(
-                  (e) => e.name == conflictAlgorithm,
-                  orElse: () => ConflictAlgorithm.abort)
-              : null);
+  Future<int> insert(String table, Map<String, Object?> values, {String? nullColumnHack, String? conflictAlgorithm}) => _executor.insert(table, values,
+      nullColumnHack: nullColumnHack,
+      conflictAlgorithm: conflictAlgorithm != null ? ConflictAlgorithm.values.firstWhere((e) => e.name == conflictAlgorithm, orElse: () => ConflictAlgorithm.abort) : null);
 }

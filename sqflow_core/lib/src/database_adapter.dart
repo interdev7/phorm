@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'database_isolate.dart';
+import 'sql_function.dart';
 
 /// Adapter that provides sqflite-like API over sqlite3 isolate
 class Database implements DatabaseExecutor {
@@ -9,8 +10,14 @@ class Database implements DatabaseExecutor {
 
   Database._(this._isolate, this.path);
 
-  static Future<Database> open(String path) async {
+  static Future<Database> open(
+    String path, {
+    List<SqlFunction>? customFunctions,
+  }) async {
     final isolate = DatabaseIsolate();
+    if (customFunctions != null && customFunctions.isNotEmpty) {
+      isolate.registerFunctions(customFunctions);
+    }
     await isolate.start();
     await isolate.open(path);
     return Database._(isolate, path);
