@@ -3,6 +3,37 @@ import 'dart:isolate';
 
 import 'package:sqlite3/sqlite3.dart';
 
+import 'sql_function.dart';
+
+/// Function registry that maps function names to their implementations
+/// This is used in the isolate to register custom SQL functions
+class _FunctionRegistry {
+  static final Map<String, SqlFunction> _functions = {};
+
+  static void register(SqlFunction function) {
+    _functions[function.name] = function;
+  }
+
+  static void registerAll(List<SqlFunction> functions) {
+    for (final fn in functions) {
+      register(fn);
+    }
+  }
+
+  static void applyToDatabase(Database db) {
+    for (final fn in _functions.values) {
+      // Create the argument count based on fn.argumentCount
+      // In sqlite3 package, use the number directly and let it convert
+      db.createFunction(
+        functionName: fn.name,
+        argumentCount: AllowedArgumentCount(fn.argumentCount),
+        function: (args) => fn.function(args),
+        deterministic: fn.deterministic,
+      );
+    }
+  }
+}
+
 /// Commands that can be sent to the database isolate
 sealed class _DatabaseCommand {
   const _DatabaseCommand();
@@ -149,6 +180,10 @@ Object? _handleCommand(
         db.dispose();
       }
       final newDb = sqlite3.open(path);
+
+      // Register custom functions
+      _FunctionRegistry.applyToDatabase(newDb);
+
       setDb(newDb);
       return null;
 
@@ -304,12 +339,23 @@ class DatabaseIsolate {
   Isolate? _isolate;
   SendPort? _sendPort;
   final _initCompleter = Completer<void>();
+  final List<SqlFunction> _customFunctions = [];
 
   Future<void> get initialized => _initCompleter.future;
+
+  /// Registers custom SQL functions that will be available in the database
+  ///
+  /// Must be called before [start] or [open]
+  void registerFunctions(List<SqlFunction> functions) {
+    _customFunctions.addAll(functions);
+  }
 
   /// Starts the database isolate
   Future<void> start() async {
     if (_isolate != null) return;
+
+    // Register functions in the isolate's registry before spawning
+    _FunctionRegistry.registerAll(_customFunctions);
 
     final receivePort = ReceivePort();
     _isolate = await Isolate.spawn(
@@ -345,16 +391,13 @@ class DatabaseIsolate {
   Future<void> close() => _sendCommand(const _CloseCommand());
 
   /// Executes a SQL statement
-  Future<void> execute(String sql, [List<Object?>? args]) =>
-      _sendCommand(_ExecuteCommand(sql, args));
+  Future<void> execute(String sql, [List<Object?>? args]) => _sendCommand(_ExecuteCommand(sql, args));
 
   /// Executes a query and returns results
-  Future<List<Map<String, Object?>>> query(String sql, [List<Object?>? args]) =>
-      _sendCommand(_QueryCommand(sql, args));
+  Future<List<Map<String, Object?>>> query(String sql, [List<Object?>? args]) => _sendCommand(_QueryCommand(sql, args));
 
   /// Inserts a row and returns the row ID
-  Future<int> insert(String table, Map<String, Object?> values) =>
-      _sendCommand<int>(_InsertCommand(table, values));
+  Future<int> insert(String table, Map<String, Object?> values) => _sendCommand<int>(_InsertCommand(table, values));
 
   /// Updates rows and returns the number of affected rows
   Future<int> update(
@@ -366,12 +409,10 @@ class DatabaseIsolate {
       _sendCommand<int>(_UpdateCommand(table, values, where, whereArgs));
 
   /// Deletes rows and returns the number of affected rows
-  Future<int> delete(String table, {String? where, List<Object?>? whereArgs}) =>
-      _sendCommand<int>(_DeleteCommand(table, where, whereArgs));
+  Future<int> delete(String table, {String? where, List<Object?>? whereArgs}) => _sendCommand<int>(_DeleteCommand(table, where, whereArgs));
 
   /// Executes commands in a transaction
-  Future<T> transaction<T>(List<_DatabaseCommand> commands) =>
-      _sendCommand<T>(_TransactionCommand(commands));
+  Future<T> transaction<T>(List<_DatabaseCommand> commands) => _sendCommand<T>(_TransactionCommand(commands));
 
   /// Creates a batch builder
   BatchBuilder createBatch() => BatchBuilder(this);
