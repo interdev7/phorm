@@ -64,7 +64,7 @@ class SqlFunction {
   /// ```sql
   /// SELECT * FROM users WHERE email REGEXP '.*@gmail\.com'
   /// ```
-  static SqlFunction regexp() {
+  factory SqlFunction.regexp() {
     return SqlFunction(
       name: 'REGEXP',
       argumentCount: 2,
@@ -92,7 +92,7 @@ class SqlFunction {
   ///   function: (args) => args[0].toString().split('').reversed.join(),
   /// );
   /// ```
-  static SqlFunction custom({
+  factory SqlFunction.custom({
     required String name,
     required int argumentCount,
     required Object? Function(List<Object?>) function,

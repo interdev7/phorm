@@ -87,10 +87,12 @@ class SqlFunctionGenerator extends Generator {
       }
 
       final returnTypeStr = _getNonNullableTypeName(returnType);
-
+      // Function name to capitalize first letter
+      final functionName =
+          "${fn.element.name[0].toUpperCase()}${fn.element.name.substring(1)}";
       buffer
         ..writeln(
-            'extension ${fn.element.name}SqflowColumnExtension on SqflowColumn<$targetTypeStr> {')
+            'extension ${functionName}SqflowColumnExtension on SqflowColumn<$targetTypeStr> {')
         ..writeln(
             '  /// Applies the custom SQL function `$sqlName` to this column.')
         ..writeln('  SqflowColumn<$returnTypeStr> $dartMethodName() {')
@@ -104,7 +106,9 @@ class SqlFunctionGenerator extends Generator {
 
   String _getTypeNameWithNullability(DartType type) {
     final baseName = type.getDisplayString();
-    final cleanBase = baseName.endsWith('?') ? baseName.substring(0, baseName.length - 1) : baseName;
+    final cleanBase = baseName.endsWith('?')
+        ? baseName.substring(0, baseName.length - 1)
+        : baseName;
     if (type.nullabilitySuffix == NullabilitySuffix.question) {
       return '$cleanBase?';
     }
@@ -113,7 +117,9 @@ class SqlFunctionGenerator extends Generator {
 
   String _getNonNullableTypeName(DartType type) {
     final baseName = type.getDisplayString();
-    final cleanBase = baseName.endsWith('?') ? baseName.substring(0, baseName.length - 1) : baseName;
+    final cleanBase = baseName.endsWith('?')
+        ? baseName.substring(0, baseName.length - 1)
+        : baseName;
     if (cleanBase == 'void') return 'dynamic';
     return cleanBase;
   }
