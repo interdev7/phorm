@@ -73,8 +73,19 @@ Users.where(Users.email.like('%@gmail.com'))  // Ends with domain
 Users.where(Users.city.ilike('%sofia%'))      // Case-insensitive contains
 ```
 
-> [!WARNING]
-> `REGEXP` requires SQLite to have a regexp function registered. In standard `sqlite3`, this is **not available** by default. Use `.like()` or `.raw()` for pattern matching without external plugins.
+> [!TIP]
+> `REGEXP` requires the `regexp` function to be registered in the database. SQFlow makes this extremely easy! Just pass `SqlFunction.regexp()` inside the `customFunctions` list when initializing `DB`:
+> ```dart
+> final db = DB(
+>   databaseName: 'app.db',
+>   version: 1,
+>   tables: [usersTable],
+>   customFunctions: [
+>     SqlFunction.regexp(), // Registers standard REGEXP support
+>   ],
+> );
+> ```
+> Once registered, you can use `.regexp()` safely and directly.
 
 ---
 
