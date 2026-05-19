@@ -25,6 +25,7 @@ dev_dependencies:
     sdk: flutter
   sqflow_generator:
     path: ../sqflow_generator
+  test: ^1.25.15
 
 # Publication to pub.dev
 publish_to: none
