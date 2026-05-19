@@ -127,6 +127,32 @@ class SqflowQuery<T extends Model> {
     return this;
   }
 
+  /// Adds a condition to the query only if the provided boolean [flag] is true.
+  ///
+  /// **Example:**
+  /// ```dart
+  /// query.whereIf(onlyActive, () => Users.isActive.isTrue())
+  /// ```
+  SqflowQuery<T> whereIf(bool flag, SqflowCondition Function() conditionBuilder) {
+    if (flag) {
+      where(conditionBuilder());
+    }
+    return this;
+  }
+
+  /// Adds a condition to the query only if the provided [value] is not null.
+  ///
+  /// **Example:**
+  /// ```dart
+  /// query.whereNotNull(searchQuery, (val) => Users.name.like('%$val%'))
+  /// ```
+  SqflowQuery<T> whereNotNull<V>(V? value, SqflowCondition Function(V value) conditionBuilder) {
+    if (value != null) {
+      where(conditionBuilder(value));
+    }
+    return this;
+  }
+
   void _applyOperator(SqflowCondition condition) {
     final Object col = condition.column;
     final Object? val = condition.value;
@@ -214,5 +240,69 @@ class SqflowQuery<T extends Model> {
   Future<T?> first() async {
     final results = await limit(1).get();
     return results.isEmpty ? null : results.first;
+  }
+
+  /// Executes the query and returns the total count of matching rows.
+  ///
+  /// **Example:**
+  /// ```dart
+  /// final activeCount = await Users.query.where(Users.isActive.isTrue()).count();
+  /// ```
+  Future<int> count({Object? column}) async {
+    return service.count(
+      column: column,
+      where: _where.isEmpty ? null : _where,
+    );
+  }
+
+  /// Calculates the sum of a specific column.
+  Future<num> sum(Object column) async {
+    return service.sum(
+      column,
+      where: _where.isEmpty ? null : _where,
+    );
+  }
+
+  /// Calculates the average of a specific column.
+  Future<num> avg(Object column) async {
+    return service.avg(
+      column,
+      where: _where.isEmpty ? null : _where,
+    );
+  }
+
+  /// Finds the minimum value of a specific column.
+  Future<num> min(Object column) async {
+    return service.min(
+      column,
+      where: _where.isEmpty ? null : _where,
+    );
+  }
+
+  /// Finds the maximum value of a specific column.
+  Future<num> max(Object column) async {
+    return service.max(
+      column,
+      where: _where.isEmpty ? null : _where,
+    );
+  }
+
+  /// Executes the query and returns both the current page of results and the total count.
+  ///
+  /// **Example:**
+  /// ```dart
+  /// final result = await Users.query.limit(10).getWithCount();
+  /// print('Fetched ${result.data.length} of ${result.count}');
+  /// ```
+  Future<ResultWithCount<T>> getWithCount() async {
+    return service.readAllWithCount(
+      where: _where.isEmpty ? null : _where,
+      sort: _sort,
+      limit: _limit,
+      offset: _offset,
+      include: _include,
+      attributes: _attributes,
+      withDeleted: _withDeleted,
+    );
   }
 }

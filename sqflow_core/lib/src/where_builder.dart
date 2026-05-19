@@ -867,10 +867,10 @@ extension WhereBuilderExtensions on WhereBuilder {
   ///
   /// **Example:**
   /// ```dart
-  /// where.eqIfNotNull('name', searchName);
+  /// where.eqIfNotNull(Users.name, searchName);
   /// // Only adds condition if searchName is not null and not empty
   /// ```
-  WhereBuilder eqIfNotNull(String column, String? value) {
+  WhereBuilder eqIfNotNull(Object column, String? value) {
     if (value != null && value.isNotEmpty) {
       return eq(column, value);
     }
@@ -881,10 +881,10 @@ extension WhereBuilderExtensions on WhereBuilder {
   ///
   /// **Example:**
   /// ```dart
-  /// where.inListIfNotEmpty('category', selectedCategories);
-  /// // Only adds condition if selectedCategories has items
+  /// where.inListIfNotEmpty(Users.role, selectedRoles);
+  /// // Only adds condition if selectedRoles has items
   /// ```
-  WhereBuilder inListIfNotEmpty(String column, List<Object?>? values) {
+  WhereBuilder inListIfNotEmpty(Object column, List<Object?>? values) {
     if (values != null && values.isNotEmpty) {
       return inList(column, values);
     }
@@ -896,10 +896,10 @@ extension WhereBuilderExtensions on WhereBuilder {
   ///
   /// **Example:**
   /// ```dart
-  /// where.dateRangeIfProvided('created_at', startDate, endDate);
+  /// where.dateRangeIfProvided(Users.createdAt, startDate, endDate);
   /// ```
   WhereBuilder dateRangeIfProvided(
-    String column,
+    Object column,
     DateTime? from,
     DateTime? to,
   ) {
@@ -909,6 +909,32 @@ extension WhereBuilderExtensions on WhereBuilder {
       return gte(column, from);
     } else if (to != null) {
       return lte(column, to);
+    }
+    return this;
+  }
+
+  /// Adds a condition only if [condition] is true.
+  ///
+  /// **Example:**
+  /// ```dart
+  /// where.addIf(onlyActive, (w) => w.isTrue(Users.isActive));
+  /// ```
+  WhereBuilder addIf(bool condition, WhereBuilder Function(WhereBuilder builder) builderFunc) {
+    if (condition) {
+      return builderFunc(this);
+    }
+    return this;
+  }
+
+  /// Adds a condition only if [value] is not null.
+  ///
+  /// **Example:**
+  /// ```dart
+  /// where.addNotNull(searchQuery, (w, val) => w.like(Users.name, '%$val%'));
+  /// ```
+  WhereBuilder addNotNull<V>(V? value, WhereBuilder Function(WhereBuilder builder, V value) builderFunc) {
+    if (value != null) {
+      return builderFunc(this, value);
     }
     return this;
   }
