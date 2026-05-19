@@ -68,7 +68,7 @@ final result = await Users.query
 
 // 3. Traditional SqflowCore instance (if needed)
 final paged = await userService.readAllWithCount(
-  where: WhereBuilder().like('posts.title', 'Dart%'),
+  where: WhereBuilder().like(Posts.title, 'Dart%'),
   limit: 20,
   offset: 0,
 );
