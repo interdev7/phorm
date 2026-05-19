@@ -1,3 +1,5 @@
+import 'package:sqflow_platform_interface/sqflow_platform_interface.dart';
+
 /// Represents a custom SQL function that can be registered with the database.
 ///
 /// Custom functions allow you to extend SQLite with Dart logic that can be
@@ -102,5 +104,43 @@ class SqlFunction {
       function: function,
       deterministic: deterministic,
     );
+  }
+}
+
+/// A typed representation of an SQL function call on a column.
+class SqlFunctionColumn<T> extends SqflowColumn<T> {
+  /// The name of the SQL function.
+  final String functionName;
+
+  /// The column the function is applied to.
+  final SqflowColumn<dynamic> innerColumn;
+
+  const SqlFunctionColumn(this.functionName, this.innerColumn)
+      : super('$functionName($innerColumn)');
+}
+
+/// Helper class to apply registered SQL functions to database columns in a type-safe way.
+class SqlFunctions {
+  /// Applies any SQL function to a column.
+  ///
+  /// **Example:**
+  /// ```dart
+  /// SqlFunctions.apply<int, int>('DOUBLE', Users.age)
+  /// ```
+  static SqflowColumn<R> apply<T, R>(String functionName, SqflowColumn<T> col) {
+    return SqlFunctionColumn<R>(functionName, col);
+  }
+}
+
+/// Extension to allow applying any custom SQL function directly on any column in a type-safe way.
+extension SqlFunctionExtension<T> on SqflowColumn<T> {
+  /// Applies a custom SQL function to this column and returns a typed column of type [R].
+  ///
+  /// **Example:**
+  /// ```dart
+  /// Users.age.sqlFunction<int>('MY_CUSTOM_FUNCTION')
+  /// ```
+  SqflowColumn<R> sqlFunction<R>(String functionName) {
+    return SqlFunctionColumn<R>(functionName, this);
   }
 }

@@ -1,3 +1,5 @@
+import 'package:sqflow_core/src/sql_function.dart';
+
 // =======================================================
 // WHERE BUILDER 🔍
 // =======================================================
@@ -67,6 +69,10 @@ class WhereBuilder {
   ///
   /// **Throws:** ArgumentError if column name is invalid
   void _validate(Object column) {
+    if (column is SqlFunctionColumn) {
+      _validate(column.innerColumn);
+      return;
+    }
     final colStr = column.toString();
     if (!_columnRegExp.hasMatch(colStr)) {
       throw ArgumentError('Invalid column name: "$colStr". '

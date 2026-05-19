@@ -5,6 +5,7 @@ import 'package:path/path.dart' as p;
 import 'package:source_gen/source_gen.dart';
 
 import 'src/model_mixin_generator.dart';
+import 'src/sql_function_generator.dart';
 import 'src/sqlite_schema_generator.dart';
 
 Builder sqlSchemaBuilder(BuilderOptions options) {
@@ -18,6 +19,13 @@ Builder standaloneSqlSchemaBuilder(BuilderOptions options) {
   return LibraryBuilder(
     _SqflowCombinedGenerator(),
     generatedExtension: '.sql.g.dart',
+  );
+}
+
+Builder standaloneSqlFunctionBuilder(BuilderOptions options) {
+  return LibraryBuilder(
+    SqlFunctionGenerator(),
+    generatedExtension: '.fn.g.dart',
   );
 }
 

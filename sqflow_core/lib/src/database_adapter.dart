@@ -3,7 +3,7 @@ import 'dart:async';
 import 'database_isolate.dart';
 import 'sql_function.dart';
 
-/// Adapter that provides sqflite-like API over sqlite3 isolate
+/// Adapter that provides sqlite3-based API over isolate
 class Database implements DatabaseExecutor {
   final DatabaseIsolate _isolate;
   final String path;
