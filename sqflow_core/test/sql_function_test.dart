@@ -2,6 +2,26 @@ import 'package:sqflow_core/sqflow_core.dart';
 import 'package:test/test.dart';
 import 'models/user.dart';
 
+/// Simulated user-defined SQL functions class
+class UserSqlFunctions {
+  static SqflowColumn<int> double_(SqflowColumn<int> col) {
+    return SqlFunctions.apply<int, int>('DOUBLE', col);
+  }
+
+  static SqflowColumn<String> toSlug(SqflowColumn<String> col) {
+    return SqlFunctions.apply<String, String>('TO_SLUG', col);
+  }
+}
+
+/// Simulated user-defined custom extensions on columns
+extension UserSqlColumnExtensions on SqflowColumn<int> {
+  SqflowColumn<int> double_() => sqlFunction<int>('DOUBLE');
+}
+
+extension UserSqlStringColumnExtensions on SqflowColumn<String> {
+  SqflowColumn<String> toSlug() => sqlFunction<String>('TO_SLUG');
+}
+
 void main() {
   group('SqlFunction', () {
     group('Constructor', () {
@@ -142,6 +162,76 @@ void main() {
         expect(slugs.length, equals(2));
         expect(slugs[0]['slug'], equals('jane-smith'));
         expect(slugs[1]['slug'], equals('john-doe'));
+      });
+
+      test('custom functions work dynamically and type-safely with ORM queries via SqlFunctions helper', () async {
+        final userService = SqflowCore<User>(dbManager: db, table: usersTable);
+
+        final now = DateTime.now().toIso8601String();
+        await userService.insert(User(
+          id: '1',
+          firstName: 'John',
+          lastName: 'Doe',
+          email: 'john@gmail.com',
+          age: 30,
+          phone: '123456',
+          gender: 'M',
+          city: 'New York',
+          country: 'USA',
+          isActive: true,
+          isVerified: true,
+        )..createdAt = DateTime.parse(now)
+         ..updatedAt = DateTime.parse(now));
+
+        await userService.insert(User(
+          id: '2',
+          firstName: 'Jane',
+          lastName: 'Smith',
+          email: 'jane@yahoo.com',
+          age: 20,
+          phone: '654321',
+          gender: 'F',
+          city: 'Los Angeles',
+          country: 'USA',
+          isActive: true,
+          isVerified: true,
+        )..createdAt = DateTime.parse(now)
+         ..updatedAt = DateTime.parse(now));
+
+        // 1. Query using user-defined UserSqlFunctions.double_ on integer column age: Users where DOUBLE(age) > 50 -> (John: 30*2=60 > 50; Jane: 20*2=40 <= 50)
+        final results = await userService.readAll(
+          where: WhereBuilder().gt(UserSqlFunctions.double_(Users.age), 50),
+        );
+        expect(results.data.length, equals(1));
+        expect(results.data.first.firstName, equals('John'));
+
+        // 2. Query using user-defined UserSqlFunctions.toSlug on string column first_name: Users where TO_SLUG(first_name) = 'jane'
+        final results2 = await userService.readAll(
+          where: WhereBuilder().eq(UserSqlFunctions.toSlug(Users.firstName), 'jane'),
+        );
+        expect(results2.data.length, equals(1));
+        expect(results2.data.first.firstName, equals('Jane'));
+
+        // 3. Query using generic SqlFunctions.apply helper: Users where DOUBLE(age) = 40 (Jane: 20*2=40)
+        final results3 = await userService.readAll(
+          where: WhereBuilder().eq(SqlFunctions.apply<int, int>('DOUBLE', Users.age), 40),
+        );
+        expect(results3.data.length, equals(1));
+        expect(results3.data.first.firstName, equals('Jane'));
+
+        // 4. Query using user-defined custom SQL function on the fly via sqlFunction extension: Users where DOUBLE(age) = 60 (John: 30*2=60)
+        final results4 = await userService.readAll(
+          where: WhereBuilder().eq(Users.age.sqlFunction<int>('DOUBLE'), 60),
+        );
+        expect(results4.data.length, equals(1));
+        expect(results4.data.first.firstName, equals('John'));
+
+        // 5. Query using user-defined custom column extension double_(): Users where age.double_() = 60
+        final results5 = await userService.readAll(
+          where: WhereBuilder().eq(Users.age.double_(), 60),
+        );
+        expect(results5.data.length, equals(1));
+        expect(results5.data.first.firstName, equals('John'));
       });
     });
   });

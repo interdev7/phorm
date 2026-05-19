@@ -349,3 +349,16 @@ class _ExcludeAttributes implements Attributes {
     return allColumns.where((c) => !columns.contains(c)).toList();
   }
 }
+
+/// Annotation to mark a custom Dart function as a SQLite custom function.
+///
+/// The generator will scan all functions marked with `@SqlFunc` and:
+/// 1. Create a list of custom SQL function registrations in `custom_functions.g.dart`.
+/// 2. Generate type-safe [SqflowColumn] extension methods for calling this function.
+class SqlFunc {
+  /// The SQLite-native name of the custom SQL function.
+  /// If null, the generator defaults to the UPPERCASE version of the Dart function name.
+  final String? name;
+
+  const SqlFunc({this.name});
+}

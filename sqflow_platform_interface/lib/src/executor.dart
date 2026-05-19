@@ -1,4 +1,4 @@
-/// Simple interface for database execution to avoid direct dependency on sqflite
+/// Simple interface for database execution to avoid direct dependency on sqlite3
 /// in the platform interface. This allows the generator to be pure Dart.
 abstract class SqflowDatabaseExecutor {
   Future<void> execute(String sql, [List<Object?>? arguments]);
