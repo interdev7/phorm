@@ -69,7 +69,6 @@ Map<String, dynamic> _$SQFlowScalarItemToJson(ScalarItem instance) {
     'optional_duration':
         _$SQFlowToJsonValue(instance.optionalDuration?.inMicroseconds),
   };
-  _$validateScalarItem(scalaritemJson, tableName: 'scalar_items');
 
   return scalaritemJson;
 }
@@ -108,9 +107,6 @@ extension SQFlowScalarItemExt on ScalarItem {
     );
   }
 }
-
-void _$validateScalarItem(Map<String, dynamic> json,
-    {required String tableName}) {}
 
 ScalarItem _$SQFlowScalarItemFromJson(Map<String, dynamic> json) {
   final instance = ScalarItem(
@@ -324,7 +320,6 @@ Map<String, dynamic> _$SQFlowCollectionItemToJson(CollectionItem instance) {
     'scores': _$SQFlowToJsonValue(instance.scores),
     'metadata': _$SQFlowToJsonValue(instance.metadata),
   };
-  _$validateCollectionItem(collectionitemJson, tableName: 'collection_items');
 
   return collectionitemJson;
 }
@@ -354,9 +349,6 @@ extension SQFlowCollectionItemExt on CollectionItem {
     );
   }
 }
-
-void _$validateCollectionItem(Map<String, dynamic> json,
-    {required String tableName}) {}
 
 CollectionItem _$SQFlowCollectionItemFromJson(Map<String, dynamic> json) {
   final instance = CollectionItem(
@@ -563,7 +555,6 @@ Map<String, dynamic> _$SQFlowApiResponseToJson<T>(
     'data': _$SQFlowToJsonValue(
         instance.data != null ? toJsonT(instance.data as T) : null),
   };
-  _$validateApiResponse(apiresponseJson, tableName: 'api_responses');
 
   return apiresponseJson;
 }
@@ -590,9 +581,6 @@ extension SQFlowApiResponseExt<T> on ApiResponse<T> {
     );
   }
 }
-
-void _$validateApiResponse(Map<String, dynamic> json,
-    {required String tableName}) {}
 
 ApiResponse<T> _$SQFlowApiResponseFromJson<T>(
     Map<String, dynamic> json, T Function(Object? json) fromJsonT) {

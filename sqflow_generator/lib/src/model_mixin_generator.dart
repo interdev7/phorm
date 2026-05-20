@@ -36,13 +36,25 @@ class ModelMixinGenerator extends GeneratorForAnnotation<Schema> {
     final useCopyWith = annotation.peek('useCopyWith')?.boolValue ?? true;
     final useToString = annotation.peek('useToString')?.boolValue ?? true;
     final timestamps = annotation.peek('timestamps')?.boolValue ?? true;
-    final useValidator = annotation.peek('useValidator')?.boolValue ?? true;
     final paranoid = annotation.peek('paranoid')?.boolValue ?? false;
 
     final tableName = annotation.peek('tableName')?.stringValue ??
         MetadataExtractor.camelToSnake(className);
 
     final fields = element.fields.where((f) => !f.isStatic).toList();
+    final hasValidators = fields.any((field) {
+      final columnMeta = field.metadata.where((m) {
+        final name = m.element?.enclosingElement3?.name;
+        return name == 'Column' || name == 'ID';
+      }).firstOrNull;
+      if (columnMeta == null) return false;
+      final reader = ConstantReader(columnMeta.computeConstantValue());
+      final validatorsReader = reader.peek('validators');
+      return validatorsReader != null &&
+          validatorsReader.isList &&
+          validatorsReader.listValue.isNotEmpty;
+    });
+    final useValidator = (annotation.peek('useValidator')?.boolValue ?? true) && hasValidators;
     final relationships = <Map<String, dynamic>>[];
 
     // Class level relationships

@@ -583,7 +583,6 @@ Map<String, dynamic> _$SQFlowPostToJson(Post instance) {
     'updated_at': _$SQFlowToJsonValue(instance.updatedAt),
     'deleted_at': _$SQFlowToJsonValue(instance.deletedAt),
   };
-  _$validatePost(postJson, tableName: 'posts');
 
   return postJson;
 }
@@ -620,8 +619,6 @@ extension SQFlowPostExt on Post {
       ..deletedAt = deletedAt ?? this.deletedAt;
   }
 }
-
-void _$validatePost(Map<String, dynamic> json, {required String tableName}) {}
 
 Post _$SQFlowPostFromJson(Map<String, dynamic> json) {
   final instance = Post(
@@ -851,7 +848,6 @@ Map<String, dynamic> _$SQFlowProfileToJson(Profile instance) {
     'created_at': _$SQFlowToJsonValue(instance.createdAt),
     'updated_at': _$SQFlowToJsonValue(instance.updatedAt),
   };
-  _$validateProfile(profileJson, tableName: 'profiles');
 
   return profileJson;
 }
@@ -885,9 +881,6 @@ extension SQFlowProfileExt on Profile {
       ..updatedAt = updatedAt ?? this.updatedAt;
   }
 }
-
-void _$validateProfile(Map<String, dynamic> json,
-    {required String tableName}) {}
 
 Profile _$SQFlowProfileFromJson(Map<String, dynamic> json) {
   final instance = Profile(
@@ -1119,7 +1112,6 @@ Map<String, dynamic> _$SQFlowOrderToJson(Order instance) {
     'updated_at': _$SQFlowToJsonValue(instance.updatedAt),
     'deleted_at': _$SQFlowToJsonValue(instance.deletedAt),
   };
-  _$validateOrder(orderJson, tableName: 'orders');
 
   return orderJson;
 }
@@ -1156,8 +1148,6 @@ extension SQFlowOrderExt on Order {
       ..deletedAt = deletedAt ?? this.deletedAt;
   }
 }
-
-void _$validateOrder(Map<String, dynamic> json, {required String tableName}) {}
 
 Order _$SQFlowOrderFromJson(Map<String, dynamic> json) {
   final instance = Order(

@@ -71,11 +71,9 @@ Map<String, dynamic> _$SQFlowPostToJson(Post instance) {
     'title': _$SQFlowToJsonValue(instance.title),
     'content': _$SQFlowToJsonValue(instance.content),
     'user_id': _$SQFlowToJsonValue(instance.userId),
-    'user': _$SQFlowToJsonValue(instance.user),
     'created_at': _$SQFlowToJsonValue(instance.createdAt),
     'updated_at': _$SQFlowToJsonValue(instance.updatedAt),
   };
-  _$validatePost(postJson, tableName: 'posts');
 
   return postJson;
 }
@@ -115,8 +113,6 @@ extension SQFlowPostExt on Post {
   }
 }
 
-void _$validatePost(Map<String, dynamic> json, {required String tableName}) {}
-
 Post _$SQFlowPostFromJson(Map<String, dynamic> json) {
   final instance = Post(
     id: json['id'] as String,
@@ -138,15 +134,20 @@ Post _$SQFlowPostFromJson(Map<String, dynamic> json) {
 
 /// Pluralized service for Post
 class Posts {
-  static const SqflowColumn<String> id = SqflowColumn<String>('id');
-  static const SqflowColumn<String> title = SqflowColumn<String>('title');
-  static const SqflowColumn<String> content = SqflowColumn<String>('content');
-  static const SqflowColumn<String> userId = SqflowColumn<String>('user_id');
-  static const SqflowColumn<User> user = SqflowColumn<User>('user');
+  static const SqflowColumn<String> id =
+      SqflowColumn<String>('id', tableName: 'posts');
+  static const SqflowColumn<String> title =
+      SqflowColumn<String>('title', tableName: 'posts');
+  static const SqflowColumn<String> content =
+      SqflowColumn<String>('content', tableName: 'posts');
+  static const SqflowColumn<String> userId =
+      SqflowColumn<String>('user_id', tableName: 'posts');
+  static const SqflowColumn<User> user =
+      SqflowColumn<User>('user', tableName: 'posts');
   static const SqflowColumn<DateTime> createdAt =
-      SqflowColumn<DateTime>('created_at');
+      SqflowColumn<DateTime>('created_at', tableName: 'posts');
   static const SqflowColumn<DateTime> updatedAt =
-      SqflowColumn<DateTime>('updated_at');
+      SqflowColumn<DateTime>('updated_at', tableName: 'posts');
 
   static SqflowCore<Post> get _service =>
       SqflowCore<Post>(dbManager: appDb, table: postsTable);
@@ -279,5 +280,9 @@ dynamic _$SQFlowToJsonValue(dynamic value) {
   if (value == null) return null;
   if (value is DateTime) return value.toIso8601String();
   if (value is bool) return value ? 1 : 0;
+  // Collections and Maps are stored as JSON strings in SQLite
+  if (value is List || value is Set || value is Map) {
+    return jsonEncode(value is Set ? value.toList() : value);
+  }
   return value;
 }

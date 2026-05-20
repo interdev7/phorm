@@ -77,7 +77,6 @@ Map<String, dynamic> _$SQFlowMigrationUserToJson(MigrationUser instance) {
     'created_at': _$SQFlowToJsonValue(instance.createdAt),
     'updated_at': _$SQFlowToJsonValue(instance.updatedAt),
   };
-  _$validateMigrationUser(migrationuserJson, tableName: 'migration_users');
 
   return migrationuserJson;
 }
@@ -116,9 +115,6 @@ extension SQFlowMigrationUserExt on MigrationUser {
       ..updatedAt = updatedAt ?? this.updatedAt;
   }
 }
-
-void _$validateMigrationUser(Map<String, dynamic> json,
-    {required String tableName}) {}
 
 MigrationUser _$SQFlowMigrationUserFromJson(Map<String, dynamic> json) {
   final instance = MigrationUser(

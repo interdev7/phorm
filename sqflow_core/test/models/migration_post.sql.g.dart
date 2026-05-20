@@ -74,7 +74,6 @@ Map<String, dynamic> _$SQFlowMigrationPostToJson(MigrationPost instance) {
     'created_at': _$SQFlowToJsonValue(instance.createdAt),
     'updated_at': _$SQFlowToJsonValue(instance.updatedAt),
   };
-  _$validateMigrationPost(migrationpostJson, tableName: 'migration_posts');
 
   return migrationpostJson;
 }
@@ -110,9 +109,6 @@ extension SQFlowMigrationPostExt on MigrationPost {
       ..updatedAt = updatedAt ?? this.updatedAt;
   }
 }
-
-void _$validateMigrationPost(Map<String, dynamic> json,
-    {required String tableName}) {}
 
 MigrationPost _$SQFlowMigrationPostFromJson(Map<String, dynamic> json) {
   final instance = MigrationPost(
