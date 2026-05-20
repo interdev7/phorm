@@ -28,98 +28,74 @@ class SqflowQuery<T extends Model> {
     switch (condition.operator) {
       case 'IS NULL':
         _where.isNull(condition.column);
-        break;
       case 'IS NOT NULL':
         _where.isNotNull(condition.column);
-        break;
       case 'IN':
         _where.inList(condition.column, condition.value as List);
-        break;
       case 'NOT IN':
         _where.notInList(condition.column, condition.value as List);
-        break;
       case 'LIKE':
         _where.like(condition.column, condition.value as String);
-        break;
       case 'NOT LIKE':
         _where.notLike(condition.column, condition.value as String);
-        break;
       case 'ILIKE':
         _where.ilike(condition.column, condition.value as String);
-        break;
       case 'NOT ILIKE':
         _where.notIlike(condition.column, condition.value as String);
-        break;
       case 'REGEXP':
         _where.regexp(condition.column, condition.value as String);
-        break;
       case 'BETWEEN':
         final range = condition.value as List;
-        _where.between(condition.column, range[0] as Object, range[1] as Object);
-        break;
+        _where.between(
+            condition.column, range[0] as Object, range[1] as Object);
       case 'NOT BETWEEN':
         final range = condition.value as List;
         _where.notBetween(
             condition.column, range[0] as Object, range[1] as Object);
-        break;
       case 'STARTS WITH':
         _where.startsWith(condition.column, condition.value as String);
-        break;
       case 'ENDS WITH':
         _where.endsWith(condition.column, condition.value as String);
-        break;
       case 'TRUE':
         _where.isTrue(condition.column);
-        break;
       case 'FALSE':
         _where.isFalse(condition.column);
-        break;
       case 'LENGTH =':
         _where.lengthEq(condition.column, condition.value as int);
-        break;
       case 'LENGTH !=':
         _where.lengthNe(condition.column, condition.value as int);
-        break;
       case 'LENGTH >':
         _where.lengthGt(condition.column, condition.value as int);
-        break;
       case 'LENGTH >=':
         _where.lengthGte(condition.column, condition.value as int);
-        break;
       case 'LENGTH <':
         _where.lengthLt(condition.column, condition.value as int);
-        break;
       case 'LENGTH <=':
         _where.lengthLte(condition.column, condition.value as int);
-        break;
       case 'SUBSTR =':
         final s = condition.value as List;
-        _where.substrEq(condition.column, s[0] as int, s[1] as int, s[2] as String);
-        break;
+        _where.substrEq(
+            condition.column, s[0] as int, s[1] as int, s[2] as String);
       case 'SUBSTR LIKE':
         final s = condition.value as List;
-        _where.substrLike(condition.column, s[0] as int, s[1] as int, s[2] as String);
-        break;
+        _where.substrLike(
+            condition.column, s[0] as int, s[1] as int, s[2] as String);
       case 'SUBSTR ILIKE':
         final s = condition.value as List;
-        _where.substrIlike(condition.column, s[0] as int, s[1] as int, s[2] as String);
-        break;
+        _where.substrIlike(
+            condition.column, s[0] as int, s[1] as int, s[2] as String);
       case 'DATE =':
         _where.dateOnlyEq(condition.column, condition.value as DateTime);
-        break;
       case 'DATE >':
         _where.dateOnlyGt(condition.column, condition.value as DateTime);
-        break;
       case 'DATE <':
         _where.dateOnlyLt(condition.column, condition.value as DateTime);
-        break;
       case 'DATE BETWEEN':
         final d = condition.value as List;
-        _where.dateOnlyBetween(condition.column, d[0] as DateTime, d[1] as DateTime);
-        break;
+        _where.dateOnlyBetween(
+            condition.column, d[0] as DateTime, d[1] as DateTime);
       case 'TIME =':
         _where.timeOnlyEq(condition.column, condition.value as DateTime);
-        break;
       default:
         // Basic operators (=, !=, >, <, >=, <=)
         _applyOperator(condition);
@@ -133,7 +109,8 @@ class SqflowQuery<T extends Model> {
   /// ```dart
   /// query.whereIf(onlyActive, () => Users.isActive.isTrue())
   /// ```
-  SqflowQuery<T> whereIf(bool flag, SqflowCondition Function() conditionBuilder) {
+  SqflowQuery<T> whereIf(
+      bool flag, SqflowCondition Function() conditionBuilder) {
     if (flag) {
       where(conditionBuilder());
     }
@@ -146,7 +123,8 @@ class SqflowQuery<T extends Model> {
   /// ```dart
   /// query.whereNotNull(searchQuery, (val) => Users.name.like('%$val%'))
   /// ```
-  SqflowQuery<T> whereNotNull<V>(V? value, SqflowCondition Function(V value) conditionBuilder) {
+  SqflowQuery<T> whereNotNull<V>(
+      V? value, SqflowCondition Function(V value) conditionBuilder) {
     if (value != null) {
       where(conditionBuilder(value));
     }
@@ -161,22 +139,16 @@ class SqflowQuery<T extends Model> {
     switch (condition.operator) {
       case '=':
         _where.eq(col, val);
-        break;
       case '!=':
         _where.ne(col, val);
-        break;
       case '>':
         _where.gt(col, val);
-        break;
       case '>=':
         _where.gte(col, val);
-        break;
       case '<':
         _where.lt(col, val);
-        break;
       case '<=':
         _where.lte(col, val);
-        break;
     }
   }
 
@@ -207,6 +179,13 @@ class SqflowQuery<T extends Model> {
   /// Eager-loads relationships.
   SqflowQuery<T> include(List<Includable> relations) {
     _include = relations;
+    return this;
+  }
+
+  /// Eager-loads a single relationship.
+  SqflowQuery<T> includeOne(Includable relation) {
+    _include ??= [];
+    _include!.add(relation);
     return this;
   }
 
