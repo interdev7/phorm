@@ -37,7 +37,8 @@ class _SqflowCombinedGenerator extends Generator {
   Future<String> generate(LibraryReader library, BuildStep buildStep) async {
     final buffer = StringBuffer();
 
-    const schemaChecker = TypeChecker.fromUrl('package:sqflow_platform_interface/src/annotations.dart#Schema');
+    const schemaChecker = TypeChecker.fromUrl(
+        'package:sqflow_platform_interface/src/annotations.dart#Schema');
     var annotated = library.annotatedWith(schemaChecker);
 
     if (annotated.isEmpty) {
@@ -75,15 +76,46 @@ class _SqflowCombinedGenerator extends Generator {
       buffer.writeln(mixinResult);
     }
 
-    buffer.writeln(r'''
+    final generatedContent = buffer.toString();
+    final finalBuffer = StringBuffer();
+    finalBuffer.write(generatedContent);
+
+    // Only output _$SQFlowToJsonValue if it is referenced in the generated models
+    if (generatedContent.contains(r'_$SQFlowToJsonValue')) {
+      finalBuffer.writeln(r'''
 dynamic _$SQFlowToJsonValue(dynamic value) {
   if (value == null) return null;
   if (value is DateTime) return value.toIso8601String();
   if (value is bool) return value ? 1 : 0;
+  // Collections and Maps are stored as JSON strings in SQLite
+  if (value is List || value is Set || value is Map) {
+    return jsonEncode(value is Set ? value.toList() : value);
+  }
   return value;
 }
 ''');
+    }
 
-    return buffer.toString();
+    // Only output _$SQFlowDecodeJson if it is referenced in the generated models (e.g., collections deserialization)
+    if (generatedContent.contains(r'_$SQFlowDecodeJson')) {
+      finalBuffer.writeln(r'''
+/// Decodes a value from SQLite storage.
+/// JSON strings (from List/Set/Map fields) are decoded back to Dart objects.
+dynamic _$SQFlowDecodeJson(dynamic value) {
+  if (value == null) return null;
+  if (value is String) {
+    final trimmed = value.trimLeft();
+    if (trimmed.startsWith('[') || trimmed.startsWith('{')) {
+      try {
+        return jsonDecode(value);
+      } catch (_) {}
+    }
+  }
+  return value;
+}
+''');
+    }
+
+    return finalBuffer.toString();
   }
 }

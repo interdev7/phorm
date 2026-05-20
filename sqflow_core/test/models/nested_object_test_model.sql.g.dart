@@ -4,29 +4,19 @@
 // _SqflowCombinedGenerator
 // **************************************************************************
 
-part of 'enum_test_model.dart';
+part of 'nested_object_test_model.dart';
 
-const _$SQFlowEnumPostSchema = """
-CREATE TABLE enum_posts (
-  id INTEGER PRIMARY KEY AUTOINCREMENT,
-  title TEXT NOT NULL,
-  status TEXT NOT NULL,
-  optional_status TEXT,
-  created_at TEXT NOT NULL,
-  updated_at TEXT NOT NULL
+const _$SQFlowUserWithLocationSchema = """
+CREATE TABLE users_with_location (
+  id INTEGER PRIMARY KEY,
+  name TEXT NOT NULL
 );
 
 
-CREATE TRIGGER update_enum_posts_timestamp
-AFTER UPDATE ON enum_posts
-FOR EACH ROW
-BEGIN
-    UPDATE enum_posts SET updated_at = datetime('now') WHERE id = OLD.id;
-END;
 """;
 
-class _$SQFlowEnumPostTable extends Table<EnumPost> {
-  _$SQFlowEnumPostTable({
+class _$SQFlowUserWithLocationTable extends Table<UserWithLocation> {
+  _$SQFlowUserWithLocationTable({
     required super.schema,
     required super.name,
     required super.fromJson,
@@ -34,130 +24,106 @@ class _$SQFlowEnumPostTable extends Table<EnumPost> {
     super.columns = const [],
     super.primaryKey = 'id',
     super.timestamps = true,
-  }) : super(type: EnumPost, paranoid: Table.detectSoftDelete(schema));
+  }) : super(type: UserWithLocation, paranoid: Table.detectSoftDelete(schema));
 }
 
-/// EnumPost table schema
-final enum_postsTable = _$SQFlowEnumPostTable(
-  schema: _$SQFlowEnumPostSchema,
-  name: 'enum_posts',
-  fromJson: _$SQFlowEnumPostFromJson,
+/// UserWithLocation table schema
+final users_with_locationTable = _$SQFlowUserWithLocationTable(
+  schema: _$SQFlowUserWithLocationSchema,
+  name: 'users_with_location',
+  fromJson: _$SQFlowUserWithLocationFromJson,
   relationships: [],
-  columns: const [
-    'id',
-    'title',
-    'status',
-    'optional_status',
-    'created_at',
-    'updated_at'
-  ],
+  columns: const ['id', 'name'],
   primaryKey: 'id',
-  timestamps: true,
+  timestamps: false,
 );
 
-mixin _$SQFlowEnumPostMixin {
-  Map<String, dynamic> toJson() => _$SQFlowEnumPostToJson(this as EnumPost);
+mixin _$SQFlowUserWithLocationMixin {
+  Map<String, dynamic> toJson() =>
+      _$SQFlowUserWithLocationToJson(this as UserWithLocation);
 
   @override
-  String toString() => _$SQFlowEnumPostToString(this as EnumPost);
-  DateTime? createdAt;
-  DateTime? updatedAt;
+  String toString() =>
+      _$SQFlowUserWithLocationToString(this as UserWithLocation);
 }
 
-Map<String, dynamic> _$SQFlowEnumPostToJson(EnumPost instance) {
-  final enumpostJson = {
+Map<String, dynamic> _$SQFlowUserWithLocationToJson(UserWithLocation instance) {
+  final userwithlocationJson = {
     'id': _$SQFlowToJsonValue(instance.id),
-    'title': _$SQFlowToJsonValue(instance.title),
-    'status': _$SQFlowToJsonValue(instance.status.name),
-    'optional_status': _$SQFlowToJsonValue(instance.optionalStatus?.name),
-    'created_at': _$SQFlowToJsonValue(instance.createdAt),
-    'updated_at': _$SQFlowToJsonValue(instance.updatedAt),
+    'name': _$SQFlowToJsonValue(instance.name),
+    'location': _$SQFlowToJsonValue(instance.location?.toJson()),
+    'age': _$SQFlowToJsonValue(instance.age),
   };
-  _$validateEnumPost(enumpostJson, tableName: 'enum_posts');
+  _$validateUserWithLocation(userwithlocationJson,
+      tableName: 'users_with_location');
 
-  return enumpostJson;
+  return userwithlocationJson;
 }
 
-String _$SQFlowEnumPostToString(EnumPost instance) {
+String _$SQFlowUserWithLocationToString(UserWithLocation instance) {
   return """
-EnumPost(
+UserWithLocation(
   id: ${instance.id},
-  title: ${instance.title},
-  status: ${instance.status},
-  optionalStatus: ${instance.optionalStatus},
-  createdAt: ${instance.createdAt},
-  updatedAt: ${instance.updatedAt},
+  name: ${instance.name},
+  location: ${instance.location},
+  age: ${instance.age},
 )""";
 }
 
-extension SQFlowEnumPostExt on EnumPost {
-  EnumPost copyWith({
+extension SQFlowUserWithLocationExt on UserWithLocation {
+  UserWithLocation copyWith({
     int? id,
-    String? title,
-    PostStatus? status,
-    PostStatus? optionalStatus,
-    DateTime? createdAt,
-    DateTime? updatedAt,
+    String? name,
+    Location? location,
+    int? age,
   }) {
-    return EnumPost(
+    return UserWithLocation(
       id: id ?? this.id,
-      title: title ?? this.title,
-      status: status ?? this.status,
-      optionalStatus: optionalStatus ?? this.optionalStatus,
-    )
-      ..createdAt = createdAt ?? this.createdAt
-      ..updatedAt = updatedAt ?? this.updatedAt;
+      name: name ?? this.name,
+      location: location ?? this.location,
+      age: age ?? this.age,
+    );
   }
 }
 
-void _$validateEnumPost(Map<String, dynamic> json,
+void _$validateUserWithLocation(Map<String, dynamic> json,
     {required String tableName}) {}
 
-EnumPost _$SQFlowEnumPostFromJson(Map<String, dynamic> json) {
-  final instance = EnumPost(
+UserWithLocation _$SQFlowUserWithLocationFromJson(Map<String, dynamic> json) {
+  final instance = UserWithLocation(
     id: json['id'] as int,
-    title: json['title'] as String,
-    status: PostStatus.values.byName(json['status'] as String),
-    optionalStatus: json['optional_status'] != null
-        ? PostStatus.values.byName(json['optional_status'] as String)
+    name: json['name'] as String,
+    location: json['location'] != null
+        ? Location.fromJson(json['location'] as Map<String, dynamic>)
         : null,
-  )
-    ..createdAt = json['created_at'] != null
-        ? DateTime.parse(json['created_at'] as String)
-        : null
-    ..updatedAt = json['updated_at'] != null
-        ? DateTime.parse(json['updated_at'] as String)
-        : null;
+    age: json['age'] as int?,
+  );
   return instance;
 }
 
-/// Pluralized service for EnumPost
-class EnumPosts {
+/// Pluralized service for UserWithLocation
+class UsersWithLocation {
   static const SqflowColumn<int> id =
-      SqflowColumn<int>('id', tableName: 'enum_posts');
-  static const SqflowColumn<String> title =
-      SqflowColumn<String>('title', tableName: 'enum_posts');
-  static const SqflowColumn<PostStatus> status =
-      SqflowColumn<PostStatus>('status', tableName: 'enum_posts');
-  static const SqflowColumn<PostStatus> optionalStatus =
-      SqflowColumn<PostStatus>('optional_status', tableName: 'enum_posts');
-  static const SqflowColumn<DateTime> createdAt =
-      SqflowColumn<DateTime>('created_at', tableName: 'enum_posts');
-  static const SqflowColumn<DateTime> updatedAt =
-      SqflowColumn<DateTime>('updated_at', tableName: 'enum_posts');
+      SqflowColumn<int>('id', tableName: 'users_with_location');
+  static const SqflowColumn<String> name =
+      SqflowColumn<String>('name', tableName: 'users_with_location');
 
-  static SqflowCore<EnumPost> get _service =>
-      SqflowCore<EnumPost>(dbManager: appDb, table: enum_postsTable);
+  static SqflowCore<UserWithLocation> get _service =>
+      SqflowCore<UserWithLocation>(
+          dbManager: appDb, table: users_with_locationTable);
 
-  static SqflowQuery<EnumPost> where(SqflowCondition condition) =>
+  static SqflowQuery<UserWithLocation> where(SqflowCondition condition) =>
       _service.where(condition);
-  static SqflowQuery<EnumPost> get query => _service.query;
+  static SqflowQuery<UserWithLocation> get query => _service.query;
 
-  static Future<int> insert(EnumPost item, {DatabaseExecutor? executor}) =>
+  static Future<int> insert(UserWithLocation item,
+          {DatabaseExecutor? executor}) =>
       _service.insert(item, executor: executor);
-  static Future<int> update(EnumPost item, {DatabaseExecutor? executor}) =>
+  static Future<int> update(UserWithLocation item,
+          {DatabaseExecutor? executor}) =>
       _service.update(item, executor: executor);
-  static Future<void> upsert(EnumPost item, {DatabaseExecutor? executor}) =>
+  static Future<void> upsert(UserWithLocation item,
+          {DatabaseExecutor? executor}) =>
       _service.upsert(item, executor: executor);
   static Future<int> delete(Object id,
           {bool force = false, DatabaseExecutor? executor}) =>
@@ -165,13 +131,13 @@ class EnumPosts {
   static Future<int> restore(Object id, {DatabaseExecutor? executor}) =>
       _service.restore(id, executor: executor);
 
-  static Future<int> insertBatch(List<EnumPost> items,
+  static Future<int> insertBatch(List<UserWithLocation> items,
           {DatabaseExecutor? executor}) =>
       _service.insertBatch(items, executor: executor);
-  static Future<int> updateBatch(List<EnumPost> items,
+  static Future<int> updateBatch(List<UserWithLocation> items,
           {DatabaseExecutor? executor}) =>
       _service.updateBatch(items, executor: executor);
-  static Future<int> upsertBatch(List<EnumPost> items,
+  static Future<int> upsertBatch(List<UserWithLocation> items,
           {DatabaseExecutor? executor}) =>
       _service.upsertBatch(items, executor: executor);
   static Future<int> deleteBatch(List<Object> ids,
@@ -182,7 +148,7 @@ class EnumPosts {
           {bool withDeleted = false, DatabaseExecutor? executor}) =>
       _service.exists(id, withDeleted: withDeleted, executor: executor);
 
-  static Future<EnumPost?> readOne(Object id,
+  static Future<UserWithLocation?> readOne(Object id,
           {List<String>? columns,
           Attributes? attributes,
           bool withDeleted = false,
@@ -195,7 +161,7 @@ class EnumPosts {
           include: include,
           executor: executor);
 
-  static Future<Result<EnumPost>> readAll(
+  static Future<Result<UserWithLocation>> readAll(
           {int limit = 20,
           int offset = 0,
           WhereBuilder? where,
@@ -218,7 +184,7 @@ class EnumPosts {
           include: include,
           executor: executor);
 
-  static Future<ResultWithCount<EnumPost>> readAllWithCount(
+  static Future<ResultWithCount<UserWithLocation>> readAllWithCount(
           {int limit = 20,
           int offset = 0,
           WhereBuilder? where,
@@ -262,9 +228,10 @@ class EnumPosts {
       _service.transaction(action);
 
   static Stream<String> get changeStream => _service.dbManager.changeStream;
-  static Stream<EnumPost?> watchOne(Object id, {List<Includable>? include}) =>
+  static Stream<UserWithLocation?> watchOne(Object id,
+          {List<Includable>? include}) =>
       _service.watchOne(id, include: include);
-  static Stream<List<EnumPost>> watchAll(
+  static Stream<List<UserWithLocation>> watchAll(
           {WhereBuilder? where,
           List<Includable>? include,
           SortBuilder? sort,
