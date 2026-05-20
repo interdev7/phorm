@@ -497,4 +497,86 @@ void main() {
     expect(result.data[0].lastName, 'Someone');
     expect(result.data, hasLength(1));
   });
+
+  test('Backend Payload Integration: User with nested relations from JSON should be parsed and inserted into DB without errors', () async {
+    final serverJson = {
+      'id': 'user_from_backend',
+      'first_name': 'Backend',
+      'last_name': 'Developer',
+      'email': 'backend@example.com',
+      'phone': '999999',
+      'gender': 'M',
+      'city': 'San Francisco',
+      'country': 'USA',
+      'is_active': true,
+      'is_verified': true,
+      // Nested HasMany relation from backend
+      'posts': [
+        {
+          'id': 700,
+          'title': 'Post from Backend 1',
+          'user_id': 'user_from_backend',
+          'created_at': DateTime.now().toIso8601String(),
+          'updated_at': DateTime.now().toIso8601String(),
+        },
+        {
+          'id': 701,
+          'title': 'Post from Backend 2',
+          'user_id': 'user_from_backend',
+          'created_at': DateTime.now().toIso8601String(),
+          'updated_at': DateTime.now().toIso8601String(),
+        }
+      ],
+      // Nested HasOne relation from backend
+      'profiles': {
+        'id': 800,
+        'bio': 'Prefers JSON serialization',
+        'user_id': 'user_from_backend',
+        'created_at': DateTime.now().toIso8601String(),
+        'updated_at': DateTime.now().toIso8601String(),
+      }
+    };
+
+    // 1. Deserialize backend response using User.fromJson
+    final user = User.fromJson(serverJson);
+
+    expect(user.id, 'user_from_backend');
+    expect(user.posts, hasLength(2));
+    expect(user.posts[0].title, 'Post from Backend 1');
+    expect(user.profile, isNotNull);
+    expect(user.profile!.bio, 'Prefers JSON serialization');
+
+    // 2. Insert User to DB.
+    // Ensure that sqlite does not fail because of non-column nested fields ('posts', 'profiles')!
+    final userService = SqflowCore<User>(dbManager: db, table: usersTable);
+    await userService.insert(user);
+
+    // 3. Read User back from DB. Since nested relations are stored in their own tables,
+    // readOne without 'include' should load only User columns.
+    final retrievedUser = await userService.readOne('user_from_backend');
+    expect(retrievedUser, isNotNull);
+    expect(retrievedUser!.firstName, 'Backend');
+    expect(retrievedUser.posts, isEmpty); // Empty because they are not eager-loaded from users table
+
+    // 4. In a real scenario, we would also insert posts and profiles to their respective tables:
+    final postService = SqflowCore<Post>(dbManager: db, table: postsTable);
+    final profileService = SqflowCore<Profile>(dbManager: db, table: profilesTable);
+
+    for (final post in user.posts) {
+      await postService.insert(post);
+    }
+    await profileService.insert(user.profile!);
+
+    // 5. Query user again with Eager loading to verify they are perfectly linked!
+    final fullyLoadedUser = await userService.readOne('user_from_backend', include: [
+      Includable.model<Post>(),
+      Includable.model<Profile>(),
+    ]);
+
+    expect(fullyLoadedUser, isNotNull);
+    expect(fullyLoadedUser!.posts, hasLength(2));
+    expect(fullyLoadedUser.posts[0].title, 'Post from Backend 1');
+    expect(fullyLoadedUser.profile!.bio, 'Prefers JSON serialization');
+  });
 }
+
