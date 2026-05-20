@@ -17,7 +17,10 @@ class Database implements DatabaseExecutor {
     String path, {
     List<SqlFunction>? customFunctions,
   }) async {
-    final isolate = DatabaseIsolate();
+    // createDatabaseIsolate() is provided by the conditional import:
+    //   - native: NativeDatabaseIsolate (dart:isolate + sqlite3)
+    //   - web:    WebDatabaseIsolate    (WasmSqlite3)
+    final isolate = createDatabaseIsolate();
     if (customFunctions != null && customFunctions.isNotEmpty) {
       isolate.registerFunctions(customFunctions);
     }
@@ -31,7 +34,8 @@ class Database implements DatabaseExecutor {
       _isolate.execute(sql, arguments);
 
   @override
-  Future<List<Map<String, Object?>>> rawQuery(String sql, [List<Object?>? arguments]) =>
+  Future<List<Map<String, Object?>>> rawQuery(String sql,
+          [List<Object?>? arguments]) =>
       _isolate.query(sql, arguments);
 
   @override
@@ -70,10 +74,15 @@ class Database implements DatabaseExecutor {
   }) async {
     final columns = values.keys.toList();
     final placeholders = List.filled(columns.length, '?').join(', ');
-    final conflictClause = conflictAlgorithm != null ? ' OR ${_conflictToString(conflictAlgorithm)}' : '';
-    final sql = 'INSERT$conflictClause INTO $table (${columns.join(', ')}) VALUES ($placeholders)';
+    final conflictClause = conflictAlgorithm != null
+        ? ' OR ${_conflictToString(conflictAlgorithm)}'
+        : '';
+    final sql =
+        'INSERT$conflictClause INTO $table (${columns.join(', ')}) VALUES ($placeholders)';
     await _isolate.execute(sql, columns.map((c) => values[c]).toList());
-    return await _isolate.query('SELECT last_insert_rowid() as id').then((r) => r.first['id'] as int);
+    return await _isolate
+        .query('SELECT last_insert_rowid() as id')
+        .then((r) => r.first['id'] as int);
   }
 
   @override
@@ -139,7 +148,8 @@ class Transaction implements DatabaseExecutor {
       _db.execute(sql, arguments);
 
   @override
-  Future<List<Map<String, Object?>>> rawQuery(String sql, [List<Object?>? arguments]) =>
+  Future<List<Map<String, Object?>>> rawQuery(String sql,
+          [List<Object?>? arguments]) =>
       _db.rawQuery(sql, arguments);
 
   @override
@@ -175,7 +185,8 @@ class Transaction implements DatabaseExecutor {
     String? nullColumnHack,
     ConflictAlgorithm? conflictAlgorithm,
   }) =>
-      _db.insert(table, values, nullColumnHack: nullColumnHack, conflictAlgorithm: conflictAlgorithm);
+      _db.insert(table, values,
+          nullColumnHack: nullColumnHack, conflictAlgorithm: conflictAlgorithm);
 
   @override
   Future<int> update(
@@ -185,7 +196,10 @@ class Transaction implements DatabaseExecutor {
     List<Object?>? whereArgs,
     ConflictAlgorithm? conflictAlgorithm,
   }) =>
-      _db.update(table, values, where: where, whereArgs: whereArgs, conflictAlgorithm: conflictAlgorithm);
+      _db.update(table, values,
+          where: where,
+          whereArgs: whereArgs,
+          conflictAlgorithm: conflictAlgorithm);
 
   @override
   Future<int> delete(String table, {String? where, List<Object?>? whereArgs}) =>
@@ -218,7 +232,8 @@ class Batch {
     List<Object?>? whereArgs,
     ConflictAlgorithm? conflictAlgorithm,
   }) {
-    _operations.add(_BatchOp.update(table, values, where, whereArgs, conflictAlgorithm));
+    _operations.add(
+        _BatchOp.update(table, values, where, whereArgs, conflictAlgorithm));
   }
 
   void delete(String table, {String? where, List<Object?>? whereArgs}) {
@@ -283,7 +298,8 @@ class _BatchOp {
         sql = null,
         arguments = null;
 
-  _BatchOp.update(this.table, this.values, this.where, this.whereArgs, this.conflictAlgorithm)
+  _BatchOp.update(this.table, this.values, this.where, this.whereArgs,
+      this.conflictAlgorithm)
       : type = 'update',
         sql = null,
         arguments = null;
@@ -306,9 +322,13 @@ class _BatchOp {
   Future<Object?> execute(Database db) async {
     switch (type) {
       case 'insert':
-        return await db.insert(table!, values!, conflictAlgorithm: conflictAlgorithm);
+        return await db.insert(table!, values!,
+            conflictAlgorithm: conflictAlgorithm);
       case 'update':
-        return await db.update(table!, values!, where: where, whereArgs: whereArgs, conflictAlgorithm: conflictAlgorithm);
+        return await db.update(table!, values!,
+            where: where,
+            whereArgs: whereArgs,
+            conflictAlgorithm: conflictAlgorithm);
       case 'delete':
         return await db.delete(table!, where: where, whereArgs: whereArgs);
       case 'execute':
@@ -321,9 +341,10 @@ class _BatchOp {
 }
 
 /// Database executor interface
-abstract class DatabaseExecutor {
+abstract interface class DatabaseExecutor {
   Future<void> execute(String sql, [List<Object?>? arguments]);
-  Future<List<Map<String, Object?>>> rawQuery(String sql, [List<Object?>? arguments]);
+  Future<List<Map<String, Object?>>> rawQuery(String sql,
+      [List<Object?>? arguments]);
   Future<List<Map<String, Object?>>> query(
     String table, {
     bool? distinct,

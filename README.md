@@ -31,6 +31,7 @@ SQFlow uses **Single-Query JSON Aggregation** to load relationships in a single 
 - **🗑️ Soft Deletes** — Built-in paranoid mode with restore support
 - **📦 Batch & Transactions** — Atomic bulk operations
 - **🔄 Smart Migrations** — Versioned, idempotent migration tracking
+- **🌐 Flutter Web** — WebAssembly (WASM) backend with IndexedDB persistence, zero code changes
 
 ---
 
@@ -97,6 +98,7 @@ Full documentation is in the [`docs/`](./docs) folder:
 | [12-query-builder.md](./docs/12-query-builder.md)                       | Fluent API reference — .get(), .first(), chaining                 |
 | [13-seeders-and-factories.md](./docs/13-seeders-and-factories.md)       | Data seeding and mock generation for testing                      |
 | [14-reactivity.md](./docs/14-reactivity.md)                             | Reactive streams, watchOne(), watchAll(), updatesSync integration |
+| [15-flutter-web.md](./docs/15-flutter-web.md)                           | **Flutter Web / WASM** — setup, IndexedDB persistence, limits     |
 
 ---
 
