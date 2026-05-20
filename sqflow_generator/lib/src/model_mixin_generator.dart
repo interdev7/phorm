@@ -226,8 +226,20 @@ class ModelMixinGenerator extends GeneratorForAnnotation<Schema> {
                 "    '$sqlName': _\$SQFlowToJsonValue(${info.code}.toSql(instance.${field.name})),");
           }
         } else {
-          buffer.writeln(
-              "    '$sqlName': _\$SQFlowToJsonValue(instance.${field.name}),");
+          final isEnum = field.type.element is EnumElement || field.type.element?.kind.name == 'ENUM';
+          if (isEnum) {
+            final isNullable = field.type.nullabilitySuffix == NullabilitySuffix.question;
+            if (isNullable) {
+              buffer.writeln(
+                  "    '$sqlName': _\$SQFlowToJsonValue(instance.${field.name}?.name),");
+            } else {
+              buffer.writeln(
+                  "    '$sqlName': _\$SQFlowToJsonValue(instance.${field.name}.name),");
+            }
+          } else {
+            buffer.writeln(
+                "    '$sqlName': _\$SQFlowToJsonValue(instance.${field.name}),");
+          }
         }
       }
 
@@ -463,6 +475,15 @@ class ModelMixinGenerator extends GeneratorForAnnotation<Schema> {
             } else {
               buffer.writeln(
                   "    ${param.name}: ${info.code}.fromSql(json['$sqlName'] as $sType),");
+            }
+          } else if (field.type.element is EnumElement || field.type.element?.kind.name == 'ENUM') {
+            final rawType = type.replaceAll('?', '');
+            if (isNullable) {
+              buffer.writeln(
+                  "    ${param.name}: json['$sqlName'] != null ? $rawType.values.byName(json['$sqlName'] as String) : null,");
+            } else {
+              buffer.writeln(
+                  "    ${param.name}: $rawType.values.byName(json['$sqlName'] as String),");
             }
           } else if (type.startsWith('DateTime')) {
             if (isNullable) {

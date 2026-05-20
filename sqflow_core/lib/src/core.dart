@@ -452,28 +452,31 @@ class SqflowCore<T extends Model> {
       final subArgs = _buildJsonObjectArgs(relatedTable, inc.attributes, inc.include);
 
       if (rel is HasMany) {
+        final paranoidFilter = relatedTable.paranoid ? ' AND ${relatedTable.name}.deleted_at IS NULL' : '';
         includeFields.add('''
           '$relName', (
             SELECT json_group_array(json_object($subArgs)) 
             FROM ${relatedTable.name} 
-            WHERE ${relatedTable.name}.${rel.foreignKey} = ${currentTable.name}.${rel.localKey}
+            WHERE ${relatedTable.name}.${rel.foreignKey} = ${currentTable.name}.${rel.localKey}$paranoidFilter
           )
         ''');
       } else if (rel is ManyToMany) {
+        final paranoidFilter = relatedTable.paranoid ? ' AND ${relatedTable.name}.deleted_at IS NULL' : '';
         includeFields.add('''
           '$relName', (
             SELECT json_group_array(json_object($subArgs)) 
             FROM ${relatedTable.name}
             INNER JOIN ${rel.pivotTable} ON ${rel.pivotTable}.${rel.relatedKey} = ${relatedTable.name}.${rel.relatedLocalKey}
-            WHERE ${rel.pivotTable}.${rel.foreignKey} = ${currentTable.name}.${rel.localKey}
+            WHERE ${rel.pivotTable}.${rel.foreignKey} = ${currentTable.name}.${rel.localKey}$paranoidFilter
           )
         ''');
       } else {
+        final paranoidFilter = relatedTable.paranoid ? ' AND ${relatedTable.name}.deleted_at IS NULL' : '';
         includeFields.add('''
           '$relName', (
             SELECT json_object($subArgs) 
             FROM ${relatedTable.name} 
-            WHERE ${relatedTable.name}.${rel is BelongsTo ? rel.localKey : rel.foreignKey} = ${currentTable.name}.${rel is BelongsTo ? rel.foreignKey : rel.localKey}
+            WHERE ${relatedTable.name}.${rel is BelongsTo ? rel.localKey : rel.foreignKey} = ${currentTable.name}.${rel is BelongsTo ? rel.foreignKey : rel.localKey}$paranoidFilter
           )
         ''');
       }
@@ -577,26 +580,29 @@ class SqflowCore<T extends Model> {
         final subArgs = _buildJsonObjectArgs(relatedTable, inc.attributes, inc.include);
 
         if (rel is HasMany) {
+          final paranoidFilter = relatedTable.paranoid ? ' AND ${relatedTable.name}.deleted_at IS NULL' : '';
           selectFields.add('''
             (SELECT json_group_array(json_object($subArgs)) 
              FROM ${relatedTable.name} 
-             WHERE ${relatedTable.name}.${rel.foreignKey} = ${table.name}.${rel.localKey}
+             WHERE ${relatedTable.name}.${rel.foreignKey} = ${table.name}.${rel.localKey}$paranoidFilter
             ) AS $relName
           ''');
         } else if (rel is ManyToMany) {
+          final paranoidFilter = relatedTable.paranoid ? ' AND ${relatedTable.name}.deleted_at IS NULL' : '';
           selectFields.add('''
             (SELECT json_group_array(json_object($subArgs)) 
              FROM ${relatedTable.name}
              INNER JOIN ${rel.pivotTable} ON ${rel.pivotTable}.${rel.relatedKey} = ${relatedTable.name}.${rel.relatedLocalKey}
-             WHERE ${rel.pivotTable}.${rel.foreignKey} = ${table.name}.${rel.localKey}
+             WHERE ${rel.pivotTable}.${rel.foreignKey} = ${table.name}.${rel.localKey}$paranoidFilter
             ) AS $relName
           ''');
         } else {
           // BelongsTo or HasOne
+          final paranoidFilter = relatedTable.paranoid ? ' AND ${relatedTable.name}.deleted_at IS NULL' : '';
           selectFields.add('''
             (SELECT json_object($subArgs) 
              FROM ${relatedTable.name} 
-             WHERE ${relatedTable.name}.${rel is BelongsTo ? rel.localKey : rel.foreignKey} = ${table.name}.${rel is BelongsTo ? rel.foreignKey : rel.localKey}
+             WHERE ${relatedTable.name}.${rel is BelongsTo ? rel.localKey : rel.foreignKey} = ${table.name}.${rel is BelongsTo ? rel.foreignKey : rel.localKey}$paranoidFilter
             ) AS $relName
           ''');
         }
