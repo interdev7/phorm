@@ -54,7 +54,8 @@ class ModelMixinGenerator extends GeneratorForAnnotation<Schema> {
           validatorsReader.isList &&
           validatorsReader.listValue.isNotEmpty;
     });
-    final useValidator = (annotation.peek('useValidator')?.boolValue ?? true) && hasValidators;
+    final useValidator =
+        (annotation.peek('useValidator')?.boolValue ?? true) && hasValidators;
     final relationships = <Map<String, dynamic>>[];
 
     // Class level relationships
@@ -681,6 +682,25 @@ class ModelMixinGenerator extends GeneratorForAnnotation<Schema> {
       ..writeln(
           '    _service.watchAll(where: where, include: include, sort: sort, limit: limit);')
       ..writeln('}');
+
+    if (relationships.isNotEmpty) {
+      buffer
+        ..writeln()
+        ..writeln(
+            'extension ${className}QueryRelations on SqflowQuery<$classType> {');
+      for (final rel in relationships) {
+        final fieldName = rel['fieldName'] as String;
+        final modelClass = rel['modelClass'] as String;
+        final capitalized = fieldName[0].toUpperCase() + fieldName.substring(1);
+        final methodName = 'include$capitalized';
+
+        buffer.writeln('''
+  SqflowQuery<$classType> $methodName({Attributes? attributes, List<Includable>? include}) {
+    return includeOne(Includable.model<$modelClass>(attributes: attributes, include: include));
+  }''');
+      }
+      buffer.writeln('}');
+    }
 
     return buffer.toString();
   }

@@ -127,6 +127,35 @@ void main() {
       expect(maxAge, greaterThan(minAge));
     });
 
+    test('Typed relationships in Query Builder (includePosts)', () async {
+      final db = DB(
+        databaseName: ':memory:',
+        version: 1,
+        tables: [usersTable, postsTable],
+        singleInstance: false,
+      );
+      appDb = db;
+
+      final user = mockUsers.first;
+      await SqflowCore<User>(dbManager: db, table: usersTable).insert(user);
+
+      final post = Post(
+        id: 99,
+        title: 'Super Post',
+        userId: user.id,
+      );
+      await SqflowCore<Post>(dbManager: db, table: postsTable).insert(post);
+
+      // Eager load using the new generated fluent API
+      final loadedUsers = await Users.query
+          .includePosts()
+          .get();
+
+      expect(loadedUsers.first.posts.length, 1);
+      expect(loadedUsers.first.posts.first.title, 'Super Post');
+      print('✅ Eager-loaded typed relationship: ${loadedUsers.first.posts.first.title}');
+    });
+
     group('Table Schema', () {
       test('Users columns are correct', () {
         expect(Users.email.name, 'email');
