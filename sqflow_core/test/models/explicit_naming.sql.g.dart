@@ -74,7 +74,6 @@ Map<String, dynamic> _$SQFlowExplicitNamingToJson(ExplicitNaming instance) {
     'created_at': _$SQFlowToJsonValue(instance.createdAt),
     'updated_at': _$SQFlowToJsonValue(instance.updatedAt),
   };
-  _$validateExplicitNaming(explicitnamingJson, tableName: 'explicit_table');
 
   return explicitnamingJson;
 }
@@ -110,9 +109,6 @@ extension SQFlowExplicitNamingExt on ExplicitNaming {
       ..updatedAt = updatedAt ?? this.updatedAt;
   }
 }
-
-void _$validateExplicitNaming(Map<String, dynamic> json,
-    {required String tableName}) {}
 
 ExplicitNaming _$SQFlowExplicitNamingFromJson(Map<String, dynamic> json) {
   final instance = ExplicitNaming(

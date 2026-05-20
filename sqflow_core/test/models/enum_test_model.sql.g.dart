@@ -73,7 +73,6 @@ Map<String, dynamic> _$SQFlowEnumPostToJson(EnumPost instance) {
     'created_at': _$SQFlowToJsonValue(instance.createdAt),
     'updated_at': _$SQFlowToJsonValue(instance.updatedAt),
   };
-  _$validateEnumPost(enumpostJson, tableName: 'enum_posts');
 
   return enumpostJson;
 }
@@ -109,9 +108,6 @@ extension SQFlowEnumPostExt on EnumPost {
       ..updatedAt = updatedAt ?? this.updatedAt;
   }
 }
-
-void _$validateEnumPost(Map<String, dynamic> json,
-    {required String tableName}) {}
 
 EnumPost _$SQFlowEnumPostFromJson(Map<String, dynamic> json) {
   final instance = EnumPost(

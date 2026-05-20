@@ -71,7 +71,6 @@ Map<String, dynamic> _$SQFlowCollationTestToJson(CollationTest instance) {
     'created_at': _$SQFlowToJsonValue(instance.createdAt),
     'updated_at': _$SQFlowToJsonValue(instance.updatedAt),
   };
-  _$validateCollationTest(collationtestJson, tableName: 'collation_tests');
 
   return collationtestJson;
 }
@@ -104,9 +103,6 @@ extension SQFlowCollationTestExt on CollationTest {
       ..updatedAt = updatedAt ?? this.updatedAt;
   }
 }
-
-void _$validateCollationTest(Map<String, dynamic> json,
-    {required String tableName}) {}
 
 CollationTest _$SQFlowCollationTestFromJson(Map<String, dynamic> json) {
   final instance = CollationTest(

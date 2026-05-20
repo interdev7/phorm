@@ -66,7 +66,6 @@ Map<String, dynamic> _$SQFlowCategoryToJson(Category instance) {
     'created_at': _$SQFlowToJsonValue(instance.createdAt),
     'updated_at': _$SQFlowToJsonValue(instance.updatedAt),
   };
-  _$validateCategory(categoryJson, tableName: 'categories');
 
   return categoryJson;
 }
@@ -101,9 +100,6 @@ extension SQFlowCategoryExt on Category {
   }
 }
 
-void _$validateCategory(Map<String, dynamic> json,
-    {required String tableName}) {}
-
 Category _$SQFlowCategoryFromJson(Map<String, dynamic> json) {
   final instance = Category(
     id: json['id'] as String,
@@ -126,13 +122,16 @@ Category _$SQFlowCategoryFromJson(Map<String, dynamic> json) {
 
 /// Pluralized service for Category
 class Categories {
-  static const SqflowColumn<String> id = SqflowColumn<String>('id');
-  static const SqflowColumn<String> name = SqflowColumn<String>('name');
-  static const SqflowColumn<String> color = SqflowColumn<String>('color');
+  static const SqflowColumn<String> id =
+      SqflowColumn<String>('id', tableName: 'categories');
+  static const SqflowColumn<String> name =
+      SqflowColumn<String>('name', tableName: 'categories');
+  static const SqflowColumn<String> color =
+      SqflowColumn<String>('color', tableName: 'categories');
   static const SqflowColumn<DateTime> createdAt =
-      SqflowColumn<DateTime>('created_at');
+      SqflowColumn<DateTime>('created_at', tableName: 'categories');
   static const SqflowColumn<DateTime> updatedAt =
-      SqflowColumn<DateTime>('updated_at');
+      SqflowColumn<DateTime>('updated_at', tableName: 'categories');
 
   static SqflowCore<Category> get _service =>
       SqflowCore<Category>(dbManager: appDb, table: categoriesTable);
@@ -337,7 +336,6 @@ Map<String, dynamic> _$SQFlowTaskToJson(Task instance) {
     'updated_at': _$SQFlowToJsonValue(instance.updatedAt),
     'deleted_at': _$SQFlowToJsonValue(instance.deletedAt),
   };
-  _$validateTask(taskJson, tableName: 'tasks');
 
   return taskJson;
 }
@@ -378,15 +376,13 @@ extension SQFlowTaskExt on Task {
   }
 }
 
-void _$validateTask(Map<String, dynamic> json, {required String tableName}) {}
-
 Task _$SQFlowTaskFromJson(Map<String, dynamic> json) {
   final instance = Task(
     id: json['id'] as int,
     title: json['title'] as String,
     isCompleted: json['is_completed'] is bool
         ? json['is_completed'] as bool
-        : (json['is_completed'] as int?) == 1,
+        : (json['is_completed'] as int) == 1,
     categoryId: json['category_id'] as String,
   )
     ..createdAt = json['created_at'] != null
@@ -406,18 +402,20 @@ Task _$SQFlowTaskFromJson(Map<String, dynamic> json) {
 
 /// Pluralized service for Task
 class Tasks {
-  static const SqflowColumn<int> id = SqflowColumn<int>('id');
-  static const SqflowColumn<String> title = SqflowColumn<String>('title');
+  static const SqflowColumn<int> id =
+      SqflowColumn<int>('id', tableName: 'tasks');
+  static const SqflowColumn<String> title =
+      SqflowColumn<String>('title', tableName: 'tasks');
   static const SqflowColumn<bool> isCompleted =
-      SqflowColumn<bool>('is_completed');
+      SqflowColumn<bool>('is_completed', tableName: 'tasks');
   static const SqflowColumn<String> categoryId =
-      SqflowColumn<String>('category_id');
+      SqflowColumn<String>('category_id', tableName: 'tasks');
   static const SqflowColumn<DateTime> createdAt =
-      SqflowColumn<DateTime>('created_at');
+      SqflowColumn<DateTime>('created_at', tableName: 'tasks');
   static const SqflowColumn<DateTime> updatedAt =
-      SqflowColumn<DateTime>('updated_at');
+      SqflowColumn<DateTime>('updated_at', tableName: 'tasks');
   static const SqflowColumn<DateTime> deletedAt =
-      SqflowColumn<DateTime>('deleted_at');
+      SqflowColumn<DateTime>('deleted_at', tableName: 'tasks');
 
   static SqflowCore<Task> get _service =>
       SqflowCore<Task>(dbManager: appDb, table: tasksTable);
@@ -553,5 +551,9 @@ dynamic _$SQFlowToJsonValue(dynamic value) {
   if (value == null) return null;
   if (value is DateTime) return value.toIso8601String();
   if (value is bool) return value ? 1 : 0;
+  // Collections and Maps are stored as JSON strings in SQLite
+  if (value is List || value is Set || value is Map) {
+    return jsonEncode(value is Set ? value.toList() : value);
+  }
   return value;
 }

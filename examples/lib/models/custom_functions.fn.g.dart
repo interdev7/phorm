@@ -25,14 +25,14 @@ final customSqlFunctions = [
 ];
 
 // Type-safe column extensions for custom SQL functions
-extension toSlugSqflowColumnExtension on SqflowColumn<String> {
+extension ToSlugSqflowColumnExtension on SqflowColumn<String> {
   /// Applies the custom SQL function `TO_SLUG` to this column.
   SqflowColumn<String> toSlug() {
     return sqlFunction<String>('TO_SLUG');
   }
 }
 
-extension doubleValueSqflowColumnExtension on SqflowColumn<int> {
+extension DoubleValueSqflowColumnExtension on SqflowColumn<int> {
   /// Applies the custom SQL function `DOUBLE` to this column.
   SqflowColumn<int> doubleValue() {
     return sqlFunction<int>('DOUBLE');

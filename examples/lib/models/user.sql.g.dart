@@ -298,10 +298,10 @@ User _$SQFlowUserFromJson(Map<String, dynamic> json) {
     age: json['age'] as int?,
     isActive: json['is_active'] is bool
         ? json['is_active'] as bool
-        : (json['is_active'] as int?) == 1,
+        : (json['is_active'] as int) == 1,
     isVerified: json['is_verified'] is bool
         ? json['is_verified'] as bool
-        : (json['is_verified'] as int?) == 1,
+        : (json['is_verified'] as int) == 1,
     metadata: json['metadata'] != null
         ? const JsonMapConverter().fromSql(json['metadata'] as String)
         : null,
@@ -326,32 +326,42 @@ User _$SQFlowUserFromJson(Map<String, dynamic> json) {
 
 /// Pluralized service for User
 class Users {
-  static const SqflowColumn<String> id = SqflowColumn<String>('id');
+  static const SqflowColumn<String> id =
+      SqflowColumn<String>('id', tableName: 'users');
   static const SqflowColumn<String> firstName =
-      SqflowColumn<String>('first_name');
+      SqflowColumn<String>('first_name', tableName: 'users');
   static const SqflowColumn<String> lastName =
-      SqflowColumn<String>('last_name');
-  static const SqflowColumn<String> email = SqflowColumn<String>('email');
-  static const SqflowColumn<String> phone = SqflowColumn<String>('phone');
+      SqflowColumn<String>('last_name', tableName: 'users');
+  static const SqflowColumn<String> email =
+      SqflowColumn<String>('email', tableName: 'users');
+  static const SqflowColumn<String> phone =
+      SqflowColumn<String>('phone', tableName: 'users');
   static const SqflowColumn<String> birthDate =
-      SqflowColumn<String>('birth_date');
-  static const SqflowColumn<int> age = SqflowColumn<int>('age');
-  static const SqflowColumn<String> gender = SqflowColumn<String>('gender');
-  static const SqflowColumn<String> city = SqflowColumn<String>('city');
-  static const SqflowColumn<String> country = SqflowColumn<String>('country');
-  static const SqflowColumn<String> address = SqflowColumn<String>('address');
-  static const SqflowColumn<bool> isActive = SqflowColumn<bool>('is_active');
+      SqflowColumn<String>('birth_date', tableName: 'users');
+  static const SqflowColumn<int> age =
+      SqflowColumn<int>('age', tableName: 'users');
+  static const SqflowColumn<String> gender =
+      SqflowColumn<String>('gender', tableName: 'users');
+  static const SqflowColumn<String> city =
+      SqflowColumn<String>('city', tableName: 'users');
+  static const SqflowColumn<String> country =
+      SqflowColumn<String>('country', tableName: 'users');
+  static const SqflowColumn<String> address =
+      SqflowColumn<String>('address', tableName: 'users');
+  static const SqflowColumn<bool> isActive =
+      SqflowColumn<bool>('is_active', tableName: 'users');
   static const SqflowColumn<bool> isVerified =
-      SqflowColumn<bool>('is_verified');
+      SqflowColumn<bool>('is_verified', tableName: 'users');
   static const SqflowColumn<Map<String, dynamic>> metadata =
-      SqflowColumn<Map<String, dynamic>>('metadata');
-  static const SqflowColumn<String> password = SqflowColumn<String>('password');
+      SqflowColumn<Map<String, dynamic>>('metadata', tableName: 'users');
+  static const SqflowColumn<String> password =
+      SqflowColumn<String>('password', tableName: 'users');
   static const SqflowColumn<DateTime> createdAt =
-      SqflowColumn<DateTime>('created_at');
+      SqflowColumn<DateTime>('created_at', tableName: 'users');
   static const SqflowColumn<DateTime> updatedAt =
-      SqflowColumn<DateTime>('updated_at');
+      SqflowColumn<DateTime>('updated_at', tableName: 'users');
   static const SqflowColumn<DateTime> deletedAt =
-      SqflowColumn<DateTime>('deleted_at');
+      SqflowColumn<DateTime>('deleted_at', tableName: 'users');
 
   static SqflowCore<User> get _service =>
       SqflowCore<User>(dbManager: appDb, table: usersTable);
@@ -487,5 +497,9 @@ dynamic _$SQFlowToJsonValue(dynamic value) {
   if (value == null) return null;
   if (value is DateTime) return value.toIso8601String();
   if (value is bool) return value ? 1 : 0;
+  // Collections and Maps are stored as JSON strings in SQLite
+  if (value is List || value is Set || value is Map) {
+    return jsonEncode(value is Set ? value.toList() : value);
+  }
   return value;
 }

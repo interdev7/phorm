@@ -54,8 +54,6 @@ Map<String, dynamic> _$SQFlowUserWithLocationToJson(UserWithLocation instance) {
     'location': _$SQFlowToJsonValue(instance.location?.toJson()),
     'age': _$SQFlowToJsonValue(instance.age),
   };
-  _$validateUserWithLocation(userwithlocationJson,
-      tableName: 'users_with_location');
 
   return userwithlocationJson;
 }
@@ -85,9 +83,6 @@ extension SQFlowUserWithLocationExt on UserWithLocation {
     );
   }
 }
-
-void _$validateUserWithLocation(Map<String, dynamic> json,
-    {required String tableName}) {}
 
 UserWithLocation _$SQFlowUserWithLocationFromJson(Map<String, dynamic> json) {
   final instance = UserWithLocation(
