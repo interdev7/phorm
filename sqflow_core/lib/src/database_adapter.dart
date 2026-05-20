@@ -10,6 +10,9 @@ class Database implements DatabaseExecutor {
 
   Database._(this._isolate, this.path);
 
+  /// Stream of table names that have been modified
+  Stream<String> get changeStream => _isolate.changeStream;
+
   static Future<Database> open(
     String path, {
     List<SqlFunction>? customFunctions,

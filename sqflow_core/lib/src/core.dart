@@ -99,7 +99,8 @@ class SqflowCore<T extends Model> {
 
   /// Notifies the database manager that this table has changed.
   void _notify() {
-    dbManager.notifyTableChange(table.name);
+    // Manual notification is no longer needed because updatesSync
+    // inside the background isolate automatically tracks all changes.
   }
 
   // -------------------------------------------------------

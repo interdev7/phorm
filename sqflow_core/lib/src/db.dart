@@ -119,15 +119,20 @@ class DB {
   /// Internal stream controller for table changes
   final _changeController = StreamController<String>.broadcast();
 
+  /// Subscription to background database change events
+  StreamSubscription<String>? _dbChangeSubscription;
+
   /// Stream of table names that have been modified
   Stream<String> get changeStream => _changeController.stream;
+
+  /// Active transaction buffer for updatesSync events.
+  Set<String>? _activeTransactionBuffer;
 
   /// Notifies the database that a table has been modified.
   /// If inside a transaction, notifications are buffered and emitted after commit.
   void notifyTableChange(String tableName) {
-    final buffered = Zone.current[#sqflow_notifications] as Set<String>?;
-    if (buffered != null) {
-      buffered.add(tableName);
+    if (_activeTransactionBuffer != null) {
+      _activeTransactionBuffer!.add(tableName);
     } else {
       _changeController.add(tableName);
     }
@@ -243,6 +248,12 @@ class DB {
     logger?.info('Initializing database: $databaseName (v$version)');
 
     final db = await Database.open(path, customFunctions: customFunctions);
+
+    // Cancel old subscription if any and subscribe to database changeStream
+    await _dbChangeSubscription?.cancel();
+    _dbChangeSubscription = db.changeStream.listen((tableName) {
+      notifyTableChange(tableName);
+    });
 
     await _onConfigure(db);
 
@@ -650,6 +661,7 @@ class DB {
   /// Closes the database connection
   Future<void> close() async {
     await _changeController.close();
+    await _dbChangeSubscription?.cancel();
     if (_database != null) {
       await _database!.close();
       _database = null;
@@ -705,26 +717,33 @@ class DB {
   /// ```
   Future<R> transaction<R>(Future<R> Function(DatabaseExecutor txn) action) async {
     final dbInstance = await database;
-    final bufferedNotifications = <String>{};
+    
+    final isTopLevel = _activeTransactionBuffer == null;
+    if (isTopLevel) {
+      _activeTransactionBuffer = <String>{};
+    }
 
-    return await runZoned(
-      () async {
-        try {
-          final result = await dbInstance.transaction((txn) async {
-            return await action(txn);
-          });
-          // If we reached here, transaction committed successfully
-          for (final table in bufferedNotifications) {
+    try {
+      final result = await dbInstance.transaction((txn) async {
+        return await action(txn);
+      });
+      
+      if (isTopLevel) {
+        final buffered = _activeTransactionBuffer;
+        _activeTransactionBuffer = null;
+        if (buffered != null) {
+          for (final table in buffered) {
             _changeController.add(table);
           }
-          return result;
-        } catch (e) {
-          // If transaction failed/rolled back, notifications are discarded
-          rethrow;
         }
-      },
-      zoneValues: {#sqflow_notifications: bufferedNotifications},
-    );
+      }
+      return result;
+    } catch (e) {
+      if (isTopLevel) {
+        _activeTransactionBuffer = null; // discard on rollback
+      }
+      rethrow;
+    }
   }
 }
 
