@@ -63,20 +63,34 @@ class SqflowCore<T extends Model> {
   // TIMESTAMPS ⏰
   // -------------------------------------------------------
 
-  /// Adds automatic timestamps (`created_at` / `updated_at`) to data if supported.
-  Map<String, dynamic> _withTimestamps(
+  /// Filters data to match table columns and adds automatic timestamps.
+  Map<String, dynamic> _prepareDataForDb(
     Map<String, dynamic> json, {
     bool isInsert = false,
   }) {
-    if (!table.timestamps) return json;
+    final result = <String, dynamic>{};
+    
+    for (final col in table.columns) {
+      if (json.containsKey(col)) {
+        result[col] = json[col];
+      }
+    }
+
+    if (json.containsKey('deleted_at')) {
+      result['deleted_at'] = json['deleted_at'];
+    }
+
+    if (!table.timestamps) return result;
 
     final now = DateTime.now().toIso8601String();
-    final result = Map<String, dynamic>.from(json);
     if (isInsert) {
-      if (result['created_at'] == null) {
+      if (json['created_at'] != null) {
+        result['created_at'] = json['created_at'];
+      } else {
         result['created_at'] = now;
       }
     } else {
+      // Do not update created_at when updating an existing record
       result.remove('created_at');
     }
     result['updated_at'] = now;
@@ -103,7 +117,7 @@ class SqflowCore<T extends Model> {
   /// ```
   Future<int> insert(T item, {DatabaseExecutor? executor}) async {
     final db = executor ?? await database;
-    final json = _withTimestamps(item.toJson(), isInsert: true);
+    final json = _prepareDataForDb(item.toJson(), isInsert: true);
     final res = await dbManager.logAction(
       'INSERT INTO ${table.name}',
       [json],
@@ -123,7 +137,7 @@ class SqflowCore<T extends Model> {
   /// ```
   Future<int> update(T item, {DatabaseExecutor? executor}) async {
     final db = executor ?? await database;
-    final json = _withTimestamps(item.toJson());
+    final json = _prepareDataForDb(item.toJson());
     final res = await dbManager.logAction(
       'UPDATE ${table.name}',
       [json, item.toJson()[table.primaryKey]],
@@ -146,7 +160,7 @@ class SqflowCore<T extends Model> {
   /// ```
   Future<void> upsert(T item, {DatabaseExecutor? executor}) async {
     final db = executor ?? await database;
-    final json = _withTimestamps(item.toJson(), isInsert: true);
+    final json = _prepareDataForDb(item.toJson(), isInsert: true);
     await dbManager.logAction(
       'UPSERT ${table.name}',
       [json],
@@ -186,7 +200,7 @@ class SqflowCore<T extends Model> {
       [id],
       () => db.update(
         table.name,
-        _withTimestamps({'deleted_at': DateTime.now().toIso8601String()}),
+        _prepareDataForDb({'deleted_at': DateTime.now().toIso8601String()}),
         where: '${table.primaryKey} = ?',
         whereArgs: [id],
       ),
@@ -206,7 +220,7 @@ class SqflowCore<T extends Model> {
     final db = executor ?? await database;
     final res = await db.update(
       table.name,
-      _withTimestamps({'deleted_at': null}),
+      _prepareDataForDb({'deleted_at': null}),
       where: '${table.primaryKey} = ?',
       whereArgs: [id],
     );
@@ -228,7 +242,7 @@ class SqflowCore<T extends Model> {
       () async {
         final batch = db.batch();
         for (final item in items) {
-          batch.insert(table.name, _withTimestamps(item.toJson(), isInsert: true));
+          batch.insert(table.name, _prepareDataForDb(item.toJson(), isInsert: true));
         }
         final results = await batch.commit(noResult: true);
         return results.length;
@@ -250,7 +264,7 @@ class SqflowCore<T extends Model> {
         for (final item in items) {
           batch.update(
             table.name,
-            _withTimestamps(item.toJson()),
+            _prepareDataForDb(item.toJson()),
             where: '${table.primaryKey} = ?',
             whereArgs: [item.toJson()[table.primaryKey]],
           );
@@ -275,7 +289,7 @@ class SqflowCore<T extends Model> {
         for (final item in items) {
           batch.insert(
             table.name,
-            _withTimestamps(item.toJson(), isInsert: true),
+            _prepareDataForDb(item.toJson(), isInsert: true),
             conflictAlgorithm: ConflictAlgorithm.replace,
           );
         }
@@ -304,7 +318,7 @@ class SqflowCore<T extends Model> {
           for (final id in ids) {
             batch.update(
               table.name,
-              _withTimestamps({'deleted_at': DateTime.now().toIso8601String()}),
+              _prepareDataForDb({'deleted_at': DateTime.now().toIso8601String()}),
               where: '${table.primaryKey} = ?',
               whereArgs: [id],
             );
@@ -333,7 +347,7 @@ class SqflowCore<T extends Model> {
         for (final id in ids) {
           batch.update(
             table.name,
-            _withTimestamps({'deleted_at': null}),
+            _prepareDataForDb({'deleted_at': null}),
             where: '${table.primaryKey} = ?',
             whereArgs: [id],
           );

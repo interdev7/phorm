@@ -182,6 +182,7 @@ class SqliteSchemaGenerator extends GeneratorForAnnotation<Schema> {
       relationships: relationships,
       timestamps: timestamps,
       useFromJson: useFromJson,
+      isGeneric: element.typeParameters.isNotEmpty,
     );
   }
 

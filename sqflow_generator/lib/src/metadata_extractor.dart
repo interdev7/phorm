@@ -138,6 +138,9 @@ class MetadataExtractor {
     if (typeName == 'num') return 'NUMERIC';
     if (typeName == 'DateTime') return 'TEXT';
     if (typeName == 'Uint8List') return 'BLOB';
+    if (typeName == 'Duration') return 'INTEGER';
+    if (typeName == 'BigInt') return 'TEXT';
+    if (typeName == 'Uri') return 'TEXT';
 
     return 'TEXT';
   }

@@ -316,10 +316,10 @@ User _$SQFlowUserFromJson(Map<String, dynamic> json) {
     address: json['address'] as String?,
     isActive: json['is_active'] is bool
         ? json['is_active'] as bool
-        : (json['is_active'] as int?) == 1,
+        : (json['is_active'] as int) == 1,
     isVerified: json['is_verified'] is bool
         ? json['is_verified'] as bool
-        : (json['is_verified'] as int?) == 1,
+        : (json['is_verified'] as int) == 1,
   )
     ..createdAt = json['created_at'] != null
         ? DateTime.parse(json['created_at'] as String)
@@ -1329,5 +1329,9 @@ dynamic _$SQFlowToJsonValue(dynamic value) {
   if (value == null) return null;
   if (value is DateTime) return value.toIso8601String();
   if (value is bool) return value ? 1 : 0;
+  // Collections and Maps are stored as JSON strings in SQLite
+  if (value is List || value is Set || value is Map) {
+    return jsonEncode(value is Set ? value.toList() : value);
+  }
   return value;
 }

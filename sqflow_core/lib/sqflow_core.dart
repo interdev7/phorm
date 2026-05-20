@@ -1,5 +1,7 @@
 library sqflow_core;
 
+export 'dart:convert' show jsonEncode, jsonDecode;
+
 export 'package:sqflow_platform_interface/sqflow_platform_interface.dart';
 
 export 'src/core.dart';

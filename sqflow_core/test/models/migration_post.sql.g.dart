@@ -278,5 +278,9 @@ dynamic _$SQFlowToJsonValue(dynamic value) {
   if (value == null) return null;
   if (value is DateTime) return value.toIso8601String();
   if (value is bool) return value ? 1 : 0;
+  // Collections and Maps are stored as JSON strings in SQLite
+  if (value is List || value is Set || value is Map) {
+    return jsonEncode(value is Set ? value.toList() : value);
+  }
   return value;
 }
