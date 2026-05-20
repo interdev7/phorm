@@ -174,5 +174,30 @@ void main() {
       expect(deserialized.status, 'success');
       expect(deserialized.data, Location(lat: 55.7558, lng: 37.6173));
     });
+
+    test('should insert and read generic payload without conflicts with SQLite', () async {
+      final serverJson = {
+        'id': 200,
+        'status': 'error',
+        'data': {'lat': 40.7128, 'lng': -74.0060},
+      };
+
+      // 1. Deserialize from server payload containing raw nested object
+      final deserialized = ApiResponse.fromJson(
+        serverJson,
+        (dataJson) => Location.fromJson(dataJson as Map<String, dynamic>),
+      );
+
+      // 2. Insert into SQLite database (non-column field 'data' will be automatically filtered out)
+      await ApiResponses.insert(deserialized);
+
+      // 3. Retrieve from SQLite (should not throw and should load matching columns)
+      final retrieved = await ApiResponses.readOne(200);
+      expect(retrieved, isNotNull);
+      expect(retrieved!.id, 200);
+      expect(retrieved.status, 'error');
+      expect(retrieved.data, null); // SQLite does not store non-column 'data' payload
+    });
   });
 }
+
