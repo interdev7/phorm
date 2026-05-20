@@ -341,3 +341,40 @@ final doubledUsers = await Users.where(
 
 If you try to call `.doubleValue()` on a `SqflowColumn<String>`, Dart will produce a compile-time error!
 
+---
+
+## Advanced Features & Code Generation Details
+
+The `sqflow_generator` produces highly optimized, clean, and warning-free Dart code by employing smart static analysis.
+
+### 1. Smart Validation Code Generation
+To keep the generated files lightweight, **validation methods (`_$validate[ClassName]`) are generated dynamically**:
+* If a model class has **no validators** defined on any of its fields, the generator completely omits the helper `_$validate[ClassName]` function and its execution call inside `toJson()`.
+* This ensures that generated files stay clean and strictly relevant, avoiding any unused validation boilerplate.
+
+### 2. Elimination of Unused Helper Utilities
+The generator performs a static scan of the class attributes and relationships to keep the output pristine:
+* The JSON decoder helper `_$SQFlowDecodeJson` is omitted if it isn't referenced by any custom deserialization rules.
+* Unnecessary `_$SQFlowToJsonValue` helper declarations are excluded when no complex type conversions or collection fields are present in the schema.
+
+### 3. Explicit Type Arguments for Generic Models
+For generic model classes (e.g. `class ApiResponse<T>`), the generated Pluralized Service (e.g., `class ApiResponses`) uses explicit type arguments:
+```dart
+class ApiResponses extends SqflowCore<ApiResponse<dynamic>> { ... }
+```
+This ensures complete type safety and avoids compiler warnings (*The generic type 'ApiResponse<dynamic>' should have explicit type arguments but doesn't*).
+
+### 4. Overriding Column Names vs Global Strategies
+When a `@Schema` defines a global column naming strategy (e.g., `columnNaming: ColumnNamingStrategy.snakeCase`), specific fields can still be overridden using a per-field level configuration:
+```dart
+@Column(columnName: 'userId')
+final String userId;
+```
+Direct `columnName` overrides have the **highest priority** and are strictly preserved exactly as defined. This allows seamless mapping of backend payload keys to local properties while maintaining global naming strategy conventions.
+
+> [!TIP]
+> **Best Practice for API Integration:** If your application communicates with backend APIs or other external services, it is highly recommended to establish unified property naming conventions across your frontend models, database schemas, and backend payloads. Aligning these names beforehand minimizes manual mapping boilerplate, simplifies code maintenance, and prevents any property-naming confusion.
+
+
+
+
