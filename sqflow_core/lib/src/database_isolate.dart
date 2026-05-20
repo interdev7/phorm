@@ -149,6 +149,7 @@ class _IsolateMessage {
 /// Database isolate entry point
 void _databaseIsolateEntryPoint(Map<String, dynamic> args) {
   final mainSendPort = args['port'] as SendPort;
+  final changeSendPort = args['changePort'] as SendPort;
   final customFunctions = args['functions'] as List<SqlFunction>;
 
   // Register custom functions in this isolate
@@ -158,6 +159,7 @@ void _databaseIsolateEntryPoint(Map<String, dynamic> args) {
   mainSendPort.send(receivePort.sendPort);
 
   Database? db;
+  StreamSubscription<SqliteUpdate>? updatesSubscription;
 
   receivePort.listen((message) {
     if (message is! _IsolateMessage) return;
@@ -166,7 +168,14 @@ void _databaseIsolateEntryPoint(Map<String, dynamic> args) {
     final responsePort = message.responsePort;
 
     try {
-      final result = _handleCommand(command, db, (newDb) => db = newDb);
+      final result = _handleCommand(
+        command,
+        db,
+        (newDb) => db = newDb,
+        changeSendPort,
+        updatesSubscription,
+        (newSub) => updatesSubscription = newSub,
+      );
       responsePort.send(_DatabaseResponse(result: result));
     } catch (e, st) {
       responsePort.send(_DatabaseResponse(error: e, stackTrace: st));
@@ -195,10 +204,15 @@ Object? _handleCommand(
   _DatabaseCommand command,
   Database? db,
   void Function(Database?) setDb,
+  SendPort changeSendPort,
+  StreamSubscription<SqliteUpdate>? updatesSubscription,
+  void Function(StreamSubscription<SqliteUpdate>?) setSubscription,
 ) {
   switch (command) {
     case _OpenCommand(:final path):
       if (db != null) {
+        updatesSubscription?.cancel();
+        setSubscription(null);
         db.dispose();
       }
       final newDb = sqlite3.open(path);
@@ -206,10 +220,18 @@ Object? _handleCommand(
       // Register custom functions
       _FunctionRegistry.applyToDatabase(newDb);
 
+      // Listen to database updates via updatesSync
+      final sub = newDb.updatesSync.listen((update) {
+        changeSendPort.send(update.tableName);
+      });
+      setSubscription(sub);
+
       setDb(newDb);
       return null;
 
     case _CloseCommand():
+      updatesSubscription?.cancel();
+      setSubscription(null);
       db?.dispose();
       setDb(null);
       return null;
@@ -306,7 +328,7 @@ Object? _handleCommand(
       try {
         Object? lastResult;
         for (final cmd in commands) {
-          lastResult = _handleCommand(cmd, db, (_) {});
+          lastResult = _handleCommand(cmd, db, (_) {}, changeSendPort, updatesSubscription, (_) {});
         }
         db.execute('COMMIT');
         return lastResult;
@@ -373,6 +395,12 @@ class DatabaseIsolate {
   final _initCompleter = Completer<void>();
   final List<SqlFunction> _customFunctions = [];
 
+  final _changeController = StreamController<String>.broadcast();
+  StreamSubscription<dynamic>? _changeSubscription;
+
+  /// Stream of table names that have been modified in the isolate database
+  Stream<String> get changeStream => _changeController.stream;
+
   Future<void> get initialized => _initCompleter.future;
 
   /// Registers custom SQL functions that will be available in the database
@@ -387,16 +415,25 @@ class DatabaseIsolate {
     if (_isolate != null) return;
 
     final receivePort = ReceivePort();
+    final changeReceivePort = ReceivePort();
+
     _isolate = await Isolate.spawn<Map<String, dynamic>>(
       _databaseIsolateEntryPoint,
       {
         'port': receivePort.sendPort,
+        'changePort': changeReceivePort.sendPort,
         'functions': _customFunctions,
       },
       debugName: 'SQFlow_DatabaseIsolate',
     );
 
     _sendPort = await receivePort.first as SendPort;
+    _changeSubscription = changeReceivePort.listen((message) {
+      if (message is String) {
+        _changeController.add(message);
+      }
+    });
+
     _initCompleter.complete();
   }
 
@@ -459,6 +496,8 @@ class DatabaseIsolate {
   Future<void> stop() async {
     if (_isolate == null) return;
     await close();
+    await _changeSubscription?.cancel();
+    await _changeController.close();
     _isolate!.kill(priority: Isolate.immediate);
     _isolate = null;
     _sendPort = null;

@@ -96,6 +96,7 @@ Full documentation is in the [`docs/`](./docs) folder:
 | [11-many-to-many.md](./docs/11-many-to-many.md)                         | Detailed guide on pivot tables and Many-to-Many setup             |
 | [12-query-builder.md](./docs/12-query-builder.md)                       | Fluent API reference — .get(), .first(), chaining                 |
 | [13-seeders-and-factories.md](./docs/13-seeders-and-factories.md)       | Data seeding and mock generation for testing                      |
+| [14-reactivity.md](./docs/14-reactivity.md)                             | Reactive streams, watchOne(), watchAll(), updatesSync integration |
 
 ---
 
