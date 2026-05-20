@@ -174,6 +174,22 @@ void _databaseIsolateEntryPoint(Map<String, dynamic> args) {
   });
 }
 
+Object? _normalizeArg(Object? arg) {
+  if (arg == null) return null;
+  if (arg is Enum) return arg.name;
+  if (arg is DateTime) return arg.toIso8601String();
+  return arg;
+}
+
+List<Object?>? _normalizeArgs(List<Object?>? args) {
+  if (args == null) return null;
+  return args.map(_normalizeArg).toList();
+}
+
+Map<String, Object?> _normalizeMap(Map<String, Object?> map) {
+  return map.map((key, value) => MapEntry(key, _normalizeArg(value)));
+}
+
 /// Handles a database command in the isolate
 Object? _handleCommand(
   _DatabaseCommand command,
@@ -200,12 +216,13 @@ Object? _handleCommand(
 
     case _ExecuteCommand(:final sql, :final args):
       if (db == null) throw StateError('Database not opened');
-      if (args == null || args.isEmpty) {
+      final normalizedArgs = _normalizeArgs(args);
+      if (normalizedArgs == null || normalizedArgs.isEmpty) {
         db.execute(sql);
       } else {
         final stmt = db.prepare(sql);
         try {
-          stmt.execute(args);
+          stmt.execute(normalizedArgs);
         } finally {
           stmt.dispose();
         }
@@ -215,12 +232,13 @@ Object? _handleCommand(
     case _QueryCommand(:final sql, :final args):
       if (db == null) throw StateError('Database not opened');
       final ResultSet resultSet;
-      if (args == null || args.isEmpty) {
+      final normalizedArgs = _normalizeArgs(args);
+      if (normalizedArgs == null || normalizedArgs.isEmpty) {
         resultSet = db.select(sql);
       } else {
         final stmt = db.prepare(sql);
         try {
-          resultSet = stmt.select(args);
+          resultSet = stmt.select(normalizedArgs);
         } finally {
           stmt.dispose();
         }
@@ -229,12 +247,13 @@ Object? _handleCommand(
 
     case _InsertCommand(:final table, :final values):
       if (db == null) throw StateError('Database not opened');
-      final columns = values.keys.toList();
+      final normalizedValues = _normalizeMap(values);
+      final columns = normalizedValues.keys.toList();
       final placeholders = List.filled(columns.length, '?').join(', ');
       final sql = 'INSERT INTO $table (${columns.join(', ')}) VALUES ($placeholders)';
       final stmt = db.prepare(sql);
       try {
-        stmt.execute(columns.map((c) => values[c]).toList());
+        stmt.execute(columns.map((c) => normalizedValues[c]).toList());
       } finally {
         stmt.dispose();
       }
@@ -242,9 +261,11 @@ Object? _handleCommand(
 
     case _UpdateCommand(:final table, :final values, :final where, :final whereArgs):
       if (db == null) throw StateError('Database not opened');
-      final setClauses = values.keys.map((k) => '$k = ?').join(', ');
+      final normalizedValues = _normalizeMap(values);
+      final normalizedWhereArgs = _normalizeArgs(whereArgs);
+      final setClauses = normalizedValues.keys.map((k) => '$k = ?').join(', ');
       final sql = 'UPDATE $table SET $setClauses${where != null ? ' WHERE $where' : ''}';
-      final args = [...values.values, ...?whereArgs];
+      final args = [...normalizedValues.values, ...?normalizedWhereArgs];
       final stmt = db.prepare(sql);
       try {
         stmt.execute(args);
@@ -255,10 +276,11 @@ Object? _handleCommand(
 
     case _DeleteCommand(:final table, :final where, :final whereArgs):
       if (db == null) throw StateError('Database not opened');
+      final normalizedWhereArgs = _normalizeArgs(whereArgs);
       final sql = 'DELETE FROM $table${where != null ? ' WHERE $where' : ''}';
       final stmt = db.prepare(sql);
       try {
-        stmt.execute(whereArgs ?? []);
+        stmt.execute(normalizedWhereArgs ?? []);
       } finally {
         stmt.dispose();
       }
@@ -308,20 +330,23 @@ Object? _handleCommand(
 void _handleBatchOperation(Database db, _BatchOperation op) {
   switch (op) {
     case _BatchInsert(:final table, :final values, :final replace):
-      final columns = values.keys.toList();
+      final normalizedValues = _normalizeMap(values);
+      final columns = normalizedValues.keys.toList();
       final placeholders = List.filled(columns.length, '?').join(', ');
       final sql = '${replace ? 'INSERT OR REPLACE' : 'INSERT'} INTO $table (${columns.join(', ')}) VALUES ($placeholders)';
       final stmt = db.prepare(sql);
       try {
-        stmt.execute(columns.map((c) => values[c]).toList());
+        stmt.execute(columns.map((c) => normalizedValues[c]).toList());
       } finally {
         stmt.dispose();
       }
 
     case _BatchUpdate(:final table, :final values, :final where, :final whereArgs):
-      final setClauses = values.keys.map((k) => '$k = ?').join(', ');
+      final normalizedValues = _normalizeMap(values);
+      final normalizedWhereArgs = _normalizeArgs(whereArgs);
+      final setClauses = normalizedValues.keys.map((k) => '$k = ?').join(', ');
       final sql = 'UPDATE $table SET $setClauses${where != null ? ' WHERE $where' : ''}';
-      final args = [...values.values, ...?whereArgs];
+      final args = [...normalizedValues.values, ...?normalizedWhereArgs];
       final stmt = db.prepare(sql);
       try {
         stmt.execute(args);
@@ -330,10 +355,11 @@ void _handleBatchOperation(Database db, _BatchOperation op) {
       }
 
     case _BatchDelete(:final table, :final where, :final whereArgs):
+      final normalizedWhereArgs = _normalizeArgs(whereArgs);
       final sql = 'DELETE FROM $table${where != null ? ' WHERE $where' : ''}';
       final stmt = db.prepare(sql);
       try {
-        stmt.execute(whereArgs ?? []);
+        stmt.execute(normalizedWhereArgs ?? []);
       } finally {
         stmt.dispose();
       }
