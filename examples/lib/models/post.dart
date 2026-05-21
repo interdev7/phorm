@@ -29,7 +29,11 @@ class Post extends Model with _$SQFlowPostMixin {
   @Column()
   final String userId;
 
-  @Join(model: 'users', foreignKey: 'user_id')
+  @Join(
+    model: 'users',
+    foreignKey: 'user_id',
+    onDelete: ReferentialAction.cascade,
+  )
   final User? user;
 
   /// Beautiful API Showcase

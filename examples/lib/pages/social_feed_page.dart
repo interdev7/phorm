@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:sqflow_core/sqflow_core.dart' hide Column;
@@ -45,20 +47,26 @@ class _SocialFeedPageState extends State<SocialFeedPage> {
     final uuid = const Uuid();
     final userId = uuid.v4();
 
+    final firstNames = ['John', 'Alice', 'Michael', 'Emma', 'David', 'Sophia', 'Robert', 'Olivia', 'William', 'Isabella'];
+    final lastNames = ['Doe', 'Smith', 'Johnson', 'Williams', 'Brown', 'Jones', 'Garcia', 'Miller', 'Davis', 'Rodriguez'];
+    final random = Random();
+    final firstName = firstNames[random.nextInt(firstNames.length)];
+    final lastName = lastNames[random.nextInt(lastNames.length)];
+
     try {
       await Posts.transaction((txn) async {
         // Step 1: Create author inside the transaction
         final author = User(
           id: userId,
-          firstName: 'John',
-          lastName: 'Doe',
+          firstName: firstName,
+          lastName: lastName,
           email: '${uuid.v4().substring(0, 6)}@seed.com',
           phone: '+359887001122',
           birthDate: '1985-03-15',
           city: 'Plovdiv',
           country: 'Bulgaria',
           address: '45 Rose Valley',
-          gender: 'M',
+          gender: random.nextBool() ? 'M' : 'F',
           password: 'secret_password_123',
         );
         await Users.insert(author, executor: txn);
