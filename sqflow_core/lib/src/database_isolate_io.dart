@@ -121,7 +121,7 @@ class NativeDatabaseIsolate extends DatabaseIsolate {
   }
 
   @override
-  Future<void> open(String path) => _sendCommand(OpenCommand(path));
+  Future<void> open(String path, {String? password}) => _sendCommand(OpenCommand(path, password: password));
 
   @override
   Future<void> close() => _sendCommand(const CloseCommand());
@@ -236,13 +236,16 @@ Object? _handle(
   void Function(StreamSubscription<SqliteUpdate>?) setSub,
 ) {
   switch (command) {
-    case OpenCommand(:final path):
+    case OpenCommand(:final path, :final password):
       if (db != null) {
         updatesSub?.cancel();
         setSub(null);
         db.dispose();
       }
       final newDb = sqlite3.open(path);
+      if (password != null) {
+        newDb.execute("PRAGMA key = '${password.replaceAll("'", "''")}'");
+      }
       _FunctionRegistry.applyToDatabase(newDb);
       setSub(newDb.updatesSync.listen((u) => changePort.send(u.tableName)));
       setDb(newDb);
