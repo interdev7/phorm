@@ -1,9 +1,9 @@
 import 'dart:async';
-
+import 'package:sqflow_core/sqflow_core.dart';
 import 'database_isolate.dart';
 import 'sql_function.dart';
 
-/// Adapter that provides sqlite3-based API over isolate
+/// SQLite database implementation of the DatabaseExecutor interface.
 class Database implements DatabaseExecutor {
   final DatabaseIsolate _isolate;
   final String path;
@@ -18,9 +18,6 @@ class Database implements DatabaseExecutor {
     List<SqlFunction>? customFunctions,
     String? password,
   }) async {
-    // createDatabaseIsolate() is provided by the conditional import:
-    //   - native: NativeDatabaseIsolate (dart:isolate + sqlite3)
-    //   - web:    WebDatabaseIsolate    (WasmSqlite3)
     final isolate = createDatabaseIsolate();
     if (customFunctions != null && customFunctions.isNotEmpty) {
       isolate.registerFunctions(customFunctions);
@@ -35,8 +32,7 @@ class Database implements DatabaseExecutor {
       _isolate.execute(sql, arguments);
 
   @override
-  Future<List<Map<String, Object?>>> rawQuery(String sql,
-          [List<Object?>? arguments]) =>
+  Future<List<Map<String, Object?>>> rawQuery(String sql, [List<Object?>? arguments]) =>
       _isolate.query(sql, arguments);
 
   @override
@@ -101,7 +97,7 @@ class Database implements DatabaseExecutor {
       _isolate.delete(table, where: where, whereArgs: whereArgs);
 
   @override
-  Batch batch() => Batch._(this);
+  Batch batch() => SqliteBatch._(this);
 
   Future<T> transaction<T>(Future<T> Function(Transaction txn) action) async {
     final txn = Transaction._(this);
@@ -138,7 +134,7 @@ class Database implements DatabaseExecutor {
   }
 }
 
-/// Transaction wrapper
+/// SQLite Transaction wrapper implementing DatabaseExecutor from sqflow_core.
 class Transaction implements DatabaseExecutor {
   final Database _db;
 
@@ -149,8 +145,7 @@ class Transaction implements DatabaseExecutor {
       _db.execute(sql, arguments);
 
   @override
-  Future<List<Map<String, Object?>>> rawQuery(String sql,
-          [List<Object?>? arguments]) =>
+  Future<List<Map<String, Object?>>> rawQuery(String sql, [List<Object?>? arguments]) =>
       _db.rawQuery(sql, arguments);
 
   @override
@@ -210,13 +205,14 @@ class Transaction implements DatabaseExecutor {
   Batch batch() => _db.batch();
 }
 
-/// Batch wrapper
-class Batch {
+/// SQLite Batch implementation of the Batch interface from sqflow_core.
+class SqliteBatch implements Batch {
   final Database _db;
   final _operations = <_BatchOp>[];
 
-  Batch._(this._db);
+  SqliteBatch._(this._db);
 
+  @override
   void insert(
     String table,
     Map<String, Object?> values, {
@@ -226,6 +222,7 @@ class Batch {
     _operations.add(_BatchOp.insert(table, values, conflictAlgorithm));
   }
 
+  @override
   void update(
     String table,
     Map<String, Object?> values, {
@@ -237,26 +234,32 @@ class Batch {
         _BatchOp.update(table, values, where, whereArgs, conflictAlgorithm));
   }
 
+  @override
   void delete(String table, {String? where, List<Object?>? whereArgs}) {
     _operations.add(_BatchOp.delete(table, where, whereArgs));
   }
 
+  @override
   void execute(String sql, [List<Object?>? arguments]) {
     _operations.add(_BatchOp.execute(sql, arguments));
   }
 
+  @override
   void rawInsert(String sql, [List<Object?>? arguments]) {
     _operations.add(_BatchOp.execute(sql, arguments));
   }
 
+  @override
   void rawUpdate(String sql, [List<Object?>? arguments]) {
     _operations.add(_BatchOp.execute(sql, arguments));
   }
 
+  @override
   void rawDelete(String sql, [List<Object?>? arguments]) {
     _operations.add(_BatchOp.execute(sql, arguments));
   }
 
+  @override
   Future<List<Object?>> commit({bool? noResult, bool? continueOnError}) async {
     await _db.execute('BEGIN');
     try {
@@ -339,47 +342,4 @@ class _BatchOp {
         throw StateError('Unknown batch operation type: $type');
     }
   }
-}
-
-/// Database executor interface
-abstract interface class DatabaseExecutor {
-  Future<void> execute(String sql, [List<Object?>? arguments]);
-  Future<List<Map<String, Object?>>> rawQuery(String sql,
-      [List<Object?>? arguments]);
-  Future<List<Map<String, Object?>>> query(
-    String table, {
-    bool? distinct,
-    List<String>? columns,
-    String? where,
-    List<Object?>? whereArgs,
-    String? groupBy,
-    String? having,
-    String? orderBy,
-    int? limit,
-    int? offset,
-  });
-  Future<int> insert(
-    String table,
-    Map<String, Object?> values, {
-    String? nullColumnHack,
-    ConflictAlgorithm? conflictAlgorithm,
-  });
-  Future<int> update(
-    String table,
-    Map<String, Object?> values, {
-    String? where,
-    List<Object?>? whereArgs,
-    ConflictAlgorithm? conflictAlgorithm,
-  });
-  Future<int> delete(String table, {String? where, List<Object?>? whereArgs});
-  Batch batch();
-}
-
-/// Conflict algorithm enum
-enum ConflictAlgorithm {
-  rollback,
-  abort,
-  fail,
-  ignore,
-  replace,
 }

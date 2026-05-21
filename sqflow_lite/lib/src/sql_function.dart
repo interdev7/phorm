@@ -1,4 +1,4 @@
-import 'package:sqflow_platform_interface/sqflow_platform_interface.dart';
+// SqlFunction — custom SQL function registration for SQLite databases.
 
 /// Represents a custom SQL function that can be registered with the database.
 ///
@@ -16,19 +16,6 @@ import 'package:sqflow_platform_interface/sqflow_platform_interface.dart';
 ///     return RegExp(pattern).hasMatch(text) ? 1 : 0;
 ///   },
 /// );
-///
-/// // Use in DB initialization
-/// final db = DB(
-///   databaseName: 'app.db',
-///   version: 1,
-///   tables: [usersTable],
-///   customFunctions: [regexpFunction],
-/// );
-///
-/// // Use in queries
-/// final users = await Users.where(
-///   WhereBuilder().custom('REGEXP(?, email)', ['.*@gmail\\.com'])
-/// ).get();
 /// ```
 class SqlFunction {
   /// The name of the function as it will be called in SQL
@@ -108,39 +95,6 @@ class SqlFunction {
 }
 
 /// A typed representation of an SQL function call on a column.
-class SqlFunctionColumn<T> extends SqflowColumn<T> {
-  /// The name of the SQL function.
-  final String functionName;
+/// Re-exported from sqflow_core — do not redeclare here.
+// SqlFunctionColumn, SqlFunctions, SqlFunctionExtension are in sqflow_core.
 
-  /// The column the function is applied to.
-  final SqflowColumn<dynamic> innerColumn;
-
-  const SqlFunctionColumn(this.functionName, this.innerColumn)
-      : super('$functionName($innerColumn)');
-}
-
-/// Helper class to apply registered SQL functions to database columns in a type-safe way.
-class SqlFunctions {
-  /// Applies any SQL function to a column.
-  ///
-  /// **Example:**
-  /// ```dart
-  /// SqlFunctions.apply<int, int>('DOUBLE', Users.age)
-  /// ```
-  static SqflowColumn<R> apply<T, R>(String functionName, SqflowColumn<T> col) {
-    return SqlFunctionColumn<R>(functionName, col);
-  }
-}
-
-/// Extension to allow applying any custom SQL function directly on any column in a type-safe way.
-extension SqlFunctionExtension<T> on SqflowColumn<T> {
-  /// Applies a custom SQL function to this column and returns a typed column of type [R].
-  ///
-  /// **Example:**
-  /// ```dart
-  /// Users.age.sqlFunction<int>('MY_CUSTOM_FUNCTION')
-  /// ```
-  SqflowColumn<R> sqlFunction<R>(String functionName) {
-    return SqlFunctionColumn<R>(functionName, this);
-  }
-}

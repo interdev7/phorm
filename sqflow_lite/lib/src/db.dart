@@ -1,44 +1,16 @@
 // =======================================================
 // DATABASE SERVICE WITH SMART MIGRATIONS 🚀
 // =======================================================
-///
-/// A professional, production-ready database service for Flutter/Dart applications
-/// featuring smart migration tracking, version management, and fluent API.
-///
-/// **Key Features:**
-/// - Automatic migration tracking with idempotent execution
-/// - Version-aware schema management
-/// - Fluent migration builder API
-/// - Support for custom migration logic
-/// - Safe rollback and downgrade handling
-/// - Multi-table migration coordination
-///
-/// **Architecture Overview:**
-/// ```text
-/// ┌─────────────────┐
-/// │   DB Service    │ ← Manages migrations & connections
-/// ├─────────────────┤
-/// │  Table          │ ← Table schema + migrations
-/// ├─────────────────┤
-/// │  Migration      │ ← Individual migration steps
-/// ├─────────────────┤
-/// │ MigrationTracker│ ← Tracks applied migrations
-/// └─────────────────┘
-/// ```
-library;
-
 import 'dart:async';
-import 'dart:convert';
 import 'dart:io';
 
 import 'package:path/path.dart';
 import 'package:path_provider/path_provider.dart';
-import 'package:sqflow_core/src/seeder.dart';
-import 'package:sqflow_platform_interface/sqflow_platform_interface.dart';
+import 'package:sqflow_core/sqflow_core.dart';
 
 import 'database_adapter.dart';
 import 'sql_function.dart';
-import 'core.dart';
+import 'sqlite_dialect.dart';
 
 /// Gets the database directory path
 Future<String> getDatabasesPath() async {
@@ -54,33 +26,8 @@ Future<String> getDatabasesPath() async {
 }
 
 /// Main database manager that handles connection lifecycle,
-/// version management, and smart migration tracking.
-///
-/// **Usage Example:**
-/// ```dart
-/// // Define tables with migrations
-/// final usersTable = Table<User>(
-///   name: 'users',
-///   schema: 'CREATE TABLE users (...)',
-///   fromJson: User.fromJson,
-/// ).migrate()
-///   .addColumn(name: 'email', type: 'TEXT', version: 2)
-///   .createIndex(name: 'idx_email', columns: ['email'], version: 3)
-///   .build();
-///
-/// // Create database with auto version detection
-/// final db = DB.autoVersion(
-///   databaseName: 'my_app.db',
-///   tables: [usersTable, postsTable],
-/// );
-///
-/// // Use in services
-/// final userService = SqflowCore<User>(
-///   dbManager: db,
-///   table: usersTable,
-/// );
-/// ```
-class DB {
+/// version management, and smart migration tracking for SQLite.
+class DB implements SqflowDatabase {
   /// Database file name (e.g., 'app_database.db')
   final String databaseName;
 
@@ -89,6 +36,7 @@ class DB {
   final int version;
 
   /// List of table configurations including schemas and migrations
+  @override
   final List<Table> tables;
 
   /// Custom SQL functions to register with the database
@@ -104,6 +52,7 @@ class DB {
   static const String _migrationsTable = '__sqflow_migrations';
 
   /// Optional logger for the database
+  @override
   final SqflowLogger? logger;
 
   /// Whether to log all queries
@@ -118,6 +67,7 @@ class DB {
 
   /// Row count threshold at which data mapping is moved to an isolate.
   /// Default is 50 rows.
+  @override
   final int isolateThreshold;
 
   /// Internal stream controller for table changes
@@ -127,10 +77,14 @@ class DB {
   StreamSubscription<String>? _dbChangeSubscription;
 
   /// Stream of table names that have been modified
+  @override
   Stream<String> get changeStream => _changeController.stream;
 
   /// Active transaction buffer for updatesSync events.
   Set<String>? _activeTransactionBuffer;
+
+  @override
+  SqlDialect get dialect => SqliteDialect();
 
   /// Notifies the database that a table has been modified.
   /// If inside a transaction, notifications are buffered and emitted after commit.
@@ -142,28 +96,6 @@ class DB {
     }
   }
 
-  /// Creates a new database instance
-  ///
-  /// **Parameters:**
-  /// - `databaseName`: SQLite database file name
-  /// - `version`: Current schema version (must be >= all migration versions)
-  /// - `tables`: List of table configurations
-  /// - `customFunctions`: Custom SQL functions to register
-  /// - `logger`: Custom logger (defaults to SqflowConsoleLogger)
-  /// - `logQueries`: Whether to log all executed queries
-  /// - `slowQueryThreshold`: Threshold for slow query warning
-  ///
-  /// **Throws:** `ArgumentError` if any migration has version > `version`
-  ///
-  /// **Example:**
-  /// ```dart
-  /// final db = DB(
-  ///   databaseName: 'app_v3.db',
-  ///   version: 3,
-  ///   tables: [usersTable, postsTable],
-  ///   customFunctions: [SqlFunction.regexp()],
-  /// );
-  /// ```
   DB({
     required this.version,
     required this.tables,
@@ -180,20 +112,6 @@ class DB {
   }
 
   /// Creates a database with auto-detected version
-  ///
-  /// Automatically determines the maximum version from all table migrations.
-  ///
-  /// **Example:**
-  /// ```dart
-  /// final db = DB.autoVersion(
-  ///   databaseName: 'app.db',
-  ///   tables: [
-  ///     tableWithMigrationsUpToV2,
-  ///     tableWithMigrationsUpToV3,
-  ///   ],
-  /// );
-  /// print(db.version); // 3 (maximum from all migrations)
-  /// ```
   factory DB.autoVersion({
     required String databaseName,
     required List<Table> tables,
@@ -223,21 +141,14 @@ class DB {
   }
 
   /// Gets the database instance (lazy initialization)
-  ///
-  /// If database is not initialized, opens the connection and:
-  /// 1. Creates tables on first run
-  /// 2. Applies pending migrations on version upgrade
-  /// 3. Initializes migration tracking
-  ///
-  /// **Example:**
-  /// ```dart
-  /// final dbInstance = await db.database;
-  /// ```
   Future<Database> get database async {
     if (_database != null) return _database!;
     _database = await _initDatabase();
     return _database!;
   }
+
+  @override
+  Future<DatabaseExecutor> get executor async => database;
 
   /// Initializes the database connection
   Future<Database> _initDatabase() async {
@@ -331,7 +242,6 @@ class DB {
     }
 
     // 3. Mark all migrations as applied (since we're creating from scratch)
-    // await _markAllMigrationsApplied(db);
     await _applyPendingMigrations(db, 0, version);
 
     logger?.info('Database created successfully');
@@ -364,10 +274,6 @@ class DB {
   }
 
   /// Database downgrade callback (version decrease)
-  ///
-  /// **Note:** SQLite doesn't support schema downgrades natively.
-  /// This implementation recreates the database from scratch.
-  /// For production, consider more sophisticated downgrade strategies.
   Future<void> _onDowngrade(Database db, int oldVersion, int newVersion) async {
     logger?.info('Downgrading database from v$oldVersion to v$newVersion');
 
@@ -426,7 +332,6 @@ class DB {
         final normalized = currentStatement.toUpperCase();
 
         // Count BEGIN and END blocks to handle triggers
-        // We use regex with word boundaries to avoid matching keywords inside other words
         final beginCount = RegExp(r'\bBEGIN\b').allMatches(normalized).length;
         final endCount = RegExp(r'\bEND\b').allMatches(normalized).length;
 
@@ -451,9 +356,6 @@ class DB {
   }
 
   /// Marks all migrations as applied (for initial database creation)
-  ///
-  /// **Note:** This method should be called after database creation
-  /// to ensure all migrations are tracked.
   Future<void> synchronizeHistory() async {
     final db = await database;
     final allMigrations = tables.expand((t) => t.migrations).toList();
@@ -574,9 +476,6 @@ class DB {
   }
 
   /// Calculates a unique hash for a migration
-  ///
-  /// Used to detect changes to migration logic and prevent re-application
-  /// of modified migrations.
   String _calculateMigrationHash(TableMigration migration) {
     // Create a deterministic string representation
     final content = {
@@ -602,8 +501,6 @@ class DB {
   }
 
   /// Gets a list of all applied migrations
-  ///
-  /// Useful for debugging and migration reports.
   Future<List<Map<String, dynamic>>> getAppliedMigrations() async {
     final db = await database;
     return await db.query(
@@ -613,10 +510,6 @@ class DB {
   }
 
   /// Gets the current database version from the file
-  ///
-  /// This is the actual version stored in the database file,
-  /// which may differ from the `version` property if migrations
-  /// are pending.
   Future<int> getCurrentFileVersion() async {
     final String path;
     if (databaseName == ':memory:') {
@@ -639,8 +532,6 @@ class DB {
   }
 
   /// Resets the database (for testing only)
-  ///
-  /// **Warning:** Deletes all data! Use only in tests.
   Future<void> reset() async {
     if (_database != null) {
       await _database!.close();
@@ -680,11 +571,6 @@ class DB {
   }
 
   /// Executes a list of seeders to populate the database.
-  ///
-  /// **Example:**
-  /// ```dart
-  /// await db.seed([UserSeeder(), PostSeeder()]);
-  /// ```
   Future<void> seed(List<Seeder> seeders) async {
     logger?.info('Starting database seeding (${seeders.length} seeders)...');
     for (final seeder in seeders) {
@@ -695,6 +581,7 @@ class DB {
   }
 
   /// Helper to execute an action and log its performance
+  @override
   Future<T> logAction<T>(String sql, List<Object?>? arguments, Future<T> Function() action) async {
     if (!logQueries) return action();
     final stopwatch = Stopwatch()..start();
@@ -715,17 +602,7 @@ class DB {
   }
 
   /// Executes a transaction with the provided action.
-  ///
-  /// The [action] callback receives a [DatabaseExecutor] that should be
-  /// passed to any service methods executed within the transaction.
-  ///
-  /// **Example:**
-  /// ```dart
-  /// await dbManager.transaction((txn) async {
-  ///   final userId = await userService.insert(user, executor: txn);
-  ///   await profileService.insert(profile.copyWith(userId: userId), executor: txn);
-  /// });
-  /// ```
+  @override
   Future<R> transaction<R>(Future<R> Function(DatabaseExecutor txn) action) async {
     final dbInstance = await database;
     
@@ -758,11 +635,6 @@ class DB {
   }
 
   /// Resolves and creates a SqflowCore service for the given Model type [T].
-  ///
-  /// **Example:**
-  /// ```dart
-  /// final userService = db.service<User>();
-  /// ```
   SqflowCore<T> service<T extends Model>() {
     final table = tables.where((t) => t.type == T).firstOrNull;
     if (table == null) {

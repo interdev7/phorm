@@ -1,4 +1,5 @@
 import 'package:sqflow_core/sqflow_core.dart';
+import 'package:sqflow_lite/sqflow_lite.dart';
 
 part 'migration_user.sql.g.dart';
 

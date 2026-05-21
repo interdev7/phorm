@@ -45,7 +45,7 @@ class SqflowCore<T extends Model> {
   SqflowQuery<T> get query => SqflowQuery<T>(this);
 
   /// The database manager instance for this service.
-  final DB dbManager;
+  final SqflowDatabase dbManager;
 
   /// The table configuration (name, schema, fromJson, primary key, soft delete)
   final Table<T> table;
@@ -54,10 +54,10 @@ class SqflowCore<T extends Model> {
   // DATABASE
   // -------------------------------------------------------
 
-  /// Getter for the underlying SQLite [Database] instance.
+  /// Getter for the underlying [DatabaseExecutor] instance.
   ///
   /// **Usage Note:** Avoid direct access; use CRUD methods instead.
-  Future<Database> get database => dbManager.database;
+  Future<DatabaseExecutor> get database => dbManager.executor;
 
   // -------------------------------------------------------
   // TIMESTAMPS ⏰
@@ -439,14 +439,20 @@ class SqflowCore<T extends Model> {
     return value;
   }
 
-  String _buildJsonObjectArgs(Table currentTable, Attributes? attributes, List<Includable>? include) {
+  Map<String, String> _buildJsonObjectFields(Table currentTable, Attributes? attributes, List<Includable>? include) {
     final relCols = attributes != null ? attributes.apply(currentTable.columns) : currentTable.columns;
+    final fields = <String, String>{};
 
-    final baseFields = relCols.isNotEmpty ? relCols.map((c) => "'$c', ${currentTable.name}.$c").join(', ') : "'id', ${currentTable.name}.${currentTable.primaryKey}";
+    if (relCols.isNotEmpty) {
+      for (final c in relCols) {
+        fields[c] = '${currentTable.name}.$c';
+      }
+    } else {
+      fields['id'] = '${currentTable.name}.${currentTable.primaryKey}';
+    }
 
-    if (include == null || include.isEmpty) return baseFields;
+    if (include == null || include.isEmpty) return fields;
 
-    final includeFields = <String>[];
     for (final inc in include) {
       final relName = inc.getTableName(dbManager.tables);
       final rel = currentTable.relationships.where((r) {
@@ -464,40 +470,32 @@ class SqflowCore<T extends Model> {
       final relatedTable = _findTable(rel.model);
       if (relatedTable == null) continue;
 
-      final subArgs = _buildJsonObjectArgs(relatedTable, inc.attributes, inc.include);
+      final subFields = _buildJsonObjectFields(relatedTable, inc.attributes, inc.include);
+      final subJsonObject = dbManager.dialect.compileJsonObject(subFields);
 
       if (rel is HasMany) {
         final paranoidFilter = relatedTable.paranoid ? ' AND ${relatedTable.name}.deleted_at IS NULL' : '';
-        includeFields.add('''
-          '$relName', (
-            SELECT json_group_array(json_object($subArgs)) 
-            FROM ${relatedTable.name} 
-            WHERE ${relatedTable.name}.${rel.foreignKey} = ${currentTable.name}.${rel.localKey}$paranoidFilter
-          )
-        ''');
+        fields[relName] = dbManager.dialect.compileJsonArray(
+          subJsonObject,
+          'FROM ${relatedTable.name} WHERE ${relatedTable.name}.${rel.foreignKey} = ${currentTable.name}.${rel.localKey}$paranoidFilter',
+        );
       } else if (rel is ManyToMany) {
         final paranoidFilter = relatedTable.paranoid ? ' AND ${relatedTable.name}.deleted_at IS NULL' : '';
-        includeFields.add('''
-          '$relName', (
-            SELECT json_group_array(json_object($subArgs)) 
-            FROM ${relatedTable.name}
-            INNER JOIN ${rel.pivotTable} ON ${rel.pivotTable}.${rel.relatedKey} = ${relatedTable.name}.${rel.relatedLocalKey}
-            WHERE ${rel.pivotTable}.${rel.foreignKey} = ${currentTable.name}.${rel.localKey}$paranoidFilter
-          )
-        ''');
+        fields[relName] = dbManager.dialect.compileJsonArray(
+          subJsonObject,
+          'FROM ${relatedTable.name} INNER JOIN ${rel.pivotTable} ON ${rel.pivotTable}.${rel.relatedKey} = ${relatedTable.name}.${rel.relatedLocalKey} WHERE ${rel.pivotTable}.${rel.foreignKey} = ${currentTable.name}.${rel.localKey}$paranoidFilter',
+        );
       } else {
         final paranoidFilter = relatedTable.paranoid ? ' AND ${relatedTable.name}.deleted_at IS NULL' : '';
-        includeFields.add('''
-          '$relName', (
-            SELECT json_object($subArgs) 
-            FROM ${relatedTable.name} 
-            WHERE ${relatedTable.name}.${rel is BelongsTo ? rel.localKey : rel.foreignKey} = ${currentTable.name}.${rel is BelongsTo ? rel.foreignKey : rel.localKey}$paranoidFilter
-          )
-        ''');
+        fields[relName] = '''
+          (SELECT $subJsonObject 
+           FROM ${relatedTable.name} 
+           WHERE ${relatedTable.name}.${rel is BelongsTo ? rel.localKey : rel.foreignKey} = ${currentTable.name}.${rel is BelongsTo ? rel.foreignKey : rel.localKey}$paranoidFilter)
+        ''';
       }
     }
 
-    return '$baseFields, ${includeFields.join(', ')}';
+    return fields;
   }
 
   /// Builds a single SQL query for relationships using JOINs and JSON aggregation.
@@ -592,30 +590,30 @@ class SqflowCore<T extends Model> {
         final relatedTable = _findTable(rel.model);
         if (relatedTable == null) continue;
 
-        final subArgs = _buildJsonObjectArgs(relatedTable, inc.attributes, inc.include);
+        final subFields = _buildJsonObjectFields(relatedTable, inc.attributes, inc.include);
+        final subJsonObject = dbManager.dialect.compileJsonObject(subFields);
 
         if (rel is HasMany) {
           final paranoidFilter = relatedTable.paranoid ? ' AND ${relatedTable.name}.deleted_at IS NULL' : '';
           selectFields.add('''
-            (SELECT json_group_array(json_object($subArgs)) 
-             FROM ${relatedTable.name} 
-             WHERE ${relatedTable.name}.${rel.foreignKey} = ${table.name}.${rel.localKey}$paranoidFilter
-            ) AS $relName
+            ${dbManager.dialect.compileJsonArray(
+              subJsonObject,
+              'FROM ${relatedTable.name} WHERE ${relatedTable.name}.${rel.foreignKey} = ${table.name}.${rel.localKey}$paranoidFilter',
+            )} AS $relName
           ''');
         } else if (rel is ManyToMany) {
           final paranoidFilter = relatedTable.paranoid ? ' AND ${relatedTable.name}.deleted_at IS NULL' : '';
           selectFields.add('''
-            (SELECT json_group_array(json_object($subArgs)) 
-             FROM ${relatedTable.name}
-             INNER JOIN ${rel.pivotTable} ON ${rel.pivotTable}.${rel.relatedKey} = ${relatedTable.name}.${rel.relatedLocalKey}
-             WHERE ${rel.pivotTable}.${rel.foreignKey} = ${table.name}.${rel.localKey}$paranoidFilter
-            ) AS $relName
+            ${dbManager.dialect.compileJsonArray(
+              subJsonObject,
+              'FROM ${relatedTable.name} INNER JOIN ${rel.pivotTable} ON ${rel.pivotTable}.${rel.relatedKey} = ${relatedTable.name}.${rel.relatedLocalKey} WHERE ${rel.pivotTable}.${rel.foreignKey} = ${table.name}.${rel.localKey}$paranoidFilter',
+            )} AS $relName
           ''');
         } else {
           // BelongsTo or HasOne
           final paranoidFilter = relatedTable.paranoid ? ' AND ${relatedTable.name}.deleted_at IS NULL' : '';
           selectFields.add('''
-            (SELECT json_object($subArgs) 
+            (SELECT $subJsonObject 
              FROM ${relatedTable.name} 
              WHERE ${relatedTable.name}.${rel is BelongsTo ? rel.localKey : rel.foreignKey} = ${table.name}.${rel is BelongsTo ? rel.foreignKey : rel.localKey}$paranoidFilter
             ) AS $relName
@@ -946,9 +944,8 @@ class SqflowCore<T extends Model> {
   ///   await txn.update('users', {'name': 'John Updated'}, where: 'id = ?', whereArgs: ['1']);
   /// });
   /// ```
-  Future<R> transaction<R>(Future<R> Function(Transaction txn) action) async {
-    final db = await database;
-    return db.transaction(action);
+  Future<R> transaction<R>(Future<R> Function(DatabaseExecutor txn) action) async {
+    return dbManager.transaction(action);
   }
 
   /// **Internal Helper: Extract tables from Includable list**

@@ -8,8 +8,7 @@ void main() {
   });
 
   tearDown(() async {
-    final db = await userService.database;
-    await db.close();
+    await userService.dbManager.close();
   });
 
   group('SqflowCore Transaction:', () {

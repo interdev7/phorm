@@ -1,9 +1,9 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sqflow_core/sqflow_core.dart';
+import 'package:sqflow_lite/sqflow_lite.dart';
 import '../test/models/user.dart';
 
 void main() {
-  late Database db;
   late DB dbManager;
   late SqflowCore<User> userService;
 
@@ -15,12 +15,11 @@ void main() {
       databaseName: ':memory:',
       tables: [usersTable],
     );
-    db = await dbManager.database;
     userService = SqflowCore<User>(dbManager: dbManager, table: usersTable);
   });
 
   tearDown(() async {
-    await db.close();
+    await dbManager.close();
   });
 
   test('notifications are buffered and emitted only after transaction commit',
