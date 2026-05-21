@@ -60,6 +60,12 @@
             "cwd": "sqflow_platform_interface",
             "request": "launch",
             "type": "dart"
+        },
+        {
+            "name": "sqflow_lite",
+            "cwd": "sqflow_lite",
+            "request": "launch",
+            "type": "dart"
         }
     ]
 }

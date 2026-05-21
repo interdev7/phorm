@@ -1,9 +1,10 @@
 name: sqflow_lite
 description: The SQLite driver and connection manager implementation for the Sqflow ORM.
 version: 1.0.0
-repository: https://github.com/interdev7/sqflow
-homepage: https://github.com/interdev7/sqflow
+repository: https://github.com/interdev7/sqflow_lite
+homepage: https://github.com/interdev7/sqflow_lite
 publish_to: none
+resolution: workspace
 
 environment:
   sdk: ">=3.5.0 <4.0.0"
