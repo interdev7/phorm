@@ -9,6 +9,7 @@ environment:
 workspace:
   - sqflow_core
   - sqflow_platform_interface
+  - sqflow_lite
   - sqflow_generator
 
 dev_dependencies:
