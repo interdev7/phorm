@@ -16,6 +16,7 @@ class Database implements DatabaseExecutor {
   static Future<Database> open(
     String path, {
     List<SqlFunction>? customFunctions,
+    String? password,
   }) async {
     // createDatabaseIsolate() is provided by the conditional import:
     //   - native: NativeDatabaseIsolate (dart:isolate + sqlite3)
@@ -25,7 +26,7 @@ class Database implements DatabaseExecutor {
       isolate.registerFunctions(customFunctions);
     }
     await isolate.start();
-    await isolate.open(path);
+    await isolate.open(path, password: password);
     return Database._(isolate, path);
   }
 

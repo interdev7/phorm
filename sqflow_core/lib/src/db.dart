@@ -93,6 +93,9 @@ class DB {
   /// Custom SQL functions to register with the database
   final List<SqlFunction> customFunctions;
 
+  /// Optional password for SQLCipher encryption (Native only)
+  final String? password;
+
   /// Internal database instance (lazy-loaded)
   Database? _database;
 
@@ -165,6 +168,7 @@ class DB {
     required this.tables,
     this.databaseName = 'app_database.db',
     this.customFunctions = const [],
+    this.password,
     this.logger = const SqflowConsoleLogger(),
     this.logQueries = false,
     this.slowQueryThreshold = const Duration(milliseconds: 200),
@@ -193,6 +197,7 @@ class DB {
     required String databaseName,
     required List<Table> tables,
     List<SqlFunction> customFunctions = const [],
+    String? password,
     SqflowLogger? logger = const SqflowConsoleLogger(),
     bool logQueries = false,
     Duration slowQueryThreshold = const Duration(milliseconds: 200),
@@ -207,6 +212,7 @@ class DB {
       version: maxVersion,
       tables: tables,
       customFunctions: customFunctions,
+      password: password,
       logger: logger,
       logQueries: logQueries,
       slowQueryThreshold: slowQueryThreshold,
@@ -247,7 +253,11 @@ class DB {
 
     logger?.info('Initializing database: $databaseName (v$version)');
 
-    final db = await Database.open(path, customFunctions: customFunctions);
+    final db = await Database.open(
+      path,
+      customFunctions: customFunctions,
+      password: password,
+    );
 
     // Cancel old subscription if any and subscribe to database changeStream
     await _dbChangeSubscription?.cancel();

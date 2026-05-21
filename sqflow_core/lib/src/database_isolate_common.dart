@@ -11,7 +11,8 @@ sealed class DatabaseCommand {
 
 class OpenCommand extends DatabaseCommand {
   final String path;
-  const OpenCommand(this.path);
+  final String? password;
+  const OpenCommand(this.path, {this.password});
 }
 
 class CloseCommand extends DatabaseCommand {
@@ -135,7 +136,8 @@ abstract class DatabaseIsolate {
   Future<void> start();
 
   /// Opens a SQLite file (or ':memory:' for in-memory)
-  Future<void> open(String path);
+  /// If [password] is provided, it executes `PRAGMA key = ...` immediately after opening (for SQLCipher).
+  Future<void> open(String path, {String? password});
 
   /// Closes the database connection
   Future<void> close();

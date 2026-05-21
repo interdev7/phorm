@@ -42,7 +42,12 @@ class WebDatabaseIsolate extends DatabaseIsolate {
   Future<void> start() async {}
 
   @override
-  Future<void> open(String path) async {
+  Future<void> open(String path, {String? password}) async {
+    if (password != null) {
+      // ignore: avoid_print
+      print('Warning: sqflow password/encryption is not supported on Web (WasmSqlite3 ignores password).');
+    }
+
     // Load the WASM binary from the app's origin
     final wasm = await WasmSqlite3.loadFromUrl(Uri.parse('sqlite3.wasm'));
 
