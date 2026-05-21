@@ -139,6 +139,26 @@ await db.reset();
 
 ---
 
+## Resolving Services / Repositories
+
+To simplify Developer Experience (DX) and avoid manually passing tables and database managers, you can resolve a `SqflowCore<T>` service directly from the `DB` manager using the `db.service<T>()` method:
+
+```dart
+final db = DB.autoVersion(
+  databaseName: 'app.db',
+  tables: [usersTable, ordersTable],
+);
+
+// Resolves SqflowCore<User> and SqflowCore<Order> automatically
+final userService = db.service<User>();
+final orderService = db.service<Order>();
+```
+
+> [!NOTE]
+> The generic type `T` must correspond to a model of a `Table` registered in this `DB` instance. If the model type is not registered, a `StateError` is thrown.
+
+---
+
 ## Downgrade Behavior
 
 > [!CAUTION]
@@ -217,6 +237,6 @@ final db = DB.autoVersion(
   tables: [usersTable],
 );
 
-// Create service
-final userService = SqflowCore<User>(dbManager: db, table: usersTable);
+// Create service (Recommended)
+final userService = db.service<User>();
 ```

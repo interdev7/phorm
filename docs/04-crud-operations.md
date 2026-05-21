@@ -28,8 +28,11 @@ final db = DB(
   tables: [usersTable, ordersTable],
 );
 
-// 3. Service
-final userService = SqflowCore<User>(dbManager: db, table: usersTable);
+// 3. Service (Recommended)
+final userService = db.service<User>();
+
+// Alternative manual creation:
+// final userService = SqflowCore<User>(dbManager: db, table: usersTable);
 ```
 
 ---

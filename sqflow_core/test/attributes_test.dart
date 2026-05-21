@@ -11,7 +11,7 @@ void main() {
       version: 1,
       tables: [usersTable, ordersTable],
     );
-    userService = SqflowCore<User>(dbManager: db, table: usersTable);
+    userService = db.service<User>();
 
     final database = await db.database;
     final now = DateTime.now().toIso8601String();
@@ -98,4 +98,14 @@ void main() {
     expect(ordersJson, contains('"total":100'));
     expect(ordersJson, isNot(contains('"id":1')));
   });
+
+  test('DB.service() should throw StateError if model is not registered', () {
+    // Attempt to resolve unregistered model
+    expect(
+      () => db.service<_UnregisteredModel>(),
+      throwsA(isA<StateError>()),
+    );
+  });
 }
+
+class _UnregisteredModel extends Model {}
