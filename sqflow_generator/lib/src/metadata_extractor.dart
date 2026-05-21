@@ -128,10 +128,19 @@ class MetadataExtractor {
     if (type.isDartCoreBool) return 'INTEGER';
     if (type.isDartCoreString) return 'TEXT';
 
+    final element = type.element;
+    if (element != null) {
+      if (element is EnumElement) return 'TEXT';
+      if (element.kind.name == 'ENUM') return 'TEXT';
+    }
+
     final typeName = type.element?.name;
     if (typeName == 'num') return 'NUMERIC';
     if (typeName == 'DateTime') return 'TEXT';
     if (typeName == 'Uint8List') return 'BLOB';
+    if (typeName == 'Duration') return 'INTEGER';
+    if (typeName == 'BigInt') return 'TEXT';
+    if (typeName == 'Uri') return 'TEXT';
 
     return 'TEXT';
   }

@@ -29,11 +29,28 @@ library;
 
 import 'dart:async';
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:path/path.dart';
-import 'package:sqflite/sqflite.dart';
-import 'package:sqflow_platform_interface/sqflow_platform_interface.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:sqflow_core/src/seeder.dart';
+import 'package:sqflow_platform_interface/sqflow_platform_interface.dart';
+
+import 'database_adapter.dart';
+import 'sql_function.dart';
+
+/// Gets the database directory path
+Future<String> getDatabasesPath() async {
+  if (Platform.isAndroid || Platform.isIOS) {
+    final dir = await getApplicationDocumentsDirectory();
+    return dir.path;
+  } else if (Platform.isLinux || Platform.isMacOS || Platform.isWindows) {
+    final dir = await getApplicationSupportDirectory();
+    return join(dir.path, 'databases');
+  } else {
+    return '.';
+  }
+}
 
 /// Main database manager that handles connection lifecycle,
 /// version management, and smart migration tracking.
@@ -73,6 +90,12 @@ class DB {
   /// List of table configurations including schemas and migrations
   final List<Table> tables;
 
+  /// Custom SQL functions to register with the database
+  final List<SqlFunction> customFunctions;
+
+  /// Optional password for SQLCipher encryption (Native only)
+  final String? password;
+
   /// Internal database instance (lazy-loaded)
   Database? _database;
 
@@ -99,15 +122,20 @@ class DB {
   /// Internal stream controller for table changes
   final _changeController = StreamController<String>.broadcast();
 
+  /// Subscription to background database change events
+  StreamSubscription<String>? _dbChangeSubscription;
+
   /// Stream of table names that have been modified
   Stream<String> get changeStream => _changeController.stream;
+
+  /// Active transaction buffer for updatesSync events.
+  Set<String>? _activeTransactionBuffer;
 
   /// Notifies the database that a table has been modified.
   /// If inside a transaction, notifications are buffered and emitted after commit.
   void notifyTableChange(String tableName) {
-    final buffered = Zone.current[#sqflow_notifications] as Set<String>?;
-    if (buffered != null) {
-      buffered.add(tableName);
+    if (_activeTransactionBuffer != null) {
+      _activeTransactionBuffer!.add(tableName);
     } else {
       _changeController.add(tableName);
     }
@@ -119,6 +147,7 @@ class DB {
   /// - `databaseName`: SQLite database file name
   /// - `version`: Current schema version (must be >= all migration versions)
   /// - `tables`: List of table configurations
+  /// - `customFunctions`: Custom SQL functions to register
   /// - `logger`: Custom logger (defaults to SqflowConsoleLogger)
   /// - `logQueries`: Whether to log all executed queries
   /// - `slowQueryThreshold`: Threshold for slow query warning
@@ -131,12 +160,15 @@ class DB {
   ///   databaseName: 'app_v3.db',
   ///   version: 3,
   ///   tables: [usersTable, postsTable],
+  ///   customFunctions: [SqlFunction.regexp()],
   /// );
   /// ```
   DB({
     required this.version,
     required this.tables,
     this.databaseName = 'app_database.db',
+    this.customFunctions = const [],
+    this.password,
     this.logger = const SqflowConsoleLogger(),
     this.logQueries = false,
     this.slowQueryThreshold = const Duration(milliseconds: 200),
@@ -164,6 +196,8 @@ class DB {
   factory DB.autoVersion({
     required String databaseName,
     required List<Table> tables,
+    List<SqlFunction> customFunctions = const [],
+    String? password,
     SqflowLogger? logger = const SqflowConsoleLogger(),
     bool logQueries = false,
     Duration slowQueryThreshold = const Duration(milliseconds: 200),
@@ -177,6 +211,8 @@ class DB {
       databaseName: databaseName,
       version: maxVersion,
       tables: tables,
+      customFunctions: customFunctions,
+      password: password,
       logger: logger,
       logQueries: logQueries,
       slowQueryThreshold: slowQueryThreshold,
@@ -206,22 +242,45 @@ class DB {
   Future<Database> _initDatabase() async {
     final String path;
     if (databaseName == ':memory:') {
+      path = ':memory:';
+    } else if (databaseName.startsWith('/') || databaseName.contains(':\\')) {
+      // Absolute path provided
       path = databaseName;
     } else {
+      // Relative path - use getDatabasesPath
       path = join(await getDatabasesPath(), databaseName);
     }
 
     logger?.info('Initializing database: $databaseName (v$version)');
 
-    return await openDatabase(
+    final db = await Database.open(
       path,
-      version: version,
-      onCreate: _onCreate,
-      onUpgrade: _onUpgrade,
-      onDowngrade: _onDowngrade,
-      onConfigure: _onConfigure,
-      singleInstance: singleInstance,
+      customFunctions: customFunctions,
+      password: password,
     );
+
+    // Cancel old subscription if any and subscribe to database changeStream
+    await _dbChangeSubscription?.cancel();
+    _dbChangeSubscription = db.changeStream.listen((tableName) {
+      notifyTableChange(tableName);
+    });
+
+    await _onConfigure(db);
+
+    final currentVersion = await db.getVersion();
+
+    if (currentVersion == 0) {
+      await _onCreate(db, version);
+      await db.setVersion(version);
+    } else if (currentVersion < version) {
+      await _onUpgrade(db, currentVersion, version);
+      await db.setVersion(version);
+    } else if (currentVersion > version) {
+      await _onDowngrade(db, currentVersion, version);
+      await db.setVersion(version);
+    }
+
+    return db;
   }
 
   /// Validates that all migrations are within the database version
@@ -229,8 +288,7 @@ class DB {
     for (final table in tables) {
       for (final migration in table.migrations) {
         if (migration.targetVersion > version) {
-          throw ArgumentError(
-              'Table "${table.name}" has migration "${migration.description}" '
+          throw ArgumentError('Table "${table.name}" has migration "${migration.description}" '
               'for version ${migration.targetVersion}, but database version is $version. '
               'Either increase database version or remove the migration.');
         }
@@ -316,11 +374,12 @@ class DB {
     await db.close();
 
     // Delete database file
-    if (databaseName == ':memory:') {
-      // In-memory databases are destroyed when closed
-    } else {
+    if (databaseName != ':memory:') {
       final path = join(await getDatabasesPath(), databaseName);
-      await deleteDatabase(path);
+      final file = File(path);
+      if (await file.exists()) {
+        await file.delete();
+      }
     }
 
     // Recreate with new version
@@ -423,7 +482,7 @@ class DB {
 
   /// Applies pending migrations between versions
   Future<void> _applyPendingMigrations(
-    DatabaseExecutor db,
+    Database db,
     int fromVersion,
     int toVersion,
   ) async {
@@ -432,8 +491,7 @@ class DB {
 
     for (final table in tables) {
       for (final migration in table.migrations) {
-        if (migration.targetVersion > fromVersion &&
-            migration.targetVersion <= toVersion) {
+        if (migration.targetVersion > fromVersion && migration.targetVersion <= toVersion) {
           pendingMigrations.add(_PendingMigration(table, migration));
         }
       }
@@ -446,25 +504,24 @@ class DB {
 
     // Sort by version and priority
     pendingMigrations.sort((a, b) {
-      final versionCompare =
-          a.migration.targetVersion.compareTo(b.migration.targetVersion);
+      final versionCompare = a.migration.targetVersion.compareTo(b.migration.targetVersion);
       if (versionCompare != 0) return versionCompare;
       return a.migration.priority.compareTo(b.migration.priority);
     });
 
     logger?.info('Found ${pendingMigrations.length} pending migrations');
 
-    // Apply migrations
-    // Note: onCreate/onUpgrade are already running in a transaction,
-    // so we don't need to start a new one here.
-    for (final pending in pendingMigrations) {
-      await _applySingleMigration(db, pending.table, pending.migration);
-    }
+    // Apply migrations in a transaction
+    await db.transaction((txn) async {
+      for (final pending in pendingMigrations) {
+        await _applySingleMigration(db, pending.table, pending.migration);
+      }
+    });
   }
 
   /// Applies a single migration with idempotency check
   Future<void> _applySingleMigration(
-    DatabaseExecutor db,
+    Database db,
     Table table,
     TableMigration migration,
   ) async {
@@ -478,12 +535,11 @@ class DB {
       return;
     }
 
-    logger?.info(
-        'Applying: ${migration.description} (v${migration.targetVersion})');
+    logger?.info('Applying: ${migration.description} (v${migration.targetVersion})');
 
     try {
       // Execute migration
-      await migration.migrate(SqfliteExecutorWrapper(db), table);
+      await migration.migrate(SqflowDatabaseExecutorWrapper(db), table);
 
       // Record as applied
       await db.insert(_migrationsTable, {
@@ -496,15 +552,14 @@ class DB {
 
       logger?.info('Migration Success');
     } catch (e, stackTrace) {
-      logger?.error(
-          'Migration Failed: ${migration.description}', e, stackTrace);
+      logger?.error('Migration Failed: ${migration.description}', e, stackTrace);
       rethrow;
     }
   }
 
   /// Checks if a migration has already been applied
   Future<bool> _isMigrationApplied(
-    DatabaseExecutor db,
+    Database db,
     String tableName,
     String hash,
   ) async {
@@ -564,16 +619,16 @@ class DB {
   Future<int> getCurrentFileVersion() async {
     final String path;
     if (databaseName == ':memory:') {
-      path = databaseName;
+      return 0;
     } else {
       path = join(await getDatabasesPath(), databaseName);
     }
 
     try {
-      final db = await openDatabase(
-        path,
-        readOnly: true,
-      );
+      final file = File(path);
+      if (!await file.exists()) return 0;
+
+      final db = await Database.open(path);
       final version = await db.getVersion();
       await db.close();
       return version;
@@ -595,9 +650,19 @@ class DB {
       return;
     }
 
-    final path = join(await getDatabasesPath(), databaseName);
+    // Check if it's an absolute path
+    final String path;
+    if (databaseName.startsWith('/') || databaseName.contains(':\\')) {
+      path = databaseName;
+    } else {
+      path = join(await getDatabasesPath(), databaseName);
+    }
+
     try {
-      await deleteDatabase(path);
+      final file = File(path);
+      if (await file.exists()) {
+        await file.delete();
+      }
     } catch (_) {
       // Ignore if file doesn't exist
     }
@@ -606,6 +671,7 @@ class DB {
   /// Closes the database connection
   Future<void> close() async {
     await _changeController.close();
+    await _dbChangeSubscription?.cancel();
     if (_database != null) {
       await _database!.close();
       _database = null;
@@ -628,8 +694,7 @@ class DB {
   }
 
   /// Helper to execute an action and log its performance
-  Future<T> logAction<T>(
-      String sql, List<Object?>? arguments, Future<T> Function() action) async {
+  Future<T> logAction<T>(String sql, List<Object?>? arguments, Future<T> Function() action) async {
     if (!logQueries) return action();
     final stopwatch = Stopwatch()..start();
     try {
@@ -660,29 +725,35 @@ class DB {
   ///   await profileService.insert(profile.copyWith(userId: userId), executor: txn);
   /// });
   /// ```
-  Future<R> transaction<R>(
-      Future<R> Function(DatabaseExecutor txn) action) async {
+  Future<R> transaction<R>(Future<R> Function(DatabaseExecutor txn) action) async {
     final dbInstance = await database;
-    final bufferedNotifications = <String>{};
+    
+    final isTopLevel = _activeTransactionBuffer == null;
+    if (isTopLevel) {
+      _activeTransactionBuffer = <String>{};
+    }
 
-    return await runZoned(
-      () async {
-        try {
-          final result = await dbInstance.transaction((txn) async {
-            return await action(txn);
-          });
-          // If we reached here, transaction committed successfully
-          for (final table in bufferedNotifications) {
+    try {
+      final result = await dbInstance.transaction((txn) async {
+        return await action(txn);
+      });
+      
+      if (isTopLevel) {
+        final buffered = _activeTransactionBuffer;
+        _activeTransactionBuffer = null;
+        if (buffered != null) {
+          for (final table in buffered) {
             _changeController.add(table);
           }
-          return result;
-        } catch (e) {
-          // If transaction failed/rolled back, notifications are discarded
-          rethrow;
         }
-      },
-      zoneValues: {#sqflow_notifications: bufferedNotifications},
-    );
+      }
+      return result;
+    } catch (e) {
+      if (isTopLevel) {
+        _activeTransactionBuffer = null; // discard on rollback
+      }
+      rethrow;
+    }
   }
 }
 
@@ -694,54 +765,27 @@ class _PendingMigration {
   _PendingMigration(this.table, this.migration);
 }
 
-/// Wrapper for sqflite's [DatabaseExecutor] to satisfy [SqflowDatabaseExecutor].
-class SqfliteExecutorWrapper implements SqflowDatabaseExecutor {
-  final DatabaseExecutor _executor;
-  SqfliteExecutorWrapper(this._executor);
+/// Wrapper for Database to satisfy [SqflowDatabaseExecutor].
+class SqflowDatabaseExecutorWrapper implements SqflowDatabaseExecutor {
+  final Database _executor;
+  SqflowDatabaseExecutorWrapper(this._executor);
 
   @override
-  Future<void> execute(String sql, [List<Object?>? arguments]) =>
-      _executor.execute(sql, arguments);
+  Future<void> execute(String sql, [List<Object?>? arguments]) => _executor.execute(sql, arguments);
 
   @override
   Future<List<Map<String, Object?>>> query(String table,
-          {bool? distinct,
-          List<String>? columns,
-          String? where,
-          List<Object?>? whereArgs,
-          String? groupBy,
-          String? having,
-          String? orderBy,
-          int? limit,
-          int? offset}) =>
-      _executor.query(table,
-          distinct: distinct,
-          columns: columns,
-          where: where,
-          whereArgs: whereArgs,
-          groupBy: groupBy,
-          having: having,
-          orderBy: orderBy,
-          limit: limit,
-          offset: offset);
+          {bool? distinct, List<String>? columns, String? where, List<Object?>? whereArgs, String? groupBy, String? having, String? orderBy, int? limit, int? offset}) =>
+      _executor.query(table, distinct: distinct, columns: columns, where: where, whereArgs: whereArgs, groupBy: groupBy, having: having, orderBy: orderBy, limit: limit, offset: offset);
 
   @override
-  Future<int> delete(String table, {String? where, List<Object?>? whereArgs}) =>
-      _executor.delete(table, where: where, whereArgs: whereArgs);
+  Future<int> delete(String table, {String? where, List<Object?>? whereArgs}) => _executor.delete(table, where: where, whereArgs: whereArgs);
 
   @override
-  Future<int> update(String table, Map<String, Object?> values,
-          {String? where, List<Object?>? whereArgs}) =>
-      _executor.update(table, values, where: where, whereArgs: whereArgs);
+  Future<int> update(String table, Map<String, Object?> values, {String? where, List<Object?>? whereArgs}) => _executor.update(table, values, where: where, whereArgs: whereArgs);
 
   @override
-  Future<int> insert(String table, Map<String, Object?> values,
-          {String? nullColumnHack, String? conflictAlgorithm}) =>
-      _executor.insert(table, values,
-          nullColumnHack: nullColumnHack,
-          conflictAlgorithm: conflictAlgorithm != null
-              ? ConflictAlgorithm.values.firstWhere(
-                  (e) => e.name == conflictAlgorithm,
-                  orElse: () => ConflictAlgorithm.abort)
-              : null);
+  Future<int> insert(String table, Map<String, Object?> values, {String? nullColumnHack, String? conflictAlgorithm}) => _executor.insert(table, values,
+      nullColumnHack: nullColumnHack,
+      conflictAlgorithm: conflictAlgorithm != null ? ConflictAlgorithm.values.firstWhere((e) => e.name == conflictAlgorithm, orElse: () => ConflictAlgorithm.abort) : null);
 }

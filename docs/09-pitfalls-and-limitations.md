@@ -51,11 +51,45 @@ WhereBuilder().eq('comments.status', 'approved');
 
 No error is thrown at build time. The generated SQL will reference a table that was not joined, causing a SQLite "no such column" error at runtime.
 
----
+### Custom SQL Functions & `regexp()` Setup
 
-### `regexp()` requires custom SQLite setup
+The `REGEXP` operator (and other custom SQL functions) is **not available** in standard `sqlite3` builds by default. Using `.regexp()` or custom functions without setup will throw a `DatabaseException` at runtime.
 
-The `REGEXP` operator is **not available** in standard `sqflite` builds. Using `.regexp()` will throw a `DatabaseException` at runtime unless you register a custom function with the underlying `sqflite` `Database` object.
+However, SQFlow provides an elegant built-in way to register custom SQL functions and regular expressions via the `SqlFunction` utility.
+
+#### How to configure:
+1. Provide `customFunctions` when initializing your `DB` manager:
+```dart
+final db = DB(
+  databaseName: 'app.db',
+  version: 1,
+  tables: [usersTable],
+  customFunctions: [
+    SqlFunction.regexp(), // Registers the standard REGEXP function
+    SqlFunction.custom(
+      name: 'DOUBLE',
+      argumentCount: 1,
+      function: (args) {
+        if (args[0] == null) return null;
+        return (args[0] as int) * 2;
+      },
+    ),
+  ],
+);
+```
+
+2. Once registered, these functions are fully available inside isolate database sessions, custom raw queries, and `WhereBuilder` clauses:
+```dart
+// 1. Using built-in regexp helper
+final users = await userService.readAll(
+  where: WhereBuilder().regexp('email', r'.*@gmail\.com'),
+);
+
+// 2. Using custom functions via safe raw queries
+final olderUsers = await userService.readAll(
+  where: WhereBuilder().raw('DOUBLE(age) > ?', [50]),
+);
+```
 
 ---
 

@@ -1,6 +1,6 @@
 # DB Manager & Migrations
 
-The `DB` class manages the database connection lifecycle and schema migrations. It is built on top of `sqflite` and adds a smart migration tracking system using an internal `__sqflow_migrations` table.
+The `DB` class manages the database connection lifecycle and schema migrations. It is built on top of `sqlite3` with isolate-based architecture and adds a smart migration tracking system using an internal `__sqflow_migrations` table.
 
 ---
 

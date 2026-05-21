@@ -3,7 +3,7 @@
 [![Dart](https://img.shields.io/badge/Dart-3.0%2B-blue)](https://dart.dev/)
 [![License: Apache 2.0](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 
-The runtime engine of the SQFlow ORM — CRUD, batch operations, pagination, eager loading, soft deletes, transactions, and schema migrations. Built on top of [sqflite](https://pub.dev/packages/sqflite).
+The runtime engine of the SQFlow ORM — CRUD, batch operations, pagination, eager loading, soft deletes, transactions, and schema migrations. Built on top of [sqlite3](https://pub.dev/packages/sqlite3) with isolate-based architecture for non-blocking database operations.
 
 ---
 
@@ -11,9 +11,9 @@ The runtime engine of the SQFlow ORM — CRUD, batch operations, pagination, eag
 
 SQFlow was created to solve three main problems in Flutter database management:
 
-1.  **Type Safety over Strings**: Most SQLite wrappers rely on `Map<String, dynamic>`. SQFlow generates type-safe columns and models, catching errors at compile-time rather than runtime.
-2.  **Active Record DX**: Instead of managing complex DAO/Repository layers, SQFlow provides a clean, declarative API directly on your models (`Users.insert()`, `Users.where(...)`).
-3.  **Performance & Relationships**: Fetching complex graphs (Many-to-Many, HasMany) usually leads to N+1 query problems. SQFlow uses JSON aggregation to resolve entire dependency trees in a **single SQL query**.
+1. **Type Safety over Strings**: Most SQLite wrappers rely on `Map<String, dynamic>`. SQFlow generates type-safe columns and models, catching errors at compile-time rather than runtime.
+2. **Active Record DX**: Instead of managing complex DAO/Repository layers, SQFlow provides a clean, declarative API directly on your models (`Users.insert()`, `Users.where(...)`).
+3. **Performance & Relationships**: Fetching complex graphs (Many-to-Many, HasMany) usually leads to N+1 query problems. SQFlow uses JSON aggregation to resolve entire dependency trees in a **single SQL query**.
 
 ---
 
@@ -22,7 +22,7 @@ SQFlow was created to solve three main problems in Flutter database management:
 ```yaml
 dependencies:
   sqflow_core: ^latest
-  sqflite: ^latest
+  sqlite3: ^2.4.6
 ```
 
 ---
@@ -70,15 +70,15 @@ final paged = await userService.readAllWithCount(limit: 20);
 
 | Method                  | Returns                      | Description               |
 | :---------------------- | :--------------------------- | :------------------------ |
-| `insert(item)`     | `Future<int>`                | Row ID                    |
-| `update(item)`     | `Future<int>`                | Affected rows             |
-| `upsert(item)`     | `Future<void>`               | Insert or replace         |
-| `readOne(id)`      | `Future<T?>`                 | By primary key            |
+| `insert(item)`          | `Future<int>`                | Row ID                    |
+| `update(item)`          | `Future<int>`                | Affected rows             |
+| `upsert(item)`          | `Future<void>`               | Insert or replace         |
+| `readOne(id)`           | `Future<T?>`                 | By primary key            |
 | `readAll(...)`          | `Future<Result<T>>`          | Paginated list            |
 | `readAllWithCount(...)` | `Future<ResultWithCount<T>>` | List + total count        |
-| `delete(id)`       | `Future<int>`                | Soft or hard delete       |
-| `restore(id)`      | `Future<int>`                | Un-delete (paranoid only) |
-| `exists(id)`       | `Future<bool>`               | Check presence            |
+| `delete(id)`            | `Future<int>`                | Soft or hard delete       |
+| `restore(id)`           | `Future<int>`                | Un-delete (paranoid only) |
+| `exists(id)`            | `Future<bool>`               | Check presence            |
 | `transaction(fn)`       | `Future<R>`                  | Raw transaction           |
 
 All methods have fire-and-forget variants: `insert(item, onSuccess: ..., onError: ...)`.

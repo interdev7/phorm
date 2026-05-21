@@ -3,10 +3,6 @@ import 'common.dart';
 void main() {
   late SqflowCore<User> userService;
 
-  setUpAll(() {
-    initSqflite();
-  });
-
   setUp(() async {
     userService = await createTestService();
   });
@@ -78,7 +74,6 @@ void main() {
     });
 
     test('readAll with LENGTH and SUBSTR filters', () async {
-      initSqflite();
       final service = await createTestService();
 
       final result = await service.readAllWithCount(
@@ -95,7 +90,6 @@ void main() {
     });
 
     test('readAll with OR and AND group filters', () async {
-      initSqflite();
       final service = await createTestService();
 
       final where = WhereBuilder().andGroup((ag) {

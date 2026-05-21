@@ -88,6 +88,9 @@ class MyModel extends Model ...
 
 If `useValidator` is `false`, the generator will still add `CHECK` constraints to the SQL schema, but will not include the `if (...) throw ...` checks in the `toJson()` method.
 
+> [!TIP]
+> **Dynamic Code Optimization:** You don't need to manually configure `useValidator: false` if your model has no validators declared on its fields. The generator dynamically detects the presence of validators and automatically omits the validator helper method and call if none are found.
+
 ---
 
 ## Custom Validators

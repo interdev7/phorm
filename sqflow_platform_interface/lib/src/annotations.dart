@@ -110,6 +110,9 @@ class Schema {
   /// instead of being physically removed.
   final bool paranoid;
 
+  /// The strategy used for naming columns.
+  ///
+  /// Defaults to [ColumnNamingStrategy.snakeCase].
   final ColumnNamingStrategy columnNaming;
 
   /// Relationships defined on the table.
@@ -279,12 +282,16 @@ abstract interface class Includable {
   List<Includable>? get include;
 
   /// Includes a relationship by its explicit table name.
-  static Includable table(String name, {Attributes? attributes, List<Includable>? include}) => _TableIncludable(name, attributes: attributes, include: include);
+  static Includable table(String name,
+          {Attributes? attributes, List<Includable>? include}) =>
+      _TableIncludable(name, attributes: attributes, include: include);
 
   /// Includes a relationship by its model class type.
   ///
   /// Provides compile-time safety and refactoring support.
-  static Includable model<T>({Attributes? attributes, List<Includable>? include}) => _ModelIncludable<T>(attributes: attributes, include: include);
+  static Includable model<T>(
+          {Attributes? attributes, List<Includable>? include}) =>
+      _ModelIncludable<T>(attributes: attributes, include: include);
 }
 
 class _TableIncludable implements Includable {
@@ -316,17 +323,20 @@ class _ModelIncludable<T> implements Includable {
       // But in practice, we know it's a list of Table objects.
       if (table.type == T) return table.name;
     }
-    throw ArgumentError('Table for model type $T not found in registered tables.');
+    throw ArgumentError(
+        'Table for model type $T not found in registered tables.');
   }
 }
 
 /// Interface for attribute filtering in queries (columns selection).
 abstract interface class Attributes {
   /// Includes only the specified columns.
-  static Attributes include(List<String> columns) => _IncludeAttributes(columns);
+  static Attributes include(List<String> columns) =>
+      _IncludeAttributes(columns);
 
   /// Excludes the specified columns.
-  static Attributes exclude(List<String> columns) => _ExcludeAttributes(columns);
+  static Attributes exclude(List<String> columns) =>
+      _ExcludeAttributes(columns);
 
   /// Applies the filter to the given list of columns.
   List<String> apply(List<String> allColumns);
@@ -348,4 +358,17 @@ class _ExcludeAttributes implements Attributes {
   List<String> apply(List<String> allColumns) {
     return allColumns.where((c) => !columns.contains(c)).toList();
   }
+}
+
+/// Annotation to mark a custom Dart function as a SQLite custom function.
+///
+/// The generator will scan all functions marked with `@SqlFunc` and:
+/// 1. Create a list of custom SQL function registrations in `custom_functions.g.dart`.
+/// 2. Generate type-safe [SqflowColumn] extension methods for calling this function.
+class SqlFunc {
+  /// The SQLite-native name of the custom SQL function.
+  /// If null, the generator defaults to the UPPERCASE version of the Dart function name.
+  final String? name;
+
+  const SqlFunc({this.name});
 }
