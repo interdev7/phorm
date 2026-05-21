@@ -49,3 +49,8 @@ app.*.map.json
 /android/app/release
 /ios/Podfile.lock
 /android/app/google-services.json
+
+# Generated files
+*.g.dart
+*.sql.g.dart
+*.fn.g.dart

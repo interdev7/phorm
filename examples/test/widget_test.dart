@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 
 import 'package:sqflow_example/main.dart';
 import 'package:sqflow_example/pages/reactive_todo_page.dart';
@@ -8,10 +7,6 @@ import 'package:sqflow_example/pages/social_feed_page.dart';
 import 'package:sqflow_example/pages/validation_demo_page.dart';
 
 void main() {
-  setUpAll(() {
-    sqfliteFfiInit();
-    databaseFactory = databaseFactoryFfi;
-  });
 
   testWidgets('SqflowShowcaseApp navigation smoke test', (WidgetTester tester) async {
     // Build our app and trigger a frame.

@@ -11,6 +11,7 @@ String stringSchemaBuilder({
   bool timestamps = true,
   bool useFromJson = true,
   String primaryKey = 'id',
+  bool isGeneric = false,
 }) {
   final relationshipsCode = relationships.map((r) {
     final lk = r['localKey'];
@@ -21,6 +22,10 @@ String stringSchemaBuilder({
   final schemaVarName = '_\$SQFlow${className}Schema';
   final tableClassName = '_\$SQFlow${className}Table';
   final tableVarName = '${tableName}Table';
+
+  final fromJsonValue = isGeneric
+      ? '(json) => _\$SQFlow${className}FromJson(json, (x) => x)'
+      : (useFromJson ? '_\$SQFlow${className}FromJson' : '$className.fromJson');
 
   return '''
 const $schemaVarName = """
@@ -33,7 +38,7 @@ ${[
 ${indexSql != null ? '\n$indexSql' : ''}
 """;
 
-class $tableClassName extends Table<$className> {
+class $tableClassName extends Table<${className}${isGeneric ? '<dynamic>' : ''}> {
   $tableClassName({
     required super.schema,
     required super.name,
@@ -49,7 +54,7 @@ class $tableClassName extends Table<$className> {
 final $tableVarName = $tableClassName(
   schema: $schemaVarName,
   name: '$tableName',
-  fromJson: ${useFromJson ? '_\$SQFlow${className}FromJson' : '$className.fromJson'},
+  fromJson: $fromJsonValue,
   relationships: ${relationshipsCode.isNotEmpty ? "const " : ""} [$relationshipsCode],
   columns: const [${columnNames.map((c) => "'$c'").join(', ')}],
   primaryKey: '$primaryKey',

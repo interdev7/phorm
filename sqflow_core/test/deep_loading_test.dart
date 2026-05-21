@@ -1,12 +1,9 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 import 'package:sqflow_core/sqflow_core.dart';
 import 'models/user.dart';
 
 void main() {
   setUpAll(() {
-    sqfliteFfiInit();
-    databaseFactory = databaseFactoryFfi;
   });
 
   late DB db;

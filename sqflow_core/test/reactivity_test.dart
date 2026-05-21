@@ -1,5 +1,4 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 import 'package:sqflow_core/sqflow_core.dart';
 import '../test/models/user.dart';
 
@@ -10,8 +9,6 @@ void main() {
   late SqflowCore<Post> postService;
 
   setUpAll(() {
-    sqfliteFfiInit();
-    databaseFactory = databaseFactoryFfi;
   });
 
   setUp(() async {

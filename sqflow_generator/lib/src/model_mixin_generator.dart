@@ -1,8 +1,9 @@
 import 'dart:convert';
 
-import 'package:_fe_analyzer_shared/src/type_inference/nullability_suffix.dart';
 import 'package:analyzer/dart/constant/value.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/nullability_suffix.dart';
+import 'package:analyzer/dart/element/type.dart';
 import 'package:build/build.dart';
 import 'package:source_gen/source_gen.dart';
 import 'package:sqflow_platform_interface/sqflow_platform_interface.dart';
@@ -21,6 +22,8 @@ class ModelMixinGenerator extends GeneratorForAnnotation<Schema> {
     if (element is! ClassElement) return '';
 
     final className = element.name;
+    final isGeneric = element.typeParameters.isNotEmpty;
+    final classType = isGeneric ? '$className<dynamic>' : className;
     final strategyReader = annotation.peek('columnNaming');
     final strategy = strategyReader == null || strategyReader.isNull
         ? ColumnNamingStrategy.snakeCase
@@ -33,13 +36,26 @@ class ModelMixinGenerator extends GeneratorForAnnotation<Schema> {
     final useCopyWith = annotation.peek('useCopyWith')?.boolValue ?? true;
     final useToString = annotation.peek('useToString')?.boolValue ?? true;
     final timestamps = annotation.peek('timestamps')?.boolValue ?? true;
-    final useValidator = annotation.peek('useValidator')?.boolValue ?? true;
     final paranoid = annotation.peek('paranoid')?.boolValue ?? false;
 
     final tableName = annotation.peek('tableName')?.stringValue ??
         MetadataExtractor.camelToSnake(className);
 
     final fields = element.fields.where((f) => !f.isStatic).toList();
+    final hasValidators = fields.any((field) {
+      final columnMeta = field.metadata.where((m) {
+        final name = m.element?.enclosingElement3?.name;
+        return name == 'Column' || name == 'ID';
+      }).firstOrNull;
+      if (columnMeta == null) return false;
+      final reader = ConstantReader(columnMeta.computeConstantValue());
+      final validatorsReader = reader.peek('validators');
+      return validatorsReader != null &&
+          validatorsReader.isList &&
+          validatorsReader.listValue.isNotEmpty;
+    });
+    final useValidator =
+        (annotation.peek('useValidator')?.boolValue ?? true) && hasValidators;
     final relationships = <Map<String, dynamic>>[];
 
     // Class level relationships
@@ -135,14 +151,33 @@ class ModelMixinGenerator extends GeneratorForAnnotation<Schema> {
       }
     }
 
+    final typeParams = element.typeParameters.map((p) => p.name).join(', ');
+    final typeParamsBrackets = typeParams.isNotEmpty ? '<$typeParams>' : '';
+
+    final toJsonTypeParams = element.typeParameters
+        .map((p) => 'Object? Function(${p.name} value) toJson${p.name}')
+        .join(', ');
+    final toJsonArgs =
+        element.typeParameters.map((p) => 'toJson${p.name}').join(', ');
+
+    final fromJsonTypeParams = element.typeParameters
+        .map((p) => '${p.name} Function(Object? json) fromJson${p.name}')
+        .join(', ');
+
     final buffer = StringBuffer()
-      ..writeln('mixin _\$SQFlow${className}Mixin {');
+      ..writeln('mixin _\$SQFlow${className}Mixin$typeParamsBrackets {');
 
     if (useToJson) {
+      final paramList = toJsonTypeParams.isNotEmpty
+          ? '[${element.typeParameters.map((p) => 'Object? Function(${p.name} value)? toJson${p.name}').join(', ')}]'
+          : '';
+      final argList = toJsonArgs.isNotEmpty
+          ? ', ${element.typeParameters.map((p) => 'toJson${p.name} ?? (x) => x').join(', ')}'
+          : '';
       buffer
         ..writeln()
         ..writeln(
-            '  Map<String, dynamic> toJson() => _\$SQFlow${className}ToJson(this as $className);');
+            '  Map<String, dynamic> toJson($paramList) => _\$SQFlow${className}ToJson(this as $className$typeParamsBrackets$argList);');
     }
 
     if (useToString) {
@@ -150,7 +185,7 @@ class ModelMixinGenerator extends GeneratorForAnnotation<Schema> {
         ..writeln()
         ..writeln('  @override')
         ..writeln(
-            '  String toString() => _\$SQFlow${className}ToString(this as $className);');
+            '  String toString() => _\$SQFlow${className}ToString(this as $className$typeParamsBrackets);');
     }
 
     // Timestamps fields
@@ -206,29 +241,29 @@ class ModelMixinGenerator extends GeneratorForAnnotation<Schema> {
 
     // 2. Helper functions for JSON and String serialization
     if (useToJson) {
+      final paramList =
+          toJsonTypeParams.isNotEmpty ? ', $toJsonTypeParams' : '';
       buffer
         ..writeln()
         ..writeln(
-            'Map<String, dynamic> _\$SQFlow${className}ToJson($className instance) {')
+            'Map<String, dynamic> _\$SQFlow${className}ToJson$typeParamsBrackets($className$typeParamsBrackets instance$paramList) {')
         ..writeln('  final ${className.toLowerCase()}Json = {');
-      for (final field in fields.where((f) => _isColumn(f))) {
+      for (final field in fields) {
+        if (relationships.any((r) => r['fieldName'] == field.name)) continue;
+
         final sqlName = MetadataExtractor.getSqlColumnName(field, strategy);
         final info = MetadataExtractor.getConverterInfo(field);
-
-        if (info != null) {
-          final isNullable =
-              field.type.nullabilitySuffix == NullabilitySuffix.question;
-          if (isNullable) {
-            buffer.writeln(
-                "    '$sqlName': _\$SQFlowToJsonValue(instance.${field.name} != null ? ${info.code}.toSql(instance.${field.name}!) : null),");
-          } else {
-            buffer.writeln(
-                "    '$sqlName': _\$SQFlowToJsonValue(${info.code}.toSql(instance.${field.name})),");
-          }
-        } else {
-          buffer.writeln(
-              "    '$sqlName': _\$SQFlowToJsonValue(instance.${field.name}),");
-        }
+        // For generic type parameters (T), pass the corresponding toJsonT function
+        final toJsonParam = field.type is TypeParameterType
+            ? 'toJson${(field.type as TypeParameterType).element.name}'
+            : null;
+        final valueExpr = _generateToJsonValue(
+          field.type,
+          'instance.${field.name}',
+          info: info,
+          toJsonParamName: toJsonParam,
+        );
+        buffer.writeln("    '$sqlName': _\$SQFlowToJsonValue($valueExpr),");
       }
 
       if (timestamps) {
@@ -271,7 +306,8 @@ class ModelMixinGenerator extends GeneratorForAnnotation<Schema> {
     if (useToString) {
       buffer
         ..writeln()
-        ..writeln('String _\$SQFlow${className}ToString($className instance) {')
+        ..writeln(
+            'String _\$SQFlow${className}ToString$typeParamsBrackets($className$typeParamsBrackets instance) {')
         ..writeln('  return """')
         ..writeln('$className(');
 
@@ -315,11 +351,12 @@ class ModelMixinGenerator extends GeneratorForAnnotation<Schema> {
     if (useCopyWith) {
       buffer
         ..writeln()
-        ..writeln('extension SQFlow${className}Ext on $className {');
+        ..writeln(
+            'extension SQFlow${className}Ext$typeParamsBrackets on $className$typeParamsBrackets {');
 
       final constructor =
           element.unnamedConstructor ?? element.constructors.first;
-      buffer.writeln('  $className copyWith({');
+      buffer.writeln('  $className$typeParamsBrackets copyWith({');
 
       for (final param in constructor.parameters) {
         final type = param.type.getDisplayString();
@@ -421,9 +458,11 @@ class ModelMixinGenerator extends GeneratorForAnnotation<Schema> {
 
     // 4. fromJson Function
     if (useFromJson) {
+      final paramList =
+          fromJsonTypeParams.isNotEmpty ? ', $fromJsonTypeParams' : '';
       buffer
         ..writeln(
-            '\n$className _\$SQFlow${className}FromJson(Map<String, dynamic> json) {')
+            '\n$className$typeParamsBrackets _\$SQFlow${className}FromJson$typeParamsBrackets(Map<String, dynamic> json$paramList) {')
         // ..writeln(useValidator
         //     ? '  _\$validate$className(json, tableName: \'$tableName\');\n'
         //     : '')
@@ -448,37 +487,20 @@ class ModelMixinGenerator extends GeneratorForAnnotation<Schema> {
             buffer.writeln(
                 "    ${param.name}: json['$modelTable'] != null ? $modelClass.fromJson(json['$modelTable'] as Map<String, dynamic>) : null,");
           }
-        } else if (field != null && _isColumn(field)) {
+        } else if (field != null) {
           final sqlName = MetadataExtractor.getSqlColumnName(field, strategy);
           final info = MetadataExtractor.getConverterInfo(field);
-          final type = param.type.getDisplayString();
-          final isNullable =
-              param.type.nullabilitySuffix == NullabilitySuffix.question;
-
-          if (info != null) {
-            final sType = info.sqlType.getDisplayString();
-            if (isNullable) {
-              buffer.writeln(
-                  "    ${param.name}: json['$sqlName'] != null ? ${info.code}.fromSql(json['$sqlName'] as $sType) : null,");
-            } else {
-              buffer.writeln(
-                  "    ${param.name}: ${info.code}.fromSql(json['$sqlName'] as $sType),");
-            }
-          } else if (type.startsWith('DateTime')) {
-            if (isNullable) {
-              buffer.writeln(
-                  "    ${param.name}: json['$sqlName'] != null ? DateTime.parse(json['$sqlName'] as String) : null,");
-            } else {
-              buffer.writeln(
-                  "    ${param.name}: DateTime.parse(json['$sqlName'] as String),");
-            }
-          } else if (type == 'bool' || type == 'bool?') {
-            // Handle both int (SQLite: 0/1) and bool (in-memory JSON) values
-            buffer.writeln(
-                "    ${param.name}: json['$sqlName'] is bool ? json['$sqlName'] as bool : (json['$sqlName'] as int?) == 1,");
-          } else {
-            buffer.writeln("    ${param.name}: json['$sqlName'] as $type,");
-          }
+          // For generic type parameters (T), pass the corresponding fromJsonT function
+          final fromJsonParam = param.type is TypeParameterType
+              ? 'fromJson${(param.type as TypeParameterType).element.name}'
+              : null;
+          final parsedExpr = _generateFromJsonValue(
+            param.type,
+            "json['$sqlName']",
+            info: info,
+            fromJsonParamName: fromJsonParam,
+          );
+          buffer.writeln("    ${param.name}: $parsedExpr,");
         } else {
           buffer.writeln("    ${param.name}: null,");
         }
@@ -552,22 +574,22 @@ class ModelMixinGenerator extends GeneratorForAnnotation<Schema> {
       var type = field.type.getDisplayString();
       if (type.endsWith('?')) type = type.substring(0, type.length - 1);
       buffer.writeln(
-          "  static const SqflowColumn<$type> ${field.name} = SqflowColumn<$type>('$sqlName');");
+          "  static const SqflowColumn<$type> ${field.name} = SqflowColumn<$type>('$sqlName', tableName: '$tableName');");
     }
 
     if (timestamps) {
       if (!existsCreatedAt) {
         buffer.writeln(
-            "  static const SqflowColumn<DateTime> createdAt = SqflowColumn<DateTime>('created_at');");
+            "  static const SqflowColumn<DateTime> createdAt = SqflowColumn<DateTime>('created_at', tableName: '$tableName');");
       }
       if (!existsUpdatedAt) {
         buffer.writeln(
-            "  static const SqflowColumn<DateTime> updatedAt = SqflowColumn<DateTime>('updated_at');");
+            "  static const SqflowColumn<DateTime> updatedAt = SqflowColumn<DateTime>('updated_at', tableName: '$tableName');");
       }
     }
     if (paranoid && !existsDeletedAt) {
       buffer.writeln(
-          "  static const SqflowColumn<DateTime> deletedAt = SqflowColumn<DateTime>('deleted_at');");
+          "  static const SqflowColumn<DateTime> deletedAt = SqflowColumn<DateTime>('deleted_at', tableName: '$tableName');");
     }
 
     // Synthesized FKs
@@ -578,7 +600,7 @@ class ModelMixinGenerator extends GeneratorForAnnotation<Schema> {
         final existsFk = fields.any((f) => f.name == fkName);
         if (!existsFk) {
           buffer.writeln(
-              "  static const SqflowColumn<dynamic> $fkName = SqflowColumn<dynamic>('$fkSqlName');");
+              "  static const SqflowColumn<dynamic> $fkName = SqflowColumn<dynamic>('$fkSqlName', tableName: '$tableName');");
         }
       }
     }
@@ -586,29 +608,29 @@ class ModelMixinGenerator extends GeneratorForAnnotation<Schema> {
     buffer
       ..writeln()
       ..writeln(
-          '  static SqflowCore<$className> get _service => SqflowCore<$className>(dbManager: appDb, table: ${tableName}Table);')
+          '  static SqflowCore<$classType> get _service => SqflowCore<$classType>(dbManager: appDb, table: ${tableName}Table);')
       ..writeln()
       ..writeln(
-          '  static SqflowQuery<$className> where(SqflowCondition condition) => _service.where(condition);')
-      ..writeln('  static SqflowQuery<$className> get query => _service.query;')
+          '  static SqflowQuery<$classType> where(SqflowCondition condition) => _service.where(condition);')
+      ..writeln('  static SqflowQuery<$classType> get query => _service.query;')
       ..writeln()
       ..writeln(
-          '  static Future<int> insert($className item, {DatabaseExecutor? executor}) => _service.insert(item, executor: executor);')
+          '  static Future<int> insert($classType item, {DatabaseExecutor? executor}) => _service.insert(item, executor: executor);')
       ..writeln(
-          '  static Future<int> update($className item, {DatabaseExecutor? executor}) => _service.update(item, executor: executor);')
+          '  static Future<int> update($classType item, {DatabaseExecutor? executor}) => _service.update(item, executor: executor);')
       ..writeln(
-          '  static Future<void> upsert($className item, {DatabaseExecutor? executor}) => _service.upsert(item, executor: executor);')
+          '  static Future<void> upsert($classType item, {DatabaseExecutor? executor}) => _service.upsert(item, executor: executor);')
       ..writeln(
           '  static Future<int> delete(Object id, {bool force = false, DatabaseExecutor? executor}) => _service.delete(id, force: force, executor: executor);')
       ..writeln(
           '  static Future<int> restore(Object id, {DatabaseExecutor? executor}) => _service.restore(id, executor: executor);')
       ..writeln()
       ..writeln(
-          '  static Future<int> insertBatch(List<$className> items, {DatabaseExecutor? executor}) => _service.insertBatch(items, executor: executor);')
+          '  static Future<int> insertBatch(List<$classType> items, {DatabaseExecutor? executor}) => _service.insertBatch(items, executor: executor);')
       ..writeln(
-          '  static Future<int> updateBatch(List<$className> items, {DatabaseExecutor? executor}) => _service.updateBatch(items, executor: executor);')
+          '  static Future<int> updateBatch(List<$classType> items, {DatabaseExecutor? executor}) => _service.updateBatch(items, executor: executor);')
       ..writeln(
-          '  static Future<int> upsertBatch(List<$className> items, {DatabaseExecutor? executor}) => _service.upsertBatch(items, executor: executor);')
+          '  static Future<int> upsertBatch(List<$classType> items, {DatabaseExecutor? executor}) => _service.upsertBatch(items, executor: executor);')
       ..writeln(
           '  static Future<int> deleteBatch(List<Object> ids, {bool force = false, DatabaseExecutor? executor}) => _service.deleteBatch(ids, force: force, executor: executor);');
 
@@ -623,17 +645,17 @@ class ModelMixinGenerator extends GeneratorForAnnotation<Schema> {
           '  static Future<bool> exists(Object id, {bool withDeleted = false, DatabaseExecutor? executor}) => _service.exists(id, withDeleted: withDeleted, executor: executor);')
       ..writeln()
       ..writeln(
-          '  static Future<$className?> readOne(Object id, {List<String>? columns, Attributes? attributes, bool withDeleted = false, List<Includable>? include, DatabaseExecutor? executor}) => ')
+          '  static Future<$classType?> readOne(Object id, {List<String>? columns, Attributes? attributes, bool withDeleted = false, List<Includable>? include, DatabaseExecutor? executor}) => ')
       ..writeln(
           '    _service.readOne(id, columns: columns, attributes: attributes, withDeleted: withDeleted, include: include, executor: executor);')
       ..writeln()
       ..writeln(
-          '  static Future<Result<$className>> readAll({int limit = 20, int offset = 0, WhereBuilder? where, SortBuilder? sort, List<String>? columns, Attributes? attributes, bool withDeleted = false, bool onlyDeleted = false, List<Includable>? include, DatabaseExecutor? executor}) => ')
+          '  static Future<Result<$classType>> readAll({int limit = 20, int offset = 0, WhereBuilder? where, SortBuilder? sort, List<String>? columns, Attributes? attributes, bool withDeleted = false, bool onlyDeleted = false, List<Includable>? include, DatabaseExecutor? executor}) => ')
       ..writeln(
           '    _service.readAll(limit: limit, offset: offset, where: where, sort: sort, columns: columns, attributes: attributes, withDeleted: withDeleted, onlyDeleted: onlyDeleted, include: include, executor: executor);')
       ..writeln()
       ..writeln(
-          '  static Future<ResultWithCount<$className>> readAllWithCount({int limit = 20, int offset = 0, WhereBuilder? where, SortBuilder? sort, List<String>? columns, Attributes? attributes, bool withDeleted = false, bool onlyDeleted = false, List<Includable>? include, DatabaseExecutor? executor}) => ')
+          '  static Future<ResultWithCount<$classType>> readAllWithCount({int limit = 20, int offset = 0, WhereBuilder? where, SortBuilder? sort, List<String>? columns, Attributes? attributes, bool withDeleted = false, bool onlyDeleted = false, List<Includable>? include, DatabaseExecutor? executor}) => ')
       ..writeln(
           '    _service.readAllWithCount(limit: limit, offset: offset, where: where, sort: sort, columns: columns, attributes: attributes, withDeleted: withDeleted, onlyDeleted: onlyDeleted, include: include, executor: executor);')
       ..writeln()
@@ -654,14 +676,266 @@ class ModelMixinGenerator extends GeneratorForAnnotation<Schema> {
       ..writeln(
           '  static Stream<String> get changeStream => _service.dbManager.changeStream;')
       ..writeln(
-          '  static Stream<$className?> watchOne(Object id, {List<Includable>? include}) => _service.watchOne(id, include: include);')
+          '  static Stream<$classType?> watchOne(Object id, {List<Includable>? include}) => _service.watchOne(id, include: include);')
       ..writeln(
-          '  static Stream<List<$className>> watchAll({WhereBuilder? where, List<Includable>? include, SortBuilder? sort, int? limit}) => ')
+          '  static Stream<List<$classType>> watchAll({WhereBuilder? where, List<Includable>? include, SortBuilder? sort, int? limit}) => ')
       ..writeln(
           '    _service.watchAll(where: where, include: include, sort: sort, limit: limit);')
       ..writeln('}');
 
+    if (relationships.isNotEmpty) {
+      buffer
+        ..writeln()
+        ..writeln(
+            'extension ${className}QueryRelations on SqflowQuery<$classType> {');
+      for (final rel in relationships) {
+        final fieldName = rel['fieldName'] as String;
+        final modelClass = rel['modelClass'] as String;
+        final capitalized = fieldName[0].toUpperCase() + fieldName.substring(1);
+        final methodName = 'include$capitalized';
+
+        buffer.writeln('''
+  SqflowQuery<$classType> $methodName({Attributes? attributes, List<Includable>? include}) {
+    return includeOne(Includable.model<$modelClass>(attributes: attributes, include: include));
+  }''');
+      }
+      buffer.writeln('}');
+    }
+
     return buffer.toString();
+  }
+
+  String _generateToJsonValue(
+    DartType type,
+    String accessor, {
+    ConverterInfo? info,
+    // Для generic-полей типа T передаётся имя соответствующего функции-параметра
+    String? toJsonParamName,
+  }) {
+    final isNullable = type.nullabilitySuffix == NullabilitySuffix.question;
+    final q = isNullable ? '?' : '';
+
+    // Custom converter
+    if (info != null) {
+      if (isNullable) {
+        return "$accessor != null ? ${info.code}.toSql($accessor!) : null";
+      }
+      return "${info.code}.toSql($accessor)";
+    }
+
+    // Generic type parameter (T, E, etc.)
+    if (type is TypeParameterType) {
+      // Use the passed-in toJsonT function if provided
+      if (toJsonParamName != null) {
+        if (isNullable) {
+          return "$accessor != null ? $toJsonParamName($accessor as ${type.element.name}) : null";
+        }
+        return "$toJsonParamName($accessor)";
+      }
+      return accessor;
+    }
+
+    if (type.element is EnumElement || type.element?.kind.name == 'ENUM') {
+      return "$accessor$q.name";
+    }
+
+    final typeName = type.element?.name;
+
+    if (typeName == 'DateTime') return accessor;
+    if (typeName == 'BigInt') return "$accessor$q.toString()";
+    if (typeName == 'Uri') return "$accessor$q.toString()";
+    if (typeName == 'Duration') return "$accessor$q.inMicroseconds";
+
+    // Basic types — pass through as-is
+    if (type.isDartCoreInt ||
+        type.isDartCoreDouble ||
+        type.isDartCoreBool ||
+        type.isDartCoreString ||
+        type.isDartCoreNum) {
+      return accessor;
+    }
+
+    // List / Set / Iterable
+    if (type is ParameterizedType &&
+        (typeName == 'List' || typeName == 'Set' || typeName == 'Iterable') &&
+        type.typeArguments.isNotEmpty) {
+      final itemType = type.typeArguments.first;
+      final itemExpr = _generateToJsonValue(itemType, 'e');
+      final sameExpr = itemExpr == 'e';
+      if (isNullable) {
+        return sameExpr
+            ? accessor
+            : "$accessor$q.map((e) => $itemExpr).toList()";
+      }
+      return sameExpr ? accessor : "$accessor.map((e) => $itemExpr).toList()";
+    }
+
+    // Map<String, V>
+    if (type is ParameterizedType &&
+        typeName == 'Map' &&
+        type.typeArguments.length == 2) {
+      final valueType = type.typeArguments[1];
+      final valExpr = _generateToJsonValue(valueType, 'v');
+      if (valExpr == 'v') return accessor;
+      return "$accessor$q.map((k, v) => MapEntry(k, $valExpr))";
+    }
+
+    // Class with toJson()
+    if (type.element is ClassElement &&
+        typeName != 'Object' &&
+        typeName != 'dynamic') {
+      final classElement = type.element as ClassElement;
+      final hasToJson = classElement.methods.any((m) => m.name == 'toJson');
+      if (hasToJson) {
+        return "$accessor$q.toJson()";
+      }
+    }
+
+    return accessor;
+  }
+
+  String _generateFromJsonValue(
+    DartType type,
+    String jsonAccess, {
+    ConverterInfo? info,
+    // Для generic-полей T передаётся имя функции-параметра fromJsonT
+    String? fromJsonParamName,
+  }) {
+    final isNullable = type.nullabilitySuffix == NullabilitySuffix.question;
+    final typeName = type.element?.name;
+    final displayType = type.getDisplayString();
+    final rawType = displayType.replaceAll('?', '');
+
+    // Custom converter
+    if (info != null) {
+      final sType = info.sqlType.getDisplayString();
+      if (isNullable) {
+        return "$jsonAccess != null ? ${info.code}.fromSql($jsonAccess as $sType) : null";
+      }
+      return "${info.code}.fromSql($jsonAccess as $sType)";
+    }
+
+    // Generic type parameter (T, E, etc.)
+    if (type is TypeParameterType) {
+      if (fromJsonParamName != null) {
+        if (isNullable) {
+          return "$jsonAccess != null ? $fromJsonParamName($jsonAccess) : null";
+        }
+        return "$fromJsonParamName($jsonAccess)";
+      }
+      // Fallback — no converter provided
+      return "$jsonAccess as $displayType";
+    }
+
+    // Enum
+    if (type.element is EnumElement || type.element?.kind.name == 'ENUM') {
+      if (isNullable) {
+        return "$jsonAccess != null ? $rawType.values.byName($jsonAccess as String) : null";
+      }
+      return "$rawType.values.byName($jsonAccess as String)";
+    }
+
+    // DateTime
+    if (typeName == 'DateTime') {
+      if (isNullable) {
+        return "$jsonAccess != null ? DateTime.parse($jsonAccess as String) : null";
+      }
+      return "DateTime.parse($jsonAccess as String)";
+    }
+
+    // BigInt
+    if (typeName == 'BigInt') {
+      if (isNullable) {
+        return "$jsonAccess != null ? BigInt.parse($jsonAccess as String) : null";
+      }
+      return "BigInt.parse($jsonAccess as String)";
+    }
+
+    // Uri
+    if (typeName == 'Uri') {
+      if (isNullable) {
+        return "$jsonAccess != null ? Uri.parse($jsonAccess as String) : null";
+      }
+      return "Uri.parse($jsonAccess as String)";
+    }
+
+    // Duration (stored as microseconds int)
+    if (typeName == 'Duration') {
+      if (isNullable) {
+        return "$jsonAccess != null ? Duration(microseconds: $jsonAccess as int) : null";
+      }
+      return "Duration(microseconds: $jsonAccess as int)";
+    }
+
+    // bool (SQLite stores as 0/1)
+    if (typeName == 'bool') {
+      if (isNullable) {
+        return "$jsonAccess == null ? null : ($jsonAccess is bool ? $jsonAccess as bool : ($jsonAccess as int) == 1)";
+      }
+      return "$jsonAccess is bool ? $jsonAccess as bool : ($jsonAccess as int) == 1";
+    }
+
+    // Core scalar types
+    if (type.isDartCoreInt ||
+        type.isDartCoreDouble ||
+        type.isDartCoreString ||
+        type.isDartCoreNum) {
+      return "$jsonAccess as $displayType";
+    }
+
+    // List<T>
+    if (type is ParameterizedType &&
+        typeName == 'List' &&
+        type.typeArguments.isNotEmpty) {
+      final itemType = type.typeArguments.first;
+      final itemExpr = _generateFromJsonValue(itemType, 'e');
+      if (isNullable) {
+        return "(_\$SQFlowDecodeJson($jsonAccess) as List?)?.map((e) => $itemExpr).toList()";
+      }
+      return "(_\$SQFlowDecodeJson($jsonAccess) as List).map((e) => $itemExpr).toList()";
+    }
+
+    // Set<T>
+    if (type is ParameterizedType &&
+        typeName == 'Set' &&
+        type.typeArguments.isNotEmpty) {
+      final itemType = type.typeArguments.first;
+      final itemExpr = _generateFromJsonValue(itemType, 'e');
+      if (isNullable) {
+        return "(_\$SQFlowDecodeJson($jsonAccess) as List?)?.map((e) => $itemExpr).toSet()";
+      }
+      return "(_\$SQFlowDecodeJson($jsonAccess) as List).map((e) => $itemExpr).toSet()";
+    }
+
+    // Map<String, V>
+    if (type is ParameterizedType &&
+        typeName == 'Map' &&
+        type.typeArguments.length == 2) {
+      final valueType = type.typeArguments[1];
+      final valExpr = _generateFromJsonValue(valueType, 'v');
+      if (isNullable) {
+        return "(_\$SQFlowDecodeJson($jsonAccess) as Map?)?.map((k, v) => MapEntry(k as String, $valExpr))";
+      }
+      return "(_\$SQFlowDecodeJson($jsonAccess) as Map).map((k, v) => MapEntry(k as String, $valExpr))";
+    }
+
+    // Nested class with fromJson constructor
+    if (type.element is ClassElement &&
+        typeName != 'Object' &&
+        typeName != 'dynamic') {
+      final classElement = type.element as ClassElement;
+      final hasFromJson =
+          classElement.constructors.any((c) => c.name == 'fromJson');
+      if (hasFromJson) {
+        if (isNullable) {
+          return "$jsonAccess != null ? $rawType.fromJson($jsonAccess as Map<String, dynamic>) : null";
+        }
+        return "$rawType.fromJson($jsonAccess as Map<String, dynamic>)";
+      }
+    }
+
+    // Fallback
+    return "$jsonAccess as $displayType";
   }
 
   bool _isColumn(FieldElement field) {

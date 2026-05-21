@@ -3,9 +3,7 @@ import 'common.dart';
 void main() {
   late SqflowCore<User> userService;
 
-  setUpAll(() {
-    initSqflite();
-  });
+  setUpAll(() {});
 
   setUp(() async {
     userService = await createTestService();
@@ -27,7 +25,6 @@ void main() {
         gender: 'M',
         city: 'Test City',
         country: 'Test Country',
-
       );
 
       final id = await userService.insert(newUser);

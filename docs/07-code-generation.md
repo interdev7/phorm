@@ -242,3 +242,139 @@ Make sure:
 > The generated mixin name follows the pattern: `_$SQFlow` + `ClassName` + `Mixin`.
 > For `class MyModel` → `_$SQFlowMyModelMixin`
 > For `class UserProfile` → `_$SQFlowUserProfileMixin`
+
+---
+
+## Custom SQL Functions Code Generation (`@SqlFunc`)
+
+`sqflow_generator` also provides an automatic code generator for your custom SQLite functions, eliminating all boilerplate (such as manual registry creation, column extensions, and argument casting).
+
+### 1. Annotate Top-Level Dart Functions
+Write regular Dart functions containing your custom SQLite function logic and annotate them with `@SqlFunc`:
+
+```dart
+// lib/models/custom_functions.dart
+import 'package:sqflow_core/sqflow_core.dart';
+
+part 'custom_functions.fn.g.dart';
+
+@SqlFunc(name: 'TO_SLUG')
+String? toSlug(String? val) {
+  if (val == null) return null;
+  return val.toLowerCase().replaceAll(RegExp(r'[^a-z0-9]+'), '-');
+}
+
+@SqlFunc(name: 'DOUBLE')
+int? doubleValue(int? val) {
+  if (val == null) return null;
+  return val * 2;
+}
+```
+
+### 2. Generate
+Run `build_runner`. The generator creates a standalone `.fn.g.dart` file (e.g. `custom_functions.fn.g.dart`):
+
+> [!NOTE]
+> The unique `.fn.g.dart` extension prevents output conflicts with other builders like `source_gen:combining_builder`.
+
+```dart
+// GENERATED CODE - DO NOT MODIFY BY HAND
+part of 'custom_functions.dart';
+
+// Custom SQL function registrations
+final customSqlFunctions = [
+  SqlFunction.custom(
+    name: 'TO_SLUG',
+    argumentCount: 1,
+    function: (args) {
+      return toSlug(args[0] as String?);
+    },
+  ),
+  SqlFunction.custom(
+    name: 'DOUBLE',
+    argumentCount: 1,
+    function: (args) {
+      return doubleValue(args[0] as int?);
+    },
+  ),
+];
+
+// Type-safe column extensions for custom SQL functions
+extension toSlugSqflowColumnExtension on SqflowColumn<String> {
+  /// Applies the custom SQL function `TO_SLUG` to this column.
+  SqflowColumn<String> toSlug() {
+    return sqlFunction<String>('TO_SLUG');
+  }
+}
+
+extension doubleValueSqflowColumnExtension on SqflowColumn<int> {
+  /// Applies the custom SQL function `DOUBLE` to this column.
+  SqflowColumn<int> doubleValue() {
+    return sqlFunction<int>('DOUBLE');
+  }
+}
+```
+
+### 3. Register Custom Functions in Database
+Provide `customSqlFunctions` when opening your database:
+
+```dart
+final db = await DB.open(
+  path: 'path_to_db.db',
+  customFunctions: customSqlFunctions,
+);
+```
+
+### 4. Query Type-Safely
+The generated extension methods allow calling your custom SQL functions directly on matching `SqflowColumn` instances:
+
+```dart
+// Type-safe query!
+final users = await Users.where(
+  Users.firstName.toSlug().eq('jane-smith'),
+).get();
+
+final doubledUsers = await Users.where(
+  Users.age.doubleValue().gt(50),
+).get();
+```
+
+If you try to call `.doubleValue()` on a `SqflowColumn<String>`, Dart will produce a compile-time error!
+
+---
+
+## Advanced Features & Code Generation Details
+
+The `sqflow_generator` produces highly optimized, clean, and warning-free Dart code by employing smart static analysis.
+
+### 1. Smart Validation Code Generation
+To keep the generated files lightweight, **validation methods (`_$validate[ClassName]`) are generated dynamically**:
+* If a model class has **no validators** defined on any of its fields, the generator completely omits the helper `_$validate[ClassName]` function and its execution call inside `toJson()`.
+* This ensures that generated files stay clean and strictly relevant, avoiding any unused validation boilerplate.
+
+### 2. Elimination of Unused Helper Utilities
+The generator performs a static scan of the class attributes and relationships to keep the output pristine:
+* The JSON decoder helper `_$SQFlowDecodeJson` is omitted if it isn't referenced by any custom deserialization rules.
+* Unnecessary `_$SQFlowToJsonValue` helper declarations are excluded when no complex type conversions or collection fields are present in the schema.
+
+### 3. Explicit Type Arguments for Generic Models
+For generic model classes (e.g. `class ApiResponse<T>`), the generated Pluralized Service (e.g., `class ApiResponses`) uses explicit type arguments:
+```dart
+class ApiResponses extends SqflowCore<ApiResponse<dynamic>> { ... }
+```
+This ensures complete type safety and avoids compiler warnings (*The generic type 'ApiResponse<dynamic>' should have explicit type arguments but doesn't*).
+
+### 4. Overriding Column Names vs Global Strategies
+When a `@Schema` defines a global column naming strategy (e.g., `columnNaming: ColumnNamingStrategy.snakeCase`), specific fields can still be overridden using a per-field level configuration:
+```dart
+@Column(columnName: 'userId')
+final String userId;
+```
+Direct `columnName` overrides have the **highest priority** and are strictly preserved exactly as defined. This allows seamless mapping of backend payload keys to local properties while maintaining global naming strategy conventions.
+
+> [!TIP]
+> **Best Practice for API Integration:** If your application communicates with backend APIs or other external services, it is highly recommended to establish unified property naming conventions across your frontend models, database schemas, and backend payloads. Aligning these names beforehand minimizes manual mapping boilerplate, simplifies code maintenance, and prevents any property-naming confusion.
+
+
+
+

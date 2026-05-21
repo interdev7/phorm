@@ -2,10 +2,6 @@ import 'models/user.dart';
 import 'test_utils.dart';
 
 void main() {
-  setUpAll(() {
-    initSqflite();
-  });
-
   late DB db;
   late SqflowCore<User> userService;
 
