@@ -2,13 +2,19 @@
   <img src="assets/logo/sqflow.png" alt="SqFlow" height="240" />
 </div>
 
-# SQFlow
+# SQFlow (Single Query Flow)
 
-A lightweight, type-safe SQLite ORM-like abstraction for Dart and Flutter.
+A lightweight, type-safe, driver-agnostic ORM for Dart and Flutter.
 
-This package is built on top of [`sqlite3`](https://pub.dev/packages/sqlite3) with isolate-based architecture for non-blocking database operations.
+SQFlow is designed from the ground up to be database-independent. It separates query building and relationship mapping from database-specific SQL grammar using a pluggable **Dialect system**. This allows using the same declarative models and generated service APIs across multiple SQL backends, starting with SQLite (via `sqflow_lite`) and expanding to PostgreSQL and MySQL in the future.
 
-SQFlow uses **Single-Query JSON Aggregation** to load relationships in a single SQL query, and provides a fluent, type-safe API for all database needs — without raw string concatenation.
+By leveraging **Single-Query JSON Aggregation**, SQFlow aggregates complex parent-child relationship trees into a **single, highly-optimized SQL query** using database-native JSON capabilities (such as SQLite's `json_group_array` or PostgreSQL's `jsonb_agg`), offering stellar performance and zero N+1 query overhead.
+
+## Architecture
+
+<p align="center">
+  <img src="assets/architecture.png" alt="SqFlow Architecture" />
+</p>
 
 ---
 
@@ -17,6 +23,7 @@ SQFlow uses **Single-Query JSON Aggregation** to load relationships in a single 
 | Package                                                  | Description                                                         |
 | :------------------------------------------------------- | :------------------------------------------------------------------ |
 | [sqflow_core](./sqflow_core)                             | Runtime engine — CRUD, WhereBuilder, Transactions, Eager Loading    |
+| [sqflow_lite](./sqflow_lite)                             | SQLite driver — Connection manager, isolates, web WASM support      |
 | [sqflow_platform_interface](./sqflow_platform_interface) | Annotation library — `@Schema`, `@Column`, `@ID`, relationships     |
 | [sqflow_generator](./sqflow_generator)                   | Code generator — automates SQL schemas, `toJson`/`fromJson`, mixins |
 
@@ -58,7 +65,7 @@ class User extends Model with _$SQFlowUserMixin {
 ```
 
 ```dart
-// 1. Fluent API (New & Recommended) 🌟
+// 1. Fluent API (Recommended) 🌟
 final myPosts = await Posts.where(Posts.title.like('Dart%')).get();
 
 // 2. Complex queries with relationships

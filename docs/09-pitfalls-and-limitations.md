@@ -244,14 +244,28 @@ In-memory databases are destroyed when closed, ensuring test isolation.
 `SqflowCore.buildJoinQuery` is exposed with `@visibleForTesting` to allow unit testing of the SQL generation logic. It is not part of the public API and may change without notice.
 ---
 
-## SQLite Specifics
+## SQL Dialect & Database Specifics
 
-### SQLite is weakly typed
+### Pluggable Dialect Differences
 
-Unlike other relational databases, SQLite does **not** strictly enforce column types (except for `INTEGER PRIMARY KEY`). You can technically insert a string into an integer column.
+Because SQFlow compiles queries dynamically using the `SqlDialect` defined by the driver, minor syntax differences exist when executing raw SQL queries (`db.rawQuery()` or `WhereBuilder().raw()`) across different database drivers:
+
+- **Placeholders**: SQLite (`sqflow_lite`) utilizes standard `?` positional parameters. PostgreSQL (`sqflow_postgres`) uses `$1`, `$2` positional arguments.
+- **Identifiers**: Avoid hardcoded identifier escapes (backticks or double quotes) inside raw strings where possible. Let `SqlDialect.escapeIdentifier` handle it programmatically, or use the generated table/column attributes.
+
+---
+
+### SQLite Specifics (`sqflow_lite`)
+
+#### SQLite is weakly typed
+
+Unlike other relational databases (like PostgreSQL or MySQL) which fail fast on mismatched types, SQLite does **not** strictly enforce column types. You can technically insert a string into an integer column without database-level errors.
 
 **Recommendation:** Always perform validation at the application layer using `sqflow_generator`'s built-in validators or custom logic in `fromJson`.
 
-### Booleans are stored as Integers
+#### Booleans are stored as Integers
 
-SQLite does not have a native `BOOLEAN` type. SQFlow stores them as `1` (true) and `0` (false). The generator automatically handles the conversion in `toJson` and `fromJson`, but if you are writing raw SQL queries, you must use `1` and `0`.
+SQLite does not have a native `BOOLEAN` type. SQFlow stores them as `1` (true) and `0` (false) on disk. The generator automatically handles the boolean conversion in `toJson` and `fromJson`, but if you are writing raw SQLite queries, you must filter using `1` and `0`.
+
+> [!NOTE]
+> Future drivers like `sqflow_postgres` will map Booleans directly to PostgreSQL's native `boolean` type, handled transparently by its custom dialect.

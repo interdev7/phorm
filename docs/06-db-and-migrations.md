@@ -1,10 +1,16 @@
 # DB Manager & Migrations
 
-The `DB` class manages the database connection lifecycle and schema migrations. It is built on top of `sqlite3` with isolate-based architecture and adds a smart migration tracking system using an internal `__sqflow_migrations` table.
+The `DB` class (provided by the **`sqflow_lite`** package) manages the database connection lifecycle and schema migrations. It is built on top of `sqlite3` with an isolate-based architecture for non-blocking database operations, and adds a smart, idempotent migration tracking system using an internal `__sqflow_migrations` table.
 
 ---
 
 ## Creating a DB Instance
+
+To use the database manager, import `sqflow_lite`:
+
+```dart
+import 'package:sqflow_lite/sqflow_lite.dart';
+```
 
 ### Manual Version
 
@@ -205,6 +211,8 @@ A migration is identified by `(table_name, migration_version, migration_hash)`. 
 ## Complete Example
 
 ```dart
+import 'package:sqflow_lite/sqflow_lite.dart';
+
 // Define tables
 final usersTable = Table<User>(
   name: 'users',

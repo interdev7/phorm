@@ -41,9 +41,10 @@ abstract interface class Batch {
 /// Abstract interface representing a database executor (either database connection or transaction).
 abstract interface class DatabaseExecutor {
   Future<void> execute(String sql, [List<Object?>? arguments]);
-  
-  Future<List<Map<String, Object?>>> rawQuery(String sql, [List<Object?>? arguments]);
-  
+
+  Future<List<Map<String, Object?>>> rawQuery(String sql,
+      [List<Object?>? arguments]);
+
   Future<List<Map<String, Object?>>> query(
     String table, {
     bool? distinct,
@@ -73,7 +74,7 @@ abstract interface class DatabaseExecutor {
   });
 
   Future<int> delete(String table, {String? where, List<Object?>? whereArgs});
-  
+
   Batch batch();
 }
 
@@ -95,7 +96,8 @@ abstract interface class SqflowDatabase {
   int get isolateThreshold;
 
   /// Executes an operation inside a trace/log block.
-  Future<T> logAction<T>(String label, List<Object?>? arguments, Future<T> Function() action);
+  Future<T> logAction<T>(
+      String label, List<Object?>? arguments, Future<T> Function() action);
 
   /// Resolves the underlying database executor.
   Future<DatabaseExecutor> get executor;
