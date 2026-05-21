@@ -99,6 +99,14 @@ class SqflowCore<T extends Model> implements ISqflowCore<T> {
 
     final now = DateTime.now().toIso8601String();
     if (isInsert) {
+      // Strip autoincrement PK when 0 or null — let SQLite assign it.
+      if (table.autoIncrement) {
+        final pkValue = result[table.primaryKey];
+        if (pkValue == null || pkValue == 0) {
+          result.remove(table.primaryKey);
+        }
+      }
+
       if (json['created_at'] != null) {
         result['created_at'] = json['created_at'];
       } else {

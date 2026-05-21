@@ -3,7 +3,15 @@
 [![Dart](https://img.shields.io/badge/Dart-3.0%2B-blue)](https://dart.dev/)
 [![License: Apache 2.0](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 
-The runtime engine of the SQFlow ORM — CRUD, batch operations, pagination, eager loading, soft deletes, transactions, and schema migrations. Built on top of [sqlite3](https://pub.dev/packages/sqlite3) with isolate-based architecture for non-blocking database operations.
+The runtime query and CRUD engine of the SQFlow ORM — managing pagination, eager loading (via Single-Query JSON Aggregation), soft deletes, cross-table filtering, and fluent SQL-injection-safe queries.
+
+`sqflow_core` is entirely **driver-agnostic** and does not directly depend on `sqlite3` or platform-specific libraries. To run it, you should combine it with a driver implementation such as **`sqflow_lite`** (SQLite).
+
+## Architecture
+
+<p align="center">
+  <img src="../assets/architecture.png" alt="SqFlow Architecture" />
+</p>
 
 ---
 
@@ -19,10 +27,12 @@ SQFlow was created to solve three main problems in Flutter database management:
 
 ## Installation
 
+Add `sqflow_core` and a driver like `sqflow_lite` to your dependencies:
+
 ```yaml
 dependencies:
   sqflow_core: ^latest
-  sqlite3: ^2.4.6
+  sqflow_lite: ^latest # The SQLite driver and connection manager
 ```
 
 ---
@@ -30,10 +40,12 @@ dependencies:
 ## Quick Start
 
 ```dart
+import 'package:sqflow_lite/sqflow_lite.dart'; // Import sqflow_lite for DB and connection execution
+
 // 1. Table configuration (generated)
 final usersTable = Table<User>(...);
 
-// 2. DB manager
+// 2. DB manager (from sqflow_lite)
 final appDb = DB.autoVersion(
   databaseName: 'app.db',
   tables: [usersTable],
@@ -48,6 +60,8 @@ final result = await Users.where(Users.age.gt(18)).get();
 
 // 5. Traditional engine access
 final userService = SqflowCore<User>(dbManager: appDb, table: usersTable);
+// Or
+final userService = appDb.service<User>();
 final paged = await userService.readAllWithCount(limit: 20);
 ```
 

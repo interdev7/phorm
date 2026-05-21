@@ -1,7 +1,7 @@
 # Flutter Web Support (WebAssembly)
 
-SQFlow supports Flutter Web out of the box via **WebAssembly (WASM)**.  
-The correct backend is selected **automatically** — no conditional imports or platform checks needed in your code.
+The SQLite driver for SQFlow (`sqflow_lite`) supports Flutter Web out of the box via **WebAssembly (WASM)**.  
+The correct backend is selected **automatically** by the driver — no conditional imports or platform checks needed in your application code.
 
 | Platform | Backend | Storage |
 |---|---|---|
@@ -13,11 +13,11 @@ The correct backend is selected **automatically** — no conditional imports or 
 
 ## How it works
 
-SQFlow uses Dart's [conditional imports](https://dart.dev/guides/libraries/create-packages#conditional-imports) to automatically switch between two implementations:
+SQFlow uses Dart's [conditional imports](https://dart.dev/guides/libraries/create-packages#conditional-imports) inside **`sqflow_lite`** to automatically switch between two implementations:
 
 ```
-sqflow_core
-  └── database_isolate.dart        ← entry point (router)
+sqflow_lite
+  └── lib/src/database_isolate.dart  ← entry point (router)
         ├── non-web  → database_isolate_io.dart   (dart:isolate + sqlite3)
         └── web      → database_isolate_web.dart  (WasmSqlite3)
 ```
@@ -25,11 +25,13 @@ sqflow_core
 Your application code is **identical** on all platforms:
 
 ```dart
+import 'package:sqflow_lite/sqflow_lite.dart';
+
 // Same code on iOS, Android, Desktop, and Web — nothing changes
-await DB.configure(
+final db = DB(
   databaseName: 'myapp.db',
   version: 1,
-  tables: [UsersTable(), PostsTable()],
+  tables: [usersTable, postsTable],
 );
 
 final users = await Users.query.get();
@@ -39,18 +41,16 @@ final users = await Users.query.get();
 
 ## Setup for Flutter Web
 
-### Step 1 — Add sqflow_core
+### Step 1 — Add sqflow_core and sqflow_lite
 
 ```yaml
 # pubspec.yaml of your Flutter application
 dependencies:
-  sqflow_core:
-    git:
-      url: https://github.com/interdev7/sqflow
-      path: sqflow_core
+  sqflow_core: ^latest
+  sqflow_lite: ^latest # SQLite driver containing WASM web support
 ```
 
-The `sqlite3_web` transitive dependency is pulled in automatically.
+The `sqlite3_web` transitive dependency is pulled in automatically by `sqflow_lite`.
 
 ### Step 2 — Download `sqlite3.wasm`
 
@@ -62,7 +62,7 @@ curl -L \
   -o web/sqlite3.wasm
 ```
 
-> **Why can't sqflow_core include this automatically?**  
+> **Why can't sqflow_lite include this automatically?**  
 > `.wasm` is a binary web asset. Dart packages cannot inject files into the `web/` directory  
 > of a consuming application — this is a Flutter Web platform constraint (similar to fonts and icons  
 > that you also register manually in `pubspec.yaml`).
@@ -106,10 +106,10 @@ On Flutter Web, SQFlow uses **IndexedDB** via `IndexedDbFileSystem` (from `sqlit
 
 ```dart
 // Persistent — survives page reloads
-await DB.configure(databaseName: 'myapp.db', ...);
+final db = DB(databaseName: 'myapp.db', version: 1, tables: [...]);
 
 // In-memory — cleared on page reload (same as native)
-await DB.configure(databaseName: ':memory:', ...);
+final db = DB(databaseName: ':memory:', version: 1, tables: [...]);
 ```
 
 ---
@@ -137,18 +137,11 @@ await DB.configure(databaseName: ':memory:', ...);
 
 The WASM binary is missing from your `web/` directory. Run Step 2 above.
 
-### `MissingPluginException` on web
+### `MissingPluginException` on web (when migrating from `sqflite`)
 
-You have `sqlite3_flutter_libs` or `sqlcipher_flutter_libs` in your `pubspec.yaml`.  
-These are **native-only** packages and are **not needed** when using `sqflow_core` directly.  
-Remove them:
+If you are migrating to SQFlow from standard `sqflite` (or `sqflite_common_ffi`), you might encounter a `MissingPluginException` on Web because those packages rely on native method channels which are not supported in browsers.
 
-```yaml
-# Remove these if present — sqflow_core handles everything
-# sqlite3_flutter_libs: ...       ← remove
-# sqlcipher_flutter_libs: ...     ← remove
-# sqlite3_native_assets: ...      ← remove
-```
+**Solution:** Ensure you are using `sqflow_lite`'s `DB` class rather than standard `sqflite` APIs. You can safely remove the `sqflite` package from your dependencies. Note that you **must keep** `sqlite3_flutter_libs` (or `sqlcipher_flutter_libs` if using encryption) in your `pubspec.yaml` if your application also targets native platforms (iOS, Android, Desktop), as they are required to bundle the native SQLite binaries. They will be safely ignored when compiling for Web.
 
 ### `SharedArrayBuffer` warning in browser console
 
@@ -165,12 +158,12 @@ For Flutter's built-in dev server, this is handled automatically by `flutter run
 
 ## Version compatibility
 
-| sqflow_core | sqlite3 | sqlite3_web | Dart SDK |
+| sqflow_lite | sqlite3 | sqlite3_web | Dart SDK |
 |---|---|---|---|
 | 1.1.x | ^2.9.4 | ^0.3.1 | >=3.5.0 |
 
 > **Note on sqlite3 3.x:**  
 > `sqlite3: ^3.x.x` requires Dart SDK `>=3.9.999` (not yet released as of May 2026).  
-> sqflow_core stays on `^2.9.4` until the stable Dart SDK supports it.  
+> `sqflow_lite` stays on `^2.9.4` until the stable Dart SDK supports it.  
 > When Dart SDK 3.10+ is released, `sqlite3_flutter_libs` and `sqlite3_native_assets`  
 > will no longer be needed on any platform — the sqlite3 package will bundle everything natively.

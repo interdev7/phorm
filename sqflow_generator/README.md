@@ -58,7 +58,8 @@ dart run build_runner watch --delete-conflicting-outputs
 ## Learn More
 
 - For annotation details, see [sqflow_platform_interface](../sqflow_platform_interface/README.md).
-- For runtime usage, see [sqflow_core](../sqflow_core/README.md).
+- For runtime query engine details, see [sqflow_core](../sqflow_core/README.md).
+- For the connection manager and SQLite driver implementation, see [sqflow_lite](../sqflow_lite/README.md).
 
 ---
 

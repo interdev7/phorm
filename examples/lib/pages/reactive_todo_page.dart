@@ -80,10 +80,11 @@ class _ReactiveTodoPageState extends State<ReactiveTodoPage>
     // Active tasks filtered by category
     final active =
         await Tasks.where(Tasks.categoryId.eq(_selectedCategoryId!)).get();
-    // Demonstrates: onlyDeleted — reads paranoid soft-deleted rows
+    // Demonstrates: onlyDeleted — reads paranoid soft-deleted rows filtered by category
     final deleted = await Tasks.readAll(
       limit: 200,
       onlyDeleted: true,
+      where: WhereBuilder().eq('category_id', _selectedCategoryId!),
     );
     if (mounted) {
       setState(() {

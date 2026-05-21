@@ -65,6 +65,10 @@ class Table<T extends Model> {
   /// Enables automatic timestamps (created_at, updated_at).
   final bool timestamps;
 
+  /// Whether the primary key column is AUTOINCREMENT.
+  /// If not provided explicitly, auto-detected from the schema SQL.
+  final bool autoIncrement;
+
   Table({
     required this.schema,
     required this.name,
@@ -76,12 +80,18 @@ class Table<T extends Model> {
     this.timestamps = true,
     this.relationships = const [],
     this.columns = const [],
-  });
+    bool? autoIncrement,
+  }) : autoIncrement = autoIncrement ?? detectAutoIncrement(schema);
 
   /// Helper to detect if a schema string contains soft-delete capability.
   static bool detectSoftDelete(String schema) {
     final normalized = schema.toLowerCase();
     return normalized.contains('deleted_at') &&
         normalized.contains('create table');
+  }
+
+  /// Helper to detect if the primary key uses AUTOINCREMENT.
+  static bool detectAutoIncrement(String schema) {
+    return schema.toUpperCase().contains('AUTOINCREMENT');
   }
 }

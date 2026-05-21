@@ -48,6 +48,9 @@ class DB implements SqflowDatabase {
   /// Internal database instance (lazy-loaded)
   Database? _database;
 
+  /// Guards concurrent calls to [database] getter — prevents double-init race condition.
+  Completer<Database>? _initCompleter;
+
   /// Name of the migrations tracking table
   static const String _migrationsTable = '__sqflow_migrations';
 
@@ -140,11 +143,25 @@ class DB implements SqflowDatabase {
     );
   }
 
-  /// Gets the database instance (lazy initialization)
+  /// Gets the database instance (lazy initialization).
+  /// Thread-safe: concurrent callers all await the same Completer.
   Future<Database> get database async {
     if (_database != null) return _database!;
-    _database = await _initDatabase();
-    return _database!;
+
+    // If initialization is already in progress, wait for it to complete.
+    if (_initCompleter != null) return _initCompleter!.future;
+
+    _initCompleter = Completer<Database>();
+    try {
+      _database = await _initDatabase();
+      _initCompleter!.complete(_database!);
+      return _database!;
+    } catch (e, st) {
+      // Reset so a future call can retry.
+      _initCompleter!.completeError(e, st);
+      _initCompleter = null;
+      rethrow;
+    }
   }
 
   @override
@@ -200,7 +217,8 @@ class DB implements SqflowDatabase {
     for (final table in tables) {
       for (final migration in table.migrations) {
         if (migration.targetVersion > version) {
-          throw ArgumentError('Table "${table.name}" has migration "${migration.description}" '
+          throw ArgumentError(
+              'Table "${table.name}" has migration "${migration.description}" '
               'for version ${migration.targetVersion}, but database version is $version. '
               'Either increase database version or remove the migration.');
         }
@@ -394,7 +412,8 @@ class DB implements SqflowDatabase {
 
     for (final table in tables) {
       for (final migration in table.migrations) {
-        if (migration.targetVersion > fromVersion && migration.targetVersion <= toVersion) {
+        if (migration.targetVersion > fromVersion &&
+            migration.targetVersion <= toVersion) {
           pendingMigrations.add(_PendingMigration(table, migration));
         }
       }
@@ -407,7 +426,8 @@ class DB implements SqflowDatabase {
 
     // Sort by version and priority
     pendingMigrations.sort((a, b) {
-      final versionCompare = a.migration.targetVersion.compareTo(b.migration.targetVersion);
+      final versionCompare =
+          a.migration.targetVersion.compareTo(b.migration.targetVersion);
       if (versionCompare != 0) return versionCompare;
       return a.migration.priority.compareTo(b.migration.priority);
     });
@@ -438,7 +458,8 @@ class DB implements SqflowDatabase {
       return;
     }
 
-    logger?.info('Applying: ${migration.description} (v${migration.targetVersion})');
+    logger?.info(
+        'Applying: ${migration.description} (v${migration.targetVersion})');
 
     try {
       // Execute migration
@@ -455,7 +476,8 @@ class DB implements SqflowDatabase {
 
       logger?.info('Migration Success');
     } catch (e, stackTrace) {
-      logger?.error('Migration Failed: ${migration.description}', e, stackTrace);
+      logger?.error(
+          'Migration Failed: ${migration.description}', e, stackTrace);
       rethrow;
     }
   }
@@ -537,6 +559,7 @@ class DB implements SqflowDatabase {
       await _database!.close();
       _database = null;
     }
+    _initCompleter = null;
 
     if (databaseName == ':memory:') {
       return;
@@ -568,6 +591,7 @@ class DB implements SqflowDatabase {
       await _database!.close();
       _database = null;
     }
+    _initCompleter = null;
   }
 
   /// Executes a list of seeders to populate the database.
@@ -582,7 +606,8 @@ class DB implements SqflowDatabase {
 
   /// Helper to execute an action and log its performance
   @override
-  Future<T> logAction<T>(String sql, List<Object?>? arguments, Future<T> Function() action) async {
+  Future<T> logAction<T>(
+      String sql, List<Object?>? arguments, Future<T> Function() action) async {
     if (!logQueries) return action();
     final stopwatch = Stopwatch()..start();
     try {
@@ -603,9 +628,10 @@ class DB implements SqflowDatabase {
 
   /// Executes a transaction with the provided action.
   @override
-  Future<R> transaction<R>(Future<R> Function(DatabaseExecutor txn) action) async {
+  Future<R> transaction<R>(
+      Future<R> Function(DatabaseExecutor txn) action) async {
     final dbInstance = await database;
-    
+
     final isTopLevel = _activeTransactionBuffer == null;
     if (isTopLevel) {
       _activeTransactionBuffer = <String>{};
@@ -615,7 +641,7 @@ class DB implements SqflowDatabase {
       final result = await dbInstance.transaction((txn) async {
         return await action(txn);
       });
-      
+
       if (isTopLevel) {
         final buffered = _activeTransactionBuffer;
         _activeTransactionBuffer = null;
@@ -633,15 +659,6 @@ class DB implements SqflowDatabase {
       rethrow;
     }
   }
-
-  /// Resolves and creates a SqflowCore service for the given Model type [T].
-  SqflowCore<T> service<T extends Model>() {
-    final table = tables.where((t) => t.type == T).firstOrNull;
-    if (table == null) {
-      throw StateError('Table for type $T is not registered in this DB');
-    }
-    return SqflowCore<T>(dbManager: this, table: table as Table<T>);
-  }
 }
 
 /// Helper class for tracking pending migrations
@@ -658,21 +675,48 @@ class SqflowDatabaseExecutorWrapper implements SqflowDatabaseExecutor {
   SqflowDatabaseExecutorWrapper(this._executor);
 
   @override
-  Future<void> execute(String sql, [List<Object?>? arguments]) => _executor.execute(sql, arguments);
+  Future<void> execute(String sql, [List<Object?>? arguments]) =>
+      _executor.execute(sql, arguments);
 
   @override
   Future<List<Map<String, Object?>>> query(String table,
-          {bool? distinct, List<String>? columns, String? where, List<Object?>? whereArgs, String? groupBy, String? having, String? orderBy, int? limit, int? offset}) =>
-      _executor.query(table, distinct: distinct, columns: columns, where: where, whereArgs: whereArgs, groupBy: groupBy, having: having, orderBy: orderBy, limit: limit, offset: offset);
+          {bool? distinct,
+          List<String>? columns,
+          String? where,
+          List<Object?>? whereArgs,
+          String? groupBy,
+          String? having,
+          String? orderBy,
+          int? limit,
+          int? offset}) =>
+      _executor.query(table,
+          distinct: distinct,
+          columns: columns,
+          where: where,
+          whereArgs: whereArgs,
+          groupBy: groupBy,
+          having: having,
+          orderBy: orderBy,
+          limit: limit,
+          offset: offset);
 
   @override
-  Future<int> delete(String table, {String? where, List<Object?>? whereArgs}) => _executor.delete(table, where: where, whereArgs: whereArgs);
+  Future<int> delete(String table, {String? where, List<Object?>? whereArgs}) =>
+      _executor.delete(table, where: where, whereArgs: whereArgs);
 
   @override
-  Future<int> update(String table, Map<String, Object?> values, {String? where, List<Object?>? whereArgs}) => _executor.update(table, values, where: where, whereArgs: whereArgs);
+  Future<int> update(String table, Map<String, Object?> values,
+          {String? where, List<Object?>? whereArgs}) =>
+      _executor.update(table, values, where: where, whereArgs: whereArgs);
 
   @override
-  Future<int> insert(String table, Map<String, Object?> values, {String? nullColumnHack, String? conflictAlgorithm}) => _executor.insert(table, values,
-      nullColumnHack: nullColumnHack,
-      conflictAlgorithm: conflictAlgorithm != null ? ConflictAlgorithm.values.firstWhere((e) => e.name == conflictAlgorithm, orElse: () => ConflictAlgorithm.abort) : null);
+  Future<int> insert(String table, Map<String, Object?> values,
+          {String? nullColumnHack, String? conflictAlgorithm}) =>
+      _executor.insert(table, values,
+          nullColumnHack: nullColumnHack,
+          conflictAlgorithm: conflictAlgorithm != null
+              ? ConflictAlgorithm.values.firstWhere(
+                  (e) => e.name == conflictAlgorithm,
+                  orElse: () => ConflictAlgorithm.abort)
+              : null);
 }
