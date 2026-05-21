@@ -15,6 +15,7 @@
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sqflow_core/sqflow_core.dart';
+import 'package:sqflow_lite/sqflow_lite.dart';
 
 import '../test/models/user.dart';
 
@@ -26,7 +27,7 @@ typedef _TestContext = ({
   DB dbManager,
   SqflowCore<User> userService,
   SqflowCore<Post> postService,
-  Database db,
+  DatabaseExecutor db,
 });
 
 Future<_TestContext> _setup() async {
@@ -35,7 +36,7 @@ Future<_TestContext> _setup() async {
     tables: [usersTable, postsTable],
     logger: null, // suppress log noise in tests
   );
-  final db = await dbManager.database;
+  final db = await dbManager.executor;
   final userService = SqflowCore<User>(dbManager: dbManager, table: usersTable);
   final postService = SqflowCore<Post>(dbManager: dbManager, table: postsTable);
   return (

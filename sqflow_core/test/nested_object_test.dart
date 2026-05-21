@@ -1,4 +1,4 @@
-import 'package:sqflow_core/sqflow_core.dart';
+import 'package:sqflow_lite/sqflow_lite.dart';
 import 'package:test/test.dart';
 
 import 'models/nested_object_test_model.dart';
@@ -20,7 +20,9 @@ void main() {
     await db.close();
   });
 
-  test('Should insert and ignore non-column fields, but error on read due to missing fields', () async {
+  test(
+      'Should insert and ignore non-column fields, but error on read due to missing fields',
+      () async {
     final user = UserWithLocation(
       id: 1,
       name: 'Dart',

@@ -1,5 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sqflow_core/sqflow_core.dart';
+import 'package:sqflow_lite/sqflow_lite.dart';
 import 'models/migration_user.dart';
 
 // Mock Model Factory
@@ -19,7 +20,7 @@ class MigrationUserFactory extends Factory<MigrationUser> {
 // Mock Seeder
 class MigrationUserSeeder extends Seeder {
   @override
-  Future<void> run(DB db) async {
+  Future<void> run(SqflowDatabase db) async {
     final userService = SqflowCore<MigrationUser>(dbManager: db, table: migration_usersTable);
     final userFactory = MigrationUserFactory();
     
@@ -90,7 +91,7 @@ void main() {
 
 class _SpecialSeeder extends Seeder {
   @override
-  Future<void> run(DB db) async {
+  Future<void> run(SqflowDatabase db) async {
     final userService = SqflowCore<MigrationUser>(dbManager: db, table: migration_usersTable);
     await userService.insert(MigrationUser(id: 'special_id', name: 'Special User'));
   }

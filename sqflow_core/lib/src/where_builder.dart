@@ -1,4 +1,4 @@
-import 'package:sqflow_core/src/sql_function.dart';
+import 'package:sqflow_core/src/sql_function_column.dart';
 
 // =======================================================
 // WHERE BUILDER 🔍

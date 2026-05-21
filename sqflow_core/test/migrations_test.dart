@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:path/path.dart';
 import 'package:sqflow_core/sqflow_core.dart';
+import 'package:sqflow_lite/sqflow_lite.dart';
 
 import 'models/migration_post.dart';
 import 'models/migration_user.dart';

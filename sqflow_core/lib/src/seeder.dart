@@ -4,5 +4,5 @@ import 'package:sqflow_core/sqflow_core.dart';
 /// Use this to populate the database with initial or test data.
 abstract class Seeder {
   /// Executes the seeding logic.
-  Future<void> run(DB db);
+  Future<void> run(SqflowDatabase db);
 }

@@ -1,5 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:sqflow_core/sqflow_core.dart';
+import 'package:sqflow_lite/sqflow_lite.dart';
+
 import 'models/types_test_model.dart';
 
 // Simple DTO class to test generic nested object serialization
@@ -73,7 +74,8 @@ void main() {
       final retrieved = await ScalarItems.readOne(1);
       expect(retrieved, isNotNull);
       expect(retrieved!.id, 1);
-      expect(retrieved.bigValue, BigInt.parse('123456789012345678901234567890'));
+      expect(
+          retrieved.bigValue, BigInt.parse('123456789012345678901234567890'));
       expect(retrieved.website.host, 'sqflow.dev');
       expect(retrieved.timeout.inMinutes, 5);
       expect(retrieved.optionalBig, BigInt.two);
@@ -90,7 +92,8 @@ void main() {
       };
       final manualDeserialized = ScalarItem.fromJson(dbRawRow);
       expect(manualDeserialized.id, 2);
-      expect(manualDeserialized.bigValue, BigInt.parse('999999999999999999999999999999'));
+      expect(manualDeserialized.bigValue,
+          BigInt.parse('999999999999999999999999999999'));
       expect(manualDeserialized.website.host, 'google.com');
       expect(manualDeserialized.timeout.inSeconds, 10);
       expect(manualDeserialized.optionalBig, null);
@@ -99,7 +102,9 @@ void main() {
   });
 
   group('Collections (List, Set, Map)', () {
-    test('should serialize collections to JSON strings in DB and deserialize them back', () async {
+    test(
+        'should serialize collections to JSON strings in DB and deserialize them back',
+        () async {
       final item = CollectionItem(
         id: 42,
         tags: ['dart', 'orm', 'sqlite'],
@@ -111,7 +116,8 @@ void main() {
       await CollectionItems.insert(item);
 
       // Raw query to check SQLite storage format (should be JSON strings!)
-      final rawRows = await db.database.then((sqliteDb) => sqliteDb.query('collection_items'));
+      final rawRows = await db.database
+          .then((sqliteDb) => sqliteDb.query('collection_items'));
       expect(rawRows.length, 1);
       final dbRow = rawRows.first;
 
@@ -137,7 +143,9 @@ void main() {
   });
 
   group('Generics support', () {
-    test('should correctly handle generic payload serialization and deserialization', () async {
+    test(
+        'should correctly handle generic payload serialization and deserialization',
+        () async {
       final response = ApiResponse<Location>(
         id: 100,
         status: 'success',
@@ -153,9 +161,11 @@ void main() {
       await ApiResponses.insert(response);
 
       // Verify DB storage structure (data column should not exist in schema)
-      final rawRows = await db.database.then((sqliteDb) => sqliteDb.query('api_responses'));
+      final rawRows =
+          await db.database.then((sqliteDb) => sqliteDb.query('api_responses'));
       expect(rawRows.length, 1);
-      expect(rawRows.first.containsKey('data'), isFalse); // Non-column field is filtered out!
+      expect(rawRows.first.containsKey('data'),
+          isFalse); // Non-column field is filtered out!
 
       // Simulate a raw server/payload response
       final serverJson = {
@@ -175,7 +185,8 @@ void main() {
       expect(deserialized.data, Location(lat: 55.7558, lng: 37.6173));
     });
 
-    test('should insert and read generic payload without conflicts with SQLite', () async {
+    test('should insert and read generic payload without conflicts with SQLite',
+        () async {
       final serverJson = {
         'id': 200,
         'status': 'error',
@@ -196,8 +207,8 @@ void main() {
       expect(retrieved, isNotNull);
       expect(retrieved!.id, 200);
       expect(retrieved.status, 'error');
-      expect(retrieved.data, null); // SQLite does not store non-column 'data' payload
+      expect(retrieved.data,
+          null); // SQLite does not store non-column 'data' payload
     });
   });
 }
-

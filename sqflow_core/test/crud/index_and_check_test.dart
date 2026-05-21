@@ -4,7 +4,7 @@ void main() {
   group('Indexes and CHECK constraint tests:', () {
     test('Indexes exist and have correct columns', () async {
       final service = await createTestService();
-      final db = await service.dbManager.database;
+      final db = await service.dbManager.executor;
 
       final idxList = await db.rawQuery("PRAGMA index_list('users')");
       final indexNames = idxList.map((r) => r['name'] as String).toList();
