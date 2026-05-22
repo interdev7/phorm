@@ -151,17 +151,23 @@ class DB implements SqflowDatabase {
     // If initialization is already in progress, wait for it to complete.
     if (_initCompleter != null) return _initCompleter!.future;
 
-    _initCompleter = Completer<Database>();
-    try {
-      _database = await _initDatabase();
-      _initCompleter!.complete(_database!);
-      return _database!;
-    } catch (e, st) {
-      // Reset so a future call can retry.
-      _initCompleter!.completeError(e, st);
-      _initCompleter = null;
-      rethrow;
-    }
+    final completer = Completer<Database>();
+    _initCompleter = completer;
+
+    // Start initialization asynchronously to ensure the caller is registered
+    // as a listener on the returned future before any errors can be thrown.
+    unawaited(() async {
+      try {
+        final db = await _initDatabase();
+        _database = db;
+        completer.complete(db);
+      } catch (e, st) {
+        _initCompleter = null;
+        completer.completeError(e, st);
+      }
+    }());
+
+    return completer.future;
   }
 
   @override
@@ -188,28 +194,34 @@ class DB implements SqflowDatabase {
       password: password,
     );
 
-    // Cancel old subscription if any and subscribe to database changeStream
-    await _dbChangeSubscription?.cancel();
-    _dbChangeSubscription = db.changeStream.listen((tableName) {
-      notifyTableChange(tableName);
-    });
+    try {
+      // Cancel old subscription if any and subscribe to database changeStream
+      await _dbChangeSubscription?.cancel();
+      _dbChangeSubscription = db.changeStream.listen((tableName) {
+        notifyTableChange(tableName);
+      });
 
-    await _onConfigure(db);
+      await _onConfigure(db);
 
-    final currentVersion = await db.getVersion();
+      final currentVersion = await db.getVersion();
 
-    if (currentVersion == 0) {
-      await _onCreate(db, version);
-      await db.setVersion(version);
-    } else if (currentVersion < version) {
-      await _onUpgrade(db, currentVersion, version);
-      await db.setVersion(version);
-    } else if (currentVersion > version) {
-      await _onDowngrade(db, currentVersion, version);
-      await db.setVersion(version);
+      if (currentVersion == 0) {
+        await _onCreate(db, version);
+        await db.setVersion(version);
+      } else if (currentVersion < version) {
+        await _onUpgrade(db, currentVersion, version);
+        await db.setVersion(version);
+      } else if (currentVersion > version) {
+        await _onDowngrade(db, currentVersion, version);
+        await db.setVersion(version);
+      }
+
+      return db;
+    } catch (e) {
+      // Close the database to release resources on failure
+      await db.close();
+      rethrow;
     }
-
-    return db;
   }
 
   /// Validates that all migrations are within the database version
