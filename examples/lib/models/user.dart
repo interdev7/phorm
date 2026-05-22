@@ -1,6 +1,6 @@
-import 'dart:convert';
 import 'package:sqflow_core/sqflow_core.dart'; // forced rebuild
 import 'package:sqflow_example/db.dart';
+
 import 'post.dart';
 
 part 'user.sql.g.dart';
