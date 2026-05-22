@@ -6,11 +6,13 @@ SQFlow features a robust, state-of-the-art reactive architecture that enables yo
 
 ## How It Works Under the Hood
 
-Unlike traditional ORMs that require manual hooks, observers, or trigger methods on every write, SQFlow leverages native database-level notifications.
+Unlike traditional ORMs that require manual hooks, observers, or trigger methods on every write, SQFlow leverages native database-level notifications. The actual implementation details depend on the active **database dialect**:
 
-1. **`updatesSync` Event Stream**: SQFlow listens to the native `updatesSync` stream provided by the `sqlite3` driver. This stream receives notifications directly from the SQLite engine whenever *any* table is modified (via `INSERT`, `UPDATE`, or `DELETE`), even if those modifications happen through raw SQL executions.
-2. **Isolate-Safe Dispatching**: These events are captured in the background database isolate and synchronously sent to the main isolate via `SendPort`.
-3. **Transaction Buffering**: If writes occur within a transaction, notifications are buffered at the database level (`DB._activeTransactionBuffer`) and are only emitted once the transaction **commits successfully**. If the transaction rolls back, all buffered notifications are discarded. This prevents redundant notifications and eliminates UI flickering during bulk operations.
+1. **Dialect-Specific Notifications (`changeStream`)**:
+   * **SQLite (`sqflow_lite`)**: SQFlow listens to the native `updatesSync` stream provided by the `sqlite3` driver. This stream receives notifications directly from the SQLite engine whenever *any* table is modified (via `INSERT`, `UPDATE`, or `DELETE`), even if those modifications happen through raw SQL executions.
+   * **PostgreSQL / Other Dialects**: Reactivity uses database-native pub-sub/notification systems (such as `LISTEN/NOTIFY` in PostgreSQL) or driver-level statement hooks to capture mutations.
+2. **Isolate-Safe Dispatching**: For client-side drivers (like SQLite), these events are captured in the background database isolate and synchronously sent to the main isolate via `SendPort`.
+3. **Transaction Buffering**: If writes occur within a transaction, notifications are buffered at the database level and are only emitted once the transaction **commits successfully**. If the transaction rolls back, all buffered notifications are discarded. This prevents redundant notifications and eliminates UI flickering during bulk operations.
 
 ---
 
@@ -105,6 +107,6 @@ await db.transaction((txn) async {
 
 ## Key Advantages
 
-* **100% Automatic**: You don't need to call manual notification methods like `_notify()` or `invalidate()`.
-* **Raw SQL Support**: Because `updatesSync` works at the SQLite database level, even if you run raw SQL queries (e.g., `db.execute('UPDATE users SET status = "active"')`), all reactive streams watching the `users` table will automatically trigger and reload!
-* **Isolate-Friendly**: Database notifications are passed efficiently between isolates without blocking the Flutter UI thread.
+* **100% Automatic**: You don't need to call manual notification or invalidation methods.
+* **Raw SQL Support**: Because reactivity works at the database level (e.g., via SQLite's `updatesSync` or PostgreSQL's `LISTEN/NOTIFY`), even if you run raw SQL queries directly (e.g., `db.execute('UPDATE users SET status = "active"')`), all reactive streams watching the `users` table will automatically trigger and reload!
+* **Isolate & Thread Friendly**: Database notifications are passed efficiently between isolates or threads without blocking the Flutter UI thread.

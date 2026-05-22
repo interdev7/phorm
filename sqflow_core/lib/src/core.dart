@@ -120,12 +120,6 @@ class SqflowCore<T extends Model> implements ISqflowCore<T> {
     return result;
   }
 
-  /// Notifies the database manager that this table has changed.
-  void _notify() {
-    // Manual notification is no longer needed because updatesSync
-    // inside the background isolate automatically tracks all changes.
-  }
-
   // -------------------------------------------------------
   // CRUD 📝
   // -------------------------------------------------------
@@ -147,7 +141,6 @@ class SqflowCore<T extends Model> implements ISqflowCore<T> {
       [json],
       () => db.insert(table.name, json),
     );
-    _notify();
     return res;
   }
 
@@ -172,7 +165,6 @@ class SqflowCore<T extends Model> implements ISqflowCore<T> {
         whereArgs: [item.toJson()[table.primaryKey]],
       ),
     );
-    _notify();
     return res;
   }
 
@@ -194,7 +186,6 @@ class SqflowCore<T extends Model> implements ISqflowCore<T> {
         conflictAlgorithm: ConflictAlgorithm.replace,
       ),
     );
-    _notify();
   }
 
   // -------------------------------------------------------
@@ -218,7 +209,6 @@ class SqflowCore<T extends Model> implements ISqflowCore<T> {
         () => db.delete(table.name,
             where: '${table.primaryKey} = ?', whereArgs: [id]),
       );
-      _notify();
       return res;
     }
     final res = await dbManager.logAction(
@@ -231,7 +221,6 @@ class SqflowCore<T extends Model> implements ISqflowCore<T> {
         whereArgs: [id],
       ),
     );
-    _notify();
     return res;
   }
 
@@ -250,7 +239,6 @@ class SqflowCore<T extends Model> implements ISqflowCore<T> {
       where: '${table.primaryKey} = ?',
       whereArgs: [id],
     );
-    _notify();
     return res;
   }
 
@@ -275,7 +263,6 @@ class SqflowCore<T extends Model> implements ISqflowCore<T> {
         return results.length;
       },
     );
-    _notify();
     return count;
   }
 
@@ -300,7 +287,6 @@ class SqflowCore<T extends Model> implements ISqflowCore<T> {
         return results.length;
       },
     );
-    _notify();
     return count;
   }
 
@@ -324,7 +310,6 @@ class SqflowCore<T extends Model> implements ISqflowCore<T> {
         return results.length;
       },
     );
-    _notify();
     return count;
   }
 
@@ -358,7 +343,6 @@ class SqflowCore<T extends Model> implements ISqflowCore<T> {
         return results.length;
       },
     );
-    _notify();
     return count;
   }
 
@@ -387,7 +371,6 @@ class SqflowCore<T extends Model> implements ISqflowCore<T> {
         return results.length;
       },
     );
-    _notify();
     return count;
   }
 
