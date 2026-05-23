@@ -2,7 +2,7 @@ import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:sqflow_core/sqflow_core.dart' hide Column;
+import 'package:sqflow/sqflow.dart' hide Column;
 import 'package:sqflow_example/models/post.dart';
 import 'package:sqflow_example/models/user.dart';
 import 'package:uuid/uuid.dart';

@@ -1,8 +1,8 @@
 name: sqflow_lite
-description: The SQLite driver and connection manager implementation for the Sqflow ORM.
+description: The SQLite driver and connection manager implementation for the PHORM ORM.
 version: 1.0.0
-repository: https://github.com/interdev7/sqflow_lite
-homepage: https://github.com/interdev7/sqflow_lite
+repository: https://github.com/interdev7/sqflow
+homepage: https://github.com/interdev7/sqflow
 publish_to: none
 resolution: workspace
 
@@ -15,8 +15,8 @@ dependencies:
   meta: ^1.16.0
   path: ^1.9.0
   path_provider: ^2.1.5
-  sqflow_core:
-    path: ../sqflow_core
+  sqflow:
+    path: ../
   sqflow_platform_interface:
     path: ../sqflow_platform_interface
   sqlite3: ^2.9.4

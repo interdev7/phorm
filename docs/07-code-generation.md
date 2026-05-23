@@ -254,7 +254,7 @@ Write regular Dart functions containing your custom SQLite function logic and an
 
 ```dart
 // lib/models/custom_functions.dart
-import 'package:sqflow_core/sqflow_core.dart';
+import 'package:sqflow/sqflow.dart';
 
 part 'custom_functions.fn.g.dart';
 

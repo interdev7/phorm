@@ -1,4 +1,4 @@
-import 'package:sqflow_core/sqflow_core.dart';
+import 'package:sqflow/sqflow.dart';
 import 'package:sqflow_example/db.dart';
 
 part 'todo.sql.g.dart';

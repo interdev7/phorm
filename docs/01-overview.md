@@ -43,9 +43,9 @@ Most apps need the same patterns: "When was this created?", "Don't actually dele
 
 ## Dialects & Pluggable SQL Architecture
 
-To ensure the library is future-proof and database-agnostic, SQFlow separates query building and model mapping from the specific SQL grammar of target databases. It accomplishes this through the **`SqlDialect`** interface defined in `sqflow_core`.
+To ensure the library is future-proof and database-agnostic, SQFlow separates query building and model mapping from the specific SQL grammar of target databases. It accomplishes this through the **`SqlDialect`** interface defined in `sqflow`.
 
-The query builder, JSON eager loading system, and column compiler in `sqflow_core` never generate hardcoded database-specific SQL strings. Instead, they delegate to the active `SqlDialect` to resolve details like:
+The query builder, JSON eager loading system, and column compiler in `sqflow` never generate hardcoded database-specific SQL strings. Instead, they delegate to the active `SqlDialect` to resolve details like:
 
 - **Identifier Escaping**: SQLite/Postgres uses `"table"."column"`, while MySQL uses `` `table`.`column` ``.
 - **Positional Placeholders**: SQLite uses `?`, Postgres uses `$1`, `$2`, etc.
@@ -75,7 +75,7 @@ When a new driver is introduced, your declarative schemas `@Schema(...)` and cod
 | Package                     | Role                                                                            |
 | :-------------------------- | :------------------------------------------------------------------------------ |
 | `sqflow_platform_interface` | Annotations (`@Schema`, `@Column`, `@ID`), data types, relationship definitions |
-| `sqflow_core`               | Driver-agnostic runtime: `SqflowCore<T>`, `WhereBuilder`, `SortBuilder`         |
+| `sqflow`                    | Driver-agnostic runtime: `SqflowCore<T>`, `WhereBuilder`, `SortBuilder`         |
 | `sqflow_lite`               | SQLite driver & connection manager: `DB`, isolates, WASM, custom SQL functions  |
 | `sqflow_generator`          | `build_runner` plugin that generates mixins, SQL, and serialization code        |
 
@@ -86,7 +86,7 @@ When a new driver is introduced, your declarative schemas `@Schema(...)` and cod
 ```yaml
 # pubspec.yaml
 dependencies:
-  sqflow_core: ^latest
+  sqflow: ^latest
   sqflow_lite: ^latest # SQLite driver and connection lifecycle manager
 
 dev_dependencies:
