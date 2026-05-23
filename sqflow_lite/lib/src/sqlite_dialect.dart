@@ -1,4 +1,4 @@
-import 'package:sqflow_core/sqflow_core.dart';
+import 'package:sqflow/sqflow.dart';
 
 /// SQLite implementation of the SqlDialect interface.
 class SqliteDialect implements SqlDialect {

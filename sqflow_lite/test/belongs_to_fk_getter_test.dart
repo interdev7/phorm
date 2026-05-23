@@ -13,7 +13,7 @@
 //  4. Setting the raw FK value works independently of the related object.
 
 import 'package:flutter_test/flutter_test.dart';
-import 'package:sqflow_core/sqflow_core.dart';
+import 'package:sqflow/sqflow.dart';
 
 // ---------------------------------------------------------------------------
 // Minimal model stubs — these replicate what the generator would emit.

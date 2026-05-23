@@ -1,4 +1,4 @@
-import 'package:sqflow_core/sqflow_core.dart';
+import 'package:sqflow/sqflow.dart';
 import 'package:sqflow_lite/sqflow_lite.dart';
 
 part 'nested_object_test_model.sql.g.dart';

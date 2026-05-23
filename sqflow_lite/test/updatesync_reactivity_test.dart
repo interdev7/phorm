@@ -14,7 +14,7 @@
 //   9. Transaction rollback: NO notification emitted
 
 import 'package:flutter_test/flutter_test.dart';
-import 'package:sqflow_core/sqflow_core.dart';
+import 'package:sqflow/sqflow.dart';
 import 'package:sqflow_lite/sqflow_lite.dart';
 
 import '../test/models/user.dart';

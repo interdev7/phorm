@@ -1,7 +1,8 @@
 name: sqflow_example
-description: Example app for sqflow.
+description: Example app for PHORM ORM.
 publish_to: "none"
 version: 1.0.0+1
+resolution: workspace
 
 environment:
   sdk: ">=3.5.0 <4.0.0"
@@ -11,8 +12,8 @@ dependencies:
     sdk: flutter
   google_fonts: ^6.2.1
   path: ^1.9.0
-  sqflow_core:
-    path: ../sqflow_core
+  sqflow:
+    path: ../
   sqflow_lite:
     path: ../sqflow_lite
   sqflow_generator:
@@ -23,7 +24,7 @@ dependencies:
 
 dev_dependencies:
   build_runner: ^2.0.0
-  flutter_lints: ^5.0.0
+  flutter_lints: ^3.0.0
   flutter_test:
     sdk: flutter
 

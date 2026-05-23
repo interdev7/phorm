@@ -1,8 +1,10 @@
 name: sqflow
-publish_to: "none"
-description: PHORM is a lightweight, type-safe, driver-agnostic ORM for Dart and Flutter.
+description: PHORM — a lightweight, type-safe, driver-agnostic ORM for Dart and Flutter.
+version: 1.4.0
 repository: https://github.com/interdev7/sqflow
+homepage: https://github.com/interdev7/sqflow
 issue_tracker: https://github.com/interdev7/sqflow/issues
+publish_to: none
 
 screenshots:
   - description: PHORM logo.
@@ -12,10 +14,20 @@ environment:
   sdk: ">=3.5.0 <4.0.0"
 
 workspace:
-  - sqflow_core
   - sqflow_platform_interface
   - sqflow_lite
   - sqflow_generator
+  - examples
+
+dependencies:
+  flutter:
+    sdk: flutter
+  meta: ^1.16.0
+  sqflow_platform_interface:
+    path: ./sqflow_platform_interface
 
 dev_dependencies:
+  flutter_lints: ^3.0.0
+  flutter_test:
+    sdk: flutter
   very_good_analysis: ^8.0.0

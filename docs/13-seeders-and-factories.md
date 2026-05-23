@@ -13,7 +13,7 @@ A `Factory` is used to generate mock data for your models. This is particularly 
 Implement the `Factory<T>` interface and define the `create()` method.
 
 ```dart
-import 'package:sqflow_core/sqflow_core.dart';
+import 'package:sqflow/sqflow.dart';
 import 'package:faker/faker.dart'; // Optional: using a library for random data
 
 class UserFactory extends Factory<User> {

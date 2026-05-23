@@ -1,4 +1,4 @@
-import 'package:sqflow_core/sqflow_core.dart';
+import 'package:sqflow/sqflow.dart';
 
 /// Interface for database seeders.
 /// Use this to populate the database with initial or test data.

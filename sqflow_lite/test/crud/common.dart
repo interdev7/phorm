@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:sqflow_core/sqflow_core.dart';
+import 'package:sqflow/sqflow.dart';
 import 'package:sqflow_lite/sqflow_lite.dart';
 
 import '../mock_users.dart';
@@ -7,7 +7,7 @@ import '../models/user.dart';
 
 // Re-export needed packages
 export 'package:flutter_test/flutter_test.dart';
-export 'package:sqflow_core/sqflow_core.dart';
+export 'package:sqflow/sqflow.dart';
 export 'package:sqflow_platform_interface/sqflow_platform_interface.dart';
 
 export '../mock_users.dart';

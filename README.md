@@ -1,9 +1,9 @@
 <div align="center">
-  <!-- <img src="assets/logo/logo.png" alt="phorm" height=250/> -->
-  <img src="assets/logo/phorm.png" alt="phorm" height=450/>
+  <!-- <img src="assets/logo/logo.png" alt="sqflow" height=250/> -->
+  <img src="assets/logo/phorm.png" alt="sqflow" height=450/>
 </div>
 
-# PHORM (***P***redictable ***H***armonious **_ORM_**)
+# SQFlow
 
 A lightweight, type-safe, driver-agnostic ORM for Dart and Flutter.
 
@@ -23,10 +23,62 @@ By leveraging **Single-Query JSON Aggregation**, SQFlow aggregates complex paren
 
 | Package                                                  | Description                                                         |
 | :------------------------------------------------------- | :------------------------------------------------------------------ |
-| [sqflow_core](./sqflow_core)                             | Runtime engine — CRUD, WhereBuilder, Transactions, Eager Loading    |
+| [sqflow](./)                                             | Root package & Core engine — CRUD, WhereBuilder, Transactions, Eager Loading |
 | [sqflow_lite](./sqflow_lite)                             | SQLite driver — Connection manager, isolates, web WASM support      |
 | [sqflow_platform_interface](./sqflow_platform_interface) | Annotation library — `@Schema`, `@Column`, `@ID`, relationships     |
 | [sqflow_generator](./sqflow_generator)                   | Code generator — automates SQL schemas, `toJson`/`fromJson`, mixins |
+
+---
+
+## Motivation 🎯
+
+SQFlow was created to solve three main problems in Flutter database management:
+
+1. **Type Safety over Strings**: Most SQLite wrappers rely on `Map<String, dynamic>`. SQFlow generates type-safe columns and models, catching errors at compile-time rather than runtime.
+2. **Active Record DX**: Instead of managing complex DAO/Repository layers, SQFlow provides a clean, declarative API directly on your models (`Users.insert()`, `Users.where(...)`).
+3. **Performance & Relationships**: Fetching complex graphs (Many-to-Many, HasMany) usually leads to N+1 query problems. SQFlow uses JSON aggregation to resolve entire dependency trees in a **single SQL query**.
+
+---
+
+## Installation
+
+Add `sqflow` and a driver like `sqflow_lite` to your dependencies:
+
+```yaml
+dependencies:
+  sqflow: ^latest
+  sqflow_lite: ^latest # The SQLite driver and connection manager
+```
+
+---
+
+## Quick Start
+
+```dart
+import 'package:sqflow_lite/sqflow_lite.dart'; // Import sqflow_lite for DB and connection execution
+
+// 1. Table configuration (generated)
+final usersTable = Table<User>(...);
+
+// 2. DB manager (from sqflow_lite)
+final appDb = DB.autoVersion(
+  databaseName: 'app.db',
+  tables: [usersTable],
+);
+
+// 3. Service API (Recommended) 🌟
+await Users.insert(user);
+final user = await Users.readOne('id123');
+
+// 4. Fluent Queries
+final result = await Users.where(Users.age.gt(18)).get();
+
+// 5. Traditional engine access
+final userService = SqflowCore<User>(dbManager: appDb, table: usersTable);
+// Or
+final userService = appDb.service<User>();
+final paged = await userService.readAllWithCount(limit: 20);
+```
 
 ---
 
@@ -43,44 +95,35 @@ By leveraging **Single-Query JSON Aggregation**, SQFlow aggregates complex paren
 
 ---
 
-## Quick Start
+## CRUD Methods
+
+| Method                  | Returns                      | Description               |
+| :---------------------- | :--------------------------- | :------------------------ |
+| `insert(item)`          | `Future<int>`                | Row ID                    |
+| `update(item)`          | `Future<int>`                | Affected rows             |
+| `upsert(item)`          | `Future<void>`               | Insert or replace         |
+| `readOne(id)`           | `Future<T?>`                 | By primary key            |
+| `readAll(...)`          | `Future<Result<T>>`          | Paginated list            |
+| `readAllWithCount(...)` | `Future<ResultWithCount<T>>` | List + total count        |
+| `delete(id)`            | `Future<int>`                | Soft or hard delete       |
+| `restore(id)`           | `Future<int>`                | Un-delete (paranoid only) |
+| `exists(id)`            | `Future<bool>`               | Check presence            |
+| `transaction(fn)`       | `Future<R>`                  | Raw transaction           |
+
+All methods have fire-and-forget variants: `insert(item, onSuccess: ..., onError: ...)`.
+
+---
+
+## WhereBuilder Highlights
 
 ```dart
-@Schema(
-  tableName: 'users',
-  paranoid: true,
-  relationships: [HasMany(model: Post, foreignKey: 'user_id')],
-)
-class User extends Model with _$SQFlowUserMixin {
-  @ID()
-  final String id;
-
-  @Column()
-  final String name;
-
-  User({required this.id, required this.name});
-
-  factory User.fromJson(Map<String, dynamic> json) => _$SQFlowUserFromJson(json);
-}
-```
-
-```dart
-// 1. Fluent API (Recommended) 🌟
-final myPosts = await Posts.where(Posts.title.like('Dart%')).get();
-
-// 2. Complex queries with relationships
-final result = await Users.query
-  .where(Posts.title.like('Dart%'))
-  .include([Includable.model<Post>()])
+Users.where(Users.status.eq('active'))
+  .where(Users.age.gt(18))
+  .where(Users.name.like('%John%'))
   .get();
 
-// 3. Traditional SqflowCore instance (if needed)
-final paged = await userService.readAllWithCount(
-  where: WhereBuilder().like(Posts.title, 'Dart%'),
-  limit: 20,
-  offset: 0,
-);
-print('Showing ${paged.data.length} of ${paged.count}');
+// Manual WhereBuilder still works
+WhereBuilder().eq(Users.status, 'active').gt(Users.age, 18);
 ```
 
 ---
@@ -109,6 +152,6 @@ Full documentation is in the [`docs/`](./docs) folder:
 
 ---
 
-## 📄 License
+## License
 
 Apache 2.0

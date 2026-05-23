@@ -1,5 +1,5 @@
 import 'dart:async';
-import 'package:sqflow_core/sqflow_core.dart';
+import 'package:sqflow/sqflow.dart';
 import 'database_isolate.dart';
 import 'sql_function.dart';
 

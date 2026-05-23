@@ -41,12 +41,12 @@ final users = await Users.query.get();
 
 ## Setup for Flutter Web
 
-### Step 1 — Add sqflow_core and sqflow_lite
+### Step 1 — Add sqflow and sqflow_lite
 
 ```yaml
 # pubspec.yaml of your Flutter application
 dependencies:
-  sqflow_core: ^latest
+  sqflow: ^latest
   sqflow_lite: ^latest # SQLite driver containing WASM web support
 ```
 
