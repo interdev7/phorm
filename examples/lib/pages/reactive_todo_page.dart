@@ -41,7 +41,7 @@ class _ReactiveTodoPageState extends State<ReactiveTodoPage>
     _subscribeToChanges();
   }
 
-  /// Demonstrates: DB.onTableChanged stream — real-time reactivity
+  /// Demonstrates: DB.changeStream stream — real-time reactivity
   void _subscribeToChanges() {
     _sub = appDb.changeStream.listen((tableName) {
       if (tableName == 'tasks' || tableName == 'categories') {
@@ -100,7 +100,7 @@ class _ReactiveTodoPageState extends State<ReactiveTodoPage>
     _taskCtrl.clear();
     await Tasks.insert(
         Task(id: 0, title: title, categoryId: _selectedCategoryId!));
-    // onTableChanged stream fires → _loadTasks() runs automatically
+    // changeStream fires → _loadTasks() runs automatically
   }
 
   Future<void> _toggleComplete(Task task) async {

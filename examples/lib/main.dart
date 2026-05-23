@@ -3,6 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:sqflow_example/pages/reactive_todo_page.dart';
 import 'package:sqflow_example/pages/social_feed_page.dart';
 import 'package:sqflow_example/pages/validation_demo_page.dart';
+import 'package:sqflow_example/pages/reactivity_showcase_page.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -98,6 +99,7 @@ class _ShowcaseHomeState extends State<ShowcaseHome> {
     ValidationDemoPage(),
     SocialFeedPage(),
     ReactiveTodoPage(),
+    ReactivityShowcasePage(),
   ];
 
   @override
@@ -134,6 +136,11 @@ class _ShowcaseHomeState extends State<ShowcaseHome> {
             icon: Icon(Icons.checklist_outlined),
             selectedIcon: Icon(Icons.checklist),
             label: 'Todos',
+          ),
+          NavigationDestination(
+            icon: Icon(Icons.settings_input_antenna),
+            selectedIcon: Icon(Icons.settings_input_antenna_sharp),
+            label: 'Playground',
           ),
         ],
       ),

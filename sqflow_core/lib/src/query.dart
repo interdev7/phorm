@@ -284,4 +284,16 @@ class SqflowQuery<T extends Model> {
       withDeleted: _withDeleted,
     );
   }
+
+  /// Compiles and returns the SQL string for this query.
+  String toSql() {
+    return service.getBuildJoinQuery(
+      where: _where.isEmpty ? null : _where,
+      sort: _sort,
+      limit: _limit,
+      offset: _offset,
+      include: _include,
+      attributes: _attributes,
+    );
+  }
 }
