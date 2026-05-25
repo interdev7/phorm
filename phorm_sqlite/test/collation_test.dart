@@ -4,7 +4,7 @@ import 'test_utils.dart';
 void main() {
   group('String Collation', () {
     late DB db;
-    late SqflowCore<CollationTest> service;
+    late PhormCore<CollationTest> service;
 
     setUp(() async {
       db = DB(
@@ -15,7 +15,7 @@ void main() {
       );
       appDb = db;
       service =
-          SqflowCore<CollationTest>(dbManager: db, table: collation_testsTable);
+          PhormCore<CollationTest>(dbManager: db, table: collation_testsTable);
 
       await service.insert(CollationTest(
         id: '1',

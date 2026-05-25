@@ -26,10 +26,10 @@ A User can have many Roles, and a Role can be assigned to many Users.
     ),
   ],
 )
-class User extends Model with _$SQFlowUserMixin {
+class User extends Model with _$PhormUserMixin {
   @ID()
   final String id;
-  
+
   @Column()
   final String name;
 
@@ -37,8 +37,8 @@ class User extends Model with _$SQFlowUserMixin {
   final List<Role> roles;
 
   User({required this.id, required this.name, this.roles = const []});
-  
-  factory User.fromJson(Map<String, dynamic> json) => _$SQFlowUserFromJson(json);
+
+  factory User.fromJson(Map<String, dynamic> json) => _$PhormUserFromJson(json);
 }
 
 @Schema(
@@ -52,7 +52,7 @@ class User extends Model with _$SQFlowUserMixin {
     ),
   ],
 )
-class Role extends Model with _$SQFlowRoleMixin {
+class Role extends Model with _$PhormRoleMixin {
   @ID()
   final String id;
 
@@ -63,7 +63,7 @@ class Role extends Model with _$SQFlowRoleMixin {
 
   Role({required this.id, required this.title, this.users = const []});
 
-  factory Role.fromJson(Map<String, dynamic> json) => _$SQFlowRoleFromJson(json);
+  factory Role.fromJson(Map<String, dynamic> json) => _$PhormRoleFromJson(json);
 }
 ```
 
@@ -152,8 +152,9 @@ final admins = await Users.where(
 ```
 
 **Generated SQL:**
+
 ```sql
-SELECT users.* 
+SELECT users.*
 FROM users
 LEFT JOIN user_roles ON user_roles.user_id = users.id
 LEFT JOIN roles ON roles.id = user_roles.role_id
@@ -168,7 +169,7 @@ GROUP BY users.id
 When you include a `ManyToMany` relationship, SQFlow performs a correlated subquery using `json_group_array` and `json_object`.
 
 ```sql
-SELECT 
+SELECT
   users.*,
   (SELECT json_group_array(json_object('id', roles.id, 'title', roles.title))
    FROM roles
@@ -183,11 +184,11 @@ This approach allows fetching all many-to-many relationships in a **single query
 
 ## Parameters Reference
 
-| Parameter | Type | Required | Description |
-| :--- | :--- | :--- | :--- |
-| `model` | `Type` or `String` | Yes | The related model class or table name |
-| `pivotTable` | `String` | Yes | Name of the join table |
-| `foreignKey` | `String` | Yes | Column in `pivotTable` pointing to the current model |
-| `relatedKey` | `String` | Yes | Column in `pivotTable` pointing to the related model |
-| `localKey` | `String` | No | Column in current table referenced by `foreignKey` (default: `id`) |
-| `relatedLocalKey` | `String` | No | Column in related table referenced by `relatedKey` (default: `id`) |
+| Parameter         | Type               | Required | Description                                                        |
+| :---------------- | :----------------- | :------- | :----------------------------------------------------------------- |
+| `model`           | `Type` or `String` | Yes      | The related model class or table name                              |
+| `pivotTable`      | `String`           | Yes      | Name of the join table                                             |
+| `foreignKey`      | `String`           | Yes      | Column in `pivotTable` pointing to the current model               |
+| `relatedKey`      | `String`           | Yes      | Column in `pivotTable` pointing to the related model               |
+| `localKey`        | `String`           | No       | Column in current table referenced by `foreignKey` (default: `id`) |
+| `relatedLocalKey` | `String`           | No       | Column in related table referenced by `relatedKey` (default: `id`) |

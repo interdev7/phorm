@@ -3,7 +3,7 @@ import 'test_utils.dart';
 
 void main() {
   late DB db;
-  late SqflowCore<User> userService;
+  late PhormCore<User> userService;
 
   setUp(() async {
     db = DB(

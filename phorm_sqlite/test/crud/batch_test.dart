@@ -1,7 +1,7 @@
 import 'common.dart';
 
 void main() {
-  late SqflowCore<User> userService;
+  late PhormCore<User> userService;
 
   setUp(() async {
     userService = await createTestService();
@@ -23,7 +23,6 @@ void main() {
           gender: 'M',
           city: 'City1',
           country: 'Country1',
-
         ),
         User(
           id: 'batch002',
@@ -34,7 +33,6 @@ void main() {
           gender: 'F',
           city: 'City2',
           country: 'Country2',
-
         ),
       ];
 
@@ -60,7 +58,6 @@ void main() {
           gender: 'M',
           city: 'Old City',
           country: 'Country',
-
         ),
         User(
           id: 'batch_update2',
@@ -71,7 +68,6 @@ void main() {
           gender: 'F',
           city: 'Old City',
           country: 'Country',
-
         ),
       ];
 
@@ -107,7 +103,6 @@ void main() {
           gender: 'M',
           city: 'City',
           country: 'Country',
-
         ),
         User(
           id: 'batch_del2',
@@ -118,7 +113,6 @@ void main() {
           gender: 'F',
           city: 'City',
           country: 'Country',
-
         ),
       ];
 

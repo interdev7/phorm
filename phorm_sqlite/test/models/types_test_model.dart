@@ -8,7 +8,7 @@ late DB appDb;
 // Model 1: Extended scalar types (BigInt, Uri, Duration)
 // ───────────────────────────────────────────────────────────
 @Schema(tableName: 'scalar_items', timestamps: false)
-class ScalarItem with _$SQFlowScalarItemMixin implements Model {
+class ScalarItem with _$PhormScalarItemMixin implements Model {
   @ID()
   final int id;
 
@@ -41,14 +41,14 @@ class ScalarItem with _$SQFlowScalarItemMixin implements Model {
   });
 
   factory ScalarItem.fromJson(Map<String, dynamic> json) =>
-      _$SQFlowScalarItemFromJson(json);
+      _$PhormScalarItemFromJson(json);
 }
 
 // ───────────────────────────────────────────────────────────
 // Model 2: Collection fields (List, Set, Map stored as JSON)
 // ───────────────────────────────────────────────────────────
 @Schema(tableName: 'collection_items', timestamps: false)
-class CollectionItem with _$SQFlowCollectionItemMixin implements Model {
+class CollectionItem with _$PhormCollectionItemMixin implements Model {
   @ID()
   final int id;
 
@@ -69,14 +69,14 @@ class CollectionItem with _$SQFlowCollectionItemMixin implements Model {
   });
 
   factory CollectionItem.fromJson(Map<String, dynamic> json) =>
-      _$SQFlowCollectionItemFromJson(json);
+      _$PhormCollectionItemFromJson(json);
 }
 
 // ───────────────────────────────────────────────────────────
 // Model 3: Generic class
 // ───────────────────────────────────────────────────────────
 @Schema(tableName: 'api_responses', timestamps: false)
-class ApiResponse<T> with _$SQFlowApiResponseMixin<T> implements Model {
+class ApiResponse<T> with _$PhormApiResponseMixin<T> implements Model {
   @ID()
   final int id;
 
@@ -96,5 +96,5 @@ class ApiResponse<T> with _$SQFlowApiResponseMixin<T> implements Model {
     Map<String, dynamic> json,
     T Function(Object? json) fromJsonT,
   ) =>
-      _$SQFlowApiResponseFromJson(json, fromJsonT);
+      _$PhormApiResponseFromJson(json, fromJsonT);
 }

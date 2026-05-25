@@ -9,7 +9,7 @@ void main() {
     late Directory tempDir;
 
     setUp(() async {
-      tempDir = await Directory.systemTemp.createTemp('sqflow_password_test');
+      tempDir = await Directory.systemTemp.createTemp('phorm_password_test');
       dbPath = p.join(tempDir.path, 'encrypted.db');
     });
 
@@ -29,7 +29,7 @@ void main() {
         singleInstance: false,
       );
 
-      final service = SqflowCore<CollationTest>(
+      final service = PhormCore<CollationTest>(
         dbManager: db,
         table: collation_testsTable,
       );
@@ -59,7 +59,7 @@ void main() {
         singleInstance: false,
       );
 
-      final serviceReopened = SqflowCore<CollationTest>(
+      final serviceReopened = PhormCore<CollationTest>(
         dbManager: dbReopened,
         table: collation_testsTable,
       );
@@ -73,7 +73,9 @@ void main() {
       await dbInstanceReopened.close();
     });
 
-    test('Should fail to read when opened with incorrect password (if SQLCipher is supported)', () async {
+    test(
+        'Should fail to read when opened with incorrect password (if SQLCipher is supported)',
+        () async {
       // 1. Initialize DB with a password
       final db = DB(
         databaseName: dbPath,
@@ -83,7 +85,7 @@ void main() {
         singleInstance: false,
       );
 
-      final service = SqflowCore<CollationTest>(
+      final service = PhormCore<CollationTest>(
         dbManager: db,
         table: collation_testsTable,
       );
@@ -97,7 +99,7 @@ void main() {
 
       // 3. Close the database
       final dbInstance = await db.database;
-      
+
       // Detect if SQLCipher is actually supported in the current test environment
       final cipherCheck = await dbInstance.rawQuery('PRAGMA cipher_version');
       final isSqlCipherSupported = cipherCheck.isNotEmpty &&
@@ -119,25 +121,26 @@ void main() {
         // If SQLCipher is active, reading should fail with SqliteException (usually code 26 - SQLITE_NOTADB)
         expect(
           () async {
-            final serviceWrong = SqflowCore<CollationTest>(
+            final serviceWrong = PhormCore<CollationTest>(
               dbManager: dbWrongPassword,
               table: collation_testsTable,
             );
             await serviceWrong.readAll();
           },
-          throwsA(isA<Exception>()), 
-          reason: 'SQLCipher is active; opening with the wrong password must fail.',
+          throwsA(isA<Exception>()),
+          reason:
+              'SQLCipher is active; opening with the wrong password must fail.',
         );
       } else {
         // If standard SQLite (no SQLCipher), PRAGMA key is a no-op, so it opens and reads normally
-        final serviceWrong = SqflowCore<CollationTest>(
+        final serviceWrong = PhormCore<CollationTest>(
           dbManager: dbWrongPassword,
           table: collation_testsTable,
         );
         final list = await serviceWrong.readAll();
-        expect(list.data.length, 1, 
+        expect(list.data.length, 1,
             reason: 'Standard SQLite ignores PRAGMA key, so reading succeeds.');
-        
+
         final dbInstanceWrong = await dbWrongPassword.database;
         await dbInstanceWrong.close();
       }

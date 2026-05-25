@@ -34,7 +34,7 @@ class IsNumberValidator implements IJsonValidator {
     ),
   ],
 )
-class User extends Model with _$SQFlowUserMixin {
+class User extends Model with _$PhormUserMixin {
   User({
     required this.id,
     required this.firstName,
@@ -56,8 +56,7 @@ class User extends Model with _$SQFlowUserMixin {
 
   final List<Post> posts;
 
-  factory User.fromJson(Map<String, dynamic> json) =>
-      _$SQFlowUserFromJson(json);
+  factory User.fromJson(Map<String, dynamic> json) => _$PhormUserFromJson(json);
   @ID(autoIncrement: false, unique: true)
   final String id;
 

@@ -165,7 +165,7 @@ class ModelMixinGenerator extends GeneratorForAnnotation<Schema> {
         .join(', ');
 
     final buffer = StringBuffer()
-      ..writeln('mixin _\$SQFlow${className}Mixin$typeParamsBrackets {');
+      ..writeln('mixin _\$Phorm${className}Mixin$typeParamsBrackets {');
 
     if (useToJson) {
       final paramList = toJsonTypeParams.isNotEmpty
@@ -177,7 +177,7 @@ class ModelMixinGenerator extends GeneratorForAnnotation<Schema> {
       buffer
         ..writeln()
         ..writeln(
-            '  Map<String, dynamic> toJson($paramList) => _\$SQFlow${className}ToJson(this as $className$typeParamsBrackets$argList);');
+            '  Map<String, dynamic> toJson($paramList) => _\$Phorm${className}ToJson(this as $className$typeParamsBrackets$argList);');
     }
 
     if (useToString) {
@@ -185,7 +185,7 @@ class ModelMixinGenerator extends GeneratorForAnnotation<Schema> {
         ..writeln()
         ..writeln('  @override')
         ..writeln(
-            '  String toString() => _\$SQFlow${className}ToString(this as $className$typeParamsBrackets);');
+            '  String toString() => _\$Phorm${className}ToString(this as $className$typeParamsBrackets);');
     }
 
     // Timestamps fields
@@ -246,7 +246,7 @@ class ModelMixinGenerator extends GeneratorForAnnotation<Schema> {
       buffer
         ..writeln()
         ..writeln(
-            'Map<String, dynamic> _\$SQFlow${className}ToJson$typeParamsBrackets($className$typeParamsBrackets instance$paramList) {')
+            'Map<String, dynamic> _\$Phorm${className}ToJson$typeParamsBrackets($className$typeParamsBrackets instance$paramList) {')
         ..writeln('  final ${className.toLowerCase()}Json = {');
       for (final field in fields) {
         if (relationships.any((r) => r['fieldName'] == field.name)) continue;
@@ -263,22 +263,22 @@ class ModelMixinGenerator extends GeneratorForAnnotation<Schema> {
           info: info,
           toJsonParamName: toJsonParam,
         );
-        buffer.writeln("    '$sqlName': _\$SQFlowToJsonValue($valueExpr),");
+        buffer.writeln("    '$sqlName': _\$PhormToJsonValue($valueExpr),");
       }
 
       if (timestamps) {
         if (!existsCreatedAt) {
           buffer.writeln(
-              r"    'created_at': _$SQFlowToJsonValue(instance.createdAt),");
+              r"    'created_at': _$PhormToJsonValue(instance.createdAt),");
         }
         if (!existsUpdatedAt) {
           buffer.writeln(
-              r"    'updated_at': _$SQFlowToJsonValue(instance.updatedAt),");
+              r"    'updated_at': _$PhormToJsonValue(instance.updatedAt),");
         }
       }
       if (paranoid && !existsDeletedAt) {
         buffer.writeln(
-            r"    'deleted_at': _$SQFlowToJsonValue(instance.deletedAt),");
+            r"    'deleted_at': _$PhormToJsonValue(instance.deletedAt),");
       }
 
       // Output synthesized foreign keys in toJson
@@ -289,7 +289,7 @@ class ModelMixinGenerator extends GeneratorForAnnotation<Schema> {
           final existsFk = fields.any((f) => f.name == fkName);
           if (!existsFk) {
             buffer.writeln(
-                "    '$fkSqlName': _\$SQFlowToJsonValue(instance.$fkName),");
+                "    '$fkSqlName': _\$PhormToJsonValue(instance.$fkName),");
           }
         }
       }
@@ -307,7 +307,7 @@ class ModelMixinGenerator extends GeneratorForAnnotation<Schema> {
       buffer
         ..writeln()
         ..writeln(
-            'String _\$SQFlow${className}ToString$typeParamsBrackets($className$typeParamsBrackets instance) {')
+            'String _\$Phorm${className}ToString$typeParamsBrackets($className$typeParamsBrackets instance) {')
         ..writeln('  return """')
         ..writeln('$className(');
 
@@ -352,7 +352,7 @@ class ModelMixinGenerator extends GeneratorForAnnotation<Schema> {
       buffer
         ..writeln()
         ..writeln(
-            'extension SQFlow${className}Ext$typeParamsBrackets on $className$typeParamsBrackets {');
+            'extension Phorm${className}Ext$typeParamsBrackets on $className$typeParamsBrackets {');
 
       final constructor =
           element.unnamedConstructor ?? element.constructors.first;
@@ -427,8 +427,8 @@ class ModelMixinGenerator extends GeneratorForAnnotation<Schema> {
             final isJsonValidator =
                 _jsonValidatorChecker.isAssignableFromType(validatorObj.type!);
             final exceptionType = isJsonValidator
-                ? 'SqflowJSONValidatorException'
-                : 'SqflowCHECKValidatorException';
+                ? 'PhormJSONValidatorException'
+                : 'PhormCHECKValidatorException';
 
             // final isNullable =
             //   field.type.nullabilitySuffix == NullabilitySuffix.question;
@@ -462,7 +462,7 @@ class ModelMixinGenerator extends GeneratorForAnnotation<Schema> {
           fromJsonTypeParams.isNotEmpty ? ', $fromJsonTypeParams' : '';
       buffer
         ..writeln(
-            '\n$className$typeParamsBrackets _\$SQFlow${className}FromJson$typeParamsBrackets(Map<String, dynamic> json$paramList) {')
+            '\n$className$typeParamsBrackets _\$Phorm${className}FromJson$typeParamsBrackets(Map<String, dynamic> json$paramList) {')
         // ..writeln(useValidator
         //     ? '  _\$validate$className(json, tableName: \'$tableName\');\n'
         //     : '')
@@ -574,22 +574,22 @@ class ModelMixinGenerator extends GeneratorForAnnotation<Schema> {
       var type = field.type.getDisplayString();
       if (type.endsWith('?')) type = type.substring(0, type.length - 1);
       buffer.writeln(
-          "  static const SqflowColumn<$type> ${field.name} = SqflowColumn<$type>('$sqlName', tableName: '$tableName');");
+          "  static const PhormColumn<$type> ${field.name} = PhormColumn<$type>('$sqlName', tableName: '$tableName');");
     }
 
     if (timestamps) {
       if (!existsCreatedAt) {
         buffer.writeln(
-            "  static const SqflowColumn<DateTime> createdAt = SqflowColumn<DateTime>('created_at', tableName: '$tableName');");
+            "  static const PhormColumn<DateTime> createdAt = PhormColumn<DateTime>('created_at', tableName: '$tableName');");
       }
       if (!existsUpdatedAt) {
         buffer.writeln(
-            "  static const SqflowColumn<DateTime> updatedAt = SqflowColumn<DateTime>('updated_at', tableName: '$tableName');");
+            "  static const PhormColumn<DateTime> updatedAt = PhormColumn<DateTime>('updated_at', tableName: '$tableName');");
       }
     }
     if (paranoid && !existsDeletedAt) {
       buffer.writeln(
-          "  static const SqflowColumn<DateTime> deletedAt = SqflowColumn<DateTime>('deleted_at', tableName: '$tableName');");
+          "  static const PhormColumn<DateTime> deletedAt = PhormColumn<DateTime>('deleted_at', tableName: '$tableName');");
     }
 
     // Synthesized FKs
@@ -600,7 +600,7 @@ class ModelMixinGenerator extends GeneratorForAnnotation<Schema> {
         final existsFk = fields.any((f) => f.name == fkName);
         if (!existsFk) {
           buffer.writeln(
-              "  static const SqflowColumn<dynamic> $fkName = SqflowColumn<dynamic>('$fkSqlName', tableName: '$tableName');");
+              "  static const PhormColumn<dynamic> $fkName = PhormColumn<dynamic>('$fkSqlName', tableName: '$tableName');");
         }
       }
     }
@@ -608,11 +608,11 @@ class ModelMixinGenerator extends GeneratorForAnnotation<Schema> {
     buffer
       ..writeln()
       ..writeln(
-          '  static SqflowCore<$classType> get _service => SqflowCore<$classType>(dbManager: appDb, table: ${tableName}Table);')
+          '  static PhormCore<$classType> get _service => PhormCore<$classType>(dbManager: appDb, table: ${tableName}Table);')
       ..writeln()
       ..writeln(
-          '  static SqflowQuery<$classType> where(SqflowCondition condition) => _service.where(condition);')
-      ..writeln('  static SqflowQuery<$classType> get query => _service.query;')
+          '  static PhormQuery<$classType> where(PhormCondition condition) => _service.where(condition);')
+      ..writeln('  static PhormQuery<$classType> get query => _service.query;')
       ..writeln()
       ..writeln(
           '  static Future<int> insert($classType item, {DatabaseExecutor? executor}) => _service.insert(item, executor: executor);')
@@ -687,7 +687,7 @@ class ModelMixinGenerator extends GeneratorForAnnotation<Schema> {
       buffer
         ..writeln()
         ..writeln(
-            'extension ${className}QueryRelations on SqflowQuery<$classType> {');
+            'extension ${className}QueryRelations on PhormQuery<$classType> {');
       for (final rel in relationships) {
         final fieldName = rel['fieldName'] as String;
         final modelClass = rel['modelClass'] as String;
@@ -695,7 +695,7 @@ class ModelMixinGenerator extends GeneratorForAnnotation<Schema> {
         final methodName = 'include$capitalized';
 
         buffer.writeln('''
-  SqflowQuery<$classType> $methodName({Attributes? attributes, List<Includable>? include}) {
+  PhormQuery<$classType> $methodName({Attributes? attributes, List<Includable>? include}) {
     return includeOne(Includable.model<$modelClass>(attributes: attributes, include: include));
   }''');
       }
@@ -890,9 +890,9 @@ class ModelMixinGenerator extends GeneratorForAnnotation<Schema> {
       final itemType = type.typeArguments.first;
       final itemExpr = _generateFromJsonValue(itemType, 'e');
       if (isNullable) {
-        return "(_\$SQFlowDecodeJson($jsonAccess) as List?)?.map((e) => $itemExpr).toList()";
+        return "(_\$PhormDecodeJson($jsonAccess) as List?)?.map((e) => $itemExpr).toList()";
       }
-      return "(_\$SQFlowDecodeJson($jsonAccess) as List).map((e) => $itemExpr).toList()";
+      return "(_\$PhormDecodeJson($jsonAccess) as List).map((e) => $itemExpr).toList()";
     }
 
     // Set<T>
@@ -902,9 +902,9 @@ class ModelMixinGenerator extends GeneratorForAnnotation<Schema> {
       final itemType = type.typeArguments.first;
       final itemExpr = _generateFromJsonValue(itemType, 'e');
       if (isNullable) {
-        return "(_\$SQFlowDecodeJson($jsonAccess) as List?)?.map((e) => $itemExpr).toSet()";
+        return "(_\$PhormDecodeJson($jsonAccess) as List?)?.map((e) => $itemExpr).toSet()";
       }
-      return "(_\$SQFlowDecodeJson($jsonAccess) as List).map((e) => $itemExpr).toSet()";
+      return "(_\$PhormDecodeJson($jsonAccess) as List).map((e) => $itemExpr).toSet()";
     }
 
     // Map<String, V>
@@ -914,9 +914,9 @@ class ModelMixinGenerator extends GeneratorForAnnotation<Schema> {
       final valueType = type.typeArguments[1];
       final valExpr = _generateFromJsonValue(valueType, 'v');
       if (isNullable) {
-        return "(_\$SQFlowDecodeJson($jsonAccess) as Map?)?.map((k, v) => MapEntry(k as String, $valExpr))";
+        return "(_\$PhormDecodeJson($jsonAccess) as Map?)?.map((k, v) => MapEntry(k as String, $valExpr))";
       }
-      return "(_\$SQFlowDecodeJson($jsonAccess) as Map).map((k, v) => MapEntry(k as String, $valExpr))";
+      return "(_\$PhormDecodeJson($jsonAccess) as Map).map((k, v) => MapEntry(k as String, $valExpr))";
     }
 
     // Nested class with fromJson constructor

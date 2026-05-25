@@ -19,9 +19,9 @@ class MigrationUserFactory extends Factory<MigrationUser> {
 // Mock Seeder
 class MigrationUserSeeder extends Seeder {
   @override
-  Future<void> run(SqflowDatabase db) async {
+  Future<void> run(PhormDatabase db) async {
     final userService =
-        SqflowCore<MigrationUser>(dbManager: db, table: migration_usersTable);
+        PhormCore<MigrationUser>(dbManager: db, table: migration_usersTable);
     final userFactory = MigrationUserFactory();
 
     // Seed 5 users
@@ -31,7 +31,7 @@ class MigrationUserSeeder extends Seeder {
 
 void main() {
   late DB db;
-  late SqflowCore<MigrationUser> userService;
+  late PhormCore<MigrationUser> userService;
 
   setUp(() async {
     db = DB(
@@ -41,7 +41,7 @@ void main() {
       singleInstance: false,
     );
     userService =
-        SqflowCore<MigrationUser>(dbManager: db, table: migration_usersTable);
+        PhormCore<MigrationUser>(dbManager: db, table: migration_usersTable);
   });
 
   tearDown(() async {
@@ -91,9 +91,9 @@ void main() {
 
 class _SpecialSeeder extends Seeder {
   @override
-  Future<void> run(SqflowDatabase db) async {
+  Future<void> run(PhormDatabase db) async {
     final userService =
-        SqflowCore<MigrationUser>(dbManager: db, table: migration_usersTable);
+        PhormCore<MigrationUser>(dbManager: db, table: migration_usersTable);
     await userService
         .insert(MigrationUser(id: 'special_id', name: 'Special User'));
   }

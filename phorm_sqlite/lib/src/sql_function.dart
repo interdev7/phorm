@@ -95,6 +95,5 @@ class SqlFunction {
 }
 
 /// A typed representation of an SQL function call on a column.
-/// Re-exported from sqflow_core — do not redeclare here.
-// SqlFunctionColumn, SqlFunctions, SqlFunctionExtension are in sqflow_core.
-
+/// Re-exported from `phorm` — do not redeclare here.
+// SqlFunctionColumn, SqlFunctions, SqlFunctionExtension are in `phorm`.

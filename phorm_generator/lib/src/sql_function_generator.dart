@@ -14,7 +14,7 @@ class SqlFunctionGenerator extends Generator {
     final functions = <_SqlFuncData>[];
 
     const sqlFuncChecker = TypeChecker.fromUrl(
-        'package:sqflow_platform_interface/src/annotations.dart#SqlFunc');
+        'package:phorm_annotations/src/annotations.dart#SqlFunc');
 
     // Find all top-level functions in the library
     for (final element in library.allElements) {
@@ -92,10 +92,10 @@ class SqlFunctionGenerator extends Generator {
           "${fn.element.name[0].toUpperCase()}${fn.element.name.substring(1)}";
       buffer
         ..writeln(
-            'extension ${functionName}SqflowColumnExtension on SqflowColumn<$targetTypeStr> {')
+            'extension ${functionName}PhormColumnExtension on PhormColumn<$targetTypeStr> {')
         ..writeln(
             '  /// Applies the custom SQL function `$sqlName` to this column.')
-        ..writeln('  SqflowColumn<$returnTypeStr> $dartMethodName() {')
+        ..writeln('  PhormColumn<$returnTypeStr> $dartMethodName() {')
         ..writeln("    return sqlFunction<$returnTypeStr>('$sqlName');")
         ..writeln('  }')
         ..writeln('}\n');

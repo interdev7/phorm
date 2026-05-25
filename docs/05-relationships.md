@@ -6,13 +6,13 @@ SQFlow provides three relationship types: `HasMany`, `HasOne`, and `BelongsTo` (
 
 ## Relationship Types
 
-| Type | Direction | Example | Returns |
-| :--- | :--- | :--- | :--- |
-| `HasMany` | One → Many | User has many Orders | `List<T>` (empty if none) |
-| `HasOne` | One → One | User has one Profile | `Map?` (null if none) |
-| `BelongsTo` | Many → One | Order belongs to User | `Map?` (null if none) |
-| `ManyToMany` | Many ↔ Many | User belongs to many Roles | `List<T>` (empty if none) |
-| `Join` | alias of `BelongsTo` | Same as BelongsTo | `Map?` |
+| Type         | Direction            | Example                    | Returns                   |
+| :----------- | :------------------- | :------------------------- | :------------------------ |
+| `HasMany`    | One → Many           | User has many Orders       | `List<T>` (empty if none) |
+| `HasOne`     | One → One            | User has one Profile       | `Map?` (null if none)     |
+| `BelongsTo`  | Many → One           | Order belongs to User      | `Map?` (null if none)     |
+| `ManyToMany` | Many ↔ Many          | User belongs to many Roles | `List<T>` (empty if none) |
+| `Join`       | alias of `BelongsTo` | Same as BelongsTo          | `Map?`                    |
 
 > [!NOTE]
 > For a detailed guide on setting up pivot tables and cross-references, see the [Many-to-Many](./11-many-to-many.md) documentation.
@@ -29,7 +29,7 @@ SQFlow provides three relationship types: `HasMany`, `HasOne`, and `BelongsTo` (
     HasOne(model: Profile, foreignKey: 'user_id'),
   ],
 )
-class User extends Model with _$SQFlowUserMixin { ... }
+class User extends Model with _$PhormUserMixin { ... }
 
 @Schema(
   tableName: 'orders',
@@ -37,7 +37,7 @@ class User extends Model with _$SQFlowUserMixin { ... }
     BelongsTo(model: User, foreignKey: 'user_id'),
   ],
 )
-class Order extends Model with _$SQFlowOrderMixin { ... }
+class Order extends Model with _$PhormOrderMixin { ... }
 
 @Schema(
   tableName: 'users',
@@ -50,34 +50,34 @@ class Order extends Model with _$SQFlowOrderMixin { ... }
     ),
   ],
 )
-class User extends Model with _$SQFlowUserMixin { ... }
+class User extends Model with _$PhormUserMixin { ... }
 ```
 
 ### Relationship Parameters
 
-| Parameter | Type | Default | Description |
-| :--- | :--- | :--- | :--- |
-| `model` | `Type` or `String` | required | Target model class or table name string |
-| `foreignKey` | `String` | required | The linking column |
-| `localKey` | `String` | `'id'` | The local side column (usually primary key) |
+| Parameter    | Type               | Default  | Description                                 |
+| :----------- | :----------------- | :------- | :------------------------------------------ |
+| `model`      | `Type` or `String` | required | Target model class or table name string     |
+| `foreignKey` | `String`           | required | The linking column                          |
+| `localKey`   | `String`           | `'id'`   | The local side column (usually primary key) |
 
 > [!TIP]
 > While `localKey` defaults to `'id'`, the generator now automatically resolves the correct primary key name for `BelongsTo` relationships at build-time. For other relationship types, it is recommended to explicitly set `localKey` if your primary key is not named `id`.
 
 ### ManyToMany Specific Parameters
 
-| Parameter | Type | Default | Description |
-| :--- | :--- | :--- | :--- |
-| `pivotTable` | `String` | required | Name of the join table |
-| `relatedKey` | `String` | required | Pivot column pointing to the related table |
-| `relatedLocalKey` | `String` | `'id'` | Local key of the related table |
+| Parameter         | Type     | Default  | Description                                |
+| :---------------- | :------- | :------- | :----------------------------------------- |
+| `pivotTable`      | `String` | required | Name of the join table                     |
+| `relatedKey`      | `String` | required | Pivot column pointing to the related table |
+| `relatedLocalKey` | `String` | `'id'`   | Local key of the related table             |
 
 ### Example with Actions
 
 ```dart
 HasMany(
-  model: Order, 
-  foreignKey: 'user_id', 
+  model: Order,
+  foreignKey: 'user_id',
   onDelete: ReferentialAction.cascade, // Auto-delete orders when user is deleted
   onUpdate: ReferentialAction.cascade,
 )
@@ -281,12 +281,12 @@ GROUP BY users.id   -- prevents duplicates from the JOIN
 
 ## Cross-Table Filtering vs. Include — Key Difference
 
-| Feature | `include: [...]` | `where: WhereBuilder().eq('table.col', ...)` |
-| :--- | :--- | :--- |
-| Purpose | Load related data | Filter main records by related data |
-| SQL type | Correlated subquery (json_object) | LEFT JOIN |
-| Returns related data | ✅ Yes, embedded in result | ❌ No (only filters) |
-| Affects main result count | ❌ No | ✅ Yes (only matching records returned) |
+| Feature                   | `include: [...]`                  | `where: WhereBuilder().eq('table.col', ...)` |
+| :------------------------ | :-------------------------------- | :------------------------------------------- |
+| Purpose                   | Load related data                 | Filter main records by related data          |
+| SQL type                  | Correlated subquery (json_object) | LEFT JOIN                                    |
+| Returns related data      | ✅ Yes, embedded in result        | ❌ No (only filters)                         |
+| Affects main result count | ❌ No                             | ✅ Yes (only matching records returned)      |
 
 **You can combine both:**
 

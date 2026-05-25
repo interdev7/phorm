@@ -19,13 +19,13 @@ String stringSchemaBuilder({
     return "${r['type']}(model: '${r['model']}', foreignKey: '${r['foreignKey']}'$lkCode)";
   }).join(', ');
 
-  final schemaVarName = '_\$SQFlow${className}Schema';
-  final tableClassName = '_\$SQFlow${className}Table';
+  final schemaVarName = '_\$Phorm${className}Schema';
+  final tableClassName = '_\$Phorm${className}Table';
   final tableVarName = '${tableName}Table';
 
   final fromJsonValue = isGeneric
-      ? '(json) => _\$SQFlow${className}FromJson(json, (x) => x)'
-      : (useFromJson ? '_\$SQFlow${className}FromJson' : '$className.fromJson');
+      ? '(json) => _\$Phorm${className}FromJson(json, (x) => x)'
+      : (useFromJson ? '_\$Phorm${className}FromJson' : '$className.fromJson');
 
   return '''
 const $schemaVarName = """
@@ -38,7 +38,7 @@ ${[
 ${indexSql != null ? '\n$indexSql' : ''}
 """;
 
-class $tableClassName extends Table<${className}${isGeneric ? '<dynamic>' : ''}> {
+class $tableClassName extends Table<$className${isGeneric ? '<dynamic>' : ''}> {
   $tableClassName({
     required super.schema,
     required super.name,

@@ -205,7 +205,7 @@ class MigrationBuilder<T extends Model> {
   MigrationBuilder<T> custom({
     required String description,
     required int version,
-    required Future<void> Function(SqflowDatabaseExecutor db, Table<T> table)
+    required Future<void> Function(PhormDatabaseExecutor db, Table<T> table)
         migrate,
   }) {
     _migrations.add(TableMigration<T>(
@@ -277,7 +277,7 @@ class MigrationBuilder<T extends Model> {
 
   /// Workaround for dropping columns in SQLite
   Future<void> _dropColumnWorkaround(
-    SqflowDatabaseExecutor db,
+    PhormDatabaseExecutor db,
     Table<T> table,
     String columnName,
   ) async {

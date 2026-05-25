@@ -29,9 +29,10 @@ dev_dependencies:
 ## Usage
 
 ### 1. Annotate your class
+
 ```dart
 @Schema(tableName: 'users')
-class User extends Model with _$SQFlowUserMixin {
+class User extends Model with _$PhormUserMixin {
   @ID()
   final String id;
 
@@ -40,11 +41,12 @@ class User extends Model with _$SQFlowUserMixin {
 
   User({required this.id, required this.name});
 
-  factory User.fromJson(Map<String, dynamic> json) => _$SQFlowUserFromJson(json);
+  factory User.fromJson(Map<String, dynamic> json) => _$PhormUserFromJson(json);
 }
 ```
 
 ### 2. Run the build
+
 ```bash
 # One-time build
 dart run build_runner build
@@ -66,4 +68,3 @@ dart run build_runner watch --delete-conflicting-outputs
 ## License
 
 Apache 2.0
-

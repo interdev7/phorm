@@ -5,8 +5,8 @@ import 'models/user.dart';
 void main() {
   late Database db;
   late DB dbManager;
-  late SqflowCore<User> userService;
-  late SqflowCore<Post> postService;
+  late PhormCore<User> userService;
+  late PhormCore<Post> postService;
 
   setUpAll(() {});
 
@@ -20,8 +20,8 @@ void main() {
     await db.delete('users');
     await db.delete('posts');
 
-    userService = SqflowCore<User>(dbManager: dbManager, table: usersTable);
-    postService = SqflowCore<Post>(dbManager: dbManager, table: postsTable);
+    userService = PhormCore<User>(dbManager: dbManager, table: usersTable);
+    postService = PhormCore<Post>(dbManager: dbManager, table: postsTable);
   });
 
   tearDown(() async {

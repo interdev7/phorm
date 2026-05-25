@@ -7,7 +7,7 @@ late DB appDb;
 @Schema(
   tableName: 'migration_users',
 )
-class MigrationUser extends Model with _$SQFlowMigrationUserMixin {
+class MigrationUser extends Model with _$PhormMigrationUserMixin {
   @ID(autoIncrement: false, columnName: 'custom_id')
   final String id;
 
@@ -32,5 +32,5 @@ class MigrationUser extends Model with _$SQFlowMigrationUserMixin {
   });
 
   factory MigrationUser.fromJson(Map<String, dynamic> json) =>
-      _$SQFlowMigrationUserFromJson(json);
+      _$PhormMigrationUserFromJson(json);
 }

@@ -27,7 +27,7 @@ Future<String> getDatabasesPath() async {
 
 /// Main database manager that handles connection lifecycle,
 /// version management, and smart migration tracking for SQLite.
-class DB implements SqflowDatabase {
+class DB implements PhormDatabase {
   /// Database file name (e.g., 'app_database.db')
   final String databaseName;
 
@@ -52,11 +52,11 @@ class DB implements SqflowDatabase {
   Completer<Database>? _initCompleter;
 
   /// Name of the migrations tracking table
-  static const String _migrationsTable = '__sqflow_migrations';
+  static const String _migrationsTable = '__phorm_migrations';
 
   /// Optional logger for the database
   @override
-  final SqflowLogger? logger;
+  final PhormLogger? logger;
 
   /// Whether to log all queries
   final bool logQueries;
@@ -105,7 +105,7 @@ class DB implements SqflowDatabase {
     this.databaseName = 'app_database.db',
     this.customFunctions = const [],
     this.password,
-    this.logger = const SqflowConsoleLogger(),
+    this.logger = const PhormConsoleLogger(),
     this.logQueries = false,
     this.slowQueryThreshold = const Duration(milliseconds: 200),
     this.singleInstance = true,
@@ -120,7 +120,7 @@ class DB implements SqflowDatabase {
     required List<Table> tables,
     List<SqlFunction> customFunctions = const [],
     String? password,
-    SqflowLogger? logger = const SqflowConsoleLogger(),
+    PhormLogger? logger = const PhormConsoleLogger(),
     bool logQueries = false,
     Duration slowQueryThreshold = const Duration(milliseconds: 200),
     bool singleInstance = true,
@@ -475,7 +475,7 @@ class DB implements SqflowDatabase {
 
     try {
       // Execute migration
-      await migration.migrate(SqflowDatabaseExecutorWrapper(db), table);
+      await migration.migrate(PhormDatabaseExecutorWrapper(db), table);
 
       // Record as applied
       await db.insert(_migrationsTable, {
@@ -596,6 +596,7 @@ class DB implements SqflowDatabase {
   }
 
   /// Closes the database connection
+  @override
   Future<void> close() async {
     await _changeController.close();
     await _dbChangeSubscription?.cancel();
@@ -681,10 +682,10 @@ class _PendingMigration {
   _PendingMigration(this.table, this.migration);
 }
 
-/// Wrapper for Database to satisfy [SqflowDatabaseExecutor].
-class SqflowDatabaseExecutorWrapper implements SqflowDatabaseExecutor {
+/// Wrapper for Database to satisfy [PhormDatabaseExecutor].
+class PhormDatabaseExecutorWrapper implements PhormDatabaseExecutor {
   final Database _executor;
-  SqflowDatabaseExecutorWrapper(this._executor);
+  PhormDatabaseExecutorWrapper(this._executor);
 
   @override
   Future<void> execute(String sql, [List<Object?>? arguments]) =>

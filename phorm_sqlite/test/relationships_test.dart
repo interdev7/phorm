@@ -55,7 +55,7 @@ void main() {
     await database
         .insert('posts', {'id': 3, 'title': 'Post 3', 'user_id': 'other'});
 
-    final userService = SqflowCore<User>(dbManager: db, table: usersTable);
+    final userService = PhormCore<User>(dbManager: db, table: usersTable);
 
     // Test readOne with include
     final user =
@@ -76,7 +76,7 @@ void main() {
     await database
         .insert('posts', {'id': 1, 'title': 'Post 1', 'user_id': 'u1'});
 
-    final postService = SqflowCore<Post>(dbManager: db, table: postsTable);
+    final postService = PhormCore<Post>(dbManager: db, table: postsTable);
 
     // Test readOne with include
     final post =
@@ -96,7 +96,7 @@ void main() {
     await database.insert('posts', {'id': 1, 'title': 'P1', 'user_id': 'u1'});
     await database.insert('posts', {'id': 2, 'title': 'P2', 'user_id': 'u2'});
 
-    final userService = SqflowCore<User>(dbManager: db, table: usersTable);
+    final userService = PhormCore<User>(dbManager: db, table: usersTable);
 
     final result =
         await userService.readAll(include: [Includable.model<Post>()]);

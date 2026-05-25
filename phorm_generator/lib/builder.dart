@@ -79,10 +79,10 @@ class _SqflowCombinedGenerator extends Generator {
     final generatedContent = buffer.toString();
     final finalBuffer = StringBuffer()..write(generatedContent);
 
-    // Only output _$SQFlowToJsonValue if it is referenced in the generated models
-    if (generatedContent.contains(r'_$SQFlowToJsonValue')) {
+    // Only output _$PhormToJsonValue if it is referenced in the generated models
+    if (generatedContent.contains(r'_$PhormToJsonValue')) {
       finalBuffer.writeln(r'''
-dynamic _$SQFlowToJsonValue(dynamic value) {
+dynamic _$PhormToJsonValue(dynamic value) {
   if (value == null) return null;
   if (value is DateTime) return value.toIso8601String();
   if (value is bool) return value ? 1 : 0;
@@ -95,12 +95,12 @@ dynamic _$SQFlowToJsonValue(dynamic value) {
 ''');
     }
 
-    // Only output _$SQFlowDecodeJson if it is referenced in the generated models (e.g., collections deserialization)
-    if (generatedContent.contains(r'_$SQFlowDecodeJson')) {
+    // Only output _$PhormDecodeJson if it is referenced in the generated models (e.g., collections deserialization)
+    if (generatedContent.contains(r'_$PhormDecodeJson')) {
       finalBuffer.writeln(r'''
 /// Decodes a value from SQLite storage.
 /// JSON strings (from List/Set/Map fields) are decoded back to Dart objects.
-dynamic _$SQFlowDecodeJson(dynamic value) {
+dynamic _$PhormDecodeJson(dynamic value) {
   if (value == null) return null;
   if (value is String) {
     final trimmed = value.trimLeft();

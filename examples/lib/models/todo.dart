@@ -10,7 +10,7 @@ part 'todo.sql.g.dart';
     HasMany(model: 'tasks', foreignKey: 'category_id'),
   ],
 )
-class Category extends Model with _$SQFlowCategoryMixin {
+class Category extends Model with _$PhormCategoryMixin {
   @ID()
   final String id;
 
@@ -27,7 +27,7 @@ class Category extends Model with _$SQFlowCategoryMixin {
   });
 
   factory Category.fromJson(Map<String, dynamic> json) =>
-      _$SQFlowCategoryFromJson(json);
+      _$PhormCategoryFromJson(json);
 }
 
 @Schema(
@@ -37,7 +37,7 @@ class Category extends Model with _$SQFlowCategoryMixin {
     BelongsTo(model: 'categories', foreignKey: 'category_id'),
   ],
 )
-class Task extends Model with _$SQFlowTaskMixin {
+class Task extends Model with _$PhormTaskMixin {
   @ID(autoIncrement: true)
   final int id;
 
@@ -57,6 +57,5 @@ class Task extends Model with _$SQFlowTaskMixin {
     required this.categoryId,
   });
 
-  factory Task.fromJson(Map<String, dynamic> json) =>
-      _$SQFlowTaskFromJson(json);
+  factory Task.fromJson(Map<String, dynamic> json) => _$PhormTaskFromJson(json);
 }

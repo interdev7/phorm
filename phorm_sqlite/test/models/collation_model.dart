@@ -5,7 +5,7 @@ part 'collation_model.sql.g.dart';
 late DB appDb;
 
 @Schema(tableName: 'collation_tests')
-class CollationTest extends Model with _$SQFlowCollationTestMixin {
+class CollationTest extends Model with _$PhormCollationTestMixin {
   @ID()
   final String id;
 
@@ -22,5 +22,5 @@ class CollationTest extends Model with _$SQFlowCollationTestMixin {
   });
 
   factory CollationTest.fromJson(Map<String, dynamic> json) =>
-      _$SQFlowCollationTestFromJson(json);
+      _$PhormCollationTestFromJson(json);
 }

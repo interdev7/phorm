@@ -5,7 +5,7 @@ import 'user.dart';
 part 'post.sql.g.dart';
 
 @Schema(tableName: 'posts')
-class Post extends Model with _$SQFlowPostMixin {
+class Post extends Model with _$PhormPostMixin {
   Post({
     required this.id,
     required this.title,
@@ -14,8 +14,7 @@ class Post extends Model with _$SQFlowPostMixin {
     this.user,
   });
 
-  factory Post.fromJson(Map<String, dynamic> json) =>
-      _$SQFlowPostFromJson(json);
+  factory Post.fromJson(Map<String, dynamic> json) => _$PhormPostFromJson(json);
 
   @ID()
   final String id;

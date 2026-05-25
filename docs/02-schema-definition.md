@@ -22,28 +22,28 @@ Defines table-level configuration for a class.
     HasMany(model: Post, foreignKey: 'user_id'),
     HasOne(model: Profile, foreignKey: 'user_id'),
   ],
-  useToJson: true,    // Generate _$SQFlowClassToJson() (default: true)
-  useFromJson: true,  // Generate _$SQFlowClassFromJson() (default: true)
+  useToJson: true,    // Generate _$PhormClassToJson() (default: true)
+  useFromJson: true,  // Generate _$PhormClassFromJson() (default: true)
   useCopyWith: true,  // Generate copyWith() (default: true)
 )
-class User extends Model with _$SQFlowUserMixin { ... }
+class User extends Model with _$PhormUserMixin { ... }
 ```
 
 ### `@Schema` Parameters
 
-| Parameter       | Type                   | Default     | Description                      |
-| :-------------- | :--------------------- | :---------- | :------------------------------- |
-| `tableName`     | `String?`              | class name  | Explicit SQL table name          |
-| `paranoid`      | `bool`                 | `false`     | Soft delete support              |
-| `timestamps`    | `bool`                 | `true`      | Auto `created_at`/`updated_at`   |
-| `columnNaming`  | `ColumnNamingStrategy` | `snakeCase` | Field → column mapping strategy  |
-| `indexes`       | `List<Index>`          | `[]`        | Table indexes                    |
+| Parameter       | Type                   | Default     | Description                                           |
+| :-------------- | :--------------------- | :---------- | :---------------------------------------------------- |
+| `tableName`     | `String?`              | class name  | Explicit SQL table name                               |
+| `paranoid`      | `bool`                 | `false`     | Soft delete support                                   |
+| `timestamps`    | `bool`                 | `true`      | Auto `created_at`/`updated_at`                        |
+| `columnNaming`  | `ColumnNamingStrategy` | `snakeCase` | Field → column mapping strategy                       |
+| `indexes`       | `List<Index>`          | `[]`        | Table indexes                                         |
 | `relationships` | `List<Relationship>`   | `[]`        | `HasMany`, `HasOne`, `BelongsTo`/`Join`, `ManyToMany` |
-| `useToJson`     | `bool`                 | `true`      | Generate toJson mixin            |
-| `useFromJson`   | `bool`                 | `true`      | Generate fromJson helper         |
-| `useCopyWith`   | `bool`                 | `true`      | Generate copyWith method         |
-| `useValidator`  | `bool`                 | `true`      | Generate validate() method       |
-| `useToString`   | `bool`                 | `true`      | Generate toString() helper       |
+| `useToJson`     | `bool`                 | `true`      | Generate toJson mixin                                 |
+| `useFromJson`   | `bool`                 | `true`      | Generate fromJson helper                              |
+| `useCopyWith`   | `bool`                 | `true`      | Generate copyWith method                              |
+| `useValidator`  | `bool`                 | `true`      | Generate validate() method                            |
+| `useToString`   | `bool`                 | `true`      | Generate toString() helper                            |
 
 ### Column Naming Strategies
 
@@ -77,7 +77,7 @@ final String uid;
 
 ### Automatic Primary Key Resolution
 
-The `sqflow_generator` automatically identifies the primary key of your model by looking for the `@ID` annotation. 
+The `sqflow_generator` automatically identifies the primary key of your model by looking for the `@ID` annotation.
 
 1. **SQL Schema**: It adds the `PRIMARY KEY` constraint to the corresponding column in the generated `CREATE TABLE` statement.
 2. **Table Configuration**: It automatically injects the `primaryKey` column name into the generated `Table` instance (e.g., `primaryKey: 'user_uid'`).
@@ -89,14 +89,13 @@ The `sqflow_generator` automatically identifies the primary key of your model by
 
 ### `@ID` Parameters
 
-| Parameter       | Type      | Default  | Description                   |
-| :-------------- | :-------- | :------- | :---------------------------- |
-| `sqlType`       | `String?` | inferred | Explicit SQLite type override |
-| `autoIncrement` | `bool`    | `false`  | Auto-increment (for `int` PK) |
-| `unique`        | `bool`    | `true`   | Enforce uniqueness            |
-| `columnName`    | `String?` | `null`   | Override column name          |
-| `collate`       | `String?` | `null`   | SQLite collation (NOCASE, etc.)|
-
+| Parameter       | Type      | Default  | Description                     |
+| :-------------- | :-------- | :------- | :------------------------------ |
+| `sqlType`       | `String?` | inferred | Explicit SQLite type override   |
+| `autoIncrement` | `bool`    | `false`  | Auto-increment (for `int` PK)   |
+| `unique`        | `bool`    | `true`   | Enforce uniqueness              |
+| `columnName`    | `String?` | `null`   | Override column name            |
+| `collate`       | `String?` | `null`   | SQLite collation (NOCASE, etc.) |
 
 > [!WARNING]
 > `autoIncrement: true` only works with `int` fields (mapped to `INTEGER`). For string UUIDs, use `autoIncrement: false` (default).
@@ -144,8 +143,7 @@ final String bio;
 | `defaultValue` | `dynamic`           | `null`   | SQL `DEFAULT` value                  |
 | `validators`   | `List<IValidator>?` | `null`   | Value constraints (Check/Regex/etc.) |
 | `converter`    | `ValueConverter?`   | `null`   | Custom type transformer              |
-| `collate`      | `String?`          | `null`   | SQLite collation (NOCASE, etc.) |
-
+| `collate`      | `String?`           | `null`   | SQLite collation (NOCASE, etc.)      |
 
 ---
 
@@ -338,7 +336,7 @@ part 'user.sql.g.dart';
     HasMany(model: Order, foreignKey: 'user_id'),
   ],
 )
-class User extends Model with _$SQFlowUserMixin {
+class User extends Model with _$PhormUserMixin {
   @ID()
   @override
   final String id;
@@ -401,6 +399,6 @@ class User extends Model with _$SQFlowUserMixin {
 
   String get fullName => '$firstName $lastName';
 
-  factory User.fromJson(Map<String, dynamic> json) => _$SQFlowUserFromJson(json);
+  factory User.fromJson(Map<String, dynamic> json) => _$PhormUserFromJson(json);
 }
 ```

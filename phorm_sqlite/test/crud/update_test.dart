@@ -1,7 +1,7 @@
 import 'common.dart';
 
 void main() {
-  late SqflowCore<User> userService;
+  late PhormCore<User> userService;
 
   setUp(() async {
     userService = await createTestService();
@@ -23,7 +23,6 @@ void main() {
         gender: 'F',
         city: 'Old City',
         country: 'Old Country',
-
       );
 
       await userService.insert(user);
@@ -52,7 +51,6 @@ void main() {
         gender: 'M',
         city: 'City',
         country: 'Country',
-
       );
 
       // First time - insert
@@ -77,7 +75,6 @@ void main() {
         gender: 'M',
         city: 'City',
         country: 'Country',
-
       );
 
       final rows = await userService.update(nonExistentUser);

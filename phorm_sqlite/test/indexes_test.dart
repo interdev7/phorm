@@ -3,7 +3,7 @@ import 'test_utils.dart';
 
 void main() {
   late DB db;
-  late SqflowCore<User> userService;
+  late PhormCore<User> userService;
 
   setUp(() {
     db = DB(
@@ -11,7 +11,7 @@ void main() {
       version: 1,
       tables: [usersTable, ordersTable],
     );
-    userService = SqflowCore<User>(dbManager: db, table: usersTable);
+    userService = PhormCore<User>(dbManager: db, table: usersTable);
   });
 
   tearDown(() async {
@@ -69,9 +69,10 @@ void main() {
     final database = await db.database;
 
     // We want to see if a query for orders by user_id uses the index
-    final orderService = SqflowCore(dbManager: db, table: ordersTable);
+    final orderService = PhormCore(dbManager: db, table: ordersTable);
     final where = WhereBuilder().eq('user_id', 'u1');
-    final sql = orderService.getBuildJoinQuery(where: where, explainQueryPlan: true);
+    final sql =
+        orderService.getBuildJoinQuery(where: where, explainQueryPlan: true);
 
     final queryPlan = await database.rawQuery(sql, where.args);
 

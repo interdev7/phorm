@@ -36,7 +36,7 @@ part '../phorm_annotations/user.sql.g.dart';
     Index(columns: ['first_name', 'last_name']),
   ],
 )
-class User extends Model with _$SQFlowUserMixin {
+class User extends Model with _$PhormUserMixin {
   @ID(autoIncrement: false, unique: true)
   @override
   final String id;
@@ -65,7 +65,7 @@ class User extends Model with _$SQFlowUserMixin {
     required this.gender,
   });
 
-  factory User.fromJson(Map<String, dynamic> json) => _$SQFlowUserFromJson(json);
+  factory User.fromJson(Map<String, dynamic> json) => _$PhormUserFromJson(json);
 }
 ```
 
@@ -181,7 +181,7 @@ Relationships define how models connect. They are used by `phorm` for automatic 
     ),
   ],
 )
-class User extends Model with _$SQFlowUserMixin { ... }
+class User extends Model with _$PhormUserMixin { ... }
 ```
 
 - **`HasMany`**: One-to-Many (e.g., User has many Posts).

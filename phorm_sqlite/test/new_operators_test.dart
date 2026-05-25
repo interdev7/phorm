@@ -5,7 +5,7 @@ import 'test_utils.dart';
 void main() {
   group('New Operators (startsWith, endsWith, notBetween)', () {
     late DB db;
-    late SqflowCore<User> service;
+    late PhormCore<User> service;
 
     setUp(() async {
       db = DB(
@@ -15,7 +15,7 @@ void main() {
         singleInstance: false,
       );
       appDb = db;
-      service = SqflowCore<User>(dbManager: db, table: usersTable);
+      service = PhormCore<User>(dbManager: db, table: usersTable);
       await service.insertBatch(mockUsers);
     });
 

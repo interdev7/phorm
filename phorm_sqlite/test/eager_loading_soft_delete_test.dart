@@ -55,7 +55,7 @@ void main() {
       'deleted_at': now, // Mark as soft-deleted
     });
 
-    final userService = SqflowCore<User>(dbManager: db, table: usersTable);
+    final userService = PhormCore<User>(dbManager: db, table: usersTable);
 
     // 4. Load User with Posts
     final user = await userService.readOne('u1', include: [

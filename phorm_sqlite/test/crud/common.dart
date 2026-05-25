@@ -13,7 +13,7 @@ Table<User> createUsersTable() {
   return usersTable;
 }
 
-Future<SqflowCore<User>> createTestService() async {
+Future<PhormCore<User>> createTestService() async {
   final usersTable = createUsersTable();
   // Using a fresh in-memory database for each test service instance
   // Note: 'memory' with no name might share instance? No, ':memory:' is unique per connection if opened separately,
@@ -25,7 +25,7 @@ Future<SqflowCore<User>> createTestService() async {
     tables: [usersTable],
     singleInstance: false,
   );
-  final userService = SqflowCore<User>(dbManager: dbManager, table: usersTable);
+  final userService = PhormCore<User>(dbManager: dbManager, table: usersTable);
 
   // Seed initial data
   await userService.insertBatch(mockUsers);

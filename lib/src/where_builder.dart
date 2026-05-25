@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:phorm/phorm.dart';
 
 // =======================================================
@@ -841,23 +843,23 @@ class WhereBuilder {
   /// //   Args: ['active', 18, 65]
   /// ```
   void debugPrint([String indent = '']) {
-    print('${indent}WhereBuilder:');
-    print('${indent}  Separator: "$_separator"');
-    print('${indent}  Conditions: ${_conditions.length}');
-    print('${indent}  Used columns: $_usedColumns');
-    print('${indent}  Built SQL: "${build()}"');
-    print('${indent}  Args: $args');
+    log('${indent}WhereBuilder:', name: ">");
+    log('$indent  Separator: "$_separator"', name: ">");
+    log('$indent  Conditions: ${_conditions.length}', name: ">");
+    log('$indent  Used columns: $_usedColumns', name: ">");
+    log('$indent  Built SQL: "${build()}"', name: ">");
+    log('$indent  Args: $args', name: ">");
 
     for (var i = 0; i < _conditions.length; i++) {
       final condition = _conditions[i];
       if (condition.condition is String) {
-        print('${indent}  [$i] Condition: "${condition.condition}"');
+        log('$indent  [$i] Condition: "${condition.condition}"', name: ">");
         if (condition.args.isNotEmpty) {
-          print('${indent}      Args: ${condition.args}');
+          log('$indent      Args: ${condition.args}', name: ">");
         }
       } else if (condition.condition is WhereBuilder) {
-        print('${indent}  [$i] Nested Builder:');
-        (condition.condition as WhereBuilder).debugPrint('${indent}    ');
+        log('$indent  [$i] Nested Builder:', name: ">");
+        (condition.condition as WhereBuilder).debugPrint('$indent    ');
       }
     }
   }
