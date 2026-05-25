@@ -1,6 +1,6 @@
 # Changelog
 
-All notable changes for the phorm_platform_interface package.
+All notable changes for the phorm_annotations package.
 
 ## 1.4.0 — 2026-05-14
 

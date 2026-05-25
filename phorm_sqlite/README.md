@@ -13,7 +13,7 @@ It implements the database interfaces from `phorm_core` (`PhormDatabase`, `Datab
 
 The PHORM ORM is split into modular packages:
 
-1. **`phorm_platform_interface`** — Database-agnostic annotations (`@Schema`, `@Column`, `@ID`) and logical type definitions.
+1. **`phorm_annotations`** — Database-agnostic annotations (`@Schema`, `@Column`, `@ID`) and logical type definitions.
 2. **`phorm_core`** — Driver-agnostic runtime engine containing CRUD APIs, `WhereBuilder` query builder, soft deletes, and eager loading via JSON Aggregation.
 3. **`phorm_generator`** — Code generator (`build_runner`) that automates mixin, JSON, and runtime table configuration.
 4. **`phorm_sqlite`** (This Package) — **The SQLite driver**. Implements connection pooling, background isolates (Native), WebAssembly persistence (Web), and smart migrations.
@@ -42,7 +42,7 @@ Add `phorm_sqlite` to your `pubspec.yaml`:
 ```yaml
 dependencies:
   phorm_sqlite: ^latest
-  # phorm_core and phorm_platform_interface are pulled in automatically
+  # phorm_core and phorm_annotations are pulled in automatically
 ```
 
 ---

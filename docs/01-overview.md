@@ -123,12 +123,12 @@ When a new driver is introduced, your declarative schemas `@Schema(...)` and cod
 
 ## Package Structure
 
-| Package                    | Role                                                                            |
-| :------------------------- | :------------------------------------------------------------------------------ |
-| `phorm_platform_interface` | Annotations (`@Schema`, `@Column`, `@ID`), data types, relationship definitions |
-| `phorm`                    | Driver-agnostic runtime: `PhormCore<T>`, `WhereBuilder`, `SortBuilder`          |
-| `phorm_sqlite`             | SQLite driver & connection manager: `DB`, isolates, WASM, custom SQL functions  |
-| `phorm_generator`          | `build_runner` plugin that generates mixins, SQL, and serialization code        |
+| Package             | Role                                                                            |
+| :------------------ | :------------------------------------------------------------------------------ |
+| `phorm_annotations` | Annotations (`@Schema`, `@Column`, `@ID`), data types, relationship definitions |
+| `phorm`             | Driver-agnostic runtime: `PhormCore<T>`, `WhereBuilder`, `SortBuilder`          |
+| `phorm_sqlite`      | SQLite driver & connection manager: `DB`, isolates, WASM, custom SQL functions  |
+| `phorm_generator`   | `build_runner` plugin that generates mixins, SQL, and serialization code        |
 
 ---
 
@@ -141,7 +141,7 @@ dependencies:
   phorm_sqlite: ^latest # SQLite driver and connection lifecycle manager
 
 dev_dependencies:
-  phorm_platform_interface: ^latest
+  phorm_annotations: ^latest
   phorm_generator: ^latest
   build_runner: ^latest
 ```

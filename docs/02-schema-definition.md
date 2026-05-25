@@ -1,6 +1,6 @@
 # Schema Definition
 
-All schema configuration is done via annotations from `phorm_platform_interface`. The `phorm_generator` reads these annotations and generates the SQL schema, mixins, and serialization helpers.
+All schema configuration is done via annotations from `phorm_annotations`. The `phorm_generator` reads these annotations and generates the SQL schema, mixins, and serialization helpers.
 
 ---
 
@@ -320,7 +320,7 @@ Indexes dramatically speed up query performance on frequently filtered columns.
 ## Complete Model Example
 
 ```dart
-import 'package:phorm_platform_interface/phorm_platform_interface.dart';
+import 'package:phorm_annotations/phorm_annotations.dart';
 
 part 'user.sql.g.dart';
 
