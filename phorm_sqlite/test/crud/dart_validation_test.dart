@@ -4,7 +4,7 @@ import '../test_utils.dart';
 void main() {
   group('Dart-Side Validation Tests', () {
     test(
-        'toJson() should throw SqflowCHECKValidatorException for invalid gender',
+        'toJson() should throw PhormCHECKValidatorException for invalid gender',
         () {
       final user = User(
         id: '1',
@@ -29,7 +29,7 @@ void main() {
     });
 
     test(
-        'toJson() should throw SqflowCHECKValidatorException for short firstName',
+        'toJson() should throw PhormCHECKValidatorException for short firstName',
         () {
       final user = User(
         id: '1',
@@ -74,7 +74,7 @@ void main() {
     });
   });
 
-  test("should throw SqflowJSONValidatorException for invalid email", () {
+  test("should throw PhormJSONValidatorException for invalid email", () {
     final user = User(
       id: '1',
       firstName: 'John',
@@ -97,7 +97,7 @@ void main() {
     );
   });
 
-  // test("should throw SqflowCheckException for null first_name", () {
+  // test("should throw PhormCheckException for null first_name", () {
   //   final user = User(
   //     id: '1',
   //     firstName: unsafeCast<String>(null), // null value on required field
@@ -113,7 +113,7 @@ void main() {
 
   //   expect(
   //     () => user.toJson(),
-  //     throwsA(isA<SqflowCheckException>()
+  //     throwsA(isA<PhormCheckException>()
   //         .having((e) => e.table, 'table', 'users')
   //         .having((e) => e.column, 'column', 'first_name')
   //         .having((e) => e.constraint, 'constraint', 'null_field')),

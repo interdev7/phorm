@@ -208,7 +208,7 @@ class _ValidationDemoPageState extends State<ValidationDemoPage>
     _firstNameCtrl.text = 'Alice';
     _lastNameCtrl.text = 'Smith';
     _emailCtrl.text =
-        'NOT-AN-EMAIL'; // EmailValidator → SqflowJSONValidatorException
+        'NOT-AN-EMAIL'; // EmailValidator → PhormJSONValidatorException
     _phoneCtrl.text = '+359888123456';
     _birthDateCtrl.text = '1990-05-21';
     _cityCtrl.text = 'Sofia';
@@ -219,7 +219,7 @@ class _ValidationDemoPageState extends State<ValidationDemoPage>
 
   void _fillInvalidCheck() {
     _firstNameCtrl.text =
-        'A'; // LengthValidator(min:2) → SqflowCHECKValidatorException
+        'A'; // LengthValidator(min:2) → PhormCHECKValidatorException
     _lastNameCtrl.text = 'Smith';
     _emailCtrl.text = 'alice2@example.com';
     _phoneCtrl.text = '+359888999000';
@@ -542,7 +542,7 @@ class _ValidationDemoPageState extends State<ValidationDemoPage>
           const SizedBox(width: 10),
           Expanded(
             child: Text(
-              'Sqflow validates data on the Dart side before any DB write. '
+              'PHORM validates data on the Dart side before any DB write. '
               'Use the buttons below to trigger different exception types.',
               style: GoogleFonts.inter(
                   fontSize: 12, color: Colors.white70, height: 1.5),

@@ -99,10 +99,10 @@ When declared manually, the generator will use your field instead of creating a 
 
 ### 1. Filtering on `deleted_at` manually
 
-If you add a manual condition on `deleted_at` in your `WhereBuilder`, SQFlow will **not add the automatic `IS NULL` filter** (it detects if `deleted_at` already has a condition):
+If you add a manual condition on `deleted_at` in your `WhereBuilder`, PHORM will **not add the automatic `IS NULL` filter** (it detects if `deleted_at` already has a condition):
 
 ```dart
-// This works correctly — SQFlow skips auto-filter because you set it manually
+// This works correctly — PHORM skips auto-filter because you set it manually
 final result = await userService.readAll(
   where: WhereBuilder().isNotNull('deleted_at'),
 );

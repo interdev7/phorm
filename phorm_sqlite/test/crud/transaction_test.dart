@@ -11,7 +11,7 @@ void main() {
     await userService.dbManager.close();
   });
 
-  group('SqflowCore Transaction:', () {
+  group('PhormCore Transaction:', () {
     test('Transaction rolls back on error', () async {
       final initialCount = (await userService.readAllWithCount()).count;
 

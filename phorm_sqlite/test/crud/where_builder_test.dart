@@ -3,21 +3,25 @@ import 'common.dart';
 void main() {
   group('WhereBuilder Tests:', () {
     test('Basic conditions (eq, gt, lt)', () {
-      final where = WhereBuilder().eq('is_active', 1).gt('age', 30).lt('age', 50);
+      final where =
+          WhereBuilder().eq('is_active', 1).gt('age', 30).lt('age', 50);
 
       expect(where.build(), 'is_active = ? AND age > ? AND age < ?');
       expect(where.args, [1, 30, 50]);
     });
 
     test('LIKE and ILIKE conditions', () {
-      final where = WhereBuilder().like('email', '%gmail.com').ilike('first_name', '%anna%');
+      final where = WhereBuilder()
+          .like('email', '%gmail.com')
+          .ilike('first_name', '%anna%');
 
       expect(where.build(), 'email LIKE ? AND LOWER(first_name) LIKE LOWER(?)');
       expect(where.args, ['%gmail.com', '%anna%']);
     });
 
     test('IN and NOT IN conditions', () {
-      final where = WhereBuilder().inList('city', ['Sofia', 'Plovdiv', 'Varna']).notInList('gender', ['Other']);
+      final where = WhereBuilder().inList(
+          'city', ['Sofia', 'Plovdiv', 'Varna']).notInList('gender', ['Other']);
 
       expect(where.build(), 'city IN (?, ?, ?) AND gender NOT IN (?)');
       expect(where.args, ['Sofia', 'Plovdiv', 'Varna', 'Other']);
@@ -69,9 +73,11 @@ void main() {
     });
 
     test('Raw SQL conditions', () {
-      final where = WhereBuilder().raw('LENGTH(first_name) > ?', [3]).raw('SUBSTR(last_name, 1, 1) = ?', ['S']);
+      final where = WhereBuilder().raw('LENGTH(first_name) > ?', [3]).raw(
+          'SUBSTR(last_name, 1, 1) = ?', ['S']);
 
-      expect(where.build(), 'LENGTH(first_name) > ? AND SUBSTR(last_name, 1, 1) = ?');
+      expect(where.build(),
+          'LENGTH(first_name) > ? AND SUBSTR(last_name, 1, 1) = ?');
       expect(where.args, [3, 'S']);
     });
 
@@ -99,7 +105,10 @@ void main() {
     });
 
     test('hasConditionOn check', () {
-      final where = WhereBuilder().eq('age', 25).like('email', '%@gmail.com').orGroup((og) {
+      final where = WhereBuilder()
+          .eq('age', 25)
+          .like('email', '%@gmail.com')
+          .orGroup((og) {
         og.eq('city', 'Sofia').eq('city', 'Plovdiv');
       });
 
@@ -110,7 +119,8 @@ void main() {
     });
 
     test('Builder copy', () {
-      final original = WhereBuilder().eq('is_active', 1).like('email', '%gmail.com');
+      final original =
+          WhereBuilder().eq('is_active', 1).like('email', '%gmail.com');
 
       final copy = original.copy();
 
@@ -164,7 +174,8 @@ void main() {
           .gt(Users.age, 30)
           .lengthEq(Users.firstName, 5);
 
-      expect(where.build(), 'users.is_active = ? AND users.email LIKE ? AND users.age > ? AND LENGTH(users.first_name) = ?');
+      expect(where.build(),
+          'users.is_active = ? AND users.email LIKE ? AND users.age > ? AND LENGTH(users.first_name) = ?');
       expect(where.args, [1, '%gmail.com', 30, 5]);
     });
 
@@ -214,31 +225,42 @@ void main() {
     });
 
     test('WhereBuilderExtensions new conditional methods', () {
-      // 1. eqIfNotNull with SqflowColumn and Object
-      final where1 = WhereBuilder().eqIfNotNull(Users.email, 'test@example.com').eqIfNotNull(Users.firstName, null).eqIfNotNull(Users.lastName, '');
+      // 1. eqIfNotNull with PhormColumn and Object
+      final where1 = WhereBuilder()
+          .eqIfNotNull(Users.email, 'test@example.com')
+          .eqIfNotNull(Users.firstName, null)
+          .eqIfNotNull(Users.lastName, '');
       expect(where1.build(), 'users.email = ?');
       expect(where1.args, ['test@example.com']);
 
-      // 2. inListIfNotEmpty with SqflowColumn
-      final where2 = WhereBuilder().inListIfNotEmpty(Users.city, ['Sofia', 'Plovdiv']).inListIfNotEmpty(Users.country, null).inListIfNotEmpty(Users.gender, []);
+      // 2. inListIfNotEmpty with PhormColumn
+      final where2 = WhereBuilder()
+          .inListIfNotEmpty(Users.city, ['Sofia', 'Plovdiv'])
+          .inListIfNotEmpty(Users.country, null)
+          .inListIfNotEmpty(Users.gender, []);
       expect(where2.build(), 'users.city IN (?, ?)');
       expect(where2.args, ['Sofia', 'Plovdiv']);
 
-      // 3. dateRangeIfProvided with SqflowColumn
+      // 3. dateRangeIfProvided with PhormColumn
       final now = DateTime(2026, 5, 19);
-      final where3 = WhereBuilder().dateRangeIfProvided(Users.createdAt, now, null);
+      final where3 =
+          WhereBuilder().dateRangeIfProvided(Users.createdAt, now, null);
       expect(where3.build(), 'users.created_at >= ?');
       expect(where3.args, [now.toIso8601String()]);
 
       // 4. addIf
-      final where4 = WhereBuilder().addIf(true, (w) => w.eq(Users.isActive, true)).addIf(false, (w) => w.eq(Users.gender, 'F'));
+      final where4 = WhereBuilder()
+          .addIf(true, (w) => w.eq(Users.isActive, true))
+          .addIf(false, (w) => w.eq(Users.gender, 'F'));
       expect(where4.build(), 'users.is_active = ?');
       expect(where4.args, [1]);
 
       // 5. addNotNull
       final String? search = 'Sofia';
       final String? country = null;
-      final where5 = WhereBuilder().addNotNull(search, (w, val) => w.eq(Users.city, val)).addNotNull(country, (w, val) => w.eq(Users.country, val));
+      final where5 = WhereBuilder()
+          .addNotNull(search, (w, val) => w.eq(Users.city, val))
+          .addNotNull(country, (w, val) => w.eq(Users.country, val));
       expect(where5.build(), 'users.city = ?');
       expect(where5.args, ['Sofia']);
     });

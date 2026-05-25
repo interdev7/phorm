@@ -1,6 +1,6 @@
-# 🏗️ SQFlow Generator
+# 🏗️ PHORM Generator
 
-The magic behind SQFlow. This package uses `build_runner` to turn your Dart models into optimized SQL schemas and type-safe CRUD mixins.
+The magic behind PHORM. This package uses `build_runner` to turn your Dart models into optimized SQL schemas and type-safe CRUD mixins.
 
 ---
 
@@ -10,7 +10,7 @@ The magic behind SQFlow. This package uses `build_runner` to turn your Dart mode
 - **Model Mixins**: Generates `_$UserMixin` with automatic `toJson`, `toString`, `copyWith`, and relationship getters.
 - **Pluralized Services**: Generates the `Users` service class for fluent, static-method-based interaction.
 - **JSON Helpers**: Provides optimized `_$UserFromJson` implementations.
-- **Runtime Metadata**: Produces the `Table` configuration needed for `SqflowCore`.
+- **Runtime Metadata**: Produces the `Table` configuration needed for `PhormCore`.
 
 ---
 
@@ -20,7 +20,7 @@ Add these to your `dev_dependencies`:
 
 ```yaml
 dev_dependencies:
-  sqflow_generator: ^latest
+  phorm_generator: ^latest
   build_runner: ^latest
 ```
 
@@ -59,9 +59,9 @@ dart run build_runner watch --delete-conflicting-outputs
 
 ## Learn More
 
-- For annotation details, see [sqflow_platform_interface](../sqflow_platform_interface/README.md).
-- For runtime query engine details, see [sqflow_core](../sqflow_core/README.md).
-- For the connection manager and SQLite driver implementation, see [sqflow_lite](../sqflow_lite/README.md).
+- For annotation details, see [phorm_platform_interface](../phorm_platform_interface/README.md).
+- For runtime query engine details, see [phorm_core](../phorm_core/README.md).
+- For the connection manager and SQLite driver implementation, see [phorm_sqlite](../phorm_sqlite/README.md).
 
 ---
 

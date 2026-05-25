@@ -14,7 +14,7 @@ class PhormCHECKValidatorException implements Exception {
 
   @override
   String toString() =>
-      'SqflowCHECKValidatorException: [$table.$column] $message${constraint != null ? ' (Constraint: $constraint)' : ''}';
+      'PhormCHECKValidatorException: [$table.$column] $message${constraint != null ? ' (Constraint: $constraint)' : ''}';
 }
 
 /// Exception thrown when a Dart-side validation fails.

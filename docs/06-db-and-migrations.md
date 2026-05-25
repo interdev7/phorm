@@ -1,15 +1,15 @@
 # DB Manager & Migrations
 
-The `DB` class (provided by the **`sqflow_lite`** package) manages the database connection lifecycle and schema migrations. It is built on top of `sqlite3` with an isolate-based architecture for non-blocking database operations, and adds a smart, idempotent migration tracking system using an internal `__sqflow_migrations` table.
+The `DB` class (provided by the **`phorm_sqlite`** package) manages the database connection lifecycle and schema migrations. It is built on top of `sqlite3` with an isolate-based architecture for non-blocking database operations, and adds a smart, idempotent migration tracking system using an internal `__phorm_migrations` table.
 
 ---
 
 ## Creating a DB Instance
 
-To use the database manager, import `sqflow_lite`:
+To use the database manager, import `phorm_sqlite`:
 
 ```dart
-import 'package:sqflow_lite/sqflow_lite.dart';
+import 'package:phorm_sqlite/phorm_sqlite.dart';
 ```
 
 ### Manual Version
@@ -51,7 +51,7 @@ final db = DB(
 
 ## Lazy Initialization
 
-The database connection is established **lazily** on first access. You don't need to call any `init()` method explicitly. The first operation on any `SqflowCore` service triggers the database open.
+The database connection is established **lazily** on first access. You don't need to call any `init()` method explicitly. The first operation on any `PhormCore` service triggers the database open.
 
 ```dart
 // No manual init needed — triggers on first use
@@ -60,7 +60,7 @@ final user = await userService.readOne('id');
 
 During initialization, the `DB` class:
 
-1. Creates the `__sqflow_migrations` tracking table.
+1. Creates the `__phorm_migrations` tracking table.
 2. Creates all registered tables from their `schema` strings.
 3. Applies any pending migrations.
 
@@ -68,7 +68,7 @@ During initialization, the `DB` class:
 
 ## Migration System
 
-SQFlow uses a **versioned, idempotent migration system**. Each migration is tracked by a hash in the `__sqflow_migrations` table and will never be applied twice.
+PHORM uses a **versioned, idempotent migration system**. Each migration is tracked by a hash in the `__phorm_migrations` table and will never be applied twice.
 
 ### Defining Migrations
 
@@ -148,7 +148,7 @@ await db.reset();
 
 ## Resolving Services / Repositories
 
-To simplify Developer Experience (DX) and avoid manually passing tables and database managers, you can resolve a `SqflowCore<T>` service directly from the `DB` manager using the `db.service<T>()` method:
+To simplify Developer Experience (DX) and avoid manually passing tables and database managers, you can resolve a `PhormCore<T>` service directly from the `DB` manager using the `db.service<T>()` method:
 
 ```dart
 final db = DB.autoVersion(
@@ -156,7 +156,7 @@ final db = DB.autoVersion(
   tables: [usersTable, ordersTable],
 );
 
-// Resolves SqflowCore<User> and SqflowCore<Order> automatically
+// Resolves PhormCore<User> and PhormCore<Order> automatically
 final userService = db.service<User>();
 final orderService = db.service<Order>();
 ```
@@ -169,7 +169,7 @@ final orderService = db.service<Order>();
 ## Downgrade Behavior
 
 > [!CAUTION]
-> SQLite does not support native schema downgrades. When `DB.version` is **lower** than the version stored in the database file, SQFlow **deletes and recreates the database from scratch**, losing all data.
+> SQLite does not support native schema downgrades. When `DB.version` is **lower** than the version stored in the database file, PHORM **deletes and recreates the database from scratch**, losing all data.
 >
 > Never decrease `version` in production. Use this only for local development resets.
 
@@ -177,22 +177,22 @@ final orderService = db.service<Order>();
 
 ## Foreign Keys
 
-SQFlow enables `PRAGMA foreign_keys = ON` on every database open via `onConfigure`. This means:
+PHORM enables `PRAGMA foreign_keys = ON` on every database open via `onConfigure`. This means:
 
 - SQLite enforces referential integrity on your `FOREIGN KEY` constraints.
 - Deleting a parent row that has related children will fail unless you've defined `ON DELETE CASCADE`.
 
 > [!NOTE]
-> The `@Schema` annotation and `sqflow_generator` **automatically generate** `FOREIGN KEY` constraints in the `CREATE TABLE` SQL based on your `relationships` definition. There is no need to add them manually in the `schema` string.
+> The `@Schema` annotation and `phorm_generator` **automatically generate** `FOREIGN KEY` constraints in the `CREATE TABLE` SQL based on your `relationships` definition. There is no need to add them manually in the `schema` string.
 
 ---
 
-## `__sqflow_migrations` Table
+## `__phorm_migrations` Table
 
-SQFlow creates this internal table automatically:
+PHORM creates this internal table automatically:
 
 ```sql
-CREATE TABLE IF NOT EXISTS __sqflow_migrations (
+CREATE TABLE IF NOT EXISTS __phorm_migrations (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   table_name TEXT NOT NULL,
   migration_version INTEGER NOT NULL,
@@ -206,14 +206,14 @@ CREATE TABLE IF NOT EXISTS __sqflow_migrations (
 A migration is identified by `(table_name, migration_version, migration_hash)`. If you modify a migration's SQL or description, the hash changes and the migration will be re-applied.
 
 > [!WARNING]
-> Do not manually modify the `__sqflow_migrations` table. Corrupting it can cause migrations to be skipped or applied twice.
+> Do not manually modify the `__phorm_migrations` table. Corrupting it can cause migrations to be skipped or applied twice.
 
 ---
 
 ## Complete Example
 
 ```dart
-import 'package:sqflow_lite/sqflow_lite.dart';
+import 'package:phorm_sqlite/phorm_sqlite.dart';
 
 // Define tables
 final usersTable = Table<User>(

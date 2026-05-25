@@ -3,7 +3,7 @@ import 'models/user.dart';
 import 'test_utils.dart';
 
 void main() {
-  group('Fluent API vs SqflowCore Instance', () {
+  group('Fluent API vs PhormCore Instance', () {
     late DB db;
     late PhormCore<User> userService;
 
@@ -27,7 +27,7 @@ void main() {
     });
 
     test('Both approaches should return the same data', () async {
-      // Approach A: Traditional SqflowCore instance
+      // Approach A: Traditional PhormCore instance
       final resultA = await userService.readAll(
         where: WhereBuilder().eq('gender', 'M'),
       );
@@ -79,7 +79,7 @@ void main() {
       print('✅ Fluent query returned ${users.length} users over 25.');
     });
 
-    test('SqflowQuery conditional query builders (whereIf and whereNotNull)',
+    test('PhormQuery conditional query builders (whereIf and whereNotNull)',
         () async {
       // Test 1: whereIf true vs false
       final femaleUsers = await Users.query
@@ -116,7 +116,7 @@ void main() {
       expect(allUsers.length, greaterThan(sofiaUsers.length));
     });
 
-    test('SqflowQuery terminal aggregates and getWithCount', () async {
+    test('PhormQuery terminal aggregates and getWithCount', () async {
       // 1. count()
       final totalSofia =
           await Users.query.where(Users.city.eq('Sofia')).count();

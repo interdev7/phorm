@@ -1,11 +1,11 @@
 # Changelog
 
-All notable changes for the sqflow_platform_interface package.
+All notable changes for the phorm_platform_interface package.
 
 ## 1.4.0 — 2026-05-14
 
 - **`Factory<T>`**: Added abstract `Factory<T extends Model>` interface with `create()` and `createMany(int count)` methods.
-- **`Seeder`**: Added abstract `Seeder` class with `run(DB db)` method signature (in `seeder.dart` under `sqflow_core`).
+- **`Seeder`**: Added abstract `Seeder` class with `run(DB db)` method signature (in `seeder.dart` under `phorm_core`).
 - **Validators**: Added `json_validators.dart` with `NotEmptyValidator`, `EmailValidator`, `RangeValidator`, `MinLengthValidator`, `MaxLengthValidator`.
 
 ## 1.3.0 — 2026-05-08
@@ -18,7 +18,7 @@ All notable changes for the sqflow_platform_interface package.
 - **`ValueConverter<D, S>`**: Added `ValueConverter` abstract class for custom type transformations between Dart types and SQLite types.
 - **`Collate`**: Added `Collate` constants (`noCase`, `binary`) for SQLite collation support.
 - **`result_data.dart`**: Added `Result<T>` and `ResultWithCount<T>` typed result wrappers.
-- **`SqflowLogger`**: Added `SqflowLogger` interface with `SqflowConsoleLogger` default implementation.
+- **`PhormLogger`**: Added `PhormLogger` interface with `PhormConsoleLogger` default implementation.
 
 ## 1.1.0 — 2026-04-28
 
@@ -34,7 +34,7 @@ All notable changes for the sqflow_platform_interface package.
 - `Model` base class with `toJson()` abstract method.
 - `Table<T>` runtime configuration class.
 - `TableMigration`, `MigrationBuilder` for schema migrations.
-- `SqflowDatabaseExecutor` interface.
+- `PhormDatabaseExecutor` interface.
 - `CheckValidator`, `ContainsValidator`, `RegexValidator` for SQL CHECK constraints.
 - `SqlTypes` constants for SQLite type names.
 - `IndexProps` for table index definitions.

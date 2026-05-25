@@ -1,35 +1,35 @@
-# SQFlow — Overview
+# PHORM — Overview
 
-SQFlow (Single Query Flow) is a lightweight, type-safe, driver-agnostic ORM for Dart and Flutter. It is designed to separate model definitions and fluent query building from database-specific SQL grammar using a pluggable **Dialect system**. This allows you to write one unified set of models and type-safe query calls, and execute them seamlessly across SQLite (via `sqflow_lite`), PostgreSQL, or MySQL, utilizing background isolates and asynchronous connection pooling without raw SQL concatenation.
+PHORM (Single Query Flow) is a lightweight, type-safe, driver-agnostic ORM for Dart and Flutter. It is designed to separate model definitions and fluent query building from database-specific SQL grammar using a pluggable **Dialect system**. This allows you to write one unified set of models and type-safe query calls, and execute them seamlessly across SQLite (via `phorm_sqlite`), PostgreSQL, or MySQL, utilizing background isolates and asynchronous connection pooling without raw SQL concatenation.
 
 ## Motivation
 
-Modern database management in Flutter often forces a trade-off between **performance** and **developer experience**. SQFlow is designed to eliminate that trade-off by focusing on four core pillars:
+Modern database management in Flutter often forces a trade-off between **performance** and **developer experience**. PHORM is designed to eliminate that trade-off by focusing on four core pillars:
 
 ### 1. Zero N+1 Queries (JSON Aggregation)
 
 Traditional ORMs often fetch related data by running multiple queries (the N+1 problem) or using complex JOINs that duplicate parent data.
 
-- **SQFlow Solution**: It leverages the database's native JSON aggregation capabilities (such as SQLite's `json_group_array`/`json_object` or PostgreSQL's `jsonb_agg`/`jsonb_build_object`, compiled dynamically by the active `SqlDialect`) to fetch a primary record and all its related nested structures (HasMany, HasOne, BelongsTo) in **one single, highly-optimized SQL query**. The database compiles this tree natively and returns it in a single trip, avoiding any network or driver roundtrips.
+- **PHORM Solution**: It leverages the database's native JSON aggregation capabilities (such as SQLite's `json_group_array`/`json_object` or PostgreSQL's `jsonb_agg`/`jsonb_build_object`, compiled dynamically by the active `SqlDialect`) to fetch a primary record and all its related nested structures (HasMany, HasOne, BelongsTo) in **one single, highly-optimized SQL query**. The database compiles this tree natively and returns it in a single trip, avoiding any network or driver roundtrips.
 
 ### 2. Fluent Type Safety
 
 Writing SQL queries as strings is error-prone and hard to maintain.
 
-- **SQFlow Solution**: The generator creates static typed columns for every model. Instead of `where: "name LIKE 'A%'"`, you write `Users.name.like('A%')`. This gives you autocomplete, compile-time checks, and prevents SQL injection by default.
+- **PHORM Solution**: The generator creates static typed columns for every model. Instead of `where: "name LIKE 'A%'"`, you write `Users.name.like('A%')`. This gives you autocomplete, compile-time checks, and prevents SQL injection by default.
 
 ### 3. Automatic Lifecycle Management
 
 Most apps need the same patterns: "When was this created?", "Don't actually delete it, just mark it as deleted", "Validate this email before saving".
 
-- **SQFlow Solution**: By adding a few parameters to the `@Schema` annotation, SQFlow automatically handles:
+- **PHORM Solution**: By adding a few parameters to the `@Schema` annotation, PHORM automatically handles:
   - **Timestamps**: Injects `created_at` and `updated_at` without manual fields.
   - **Soft Deletes**: Automatically filters out "deleted" records and provides a `restore()` API.
   - **Validation**: Enforces rules (email, length, ranges) in both Dart and the SQL schema.
 
 ### 4. Boilerplate-Free Workflow
 
-- **SQFlow Solution**: The generator doesn't just create `toJson/fromJson`. It generates a full **Service Class** (e.g., `Users`) with static methods for CRUD, transactions, and reactive streams (`watch`). No more manual repository patterns or DAOs.
+- **PHORM Solution**: The generator doesn't just create `toJson/fromJson`. It generates a full **Service Class** (e.g., `Users`) with static methods for CRUD, transactions, and reactive streams (`watch`). No more manual repository patterns or DAOs.
 
 ---
 
@@ -48,7 +48,7 @@ graph TD
         Model["@Schema Class User<br/>(Defines fields and relationships HasMany/BelongsTo)"]:::dev
     end
 
-    subgraph "2. Code Generation (sqflow_generator)"
+    subgraph "2. Code Generation (phorm_generator)"
         Generator["build_runner"]:::gen
         Mixin["_$PhormUserMixin<br/>(toJson, copyWith methods)"]:::gen
         Service["class Users (Service)<br/>(Typed columns and CRUD API)"]:::gen
@@ -58,7 +58,7 @@ graph TD
         Generator --> Service
     end
 
-    subgraph "3. Building a Request (sqflow)"
+    subgraph "3. Building a Request (phorm)"
         AppCall["Users.where(Users.age.gt(18))<br/>.include([Includable.model<Post>()])<br/>.get()"]:::dev
         QueryBuilder["WhereBuilder & Include Resolver<br/>(Linking tables by foreign keys)"]:::core
         Dialect["SqlDialect (sqlite/postgres)<br/>(Building into Single SQL with JSON Aggregation)"]:::core
@@ -68,7 +68,7 @@ graph TD
         QueryBuilder --> Dialect
     end
 
-    subgraph "4. Executing a Query (sqflow_lite)"
+    subgraph "4. Executing a Query (phorm_sqlite)"
         Driver["Database Connection Manager<br/>(Connection pool management)"]:::driver
         Isolate["Background Isolate / Web WASM<br/>(Execution in a separate thread without UI freezes)"]:::driver
         SQLite[("Database SQLite")]:::db
@@ -94,9 +94,9 @@ graph TD
 
 ## Dialects & Pluggable SQL Architecture
 
-To ensure the library is future-proof and database-agnostic, SQFlow separates query building and model mapping from the specific SQL grammar of target databases. It accomplishes this through the **`SqlDialect`** interface defined in `sqflow`.
+To ensure the library is future-proof and database-agnostic, PHORM separates query building and model mapping from the specific SQL grammar of target databases. It accomplishes this through the **`SqlDialect`** interface defined in `phorm`.
 
-The query builder, JSON eager loading system, and column compiler in `sqflow` never generate hardcoded database-specific SQL strings. Instead, they delegate to the active `SqlDialect` to resolve details like:
+The query builder, JSON eager loading system, and column compiler in `phorm` never generate hardcoded database-specific SQL strings. Instead, they delegate to the active `SqlDialect` to resolve details like:
 
 - **Identifier Escaping**: SQLite/Postgres uses `"table"."column"`, while MySQL uses `` `table`.`column` ``.
 - **Positional Placeholders**: SQLite uses `?`, Postgres uses `$1`, `$2`, etc.
@@ -109,13 +109,13 @@ This makes it exceptionally easy to swap the underlying database driver without 
 
 ## Future Database Roadmap
 
-SQFlow's modularity paves the way for cross-platform, enterprise-ready database adapters:
+PHORM's modularity paves the way for cross-platform, enterprise-ready database adapters:
 
-| Driver Package        | Target Database     | Status                        | Dialect Implementation                                                                             | Under-the-Hood Driver     |
-| :-------------------- | :------------------ | :---------------------------- | :------------------------------------------------------------------------------------------------- | :------------------------ |
-| **`sqflow_lite`**     | **SQLite**          | **Stable (Production-ready)** | `SqliteDialect` (Single-query JSON aggregation, isolate ports, WebAssembly WASM, IndexedDB)        | `sqlite3` & `sqlite3_web` |
-| **`sqflow_postgres`** | **PostgreSQL**      | **Planned**                   | `PostgresDialect` (Positional `$1` parameters, schema namespaces, JSONB arrays, binary aggregates) | `postgres` (Dart)         |
-| **`sqflow_mysql`**    | **MySQL / MariaDB** | **Planned**                   | `MysqlDialect` (Backtick escapes, `json_object`, limit offsets)                                    | `mysql_client` / `mysql1` |
+| Driver Package       | Target Database     | Status                        | Dialect Implementation                                                                             | Under-the-Hood Driver     |
+| :------------------- | :------------------ | :---------------------------- | :------------------------------------------------------------------------------------------------- | :------------------------ |
+| **`phorm_sqlite`**   | **SQLite**          | **Stable (Production-ready)** | `SqliteDialect` (Single-query JSON aggregation, isolate ports, WebAssembly WASM, IndexedDB)        | `sqlite3` & `sqlite3_web` |
+| **`phorm_postgres`** | **PostgreSQL**      | **Planned**                   | `PostgresDialect` (Positional `$1` parameters, schema namespaces, JSONB arrays, binary aggregates) | `postgres` (Dart)         |
+| **`phorm_mysql`**    | **MySQL / MariaDB** | **Planned**                   | `MysqlDialect` (Backtick escapes, `json_object`, limit offsets)                                    | `mysql_client` / `mysql1` |
 
 When a new driver is introduced, your declarative schemas `@Schema(...)` and code-generated services (like `Users`) remain **100% identical**. Only the database initialization (`DB` manager instantiation) changes!
 
@@ -123,12 +123,12 @@ When a new driver is introduced, your declarative schemas `@Schema(...)` and cod
 
 ## Package Structure
 
-| Package                     | Role                                                                            |
-| :-------------------------- | :------------------------------------------------------------------------------ |
-| `sqflow_platform_interface` | Annotations (`@Schema`, `@Column`, `@ID`), data types, relationship definitions |
-| `sqflow`                    | Driver-agnostic runtime: `SqflowCore<T>`, `WhereBuilder`, `SortBuilder`         |
-| `sqflow_lite`               | SQLite driver & connection manager: `DB`, isolates, WASM, custom SQL functions  |
-| `sqflow_generator`          | `build_runner` plugin that generates mixins, SQL, and serialization code        |
+| Package                    | Role                                                                            |
+| :------------------------- | :------------------------------------------------------------------------------ |
+| `phorm_platform_interface` | Annotations (`@Schema`, `@Column`, `@ID`), data types, relationship definitions |
+| `phorm`                    | Driver-agnostic runtime: `PhormCore<T>`, `WhereBuilder`, `SortBuilder`          |
+| `phorm_sqlite`             | SQLite driver & connection manager: `DB`, isolates, WASM, custom SQL functions  |
+| `phorm_generator`          | `build_runner` plugin that generates mixins, SQL, and serialization code        |
 
 ---
 
@@ -137,12 +137,12 @@ When a new driver is introduced, your declarative schemas `@Schema(...)` and cod
 ```yaml
 # pubspec.yaml
 dependencies:
-  sqflow: ^latest
-  sqflow_lite: ^latest # SQLite driver and connection lifecycle manager
+  phorm: ^latest
+  phorm_sqlite: ^latest # SQLite driver and connection lifecycle manager
 
 dev_dependencies:
-  sqflow_platform_interface: ^latest
-  sqflow_generator: ^latest
+  phorm_platform_interface: ^latest
+  phorm_generator: ^latest
   build_runner: ^latest
 ```
 
@@ -151,7 +151,7 @@ dev_dependencies:
 ## Minimal Example
 
 ```dart
-import 'package:sqflow_lite/sqflow_lite.dart';
+import 'package:phorm_sqlite/phorm_sqlite.dart';
 
 // 1. Annotate your model
 @Schema(tableName: 'users')
@@ -170,7 +170,7 @@ class User extends Model with _$PhormUserMixin {
 // 2. Run the generator
 // dart run build_runner build
 
-// 3. Initialize app database once (from sqflow_lite)
+// 3. Initialize app database once (from phorm_sqlite)
 final appDb = DB(databaseName: 'app.db', version: 1, tables: [usersTable]);
 
 // 4. Use the generated service class

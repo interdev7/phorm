@@ -36,7 +36,7 @@ class _SocialFeedPageState extends State<SocialFeedPage> {
     });
   }
 
-  /// Demonstrates: SqflowCore.transaction() — all-or-nothing atomic write
+  /// Demonstrates: PhormCore.transaction() — all-or-nothing atomic write
   Future<void> _seedWithTransaction() async {
     setState(() {
       _isSeeding = true;
@@ -94,7 +94,7 @@ class _SocialFeedPageState extends State<SocialFeedPage> {
 
         // Step 2: Create posts linked to the author inside same transaction
         final titles = [
-          'Getting started with Sqflow ORM',
+          'Getting started with PHORM ORM',
           'How to use Relationships (HasMany, BelongsTo)',
           'Transactions, Reactivity & Paranoid explained',
         ];

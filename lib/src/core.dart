@@ -38,7 +38,7 @@ abstract interface class IPhormCore<T extends Model> {
 /// - Integration with [WhereBuilder] and [SortBuilder] for complex queries
 /// - Optional indexes and custom onCreate/onUpgrade hooks
 class PhormCore<T extends Model> implements IPhormCore<T> {
-  /// Creates a new SqflowCore instance.
+  /// Creates a new PhormCore instance.
   ///
   /// **Example:**
   /// ```dart

@@ -1,6 +1,6 @@
 # Relationships & Eager Loading
 
-SQFlow provides three relationship types: `HasMany`, `HasOne`, and `BelongsTo` (plus `Join` as an alias). Relationships are declared in `@Schema` and resolved at runtime via a single optimized SQL query.
+PHORM provides three relationship types: `HasMany`, `HasOne`, and `BelongsTo` (plus `Join` as an alias). Relationships are declared in `@Schema` and resolved at runtime via a single optimized SQL query.
 
 ---
 
@@ -90,7 +90,7 @@ HasMany(
 
 ## How It Works Internally
 
-SQFlow uses **single-query JSON aggregation** to avoid N+1 problems:
+PHORM uses **single-query JSON aggregation** to avoid N+1 problems:
 
 ### HasMany (JSON aggregation)
 
@@ -186,7 +186,7 @@ final result = await userService.readAll(
 
 ### Deep Loading (Nested Relationships)
 
-SQFlow supports loading relationships at any depth. Simply nest `Includable` objects inside each other.
+PHORM supports loading relationships at any depth. Simply nest `Includable` objects inside each other.
 
 ```dart
 // User -> Posts -> User (Author)
@@ -209,7 +209,7 @@ final user = await userService.readOne(
 
 ## Reading Related Data in `fromJson`
 
-When a relationship is included, SQFlow injects the related data into the JSON map **before** calling `fromJson`. The key is the related **table name**.
+When a relationship is included, PHORM injects the related data into the JSON map **before** calling `fromJson`. The key is the related **table name**.
 
 ```dart
 factory User.fromJson(Map<String, dynamic> json) {
@@ -240,7 +240,7 @@ factory User.fromJson(Map<String, dynamic> json) {
 
 ## Filtering by Related Table Columns
 
-You can filter the primary result set based on values in related tables using **dot notation** in `WhereBuilder`. SQFlow automatically generates the necessary `LEFT JOIN`.
+You can filter the primary result set based on values in related tables using **dot notation** in `WhereBuilder`. PHORM automatically generates the necessary `LEFT JOIN`.
 
 ```dart
 // Find users who have at least one order with total > 1000
@@ -336,4 +336,4 @@ final orders = (json['orders'] as List<dynamic>? ?? [])
 
 ### 4. Filtering + HasMany duplication without GROUP BY
 
-SQFlow automatically adds `GROUP BY` when cross-table filtering is detected. If you use `.raw()` to write a manual JOIN, be aware that **no automatic GROUP BY is added** — you must handle deduplication yourself.
+PHORM automatically adds `GROUP BY` when cross-table filtering is detected. If you use `.raw()` to write a manual JOIN, be aware that **no automatic GROUP BY is added** — you must handle deduplication yourself.

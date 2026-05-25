@@ -11,7 +11,7 @@ void main() {
     await userService.dbManager.close();
   });
 
-  group('SqflowCore ReadAll Tests:', () {
+  group('PhormCore ReadAll Tests:', () {
     test('Basic pagination', () async {
       final result = await userService.readAllWithCount(
         limit: 5,

@@ -11,7 +11,7 @@ void main() {
     await userService.dbManager.close();
   });
 
-  group('SqflowCore Read Tests:', () {
+  group('PhormCore Read Tests:', () {
     test('Existence check', () async {
       // Existing user (seeded in createTestService)
       final exists = await userService.exists('u001');

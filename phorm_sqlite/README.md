@@ -1,25 +1,25 @@
-# SQFlow Lite 🚀
+# PHORM Lite 🚀
 
 [![Dart](https://img.shields.io/badge/Dart-3.0%2B-blue)](https://dart.dev/)
 [![License: Apache 2.0](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 
-`sqflow_lite` is the official SQLite driver and connection manager implementation for the **SQFlow ORM**.
+`phorm_sqlite` is the official SQLite driver and connection manager implementation for the **PHORM ORM**.
 
-It implements the database interfaces from `sqflow_core` (`SqflowDatabase`, `DatabaseExecutor`) and handles connection lifecycles, background isolate execution, custom SQL functions, and smart schema migrations.
+It implements the database interfaces from `phorm_core` (`PhormDatabase`, `DatabaseExecutor`) and handles connection lifecycles, background isolate execution, custom SQL functions, and smart schema migrations.
 
 ---
 
-## 📦 Role in SQFlow Ecosystem
+## 📦 Role in PHORM Ecosystem
 
-The SQFlow ORM is split into modular packages:
+The PHORM ORM is split into modular packages:
 
-1. **`sqflow_platform_interface`** — Database-agnostic annotations (`@Schema`, `@Column`, `@ID`) and logical type definitions.
-2. **`sqflow_core`** — Driver-agnostic runtime engine containing CRUD APIs, `WhereBuilder` query builder, soft deletes, and eager loading via JSON Aggregation.
-3. **`sqflow_generator`** — Code generator (`build_runner`) that automates mixin, JSON, and runtime table configuration.
-4. **`sqflow_lite`** (This Package) — **The SQLite driver**. Implements connection pooling, background isolates (Native), WebAssembly persistence (Web), and smart migrations.
+1. **`phorm_platform_interface`** — Database-agnostic annotations (`@Schema`, `@Column`, `@ID`) and logical type definitions.
+2. **`phorm_core`** — Driver-agnostic runtime engine containing CRUD APIs, `WhereBuilder` query builder, soft deletes, and eager loading via JSON Aggregation.
+3. **`phorm_generator`** — Code generator (`build_runner`) that automates mixin, JSON, and runtime table configuration.
+4. **`phorm_sqlite`** (This Package) — **The SQLite driver**. Implements connection pooling, background isolates (Native), WebAssembly persistence (Web), and smart migrations.
 
 <p align="center">
-  <img src="../assets/architecture.png" alt="SqFlow Architecture" />
+  <img src="../assets/architecture.png" alt="PHORM Architecture" />
 </p>
 
 ---
@@ -28,7 +28,7 @@ The SQFlow ORM is split into modular packages:
 
 - **🧵 Non-Blocking Native Architecture** — Runs `sqlite3` operations in a dedicated background Dart `Isolate`. The Main/UI thread never stalls, even during heavy operations or massive query maps.
 - **🌐 Seamless Web Support** — Out-of-the-box support for Flutter Web via WebAssembly (`sqlite3_web`) and **IndexedDB** virtual filesystem persistence. Zero platform checks needed in your application.
-- **🛡️ Smart Migrations** — Idempotent, hash-tracked schema migration tracking via the internal `__sqflow_migrations` table.
+- **🛡️ Smart Migrations** — Idempotent, hash-tracked schema migration tracking via the internal `__phorm_migrations` table.
 - **🔌 Custom SQL Functions** — Easy registration of Dart functions inside SQLite (e.g. native `REGEXP` support).
 - **🔒 SQLCipher Support** — Option to provide a `password` parameter to encrypt native database files with SQLCipher.
 - **📊 Slow Query Profiling** — Custom logger hooks to trace and alert when queries exceed a specified duration.
@@ -37,12 +37,12 @@ The SQFlow ORM is split into modular packages:
 
 ## ⚙️ Installation
 
-Add `sqflow_lite` to your `pubspec.yaml`:
+Add `phorm_sqlite` to your `pubspec.yaml`:
 
 ```yaml
 dependencies:
-  sqflow_lite: ^latest
-  # sqflow_core and sqflow_platform_interface are pulled in automatically
+  phorm_sqlite: ^latest
+  # phorm_core and phorm_platform_interface are pulled in automatically
 ```
 
 ---
@@ -54,7 +54,7 @@ dependencies:
 Create an instance of `DB` or `DB.autoVersion` to manage your SQLite connection:
 
 ```dart
-import 'lib/sqflow_lite.dart';
+import 'lib/phorm_sqlite.dart';
 
 // Declare your tables (normally generated in .sql.g.dart)
 final usersTable = Table<User>(...);
@@ -73,7 +73,7 @@ final appDb = DB.autoVersion(
 Resolve services directly from your database manager:
 
 ```dart
-// Resolves the SqflowCore<User> CRUD service
+// Resolves the PhormCore<User> CRUD service
 final userService = appDb.service<User>();
 
 // CRUD operations
@@ -87,18 +87,18 @@ final user = await userService.readOne('u1');
 
 The `DB` constructor offers several tuning parameters:
 
-| Parameter            | Type                | Default                 | Description                                                                   |
-| :------------------- | :------------------ | :---------------------- | :---------------------------------------------------------------------------- |
-| `databaseName`       | `String`            | `'app_database.db'`     | The name of the file or `':memory:'` for in-memory databases.                 |
-| `version`            | `int`               | _(Required)_            | The targeted database schema version.                                         |
-| `tables`             | `List<Table>`       | _(Required)_            | The list of all registered `Table` schemas and migrations.                    |
-| `customFunctions`    | `List<SqlFunction>` | `[]`                    | List of custom Dart-implemented functions to register in SQLite.              |
-| `password`           | `String?`           | `null`                  | Password string for SQLCipher database encryption (Native only).              |
-| `logger`             | `SqflowLogger?`     | `SqflowConsoleLogger()` | Custom logger implementation for tracing db events.                           |
-| `logQueries`         | `bool`              | `false`                 | Enables print logging of executed SQL queries and arguments.                  |
-| `slowQueryThreshold` | `Duration`          | `200ms`                 | Threshold duration after which a query is flagged as "slow" in logs.          |
-| `singleInstance`     | `bool`              | `true`                  | Caches and reuses connection instances for the same path.                     |
-| `isolateThreshold`   | `int`               | `50`                    | Row count threshold at which mapping is processed inside background isolates. |
+| Parameter            | Type                | Default                | Description                                                                   |
+| :------------------- | :------------------ | :--------------------- | :---------------------------------------------------------------------------- |
+| `databaseName`       | `String`            | `'app_database.db'`    | The name of the file or `':memory:'` for in-memory databases.                 |
+| `version`            | `int`               | _(Required)_           | The targeted database schema version.                                         |
+| `tables`             | `List<Table>`       | _(Required)_           | The list of all registered `Table` schemas and migrations.                    |
+| `customFunctions`    | `List<SqlFunction>` | `[]`                   | List of custom Dart-implemented functions to register in SQLite.              |
+| `password`           | `String?`           | `null`                 | Password string for SQLCipher database encryption (Native only).              |
+| `logger`             | `PhormLogger?`      | `PhormConsoleLogger()` | Custom logger implementation for tracing db events.                           |
+| `logQueries`         | `bool`              | `false`                | Enables print logging of executed SQL queries and arguments.                  |
+| `slowQueryThreshold` | `Duration`          | `200ms`                | Threshold duration after which a query is flagged as "slow" in logs.          |
+| `singleInstance`     | `bool`              | `true`                 | Caches and reuses connection instances for the same path.                     |
+| `isolateThreshold`   | `int`               | `50`                   | Row count threshold at which mapping is processed inside background isolates. |
 
 ### `DB.autoVersion`
 
@@ -117,14 +117,14 @@ final db = DB.autoVersion(
 
 In standard Flutter database setups, queries and subsequent data mapping (`fromJson`) run on the Main/UI thread. Under high load, this causes UI "jank" (dropped frames).
 
-`sqflow_lite` resolves this by using an **Isolate-based proxy router**:
+`phorm_sqlite` resolves this by using an **Isolate-based proxy router**:
 
 <p>
 <image src="./assets/illustration_1.png" alt="Isolate Router" />
 </p>
 
 1. **Native Platforms**: Spawns a background `Isolate` that owns the synchronous `sqlite3` connection. Commands are sent across ports, executing database writes/reads safely off the UI thread.
-2. **Flutter Web**: Relies on WebAssembly (`WasmSqlite3`) on the main thread. Since Dart isolates are simulated on Web, it utilizes direct async bindings to **IndexedDB** via `IndexedDbFileSystem` to persist files across reloads under the `sqflow_` prefix.
+2. **Flutter Web**: Relies on WebAssembly (`WasmSqlite3`) on the main thread. Since Dart isolates are simulated on Web, it utilizes direct async bindings to **IndexedDB** via `IndexedDbFileSystem` to persist files across reloads under the `phorm_` prefix.
 
 ---
 
@@ -133,7 +133,7 @@ In standard Flutter database setups, queries and subsequent data mapping (`fromJ
 SQLite allows executing custom logic inside SQL queries by registering Dart functions.
 
 ```dart
-import 'lib/sqflow_lite.dart';
+import 'lib/phorm_sqlite.dart';
 
 // Create a custom reverse function
 final reverseFn = SqlFunction(

@@ -1,6 +1,6 @@
 # Validators
 
-SQFlow provides a declarative validation system that allows you to enforce data integrity both at the database level (SQLite `CHECK` constraints) and the application level (Dart-side validation).
+PHORM provides a declarative validation system that allows you to enforce data integrity both at the database level (SQLite `CHECK` constraints) and the application level (Dart-side validation).
 
 ---
 
@@ -19,7 +19,7 @@ Validators are defined using the `validators` parameter in the `@Column` annotat
 final String email;
 ```
 
-When you call `toJson()` on a generated model mixin, SQFlow automatically runs these validators. If any validator fails, an exception is thrown.
+When you call `toJson()` on a generated model mixin, PHORM automatically runs these validators. If any validator fails, an exception is thrown.
 
 ---
 
@@ -28,7 +28,9 @@ When you call `toJson()` on a generated model mixin, SQFlow automatically runs t
 There are two primary interfaces for validators:
 
 ### 1. `ICheckValidator` (Database + Dart)
+
 These validators enforce constraints in both SQLite and Dart.
+
 - **SQL**: The generator adds a `CHECK (column_name ...)` constraint to the `CREATE TABLE` statement.
 - **Dart**: The generated `toJson()` method verifies the value before it's sent to the database.
 
@@ -44,6 +46,7 @@ These validators enforce constraints in both SQLite and Dart.
 | `CustomSqlValidator(sql)` | Injects raw SQL `CHECK` condition. | `col % 2 = 0` |
 
 ### 2. `IJsonValidator` (Dart Only)
+
 These validators only run in Dart and do not affect the SQLite schema. They are useful for complex logic that is difficult or impossible to express in pure SQL (like Regex or URL parsing).
 
 **Built-in `IJsonValidator`s:**
@@ -57,17 +60,17 @@ These validators only run in Dart and do not affect the SQLite schema. They are 
 
 ## Error Handling
 
-When validation fails, SQFlow throws one of the following exceptions:
+When validation fails, PHORM throws one of the following exceptions:
 
-- **`SqflowCHECKValidatorException`**: Thrown when an `ICheckValidator` fails.
-- **`SqflowJSONValidatorException`**: Thrown when an `IJsonValidator` fails.
+- **`PhormCHECKValidatorException`**: Thrown when an `ICheckValidator` fails.
+- **`PhormJSONValidatorException`**: Thrown when an `IJsonValidator` fails.
 
 Both exceptions contain the `constraint` name (if provided) and the invalid `value`.
 
 ```dart
 try {
   final json = user.toJson();
-} on SqflowCHECKValidatorException catch (e) {
+} on PhormCHECKValidatorException catch (e) {
   print('Validation failed for constraint: ${e.constraint}');
   print('Invalid value: ${e.value}');
 }
@@ -98,6 +101,7 @@ If `useValidator` is `false`, the generator will still add `CHECK` constraints t
 You can create your own validators by implementing `IJsonValidator` or `ICheckValidator`.
 
 ### Custom Dart Validator
+
 ```dart
 class MyPasswordValidator implements IJsonValidator {
   @override
@@ -113,6 +117,7 @@ class MyPasswordValidator implements IJsonValidator {
 ```
 
 ### Custom SQL + Dart Validator
+
 ```dart
 class IsEvenValidator implements ICheckValidator {
   @override

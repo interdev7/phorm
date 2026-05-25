@@ -1,6 +1,6 @@
 # Seeders & Factories
 
-For enterprise applications, it is essential to have a way to populate the database with initial or test data. SQFlow provides `Seeder` and `Factory` interfaces to streamline this process.
+For enterprise applications, it is essential to have a way to populate the database with initial or test data. PHORM provides `Seeder` and `Factory` interfaces to streamline this process.
 
 ---
 
@@ -13,7 +13,7 @@ A `Factory` is used to generate mock data for your models. This is particularly 
 Implement the `Factory<T>` interface and define the `create()` method.
 
 ```dart
-import 'package:sqflow/sqflow.dart';
+import 'package:phorm/phorm.dart';
 import 'package:faker/faker.dart'; // Optional: using a library for random data
 
 class UserFactory extends Factory<User> {
@@ -53,18 +53,18 @@ A `Seeder` is a class responsible for populating specific tables in the database
 
 ### Defining a Seeder
 
-Implement the `Seeder` interface and define the `run(DB db)` method. Inside this method, you can use `SqflowCore` services to insert data.
+Implement the `Seeder` interface and define the `run(DB db)` method. Inside this method, you can use `PhormCore` services to insert data.
 
 ```dart
 class UserSeeder extends Seeder {
   @override
   Future<void> run(DB db) async {
     // Initialize the service for the model you want to seed
-    final userService = SqflowCore<User>(dbManager: db, table: usersTable);
-    
+    final userService = PhormCore<User>(dbManager: db, table: usersTable);
+
     // Use a factory to generate data
     final users = UserFactory().createMany(50);
-    
+
     // Insert into DB
     await userService.insertBatch(users);
   }
@@ -101,6 +101,7 @@ await db.seed([
 
 > [!TIP]
 > Use seeders to create a "Golden State" of your database that includes common scenarios (e.g., an admin user, a user with many posts, a user with no posts) to make manual testing much faster.
+
 ---
 
 ## Testing Seeders & Factories
@@ -127,7 +128,7 @@ Use an in-memory database to verify that the seeder correctly inserts data.
 ```dart
 test('UserSeeder populates the database', () async {
   final db = DB(databaseName: ':memory:', version: 1, tables: [usersTable]);
-  final userService = SqflowCore<User>(dbManager: db, table: usersTable);
+  final userService = PhormCore<User>(dbManager: db, table: usersTable);
 
   // Run seeder
   await db.seed([UserSeeder()]);

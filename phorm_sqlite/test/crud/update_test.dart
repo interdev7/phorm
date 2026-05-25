@@ -11,7 +11,7 @@ void main() {
     await userService.dbManager.close();
   });
 
-  group('SqflowCore Update Tests:', () {
+  group('PhormCore Update Tests:', () {
     test('Update record', () async {
       // Create user first
       final user = User(

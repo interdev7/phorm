@@ -11,13 +11,13 @@ import 'src/sqlite_schema_generator.dart';
 Builder sqlSchemaBuilder(BuilderOptions options) {
   return SharedPartBuilder(
     [SqliteSchemaGenerator(), ModelMixinGenerator()],
-    'sqflow',
+    'phorm',
   );
 }
 
 Builder standaloneSqlSchemaBuilder(BuilderOptions options) {
   return LibraryBuilder(
-    _SqflowCombinedGenerator(),
+    _PhormCombinedGenerator(),
     generatedExtension: '.sql.g.dart',
   );
 }
@@ -29,7 +29,7 @@ Builder standaloneSqlFunctionBuilder(BuilderOptions options) {
   );
 }
 
-class _SqflowCombinedGenerator extends Generator {
+class _PhormCombinedGenerator extends Generator {
   final _schemaGen = SqliteSchemaGenerator();
   final _mixinGen = ModelMixinGenerator();
 

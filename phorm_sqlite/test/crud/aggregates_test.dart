@@ -11,7 +11,7 @@ void main() {
     await userService.dbManager.close();
   });
 
-  group('SqflowCore Aggregates:', () {
+  group('PhormCore Aggregates:', () {
     test('count without where clause', () async {
       final count = await userService.count();
       final expectedCount = mockUsers.where((u) => u.deletedAt == null).length;
