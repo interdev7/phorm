@@ -7,16 +7,16 @@ import 'package:phorm_example/pages/reactivity_showcase_page.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  runApp(const SqflowShowcaseApp());
+  runApp(const PhormShowcaseApp());
 }
 
-class SqflowShowcaseApp extends StatelessWidget {
-  const SqflowShowcaseApp({super.key});
+class PhormShowcaseApp extends StatelessWidget {
+  const PhormShowcaseApp({super.key});
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Sqflow Showcase',
+      title: 'PHORM Showcase',
       debugShowCheckedModeBanner: false,
       theme: _buildTheme(),
       home: const ShowcaseHome(),

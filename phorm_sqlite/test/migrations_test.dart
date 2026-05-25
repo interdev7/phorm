@@ -55,7 +55,7 @@ void main() {
     late Directory tempDir;
 
     setUpAll(() async {
-      tempDir = await Directory.systemTemp.createTemp('sqflow_migration_test_');
+      tempDir = await Directory.systemTemp.createTemp('phorm_migration_test_');
     });
 
     tearDownAll(() async {
@@ -265,7 +265,7 @@ void main() {
     late Directory tempDir;
 
     setUpAll(() async {
-      tempDir = await Directory.systemTemp.createTemp('sqflow_scenario_test_');
+      tempDir = await Directory.systemTemp.createTemp('phorm_scenario_test_');
     });
 
     tearDownAll(() async {
@@ -327,7 +327,7 @@ void main() {
     late Directory tempDir;
 
     setUpAll(() async {
-      tempDir = await Directory.systemTemp.createTemp('sqflow_test_');
+      tempDir = await Directory.systemTemp.createTemp('phorm_test_');
     });
 
     tearDownAll(() async {

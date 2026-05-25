@@ -74,7 +74,7 @@ final user = await Users.readOne('id123');
 final result = await Users.where(Users.age.gt(18)).get();
 
 // 5. Traditional engine access
-final userService = SqflowCore<User>(dbManager: appDb, table: usersTable);
+final userService = PhormCore<User>(dbManager: appDb, table: usersTable);
 // Or
 final userService = appDb.service<User>();
 final paged = await userService.readAllWithCount(limit: 20);
@@ -134,7 +134,7 @@ Full documentation is in the [`docs/`](./docs) folder:
 
 | File                                                                  | Contents                                                          |
 | :-------------------------------------------------------------------- | :---------------------------------------------------------------- |
-| [01. Overview](./docs/01-overview.md)                                 | Architecture, why SQFlow, package structure                       |
+| [01. Overview](./docs/01-overview.md)                                 | Architecture, why PHORM, package structure                        |
 | [02. Schema Definition](./docs/02-schema-definition.md)               | `@Schema`, `@Column`, `@ID`, data types, indexes, CHECK           |
 | [03. Where Builder](./docs/03-where-builder.md)                       | All WhereBuilder methods, groups, cross-table filtering, pitfalls |
 | [04. CRUD Operations](./docs/04-crud-operations.md)                   | Insert, Read, Update, Delete, Batch, Transactions, Attributes     |

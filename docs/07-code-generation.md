@@ -1,6 +1,6 @@
-# Code Generation (sqflow_generator)
+# Code Generation (phorm_generator)
 
-`sqflow_generator` is a `build_runner` plugin that reads your `@Schema` annotated classes and generates:
+`phorm_generator` is a `build_runner` plugin that reads your `@Schema` annotated classes and generates:
 
 - SQL `CREATE TABLE` statement with indexes
 - `_$PhormClassNameMixin` mixin with automatic `toJson()`, `toString()` and `copyWith()`
@@ -14,7 +14,7 @@
 ```yaml
 # pubspec.yaml
 dev_dependencies:
-  sqflow_generator: ^latest
+  phorm_generator: ^latest
   build_runner: ^latest
 ```
 
@@ -73,14 +73,14 @@ This class is the primary API for your model.
 ```dart
 class Users {
   // Type-safe columns for queries
-  static const id = SqflowColumn<String>('id');
-  static const firstName = SqflowColumn<String>('first_name');
+  static const id = PhormColumn<String>('id');
+  static const firstName = PhormColumn<String>('first_name');
   ...
 
   // Static CRUD methods
   static Future<int> insert(User item) => ...;
   static Future<User?> read(Object id) => ...;
-  static SqflowQuery<User> where(SqflowCondition c) => ...;
+  static PhormQuery<User> where(PhormCondition c) => ...;
   ...
 }
 ```
@@ -247,7 +247,7 @@ Make sure:
 
 ## Custom SQL Functions Code Generation (`@SqlFunc`)
 
-`sqflow_generator` also provides an automatic code generator for your custom SQLite functions, eliminating all boilerplate (such as manual registry creation, column extensions, and argument casting).
+`phorm_generator` also provides an automatic code generator for your custom SQLite functions, eliminating all boilerplate (such as manual registry creation, column extensions, and argument casting).
 
 ### 1. Annotate Top-Level Dart Functions
 
@@ -255,7 +255,7 @@ Write regular Dart functions containing your custom SQLite function logic and an
 
 ```dart
 // lib/models/custom_functions.dart
-import 'package:sqflow/sqflow.dart';
+import 'package:phorm/phorm.dart';
 
 part 'custom_functions.fn.g.dart';
 
@@ -302,16 +302,16 @@ final customSqlFunctions = [
 ];
 
 // Type-safe column extensions for custom SQL functions
-extension toSlugSqflowColumnExtension on SqflowColumn<String> {
+extension toSlugPhormColumnExtension on PhormColumn<String> {
   /// Applies the custom SQL function `TO_SLUG` to this column.
-  SqflowColumn<String> toSlug() {
+  PhormColumn<String> toSlug() {
     return sqlFunction<String>('TO_SLUG');
   }
 }
 
-extension doubleValueSqflowColumnExtension on SqflowColumn<int> {
+extension doubleValuePhormColumnExtension on PhormColumn<int> {
   /// Applies the custom SQL function `DOUBLE` to this column.
-  SqflowColumn<int> doubleValue() {
+  PhormColumn<int> doubleValue() {
     return sqlFunction<int>('DOUBLE');
   }
 }
@@ -330,7 +330,7 @@ final db = await DB.open(
 
 ### 4. Query Type-Safely
 
-The generated extension methods allow calling your custom SQL functions directly on matching `SqflowColumn` instances:
+The generated extension methods allow calling your custom SQL functions directly on matching `PhormColumn` instances:
 
 ```dart
 // Type-safe query!
@@ -343,13 +343,13 @@ final doubledUsers = await Users.where(
 ).get();
 ```
 
-If you try to call `.doubleValue()` on a `SqflowColumn<String>`, Dart will produce a compile-time error!
+If you try to call `.doubleValue()` on a `PhormColumn<String>`, Dart will produce a compile-time error!
 
 ---
 
 ## Advanced Features & Code Generation Details
 
-The `sqflow_generator` produces highly optimized, clean, and warning-free Dart code by employing smart static analysis.
+The `phorm_generator` produces highly optimized, clean, and warning-free Dart code by employing smart static analysis.
 
 ### 1. Smart Validation Code Generation
 
@@ -370,7 +370,7 @@ The generator performs a static scan of the class attributes and relationships t
 For generic model classes (e.g. `class ApiResponse<T>`), the generated Pluralized Service (e.g., `class ApiResponses`) uses explicit type arguments:
 
 ```dart
-class ApiResponses extends SqflowCore<ApiResponse<dynamic>> { ... }
+class ApiResponses extends PhormCore<ApiResponse<dynamic>> { ... }
 ```
 
 This ensures complete type safety and avoids compiler warnings (_The generic type 'ApiResponse<dynamic>' should have explicit type arguments but doesn't_).

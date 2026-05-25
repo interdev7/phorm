@@ -11,7 +11,7 @@ void main() {
     await userService.dbManager.close();
   });
 
-  group('SqflowCore Delete/Restore Tests:', () {
+  group('PhormCore Delete/Restore Tests:', () {
     test('Soft delete and restore', () async {
       final user = User(
         id: 'soft_delete_test',

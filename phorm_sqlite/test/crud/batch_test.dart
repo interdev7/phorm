@@ -11,7 +11,7 @@ void main() {
     await userService.dbManager.close();
   });
 
-  group('SqflowCore Batch Operations:', () {
+  group('PhormCore Batch Operations:', () {
     test('Batch insert', () async {
       final newUsers = [
         User(

@@ -1,6 +1,6 @@
 /// Interface for PHORM logging.
 ///
-/// Implement this to route Sqflow logs to your preferred logging service
+/// Implement this to route PHORM logs to your preferred logging service
 /// (e.g. Firebase Crashlytics, Datadog, or custom file loggers).
 abstract interface class PhormLogger {
   /// Logs an informational message.
@@ -16,7 +16,7 @@ abstract interface class PhormLogger {
   void error(String message, [Object? error, StackTrace? stackTrace]);
 }
 
-/// A default colored console logger for Sqflow.
+/// A default colored console logger for PHORM.
 class PhormConsoleLogger implements PhormLogger {
   final bool enableColors;
 

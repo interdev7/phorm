@@ -118,10 +118,10 @@ class Schema {
   /// Relationships defined on the table.
   final List<Relationship> relationships;
 
-  /// Whether to generate the SQFlowClassNameToJson method.
+  /// Whether to generate the PhormClassNameToJson method.
   final bool useToJson;
 
-  /// Whether to generate the SQFlowClassNameFromJson method.
+  /// Whether to generate the PhormClassNameFromJson method.
   final bool useFromJson;
 
   /// Whether to generate the copyWith method.

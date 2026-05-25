@@ -247,7 +247,7 @@ class _ReactivityShowcasePageState extends State<ReactivityShowcasePage>
         id: uuid.v4(),
         firstName: 'Individual',
         lastName: 'User $i',
-        email: 'individual_user_${uuid.v4().substring(0, 5)}@sqflow.com',
+        email: 'individual_user_${uuid.v4().substring(0, 5)}@phorm.com',
         phone: '+359887111222',
         gender: 'Other',
         city: 'Sofia',
@@ -274,7 +274,7 @@ class _ReactivityShowcasePageState extends State<ReactivityShowcasePage>
           id: uuid.v4(),
           firstName: 'Txn',
           lastName: 'User $i',
-          email: 'txn_user_${uuid.v4().substring(0, 5)}@sqflow.com',
+          email: 'txn_user_${uuid.v4().substring(0, 5)}@phorm.com',
           phone: '+359887111222',
           gender: 'Other',
           city: 'Sofia',
@@ -667,7 +667,7 @@ class _ReactivityShowcasePageState extends State<ReactivityShowcasePage>
             'Automated Reactive Streaming', Icons.wifi_tethering),
         const SizedBox(height: 8),
         Text(
-          'SQFlow reacts to table updates sync automatically. Below, we watch users with where filters, and one specific user with deep relationships.',
+          'PHORM reacts to table updates sync automatically. Below, we watch users with where filters, and one specific user with deep relationships.',
           style: GoogleFonts.inter(
               fontSize: 12, color: Colors.white54, height: 1.4),
         ),
@@ -989,7 +989,7 @@ class _ReactivityShowcasePageState extends State<ReactivityShowcasePage>
                 style: GoogleFonts.inter(color: Colors.white, fontSize: 13),
                 decoration: InputDecoration(
                   labelText: 'Post Title',
-                  hintText: 'e.g. Learning SQFlow ORM',
+                  hintText: 'e.g. Learning PHORM ORM',
                 ),
               ),
               const SizedBox(height: 12),
@@ -1033,7 +1033,7 @@ class _ReactivityShowcasePageState extends State<ReactivityShowcasePage>
             'Stream Emission & Transaction Buffering', Icons.layers),
         const SizedBox(height: 8),
         Text(
-          'During high-throughput writes (batching/looping inserts), triggering updates on every item leads to UI thrashing. SQFlow buffers notifications inside transactions, emitting only ONCE when the transaction commits.',
+          'During high-throughput writes (batching/looping inserts), triggering updates on every item leads to UI thrashing. PHORM buffers notifications inside transactions, emitting only ONCE when the transaction commits.',
           style: GoogleFonts.inter(
               fontSize: 12, color: Colors.white54, height: 1.4),
         ),

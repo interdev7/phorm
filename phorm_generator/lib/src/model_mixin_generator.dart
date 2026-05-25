@@ -225,7 +225,7 @@ class ModelMixinGenerator extends GeneratorForAnnotation<Schema> {
         final existsFk = fields.any((f) => f.name == fkName);
         if (!existsFk) {
           // Use toJson() to get the related model's PK by its SQL column name,
-          // matching the approach used in SqflowCore (item.toJson()[table.primaryKey])
+          // matching the approach used in PhormCore (item.toJson()[table.primaryKey])
           final relatedPk = rel['relatedPkSqlName'] as String? ?? 'id';
           buffer
             ..writeln('  var _\$$fkName;')

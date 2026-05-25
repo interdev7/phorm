@@ -13,7 +13,7 @@ void main() {
     await userService.dbManager.close();
   });
 
-  group('SqflowCore Insert Tests:', () {
+  group('PhormCore Insert Tests:', () {
     test('Insert and read single record', () async {
       final newUser = User(
         id: 'test001',

@@ -72,7 +72,7 @@ class Role extends Model with _$PhormRoleMixin {
 ## The Pivot Table
 
 > [!IMPORTANT]
-> **Manual Setup Required**: `sqflow_generator` does **not** automatically generate the SQL for the pivot table. You must define it yourself in a migration or in the `schema` string of one of your models.
+> **Manual Setup Required**: `phorm_generator` does **not** automatically generate the SQL for the pivot table. You must define it yourself in a migration or in the `schema` string of one of your models.
 
 ### Recommended Pivot Table Schema
 
@@ -142,12 +142,12 @@ final user = await Users.readOne('u1', include: [
 
 ## Filtering by Many-to-Many
 
-You can filter records based on columns in the related table using dot notation. SQFlow will automatically generate a `LEFT JOIN` through the pivot table.
+You can filter records based on columns in the related table using dot notation. PHORM will automatically generate a `LEFT JOIN` through the pivot table.
 
 ```dart
 // Find all users who have the 'Admin' role
 final admins = await Users.where(
-  const SqflowColumn<String>('roles.title').eq('Admin')
+  const PhormColumn<String>('roles.title').eq('Admin')
 ).get();
 ```
 
@@ -166,7 +166,7 @@ GROUP BY users.id
 
 ## How It Works (JSON Aggregation)
 
-When you include a `ManyToMany` relationship, SQFlow performs a correlated subquery using `json_group_array` and `json_object`.
+When you include a `ManyToMany` relationship, PHORM performs a correlated subquery using `json_group_array` and `json_object`.
 
 ```sql
 SELECT

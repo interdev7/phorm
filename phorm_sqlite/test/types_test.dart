@@ -54,7 +54,7 @@ void main() {
       final item = ScalarItem(
         id: 1,
         bigValue: BigInt.parse('123456789012345678901234567890'),
-        website: Uri.parse('https://sqflow.dev/orm'),
+        website: Uri.parse('https://phorm.dev/orm'),
         timeout: const Duration(minutes: 5),
         optionalBig: BigInt.two,
       );
@@ -62,7 +62,7 @@ void main() {
       // Verify toJson
       final json = item.toJson();
       expect(json['big_value'], '123456789012345678901234567890');
-      expect(json['website'], 'https://sqflow.dev/orm');
+      expect(json['website'], 'https://phorm.dev/orm');
       expect(json['timeout'], 5 * 60 * 1000000); // 5 minutes in microseconds
       expect(json['optional_big'], '2');
       expect(json['optional_uri'], null);
@@ -76,7 +76,7 @@ void main() {
       expect(retrieved!.id, 1);
       expect(
           retrieved.bigValue, BigInt.parse('123456789012345678901234567890'));
-      expect(retrieved.website.host, 'sqflow.dev');
+      expect(retrieved.website.host, 'phorm.dev');
       expect(retrieved.timeout.inMinutes, 5);
       expect(retrieved.optionalBig, BigInt.two);
       expect(retrieved.optionalUri, null);

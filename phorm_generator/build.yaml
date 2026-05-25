@@ -1,11 +1,11 @@
 targets:
   $default:
     builders:
-      sqflow_generator|standalone_sql_schema:
+      phorm_generator|standalone_sql_schema:
         generate_for:
           - lib/**/*.dart
           - test/**/*.dart
-      sqflow_generator|standalone_sql_function:
+      phorm_generator|standalone_sql_function:
         generate_for:
           - lib/**/*.dart
           - test/**/*.dart
@@ -14,7 +14,7 @@ targets:
 
 builders:
   standalone_sql_schema:
-    import: "package:sqflow_generator/builder.dart"
+    import: "package:phorm_generator/builder.dart"
     builder_factories: ["standaloneSqlSchemaBuilder"]
     build_extensions: { ".dart": [".sql.g.dart"] }
     auto_apply: dependents
@@ -22,7 +22,7 @@ builders:
     applies_builders: ["source_gen|combining_builder"]
 
   standalone_sql_function:
-    import: "package:sqflow_generator/builder.dart"
+    import: "package:phorm_generator/builder.dart"
     builder_factories: ["standaloneSqlFunctionBuilder"]
     build_extensions: { ".dart": [".fn.g.dart"] }
     auto_apply: dependents

@@ -72,7 +72,7 @@ class SqlFunctionGenerator extends Generator {
     buffer
       ..writeln('];\n')
 
-      // 2. Generate Type-safe Extensions on SqflowColumn
+      // 2. Generate Type-safe Extensions on PhormColumn
       ..writeln('// Type-safe column extensions for custom SQL functions');
     for (final fn in functions) {
       final sqlName = fn.sqlName;

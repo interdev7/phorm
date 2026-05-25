@@ -2,7 +2,7 @@
 
 Annotation library for declarative SQL table and schema definitions in **Dart**.
 
-`phorm_annotations` provides the building blocks for defining your database schema using standard Dart classes. It is designed to work with [`sqflow_generator`](https://github.com/interdev7/sqflow_generator) to automate SQL generation and runtime metadata.
+`phorm_annotations` provides the building blocks for defining your database schema using standard Dart classes. It is designed to work with [`phorm_generator`](https://github.com/interdev7/phorm_generator) to automate SQL generation and runtime metadata.
 
 ---
 
@@ -113,7 +113,7 @@ final String status;
 
 ## Automatic Type Mapping
 
-SQFlow maps Dart types to SQLite types automatically:
+PHORM maps Dart types to SQLite types automatically:
 
 | Dart Type   | SQLite Type | Notes                              |
 | :---------- | :---------- | :--------------------------------- |
