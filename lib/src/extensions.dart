@@ -1,4 +1,5 @@
-import 'package:sqflow_platform_interface/sqflow_platform_interface.dart';
+import 'package:phorm_annotations/phorm_annotations.dart';
+
 import 'core.dart';
 import 'database_interface.dart';
 

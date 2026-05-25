@@ -2,9 +2,9 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:sqflow/sqflow.dart' hide Column;
-import 'package:sqflow_example/models/user.dart';
-import 'package:sqflow_example/models/post.dart';
+import 'package:phorm/phorm.dart' hide Column;
+import 'package:phorm_example/models/user.dart';
+import 'package:phorm_example/models/post.dart';
 import 'package:uuid/uuid.dart';
 
 class ReactivityShowcasePage extends StatefulWidget {
@@ -43,8 +43,7 @@ class _ReactivityShowcasePageState extends State<ReactivityShowcasePage>
   List<User>? _allUsersCache;
   late final StreamController<List<User>> _allUsersController =
       StreamController<List<User>>.broadcast();
-  late final Stream<List<User>> _allUsersStream =
-      _allUsersController.stream;
+  late final Stream<List<User>> _allUsersStream = _allUsersController.stream;
   StreamSubscription<List<User>>? _allUsersSubscription;
 
   final _newPostTitleCtrl = TextEditingController();
@@ -885,8 +884,8 @@ class _ReactivityShowcasePageState extends State<ReactivityShowcasePage>
                           decoration: BoxDecoration(
                             color: Colors.white.withAlpha(5),
                             borderRadius: BorderRadius.circular(8),
-                            border: Border.all(
-                                color: Colors.white.withAlpha(10)),
+                            border:
+                                Border.all(color: Colors.white.withAlpha(10)),
                           ),
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,

@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:sqflow_example/pages/reactive_todo_page.dart';
-import 'package:sqflow_example/pages/social_feed_page.dart';
-import 'package:sqflow_example/pages/validation_demo_page.dart';
-import 'package:sqflow_example/pages/reactivity_showcase_page.dart';
+import 'package:phorm_example/pages/reactive_todo_page.dart';
+import 'package:phorm_example/pages/social_feed_page.dart';
+import 'package:phorm_example/pages/validation_demo_page.dart';
+import 'package:phorm_example/pages/reactivity_showcase_page.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();

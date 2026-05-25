@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:sqflow/sqflow.dart';
+import 'package:phorm/phorm.dart';
 
 void main() {
   group('WhereBuilder Unit Tests', () {
@@ -14,7 +14,7 @@ void main() {
           .eq('status', 'active')
           .gt('age', 18)
           .like('email', '%@example.com');
-      
+
       expect(where.build(), 'status = ? AND age > ? AND email LIKE ?');
       expect(where.args, ['active', 18, '%@example.com']);
     });

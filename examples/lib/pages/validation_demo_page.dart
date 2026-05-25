@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:sqflow/sqflow.dart' hide Column;
-import 'package:sqflow_example/models/user.dart';
+import 'package:phorm/phorm.dart' hide Column;
+import 'package:phorm_example/models/user.dart';
 import 'package:uuid/uuid.dart';
 
 class ValidationDemoPage extends StatefulWidget {
@@ -479,8 +479,8 @@ class _ValidationDemoPageState extends State<ValidationDemoPage>
                     const SizedBox(width: 4),
                     Text(
                       user.phone,
-                      style:
-                          GoogleFonts.inter(fontSize: 12, color: Colors.white70),
+                      style: GoogleFonts.inter(
+                          fontSize: 12, color: Colors.white70),
                     ),
                   ],
                 ),
@@ -698,7 +698,7 @@ class _ValidationDemoPageState extends State<ValidationDemoPage>
                       ? const Color(0xFF6C63FF)
                       : Colors.white.withOpacity(0.1),
                   width: selected ? 2 : 1,
-				),
+                ),
               ),
               child: Center(
                 child: Text(labels[g]!,

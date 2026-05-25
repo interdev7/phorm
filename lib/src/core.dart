@@ -2,7 +2,7 @@ import 'dart:async';
 import 'dart:isolate';
 
 import 'package:meta/meta.dart';
-import 'package:sqflow/sqflow.dart';
+import 'package:phorm/phorm.dart';
 
 typedef ErrorCallback = void Function(Object, StackTrace);
 
@@ -23,7 +23,7 @@ abstract interface class ISqflowCore<T extends Model> {
 }
 
 // =======================================================
-// SQFLOW CORE v1.0 🚀
+// PHORM CORE v1.0 🚀
 // =======================================================
 ///
 /// A flexible, generic CRUD service for SQLite databases in Flutter/Dart.

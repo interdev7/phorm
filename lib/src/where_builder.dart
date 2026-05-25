@@ -1,4 +1,4 @@
-import 'package:sqflow/src/sql_function_column.dart';
+import 'package:phorm/phorm.dart';
 
 // =======================================================
 // WHERE BUILDER 🔍
@@ -47,7 +47,8 @@ class WhereBuilder {
   final Set<String> _usedColumns = {};
 
   /// Column name validation regex (letters, numbers, underscores, and dots for joined tables)
-  static final RegExp _columnRegExp = RegExp(r'^[a-zA-Z_][a-zA-Z0-9_]*(\.[a-zA-Z_][a-zA-Z0-9_]*)*$');
+  static final RegExp _columnRegExp =
+      RegExp(r'^[a-zA-Z_][a-zA-Z0-9_]*(\.[a-zA-Z_][a-zA-Z0-9_]*)*$');
 
   /// Creates a new WhereBuilder instance
   ///
@@ -338,21 +339,26 @@ class WhereBuilder {
   /// and avoid embedding literals directly into SQL.
   WhereBuilder substrEq(Object column, int start, int len, String value) {
     _validate(column);
-    _addCondition('SUBSTR($column, ?, ?) = ?', [_prepareValue(start), _prepareValue(len), _prepareValue(value)], column);
+    _addCondition(
+        'SUBSTR($column, ?, ?) = ?',
+        [_prepareValue(start), _prepareValue(len), _prepareValue(value)],
+        column);
     return this;
   }
 
   /// Adds SUBSTR LIKE condition: `SUBSTR(column, start, len) LIKE ?`
   WhereBuilder substrLike(Object column, int start, int len, String pattern) {
     _validate(column);
-    _addCondition('SUBSTR($column, ?, ?) LIKE ?', [_prepareValue(start), _prepareValue(len), pattern], column);
+    _addCondition('SUBSTR($column, ?, ?) LIKE ?',
+        [_prepareValue(start), _prepareValue(len), pattern], column);
     return this;
   }
 
   /// Adds case-insensitive SUBSTR LIKE: `LOWER(SUBSTR(column, start, len)) LIKE LOWER(?)`
   WhereBuilder substrIlike(Object column, int start, int len, String pattern) {
     _validate(column);
-    _addCondition('LOWER(SUBSTR($column, ?, ?)) LIKE LOWER(?)', [_prepareValue(start), _prepareValue(len), pattern], column);
+    _addCondition('LOWER(SUBSTR($column, ?, ?)) LIKE LOWER(?)',
+        [_prepareValue(start), _prepareValue(len), pattern], column);
     return this;
   }
 
@@ -919,7 +925,8 @@ extension WhereBuilderExtensions on WhereBuilder {
   /// ```dart
   /// where.addIf(onlyActive, (w) => w.isTrue(Users.isActive));
   /// ```
-  WhereBuilder addIf(bool condition, WhereBuilder Function(WhereBuilder builder) builderFunc) {
+  WhereBuilder addIf(
+      bool condition, WhereBuilder Function(WhereBuilder builder) builderFunc) {
     if (condition) {
       return builderFunc(this);
     }
@@ -932,7 +939,8 @@ extension WhereBuilderExtensions on WhereBuilder {
   /// ```dart
   /// where.addNotNull(searchQuery, (w, val) => w.like(Users.name, '%$val%'));
   /// ```
-  WhereBuilder addNotNull<V>(V? value, WhereBuilder Function(WhereBuilder builder, V value) builderFunc) {
+  WhereBuilder addNotNull<V>(V? value,
+      WhereBuilder Function(WhereBuilder builder, V value) builderFunc) {
     if (value != null) {
       return builderFunc(this, value);
     }

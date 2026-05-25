@@ -1,4 +1,4 @@
-import 'package:sqflow_platform_interface/sqflow_platform_interface.dart';
+import 'package:phorm_annotations/phorm_annotations.dart';
 
 /// A typed representation of an SQL function call on a column.
 /// Kept in sqflow_core because where_builder.dart needs it for column validation.

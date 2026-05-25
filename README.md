@@ -7,98 +7,47 @@
 
 A lightweight, type-safe, driver-agnostic ORM for Dart and Flutter.
 
-SQFlow is designed from the ground up to be database-independent. It separates query building and relationship mapping from database-specific SQL grammar using a pluggable **Dialect system**. This allows using the same declarative models and generated service APIs across multiple SQL backends, starting with SQLite (via `sqflow_lite`) and expanding to PostgreSQL and MySQL in the future.
+**PHORM** is designed from the ground up to be database-independent. It separates query building and relationship mapping from database-specific SQL grammar using a pluggable **Dialect system**. This allows using the same declarative models and generated service APIs across multiple SQL backends, starting with SQLite (via `phorm_sqlite`) and expanding to PostgreSQL, MySQL and more in the future.
 
-By leveraging **Single-Query JSON Aggregation**, SQFlow aggregates complex parent-child relationship trees into a **single, highly-optimized SQL query** using database-native JSON capabilities (such as SQLite's `json_group_array` or PostgreSQL's `jsonb_agg`), offering stellar performance and zero N+1 query overhead.
+By leveraging **Single-Query JSON Aggregation**, PHORM aggregates complex parent-child relationship trees into a **single, highly-optimized SQL query** using database-native JSON capabilities (such as SQLite's `json_group_array` or PostgreSQL's `jsonb_agg`), offering stellar performance and zero N+1 query overhead.
 
 ## Architecture
 
-```mermaid
-graph TD
-    %% Стили и цвета
-    classDef dev fill:#e1f5fe,stroke:#03a9f4,stroke-width:2px,color:#01579b;
-    classDef gen fill:#e8f5e9,stroke:#4caf50,stroke-width:2px,color:#1b5e20;
-    classDef core fill:#fff3e0,stroke:#ff9800,stroke-width:2px,color:#e65100;
-    classDef driver fill:#f3e5f5,stroke:#9c27b0,stroke-width:2px,color:#4a148c;
-    classDef db fill:#ffebee,stroke:#f44336,stroke-width:2px,color:#b71c1c;
-
-    subgraph "1. Описание Моделей (Разработчик)"
-        Model["@Schema Class User<br/>(Определяет поля и связи HasMany/BelongsTo)"]:::dev
-    end
-
-    subgraph "2. Генерация Кода (sqflow_generator)"
-        Generator["build_runner"]:::gen
-        Mixin["_$SQFlowUserMixin<br/>(Методы toJson, copyWith)"]:::gen
-        Service["class Users (Сервис)<br/>(Типизированные колонки и CRUD API)"]:::gen
-        
-        Model -->|Статический анализ| Generator
-        Generator --> Mixin
-        Generator --> Service
-    end
-
-    subgraph "3. Построение Запроса (sqflow)"
-        AppCall["Users.where(Users.age.gt(18))<br/>.include([Includable.model<Post>()])<br/>.get()"]:::dev
-        QueryBuilder["WhereBuilder & Include Resolver<br/>(Связывание таблиц по внешним ключам)"]:::core
-        Dialect["SqlDialect (sqlite/postgres)<br/>(Сборка в Single SQL с JSON Aggregation)"]:::core
-        
-        Service -->|Вызов из приложения| AppCall
-        AppCall --> QueryBuilder
-        QueryBuilder --> Dialect
-    end
-
-    subgraph "4. Выполнение Запроса (sqflow_lite)"
-        Driver["Database Connection Manager<br/>(Управление пулом подключений)"]:::driver
-        Isolate["Background Isolate / Web WASM<br/>(Выполнение во втором потоке без фризов UI)"]:::driver
-        SQLite[("База данных SQLite")]:::db
-        
-        Dialect -->|Скомпилированный SQL + параметры| Driver
-        Driver --> Isolate
-        Isolate -->|Выполнение запроса| SQLite
-    end
-
-    subgraph "5. Результат и Маппинг"
-        RawResult["Single Nested JSON Result<br/>(Данные родителя и детей в одном ответе!)"]:::db
-        Parser["JSON Parser & Model Factory<br/>(Быстрая сборка моделей из JSON)"]:::core
-        AppModels["Список Dart-моделей<br/>List<User>"]:::dev
-        
-        SQLite -->|Возвращает| RawResult
-        RawResult --> Parser
-        Mixin -.->|Предоставляет фабрику из JSON| Parser
-        Parser --> AppModels
-    end
-```
+<p align="center">
+  <img src="assets/diagrams/diagram_1.png" alt="Phorm Architecture" />
+</p>
 
 ---
 
 ## Packages
 
-| Package                                                  | Description                                                                  |
-| :------------------------------------------------------- | :--------------------------------------------------------------------------- |
-| [sqflow](./)                                             | Root package & Core engine — CRUD, WhereBuilder, Transactions, Eager Loading |
-| [sqflow_lite](./sqflow_lite)                             | SQLite driver — Connection manager, isolates, web WASM support               |
-| [sqflow_platform_interface](./sqflow_platform_interface) | Annotation library — `@Schema`, `@Column`, `@ID`, relationships              |
-| [sqflow_generator](./sqflow_generator)                   | Code generator — automates SQL schemas, `toJson`/`fromJson`, mixins          |
+| Package                                                | Description                                                                  |
+| :----------------------------------------------------- | :--------------------------------------------------------------------------- |
+| [phorm](./)                                            | Root package & Core engine — CRUD, WhereBuilder, Transactions, Eager Loading |
+| [phorm_sqlite](./phorm_sqlite)                         | SQLite driver — Connection manager, isolates, web WASM support               |
+| [phorm_platform_interface](./phorm_platform_interface) | Annotation library — `@Schema`, `@Column`, `@ID`, relationships              |
+| [phorm_generator](./phorm_generator)                   | Code generator — automates SQL schemas, `toJson`/`fromJson`, mixins          |
 
 ---
 
 ## Motivation 🎯
 
-SQFlow was created to solve three main problems in Flutter database management:
+PHORM was created to solve three main problems in Flutter database management:
 
-1. **Type Safety over Strings**: Most SQLite wrappers rely on `Map<String, dynamic>`. SQFlow generates type-safe columns and models, catching errors at compile-time rather than runtime.
-2. **Active Record DX**: Instead of managing complex DAO/Repository layers, SQFlow provides a clean, declarative API directly on your models (`Users.insert()`, `Users.where(...)`).
-3. **Performance & Relationships**: Fetching complex graphs (Many-to-Many, HasMany) usually leads to N+1 query problems. SQFlow uses JSON aggregation to resolve entire dependency trees in a **single SQL query**.
+1. **Type Safety over Strings**: Most SQLite wrappers rely on `Map<String, dynamic>`. PHORM generates type-safe columns and models, catching errors at compile-time rather than runtime.
+2. **Active Record DX**: Instead of managing complex DAO/Repository layers, PHORM provides a clean, declarative API directly on your models (`Users.insert()`, `Users.where(...)`).
+3. **Performance & Relationships**: Fetching complex graphs (Many-to-Many, HasMany) usually leads to N+1 query problems. PHORM uses JSON aggregation to resolve entire dependency trees in a **single SQL query**.
 
 ---
 
 ## Installation
 
-Add `sqflow` and a driver like `sqflow_lite` to your dependencies:
+Add `phorm` and a driver like `phorm_sqlite` to your dependencies:
 
 ```yaml
 dependencies:
-  sqflow: ^latest
-  sqflow_lite: ^latest # The SQLite driver and connection manager
+  phorm: ^latest
+  phorm_sqlite: ^latest # The SQLite driver and connection manager
 ```
 
 ---
@@ -106,12 +55,12 @@ dependencies:
 ## Quick Start
 
 ```dart
-import 'package:sqflow_lite/sqflow_lite.dart'; // Import sqflow_lite for DB and connection execution
+import 'package:phorm_sqlite/phorm_sqlite.dart'; // Import phorm_sqlite for DB and connection execution
 
 // 1. Table configuration (generated)
 final usersTable = Table<User>(...);
 
-// 2. DB manager (from sqflow_lite)
+// 2. DB manager (from phorm_sqlite)
 final appDb = DB.autoVersion(
   databaseName: 'app.db',
   tables: [usersTable],

@@ -1,5 +1,7 @@
 import 'dart:async';
-import 'package:sqflow_platform_interface/sqflow_platform_interface.dart';
+
+import 'package:phorm_annotations/phorm_annotations.dart';
+
 import 'dialect.dart';
 
 /// Database engine conflict resolution algorithms.

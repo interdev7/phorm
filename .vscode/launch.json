@@ -5,7 +5,7 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "sqflow",
+            "name": "phorm",
             "request": "launch",
             "type": "dart"
         },
@@ -30,40 +30,40 @@
             "flutterMode": "release"
         },
         {
-            "name": "sqflow_core",
-            "cwd": "sqflow_core",
+            "name": "phorm",
+            "cwd": "phorm",
             "request": "launch",
             "type": "dart"
         },
         {
-            "name": "sqflow_core (profile mode)",
-            "cwd": "sqflow_core",
+            "name": "phorm (profile mode)",
+            "cwd": "phorm",
             "request": "launch",
             "type": "dart",
             "flutterMode": "profile"
         },
         {
-            "name": "sqflow_core (release mode)",
-            "cwd": "sqflow_core",
+            "name": "phorm (release mode)",
+            "cwd": "phorm",
             "request": "launch",
             "type": "dart",
             "flutterMode": "release"
         },
         {
-            "name": "sqflow_generator",
-            "cwd": "sqflow_generator",
+            "name": "phorm_generator",
+            "cwd": "phorm_generator",
             "request": "launch",
             "type": "dart"
         },
         {
-            "name": "sqflow_platform_interface",
-            "cwd": "sqflow_platform_interface",
+            "name": "phorm_annotations",
+            "cwd": "phorm_annotations",
             "request": "launch",
             "type": "dart"
         },
         {
-            "name": "sqflow_lite",
-            "cwd": "sqflow_lite",
+            "name": "phorm_sqlite",
+            "cwd": "phorm_sqlite",
             "request": "launch",
             "type": "dart"
         }
