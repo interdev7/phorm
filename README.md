@@ -21,12 +21,12 @@ By leveraging **Single-Query JSON Aggregation**, PHORM aggregates complex parent
 
 ## Packages
 
-| Package                                                | Description                                                                  |
-| :----------------------------------------------------- | :--------------------------------------------------------------------------- |
-| [phorm](./)                                            | Root package & Core engine — CRUD, WhereBuilder, Transactions, Eager Loading |
-| [phorm_sqlite](./phorm_sqlite)                         | SQLite driver — Connection manager, isolates, web WASM support               |
-| [phorm_platform_interface](./phorm_platform_interface) | Annotation library — `@Schema`, `@Column`, `@ID`, relationships              |
-| [phorm_generator](./phorm_generator)                   | Code generator — automates SQL schemas, `toJson`/`fromJson`, mixins          |
+| Package                                  | Description                                                                  |
+| :--------------------------------------- | :--------------------------------------------------------------------------- |
+| [phorm](./)                              | Root package & Core engine — CRUD, WhereBuilder, Transactions, Eager Loading |
+| [phorm_sqlite](./phorm_sqlite)           | SQLite driver — Connection manager, isolates, web WASM support               |
+| [phorm_annotations](./phorm_annotations) | Annotation library — `@Schema`, `@Column`, `@ID`, relationships              |
+| [phorm_generator](./phorm_generator)     | Code generator — automates SQL schemas, `toJson`/`fromJson`, mixins          |
 
 ---
 
