@@ -1,5 +1,5 @@
-import 'package:sqflow/sqflow.dart';
-import 'package:sqflow_example/db.dart';
+import 'package:phorm/phorm.dart';
+import 'package:phorm_example/db.dart';
 import 'user.dart';
 
 part 'post.sql.g.dart';

@@ -1,4 +1,4 @@
-import 'package:sqflow/sqflow.dart';
+import 'package:phorm/phorm.dart';
 
 /// Interface for database seeders.
 /// Use this to populate the database with initial or test data.

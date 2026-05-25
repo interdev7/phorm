@@ -1,0 +1,22 @@
+name: phorm_annotations
+version: 1.4.0
+description: >
+  Annotation library for declarative SQL table and schema definitions in Dart.
+  Designed to be used with code generators that produce SQL schemas,
+  migrations, or runtime metadata.
+
+repository: https://github.com/interdev7/phorm_annotations
+homepage: https://github.com/interdev7/phorm_annotations
+issues: https://github.com/interdev7/phorm_annotations/issues
+resolution: workspace
+
+publish_to: none
+
+environment:
+  sdk: ">=3.5.0 <4.0.0"
+
+dependencies:
+  meta: ^1.9.0
+
+dev_dependencies:
+  lints: ^3.0.0

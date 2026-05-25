@@ -1,5 +1,6 @@
-import 'package:sqflow/sqflow.dart'; // forced rebuild
-import 'package:sqflow_example/db.dart';
+import 'package:phorm/phorm.dart'; // forced rebuild
+import 'package:phorm_sqlite/phorm_sqlite.dart';
+import 'package:phorm_example/db.dart';
 
 import 'post.dart';
 

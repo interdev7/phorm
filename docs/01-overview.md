@@ -37,55 +37,55 @@ Most apps need the same patterns: "When was this created?", "Don't actually dele
 
 ```mermaid
 graph TD
-    %% Стили и цвета
+    %% Styles and colors
     classDef dev fill:#e1f5fe,stroke:#03a9f4,stroke-width:2px,color:#01579b;
     classDef gen fill:#e8f5e9,stroke:#4caf50,stroke-width:2px,color:#1b5e20;
     classDef core fill:#fff3e0,stroke:#ff9800,stroke-width:2px,color:#e65100;
     classDef driver fill:#f3e5f5,stroke:#9c27b0,stroke-width:2px,color:#4a148c;
     classDef db fill:#ffebee,stroke:#f44336,stroke-width:2px,color:#b71c1c;
 
-    subgraph "1. Описание Моделей (Разработчик)"
-        Model["@Schema Class User<br/>(Определяет поля и связи HasMany/BelongsTo)"]:::dev
+    subgraph "1. Descriptions of Models (Developer)"
+        Model["@Schema Class User<br/>(Defines fields and relationships HasMany/BelongsTo)"]:::dev
     end
 
-    subgraph "2. Генерация Кода (sqflow_generator)"
+    subgraph "2. Code Generation (sqflow_generator)"
         Generator["build_runner"]:::gen
-        Mixin["_$SQFlowUserMixin<br/>(Методы toJson, copyWith)"]:::gen
-        Service["class Users (Сервис)<br/>(Типизированные колонки и CRUD API)"]:::gen
-        
-        Model -->|Статический анализ| Generator
+        Mixin["_$SQFlowUserMixin<br/>(toJson, copyWith methods)"]:::gen
+        Service["class Users (Service)<br/>(Typed columns and CRUD API)"]:::gen
+
+        Model -->|Static analysis| Generator
         Generator --> Mixin
         Generator --> Service
     end
 
-    subgraph "3. Построение Запроса (sqflow)"
+    subgraph "3. Building a Request (sqflow)"
         AppCall["Users.where(Users.age.gt(18))<br/>.include([Includable.model<Post>()])<br/>.get()"]:::dev
-        QueryBuilder["WhereBuilder & Include Resolver<br/>(Связывание таблиц по внешним ключам)"]:::core
-        Dialect["SqlDialect (sqlite/postgres)<br/>(Сборка в Single SQL с JSON Aggregation)"]:::core
-        
-        Service -->|Вызов из приложения| AppCall
+        QueryBuilder["WhereBuilder & Include Resolver<br/>(Linking tables by foreign keys)"]:::core
+        Dialect["SqlDialect (sqlite/postgres)<br/>(Building into Single SQL with JSON Aggregation)"]:::core
+
+        Service -->|Calling from application| AppCall
         AppCall --> QueryBuilder
         QueryBuilder --> Dialect
     end
 
-    subgraph "4. Выполнение Запроса (sqflow_lite)"
-        Driver["Database Connection Manager<br/>(Управление пулом подключений)"]:::driver
-        Isolate["Background Isolate / Web WASM<br/>(Выполнение во втором потоке без фризов UI)"]:::driver
-        SQLite[("База данных SQLite")]:::db
-        
-        Dialect -->|Скомпилированный SQL + параметры| Driver
+    subgraph "4. Executing a Query (sqflow_lite)"
+        Driver["Database Connection Manager<br/>(Connection pool management)"]:::driver
+        Isolate["Background Isolate / Web WASM<br/>(Execution in a separate thread without UI freezes)"]:::driver
+        SQLite[("Database SQLite")]:::db
+
+        Dialect -->|Compiled SQL + parameters| Driver
         Driver --> Isolate
-        Isolate -->|Выполнение запроса| SQLite
+        Isolate -->|Execute a query| SQLite
     end
 
-    subgraph "5. Результат и Маппинг"
-        RawResult["Single Nested JSON Result<br/>(Данные родителя и детей в одном ответе!)"]:::db
-        Parser["JSON Parser & Model Factory<br/>(Быстрая сборка моделей из JSON)"]:::core
-        AppModels["Список Dart-моделей<br/>List<User>"]:::dev
-        
-        SQLite -->|Возвращает| RawResult
+    subgraph "5. Result and Mapping"
+        RawResult["Single Nested JSON Result<br/>(Parent and child data in one response!)"]:::db
+        Parser["JSON Parser & Model Factory<br/>(Fast model assembly from JSON)"]:::core
+        AppModels["List of Dart models<br/>List<User>"]:::dev
+
+        SQLite -->|Returns| RawResult
         RawResult --> Parser
-        Mixin -.->|Предоставляет фабрику из JSON| Parser
+        Mixin -.->|Provides JSON factory| Parser
         Parser --> AppModels
     end
 ```

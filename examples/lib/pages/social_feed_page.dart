@@ -2,9 +2,9 @@ import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:sqflow/sqflow.dart' hide Column;
-import 'package:sqflow_example/models/post.dart';
-import 'package:sqflow_example/models/user.dart';
+import 'package:phorm/phorm.dart' hide Column;
+import 'package:phorm_example/models/post.dart';
+import 'package:phorm_example/models/user.dart';
 import 'package:uuid/uuid.dart';
 
 class SocialFeedPage extends StatefulWidget {
@@ -15,7 +15,6 @@ class SocialFeedPage extends StatefulWidget {
 }
 
 class _SocialFeedPageState extends State<SocialFeedPage> {
-
   List<Post> _posts = [];
   bool _isLoading = true;
   bool _isSeeding = false;
@@ -47,8 +46,30 @@ class _SocialFeedPageState extends State<SocialFeedPage> {
     final uuid = const Uuid();
     final userId = uuid.v4();
 
-    final firstNames = ['John', 'Alice', 'Michael', 'Emma', 'David', 'Sophia', 'Robert', 'Olivia', 'William', 'Isabella'];
-    final lastNames = ['Doe', 'Smith', 'Johnson', 'Williams', 'Brown', 'Jones', 'Garcia', 'Miller', 'Davis', 'Rodriguez'];
+    final firstNames = [
+      'John',
+      'Alice',
+      'Michael',
+      'Emma',
+      'David',
+      'Sophia',
+      'Robert',
+      'Olivia',
+      'William',
+      'Isabella'
+    ];
+    final lastNames = [
+      'Doe',
+      'Smith',
+      'Johnson',
+      'Williams',
+      'Brown',
+      'Jones',
+      'Garcia',
+      'Miller',
+      'Davis',
+      'Rodriguez'
+    ];
     final random = Random();
     final firstName = firstNames[random.nextInt(firstNames.length)];
     final lastName = lastNames[random.nextInt(lastNames.length)];
