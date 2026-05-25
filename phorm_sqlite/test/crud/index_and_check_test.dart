@@ -36,7 +36,7 @@ void main() {
 
       expect(
         () async => await service.insert(badUser),
-        throwsA(isA<SqflowCHECKValidatorException>()
+        throwsA(isA<PhormCHECKValidatorException>()
             .having((e) => e.table, 'table', 'users')
             .having((e) => e.column, 'column', 'gender')
             .having((e) => e.constraint, 'constraint', 'gender_check')),

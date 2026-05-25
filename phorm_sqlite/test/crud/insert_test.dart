@@ -1,7 +1,7 @@
 import 'common.dart';
 
 void main() {
-  late SqflowCore<User> userService;
+  late PhormCore<User> userService;
 
   setUpAll(() {});
 

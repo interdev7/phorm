@@ -8,7 +8,7 @@ late DB appDb;
   tableName: 'explicit_table',
   columnNaming: ColumnNamingStrategy.snakeCase,
 )
-class ExplicitNaming extends Model with _$SQFlowExplicitNamingMixin {
+class ExplicitNaming extends Model with _$PhormExplicitNamingMixin {
   @ID(columnName: 'custom_id')
   final String id;
 
@@ -29,5 +29,5 @@ class ExplicitNaming extends Model with _$SQFlowExplicitNamingMixin {
   });
 
   factory ExplicitNaming.fromJson(Map<String, dynamic> json) =>
-      _$SQFlowExplicitNamingFromJson(json);
+      _$PhormExplicitNamingFromJson(json);
 }

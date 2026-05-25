@@ -4,10 +4,10 @@ import 'core.dart';
 import 'sort_builder.dart';
 import 'where_builder.dart';
 
-/// A fluent query builder for SQFlow models.
+/// A fluent query builder for PHORM models.
 /// Allows chaining conditions, sorting, and pagination.
-class SqflowQuery<T extends Model> {
-  final SqflowCore<T> service;
+class PhormQuery<T extends Model> {
+  final PhormCore<T> service;
   final WhereBuilder _where = WhereBuilder();
   SortBuilder? _sort;
   int _limit = 20;
@@ -16,7 +16,7 @@ class SqflowQuery<T extends Model> {
   Attributes? _attributes;
   bool _withDeleted = false;
 
-  SqflowQuery(this.service);
+  PhormQuery(this.service);
 
   /// Adds a condition to the query.
   ///
@@ -24,7 +24,7 @@ class SqflowQuery<T extends Model> {
   /// ```dart
   /// Posts.where(PostTable.title.like('%Flutter%'))
   /// ```
-  SqflowQuery<T> where(SqflowCondition condition) {
+  PhormQuery<T> where(PhormCondition condition) {
     switch (condition.operator) {
       case 'IS NULL':
         _where.isNull(condition.column);
@@ -109,8 +109,7 @@ class SqflowQuery<T extends Model> {
   /// ```dart
   /// query.whereIf(onlyActive, () => Users.isActive.isTrue())
   /// ```
-  SqflowQuery<T> whereIf(
-      bool flag, SqflowCondition Function() conditionBuilder) {
+  PhormQuery<T> whereIf(bool flag, PhormCondition Function() conditionBuilder) {
     if (flag) {
       where(conditionBuilder());
     }
@@ -123,15 +122,15 @@ class SqflowQuery<T extends Model> {
   /// ```dart
   /// query.whereNotNull(searchQuery, (val) => Users.name.like('%$val%'))
   /// ```
-  SqflowQuery<T> whereNotNull<V>(
-      V? value, SqflowCondition Function(V value) conditionBuilder) {
+  PhormQuery<T> whereNotNull<V>(
+      V? value, PhormCondition Function(V value) conditionBuilder) {
     if (value != null) {
       where(conditionBuilder(value));
     }
     return this;
   }
 
-  void _applyOperator(SqflowCondition condition) {
+  void _applyOperator(PhormCondition condition) {
     final Object col = condition.column;
     final Object? val = condition.value;
     if (val == null) return;
@@ -153,7 +152,7 @@ class SqflowQuery<T extends Model> {
   }
 
   /// Adds an ORDER BY clause.
-  SqflowQuery<T> orderBy(SqflowColumn<dynamic> column,
+  PhormQuery<T> orderBy(PhormColumn<dynamic> column,
       {bool descending = false}) {
     _sort ??= SortBuilder();
     if (descending) {
@@ -165,38 +164,38 @@ class SqflowQuery<T extends Model> {
   }
 
   /// Sets the max results.
-  SqflowQuery<T> limit(int count) {
+  PhormQuery<T> limit(int count) {
     _limit = count;
     return this;
   }
 
   /// Sets the number of rows to skip.
-  SqflowQuery<T> offset(int count) {
+  PhormQuery<T> offset(int count) {
     _offset = count;
     return this;
   }
 
   /// Eager-loads relationships.
-  SqflowQuery<T> include(List<Includable> relations) {
+  PhormQuery<T> include(List<Includable> relations) {
     _include = relations;
     return this;
   }
 
   /// Eager-loads a single relationship.
-  SqflowQuery<T> includeOne(Includable relation) {
+  PhormQuery<T> includeOne(Includable relation) {
     _include ??= [];
     _include!.add(relation);
     return this;
   }
 
   /// Selects specific columns.
-  SqflowQuery<T> attributes(Attributes attr) {
+  PhormQuery<T> attributes(Attributes attr) {
     _attributes = attr;
     return this;
   }
 
   /// Includes soft-deleted records.
-  SqflowQuery<T> withDeleted() {
+  PhormQuery<T> withDeleted() {
     _withDeleted = true;
     return this;
   }

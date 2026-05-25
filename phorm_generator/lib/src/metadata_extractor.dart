@@ -1,7 +1,7 @@
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
-import 'package:source_gen/source_gen.dart';
 import 'package:phorm_annotations/phorm_annotations.dart';
+import 'package:source_gen/source_gen.dart';
 
 class ConverterInfo {
   final String code;
@@ -12,17 +12,17 @@ class ConverterInfo {
 
 class MetadataExtractor {
   static const columnChecker = TypeChecker.fromUrl(
-      'package:sqflow_platform_interface/src/annotations.dart#Column');
-  static const idChecker = TypeChecker.fromUrl(
-      'package:sqflow_platform_interface/src/annotations.dart#ID');
+      'package:phorm_annotations/src/annotations.dart#Column');
+  static const idChecker =
+      TypeChecker.fromUrl('package:phorm_annotations/src/annotations.dart#ID');
   static const foreignKeyChecker = TypeChecker.fromUrl(
-      'package:sqflow_platform_interface/src/annotations.dart#ForeignKey');
+      'package:phorm_annotations/src/annotations.dart#ForeignKey');
   static const belongsToChecker = TypeChecker.fromUrl(
-      'package:sqflow_platform_interface/src/annotations.dart#BelongsTo');
+      'package:phorm_annotations/src/annotations.dart#BelongsTo');
   static const manyToManyChecker = TypeChecker.fromUrl(
-      'package:sqflow_platform_interface/src/annotations.dart#ManyToMany');
+      'package:phorm_annotations/src/annotations.dart#ManyToMany');
   static const valueConverterChecker = TypeChecker.fromUrl(
-      'package:sqflow_platform_interface/src/value_converter.dart#ValueConverter');
+      'package:phorm_annotations/src/value_converter.dart#ValueConverter');
 
   static String resolveModelName(ConstantReader modelReader) {
     if (modelReader.isString) {

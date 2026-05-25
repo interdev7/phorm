@@ -26,7 +26,7 @@ class Location {
 }
 
 @Schema(tableName: 'users_with_location', timestamps: false)
-class UserWithLocation with _$SQFlowUserWithLocationMixin implements Model {
+class UserWithLocation with _$PhormUserWithLocationMixin implements Model {
   @ID()
   final int id;
 

@@ -1,11 +1,11 @@
 /// Exception thrown when a Dart-side validation fails.
-class SqflowCHECKValidatorException implements Exception {
+class PhormCHECKValidatorException implements Exception {
   final String table;
   final String column;
   final String message;
   final String? constraint;
 
-  SqflowCHECKValidatorException({
+  PhormCHECKValidatorException({
     required this.table,
     required this.column,
     required this.message,
@@ -18,13 +18,13 @@ class SqflowCHECKValidatorException implements Exception {
 }
 
 /// Exception thrown when a Dart-side validation fails.
-class SqflowJSONValidatorException implements Exception {
+class PhormJSONValidatorException implements Exception {
   final String table;
   final String column;
   final String message;
   final String? constraint;
 
-  SqflowJSONValidatorException({
+  PhormJSONValidatorException({
     required this.table,
     required this.column,
     required this.message,
@@ -33,5 +33,5 @@ class SqflowJSONValidatorException implements Exception {
 
   @override
   String toString() =>
-      'SqflowJSONValidatorException: [$table.$column] $message${constraint != null ? ' (Constraint: $constraint)' : ''}';
+      'PhormJSONValidatorException: [$table.$column] $message${constraint != null ? ' (Constraint: $constraint)' : ''}';
 }

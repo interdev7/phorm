@@ -130,7 +130,7 @@ void main() {
       test(
           'custom functions work dynamically and type-safely with ORM queries via SqlFunctions helper',
           () async {
-        final userService = SqflowCore<User>(dbManager: db, table: usersTable);
+        final userService = PhormCore<User>(dbManager: db, table: usersTable);
 
         final now = DateTime.now().toIso8601String();
         await userService.insert(User(

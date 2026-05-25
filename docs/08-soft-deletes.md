@@ -11,7 +11,7 @@ Soft deletes allow you to "delete" records without physically removing them from
   tableName: 'users',
   paranoid: true,   // ← Enable soft deletes
 )
-class User extends Model with _$SQFlowUserMixin { ... }
+class User extends Model with _$PhormUserMixin { ... }
 ```
 
 The generator adds the `deleted_at TEXT` column to the SQL schema and injects a `DateTime? deletedAt` field into your generated mixin automatically. You can access it on your model instance without any manual declaration.
@@ -20,14 +20,14 @@ The generator adds the `deleted_at TEXT` column to the SQL schema and injects a 
 
 ## How It Works
 
-| Operation                      | `paranoid: false`              | `paranoid: true`                            |
-| :----------------------------- | :----------------------------- | :------------------------------------------ |
-| `delete(id)`              | `DELETE FROM ... WHERE id = ?` | `UPDATE ... SET deleted_at = NOW()`         |
-| `delete(id, force: true)` | `DELETE FROM ...`              | `DELETE FROM ...` (bypasses soft delete)    |
-| `readOne(id)`             | Returns record                 | Returns `null` if `deleted_at IS NOT NULL`  |
-| `readAll()`                    | All records                    | Only records where `deleted_at IS NULL`     |
-| `readAll(withDeleted: true)`   | All records                    | All records including deleted               |
-| `readAll(onlyDeleted: true)`   | All records                    | Only records where `deleted_at IS NOT NULL` |
+| Operation                    | `paranoid: false`              | `paranoid: true`                            |
+| :--------------------------- | :----------------------------- | :------------------------------------------ |
+| `delete(id)`                 | `DELETE FROM ... WHERE id = ?` | `UPDATE ... SET deleted_at = NOW()`         |
+| `delete(id, force: true)`    | `DELETE FROM ...`              | `DELETE FROM ...` (bypasses soft delete)    |
+| `readOne(id)`                | Returns record                 | Returns `null` if `deleted_at IS NOT NULL`  |
+| `readAll()`                  | All records                    | Only records where `deleted_at IS NULL`     |
+| `readAll(withDeleted: true)` | All records                    | All records including deleted               |
+| `readAll(onlyDeleted: true)` | All records                    | Only records where `deleted_at IS NOT NULL` |
 
 ---
 

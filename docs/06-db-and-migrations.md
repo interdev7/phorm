@@ -59,6 +59,7 @@ final user = await userService.readOne('id');
 ```
 
 During initialization, the `DB` class:
+
 1. Creates the `__sqflow_migrations` tracking table.
 2. Creates all registered tables from their `schema` strings.
 3. Applies any pending migrations.
@@ -87,12 +88,12 @@ final usersTable = Table<User>(
 
 ### Available Migration Operations
 
-| Method | SQL Generated | Parameters |
-| :--- | :--- | :--- |
-| `.addColumn(...)` | `ALTER TABLE ... ADD COLUMN ...` | `name`, `type`, `version`, `defaultValue?`, `nullable?` |
-| `.createIndex(...)` | `CREATE INDEX IF NOT EXISTS ...` | `name`, `columns`, `version`, `unique?` |
-| `.dropIndex(...)` | `DROP INDEX IF EXISTS ...` | `name`, `version` |
-| `.custom(...)` | Custom SQL | `description`, `version`, `migrate` callback |
+| Method              | SQL Generated                    | Parameters                                              |
+| :------------------ | :------------------------------- | :------------------------------------------------------ |
+| `.addColumn(...)`   | `ALTER TABLE ... ADD COLUMN ...` | `name`, `type`, `version`, `defaultValue?`, `nullable?` |
+| `.createIndex(...)` | `CREATE INDEX IF NOT EXISTS ...` | `name`, `columns`, `version`, `unique?`                 |
+| `.dropIndex(...)`   | `DROP INDEX IF EXISTS ...`       | `name`, `version`                                       |
+| `.custom(...)`      | Custom SQL                       | `description`, `version`, `migrate` callback            |
 
 > [!TIP]
 > Use the **`SqlTypes`** class for type safety when adding columns in migrations (e.g., `SqlTypes.text`, `SqlTypes.integer`, `SqlTypes.real`). This prevents typos in SQL type names.
@@ -177,6 +178,7 @@ final orderService = db.service<Order>();
 ## Foreign Keys
 
 SQFlow enables `PRAGMA foreign_keys = ON` on every database open via `onConfigure`. This means:
+
 - SQLite enforces referential integrity on your `FOREIGN KEY` constraints.
 - Deleting a parent row that has related children will fail unless you've defined `ON DELETE CASCADE`.
 
@@ -227,10 +229,10 @@ final usersTable = Table<User>(
     );
     CREATE INDEX idx_users_email ON users(email);
   ''',
-  fromJson: _$SQFlowUserFromJson,
+  fromJson: _$PhormUserFromJson,
   // These values are typically generated automatically!
   // The primaryKey is detected from the @ID annotation.
-  primaryKey: 'id', 
+  primaryKey: 'id',
   paranoid: true,
   timestamps: true,
   columns: ['id', 'first_name', 'email', 'created_at', 'updated_at', 'deleted_at'],

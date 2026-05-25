@@ -170,13 +170,13 @@ class _ValidationDemoPageState extends State<ValidationDemoPage>
           _tabController.animateTo(1);
         }
       });
-    } on SqflowJSONValidatorException catch (e) {
+    } on PhormJSONValidatorException catch (e) {
       setState(() {
         _errorType = 'JSON Validation (Dart-side)';
         _errorMessage = 'Constraint: ${e.constraint}\n${e.message}';
         _isLoading = false;
       });
-    } on SqflowCHECKValidatorException catch (e) {
+    } on PhormCHECKValidatorException catch (e) {
       setState(() {
         _errorType = 'CHECK Constraint (Dart-side)';
         _errorMessage = 'Constraint: ${e.constraint}\n${e.message}';

@@ -72,7 +72,7 @@ void main() {
     await database.insert('user_roles', {'user_id': 'u2', 'role_id': 'r2'});
     await database.insert('user_roles', {'user_id': 'u2', 'role_id': 'r3'});
 
-    final userService = SqflowCore<User>(dbManager: db, table: usersTable);
+    final userService = PhormCore<User>(dbManager: db, table: usersTable);
 
     // Test readOne with include
     final user =
@@ -102,11 +102,11 @@ void main() {
     await database.insert('roles', {'id': 'r1', 'title': 'Admin'});
     await database.insert('user_roles', {'user_id': 'u1', 'role_id': 'r1'});
 
-    final userService = SqflowCore<User>(dbManager: db, table: usersTable);
+    final userService = PhormCore<User>(dbManager: db, table: usersTable);
 
     // This should trigger the LEFT JOIN logic in buildJoinQuery
     final users = await userService
-        .where(const SqflowColumn<String>('roles.title').eq('Admin'))
+        .where(const PhormColumn<String>('roles.title').eq('Admin'))
         .get();
 
     expect(users, hasLength(1));

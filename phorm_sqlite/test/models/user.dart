@@ -30,7 +30,7 @@ class IsNumberValidator implements IJsonValidator {
     HasOne(model: Profile, foreignKey: 'user_id'),
   ],
 )
-class User extends Model with _$SQFlowUserMixin {
+class User extends Model with _$PhormUserMixin {
   @ID(autoIncrement: false, unique: true)
   final String id;
 
@@ -120,8 +120,7 @@ class User extends Model with _$SQFlowUserMixin {
     this.isVerified = false,
   });
 
-  factory User.fromJson(Map<String, dynamic> json) =>
-      _$SQFlowUserFromJson(json);
+  factory User.fromJson(Map<String, dynamic> json) => _$PhormUserFromJson(json);
 }
 
 @Schema(
@@ -134,7 +133,7 @@ class User extends Model with _$SQFlowUserMixin {
     BelongsTo(model: User, foreignKey: 'user_id'),
   ],
 )
-class Post extends Model with _$SQFlowPostMixin {
+class Post extends Model with _$PhormPostMixin {
   @ID(autoIncrement: true)
   final int id;
 
@@ -150,8 +149,7 @@ class Post extends Model with _$SQFlowPostMixin {
     required this.userId,
   });
 
-  factory Post.fromJson(Map<String, dynamic> json) =>
-      _$SQFlowPostFromJson(json);
+  factory Post.fromJson(Map<String, dynamic> json) => _$PhormPostFromJson(json);
 }
 
 @Schema(
@@ -163,7 +161,7 @@ class Post extends Model with _$SQFlowPostMixin {
     BelongsTo(model: User, foreignKey: 'user_id'),
   ],
 )
-class Profile extends Model with _$SQFlowProfileMixin {
+class Profile extends Model with _$PhormProfileMixin {
   @ID(autoIncrement: true)
   final int id;
 
@@ -180,7 +178,7 @@ class Profile extends Model with _$SQFlowProfileMixin {
   });
 
   factory Profile.fromJson(Map<String, dynamic> json) =>
-      _$SQFlowProfileFromJson(json);
+      _$PhormProfileFromJson(json);
 }
 
 @Schema(
@@ -193,7 +191,7 @@ class Profile extends Model with _$SQFlowProfileMixin {
     BelongsTo(model: User, foreignKey: 'user_id'),
   ],
 )
-class Order extends Model with _$SQFlowOrderMixin {
+class Order extends Model with _$PhormOrderMixin {
   @ID(autoIncrement: true)
   final int id;
 
@@ -210,5 +208,5 @@ class Order extends Model with _$SQFlowOrderMixin {
   });
 
   factory Order.fromJson(Map<String, dynamic> json) =>
-      _$SQFlowOrderFromJson(json);
+      _$PhormOrderFromJson(json);
 }

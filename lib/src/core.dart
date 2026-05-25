@@ -6,7 +6,7 @@ import 'package:phorm/phorm.dart';
 
 typedef ErrorCallback = void Function(Object, StackTrace);
 
-abstract interface class ISqflowCore<T extends Model> {
+abstract interface class IPhormCore<T extends Model> {
   String getBuildJoinQuery({
     List<String>? columns,
     Attributes? attributes,
@@ -37,14 +37,14 @@ abstract interface class ISqflowCore<T extends Model> {
 /// - Bulk operations in transactions for performance
 /// - Integration with [WhereBuilder] and [SortBuilder] for complex queries
 /// - Optional indexes and custom onCreate/onUpgrade hooks
-class SqflowCore<T extends Model> implements ISqflowCore<T> {
+class PhormCore<T extends Model> implements IPhormCore<T> {
   /// Creates a new SqflowCore instance.
   ///
   /// **Example:**
   /// ```dart
-  /// final userService = SqflowCore<User>(table: userTable, dbManager: db);
+  /// final userService = PhormCore<User>(table: userTable, dbManager: db);
   /// ```
-  SqflowCore({required this.dbManager, required this.table});
+  PhormCore({required this.dbManager, required this.table});
 
   /// Starts a fluent query chain.
   ///
@@ -52,15 +52,15 @@ class SqflowCore<T extends Model> implements ISqflowCore<T> {
   /// ```dart
   /// await userService.where(PostTable.title.like('%Hello%')).get();
   /// ```
-  SqflowQuery<T> where(SqflowCondition condition) {
-    return SqflowQuery<T>(this).where(condition);
+  PhormQuery<T> where(PhormCondition condition) {
+    return PhormQuery<T>(this).where(condition);
   }
 
   /// Starts an empty fluent query chain (all records).
-  SqflowQuery<T> get query => SqflowQuery<T>(this);
+  PhormQuery<T> get query => PhormQuery<T>(this);
 
   /// The database manager instance for this service.
-  final SqflowDatabase dbManager;
+  final PhormDatabase dbManager;
 
   /// The table configuration (name, schema, fromJson, primary key, soft delete)
   final Table<T> table;
@@ -916,7 +916,7 @@ class SqflowCore<T extends Model> implements ISqflowCore<T> {
           return fromJson(unflattened);
         }).toList();
       },
-      debugName: 'SQFlow_IsolateParsing_$tableName',
+      debugName: 'PHORM_IsolateParsing_$tableName',
     );
   }
 

@@ -50,7 +50,7 @@ graph TD
 
     subgraph "2. Code Generation (sqflow_generator)"
         Generator["build_runner"]:::gen
-        Mixin["_$SQFlowUserMixin<br/>(toJson, copyWith methods)"]:::gen
+        Mixin["_$PhormUserMixin<br/>(toJson, copyWith methods)"]:::gen
         Service["class Users (Service)<br/>(Typed columns and CRUD API)"]:::gen
 
         Model -->|Static analysis| Generator
@@ -155,7 +155,7 @@ import 'package:sqflow_lite/sqflow_lite.dart';
 
 // 1. Annotate your model
 @Schema(tableName: 'users')
-class User extends Model with _$SQFlowUserMixin {
+class User extends Model with _$PhormUserMixin {
   @ID()
   final String id;
 
@@ -164,7 +164,7 @@ class User extends Model with _$SQFlowUserMixin {
 
   User({required this.id, required this.name});
 
-  factory User.fromJson(Map<String, dynamic> json) => _$SQFlowUserFromJson(json);
+  factory User.fromJson(Map<String, dynamic> json) => _$PhormUserFromJson(json);
 }
 
 // 2. Run the generator

@@ -81,7 +81,7 @@ abstract interface class DatabaseExecutor {
 }
 
 /// Abstract connection manager interface that is database-engine agnostic.
-abstract interface class SqflowDatabase {
+abstract interface class PhormDatabase {
   /// The active SQL dialect for this database.
   SqlDialect get dialect;
 
@@ -92,7 +92,7 @@ abstract interface class SqflowDatabase {
   Stream<String> get changeStream;
 
   /// Optional logger for database events.
-  SqflowLogger? get logger;
+  PhormLogger? get logger;
 
   /// Performance threshold for using isolate/async execution.
   int get isolateThreshold;

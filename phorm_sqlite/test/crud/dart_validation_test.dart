@@ -21,7 +21,7 @@ void main() {
 
       expect(
         () => user.toJson(),
-        throwsA(isA<SqflowCHECKValidatorException>()
+        throwsA(isA<PhormCHECKValidatorException>()
             .having((e) => e.table, 'table', 'users')
             .having((e) => e.column, 'column', 'gender')
             .having((e) => e.constraint, 'constraint', 'gender_check')),
@@ -46,7 +46,7 @@ void main() {
 
       expect(
         () => user.toJson(),
-        throwsA(isA<SqflowCHECKValidatorException>()
+        throwsA(isA<PhormCHECKValidatorException>()
             .having((e) => e.column, 'column', 'first_name')
             .having(
                 (e) => e.constraint, 'constraint', 'first_name_length_check')),
@@ -90,7 +90,7 @@ void main() {
 
     expect(
       () => user.toJson(),
-      throwsA(isA<SqflowJSONValidatorException>()
+      throwsA(isA<PhormJSONValidatorException>()
           .having((e) => e.table, 'table', 'users')
           .having((e) => e.column, 'column', 'email')
           .having((e) => e.constraint, 'constraint', 'email_format_check')),

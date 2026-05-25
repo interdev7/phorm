@@ -46,7 +46,7 @@ void main() {
       'updated_at': now
     });
 
-    final userService = SqflowCore<User>(dbManager: db, table: usersTable);
+    final userService = PhormCore<User>(dbManager: db, table: usersTable);
 
     // 3. Load User with Posts, and for each Post load its User again
     final user = await userService.readOne('u1', include: [
@@ -94,7 +94,7 @@ void main() {
       'updated_at': now
     });
 
-    final userService = SqflowCore<User>(dbManager: db, table: usersTable);
+    final userService = PhormCore<User>(dbManager: db, table: usersTable);
 
     final user = await userService.readOne('u1', include: [
       Includable.model<Post>(
@@ -156,7 +156,7 @@ void main() {
       'updated_at': now
     });
 
-    final userService = SqflowCore<User>(dbManager: db, table: usersTable);
+    final userService = PhormCore<User>(dbManager: db, table: usersTable);
 
     // We exclude 'phone' from User.
     // WARNING: Since User.phone is non-nullable in Dart, excluding it will cause fromJson to throw if it's missing.

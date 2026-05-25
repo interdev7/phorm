@@ -135,7 +135,7 @@ class Database implements DatabaseExecutor {
   }
 }
 
-/// SQLite Transaction wrapper implementing DatabaseExecutor from sqflow_core.
+/// SQLite Transaction wrapper implementing DatabaseExecutor from `phorm`.
 class Transaction implements DatabaseExecutor {
   final Database _db;
 
@@ -207,7 +207,7 @@ class Transaction implements DatabaseExecutor {
   Batch batch() => _db.batch();
 }
 
-/// SQLite Batch implementation of the Batch interface from sqflow_core.
+/// SQLite Batch implementation of the Batch interface from `phorm`.
 class SqliteBatch implements Batch {
   final Database _db;
   final _operations = <_BatchOp>[];

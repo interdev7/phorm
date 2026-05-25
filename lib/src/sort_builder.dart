@@ -3,7 +3,7 @@
 // =======================================================
 ///
 /// Fluent builder for SQL ORDER BY clauses. Supports ASC/DESC ordering by columns.
-/// Validates column names. Use in [SqflowCore.readAll] for sorted results.
+/// Validates column names. Use in [PhormCore.readAll] for sorted results.
 ///
 /// **Key Features:**
 /// - Chainable: Multiple columns (e.g., name ASC, age DESC).

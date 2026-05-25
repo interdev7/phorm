@@ -13,7 +13,7 @@ enum PostStatus {
 @Schema(
   tableName: 'enum_posts',
 )
-class EnumPost extends Model with _$SQFlowEnumPostMixin {
+class EnumPost extends Model with _$PhormEnumPostMixin {
   @ID(autoIncrement: true)
   final int id;
 
@@ -34,5 +34,5 @@ class EnumPost extends Model with _$SQFlowEnumPostMixin {
   });
 
   factory EnumPost.fromJson(Map<String, dynamic> json) =>
-      _$SQFlowEnumPostFromJson(json);
+      _$PhormEnumPostFromJson(json);
 }

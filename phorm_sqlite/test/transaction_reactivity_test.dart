@@ -5,7 +5,7 @@ import 'models/user.dart';
 
 void main() {
   late DB dbManager;
-  late SqflowCore<User> userService;
+  late PhormCore<User> userService;
 
   setUpAll(() async {});
 
@@ -14,7 +14,7 @@ void main() {
       databaseName: ':memory:',
       tables: [usersTable],
     );
-    userService = SqflowCore<User>(dbManager: dbManager, table: usersTable);
+    userService = PhormCore<User>(dbManager: dbManager, table: usersTable);
   });
 
   tearDown(() async {

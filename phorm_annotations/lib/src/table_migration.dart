@@ -18,7 +18,7 @@ class TableMigration<T extends Model> {
   final Table<T> table;
   final int targetVersion;
   final String description;
-  final Future<void> Function(SqflowDatabaseExecutor db, Table<Model> table)
+  final Future<void> Function(PhormDatabaseExecutor db, Table<Model> table)
       migrate;
   final int priority;
 

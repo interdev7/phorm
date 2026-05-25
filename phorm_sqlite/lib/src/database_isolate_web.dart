@@ -8,6 +8,7 @@
 // Download the binary from:
 //   https://github.com/simolus3/sqlite3.dart/releases (sqlite3.wasm)
 import 'dart:async';
+import 'dart:developer';
 
 import 'package:sqlite3/wasm.dart';
 
@@ -44,8 +45,8 @@ class WebDatabaseIsolate extends DatabaseIsolate {
   @override
   Future<void> open(String path, {String? password}) async {
     if (password != null) {
-      // ignore: avoid_print
-      print('Warning: sqflow password/encryption is not supported on Web (WasmSqlite3 ignores password).');
+      log('Warning: phorm password/encryption is not supported on Web (WasmSqlite3 ignores password).',
+          name: "Phorm - SQLite Isolate Web");
     }
 
     // Load the WASM binary from the app's origin
@@ -56,7 +57,7 @@ class WebDatabaseIsolate extends DatabaseIsolate {
       db = wasm.openInMemory();
     } else {
       // Persist data in IndexedDB so it survives page reloads
-      final fs = await IndexedDbFileSystem.open(dbName: 'sqflow_$path');
+      final fs = await IndexedDbFileSystem.open(dbName: 'phorm_$path');
       wasm.registerVirtualFileSystem(fs, makeDefault: true);
       db = wasm.open(path);
     }

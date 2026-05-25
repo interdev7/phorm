@@ -1,6 +1,6 @@
 /// Simple interface for database execution to avoid direct dependency on sqlite3
 /// in the platform interface. This allows the generator to be pure Dart.
-abstract interface class SqflowDatabaseExecutor {
+abstract interface class PhormDatabaseExecutor {
   Future<void> execute(String sql, [List<Object?>? arguments]);
   Future<List<Map<String, Object?>>> query(String table,
       {bool? distinct,

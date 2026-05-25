@@ -62,7 +62,7 @@ void main() {
       'updated_at': now
     });
 
-    final userService = SqflowCore<User>(dbManager: db, table: usersTable);
+    final userService = PhormCore<User>(dbManager: db, table: usersTable);
 
     // Test readOne with both relationships
     final user = await userService.readOne('u1', include: [
@@ -146,7 +146,7 @@ void main() {
     });
     // User 2 has no profile (test null handling)
 
-    final userService = SqflowCore<User>(dbManager: db, table: usersTable);
+    final userService = PhormCore<User>(dbManager: db, table: usersTable);
 
     final result = await userService.readAll(include: [
       Includable.model<Post>(),
@@ -194,7 +194,7 @@ void main() {
       'updated_at': now
     });
 
-    final postService = SqflowCore<Post>(dbManager: db, table: postsTable);
+    final postService = PhormCore<Post>(dbManager: db, table: postsTable);
 
     final post =
         await postService.readOne(100, include: [Includable.model<User>()]);
@@ -257,7 +257,7 @@ void main() {
       'updated_at': now
     });
 
-    final postService = SqflowCore<Post>(dbManager: db, table: postsTable);
+    final postService = PhormCore<Post>(dbManager: db, table: postsTable);
 
     final result =
         await postService.readAll(include: [Includable.model<User>()]);
@@ -340,7 +340,7 @@ void main() {
       'updated_at': now
     });
 
-    final userService = SqflowCore<User>(dbManager: db, table: usersTable);
+    final userService = PhormCore<User>(dbManager: db, table: usersTable);
 
     // Complex filter:
     // (firstName contains 'Alice' OR firstName contains 'Bob')
@@ -425,7 +425,7 @@ void main() {
       'updated_at': now
     });
 
-    final postService = SqflowCore<Post>(dbManager: db, table: postsTable);
+    final postService = PhormCore<Post>(dbManager: db, table: postsTable);
 
     // Filter: title starts with 'Tech' AND user_id is 'u2'
     final where = WhereBuilder().like('title', 'Tech%').eq('user_id', 'u2');
@@ -485,7 +485,7 @@ void main() {
       'updated_at': now
     });
 
-    final userService = SqflowCore<User>(dbManager: db, table: usersTable);
+    final userService = PhormCore<User>(dbManager: db, table: usersTable);
 
     // Query: Users who have a post with 'Dart' in title
     // 'posts' is the tableName/relationship name
@@ -550,7 +550,7 @@ void main() {
 
     // 2. Insert User to DB.
     // Ensure that sqlite does not fail because of non-column nested fields ('posts', 'profiles')!
-    final userService = SqflowCore<User>(dbManager: db, table: usersTable);
+    final userService = PhormCore<User>(dbManager: db, table: usersTable);
     await userService.insert(user);
 
     // 3. Read User back from DB. Since nested relations are stored in their own tables,
@@ -562,9 +562,9 @@ void main() {
         isEmpty); // Empty because they are not eager-loaded from users table
 
     // 4. In a real scenario, we would also insert posts and profiles to their respective tables:
-    final postService = SqflowCore<Post>(dbManager: db, table: postsTable);
+    final postService = PhormCore<Post>(dbManager: db, table: postsTable);
     final profileService =
-        SqflowCore<Profile>(dbManager: db, table: profilesTable);
+        PhormCore<Profile>(dbManager: db, table: profilesTable);
 
     for (final post in user.posts) {
       await postService.insert(post);

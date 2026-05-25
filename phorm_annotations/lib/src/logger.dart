@@ -1,8 +1,8 @@
-/// Interface for Sqflow ORM logging.
-/// 
+/// Interface for PHORM logging.
+///
 /// Implement this to route Sqflow logs to your preferred logging service
 /// (e.g. Firebase Crashlytics, Datadog, or custom file loggers).
-abstract interface class SqflowLogger {
+abstract interface class PhormLogger {
   /// Logs an informational message.
   void info(String message);
 
@@ -17,10 +17,10 @@ abstract interface class SqflowLogger {
 }
 
 /// A default colored console logger for Sqflow.
-class SqflowConsoleLogger implements SqflowLogger {
+class PhormConsoleLogger implements PhormLogger {
   final bool enableColors;
 
-  const SqflowConsoleLogger({this.enableColors = true});
+  const PhormConsoleLogger({this.enableColors = true});
 
   static const String _reset = '\x1B[0m';
   static const String _blue = '\x1B[34m';
@@ -36,28 +36,30 @@ class SqflowConsoleLogger implements SqflowLogger {
 
   @override
   void info(String message) {
-    print('${_color(_blue, '💡 [Sqflow Info]')} $message');
+    print('${_color(_blue, '💡 [Phorm Info]')} $message');
   }
 
   @override
   void query(String sql, List<Object?>? arguments, Duration duration) {
-    final argsStr = arguments != null && arguments.isNotEmpty 
-        ? ' ${_color(_gray, 'Args: $arguments')}' 
+    final argsStr = arguments != null && arguments.isNotEmpty
+        ? ' ${_color(_gray, 'Args: $arguments')}'
         : '';
-    print('${_color(_green, '⚡ [Sqflow Query]')} ${_color(_gray, '(${duration.inMilliseconds}ms)')} $sql$argsStr');
+    print(
+        '${_color(_green, '⚡ [Phorm Query]')} ${_color(_gray, '(${duration.inMilliseconds}ms)')} $sql$argsStr');
   }
 
   @override
   void slowQuery(String sql, List<Object?>? arguments, Duration duration) {
-    final argsStr = arguments != null && arguments.isNotEmpty 
-        ? ' ${_color(_gray, 'Args: $arguments')}' 
+    final argsStr = arguments != null && arguments.isNotEmpty
+        ? ' ${_color(_gray, 'Args: $arguments')}'
         : '';
-    print('${_color(_yellow, '⚠️ [Sqflow Slow Query]')} ${_color(_red, '(${duration.inMilliseconds}ms)')} $sql$argsStr');
+    print(
+        '${_color(_yellow, '⚠️ [Phorm Slow Query]')} ${_color(_red, '(${duration.inMilliseconds}ms)')} $sql$argsStr');
   }
 
   @override
   void error(String message, [Object? error, StackTrace? stackTrace]) {
-    print('${_color(_red, '❌ [Sqflow Error]')} $message');
+    print('${_color(_red, '❌ [Phorm Error]')} $message');
     if (error != null) {
       print(_color(_red, 'Details: $error'));
     }

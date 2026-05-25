@@ -24,8 +24,8 @@ import 'models/user.dart';
 
 typedef _TestContext = ({
   DB dbManager,
-  SqflowCore<User> userService,
-  SqflowCore<Post> postService,
+  PhormCore<User> userService,
+  PhormCore<Post> postService,
   DatabaseExecutor db,
 });
 
@@ -36,8 +36,8 @@ Future<_TestContext> _setup() async {
     logger: null, // suppress log noise in tests
   );
   final db = await dbManager.executor;
-  final userService = SqflowCore<User>(dbManager: dbManager, table: usersTable);
-  final postService = SqflowCore<Post>(dbManager: dbManager, table: postsTable);
+  final userService = PhormCore<User>(dbManager: dbManager, table: usersTable);
+  final postService = PhormCore<Post>(dbManager: dbManager, table: postsTable);
   return (
     dbManager: dbManager,
     userService: userService,

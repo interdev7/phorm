@@ -93,7 +93,7 @@ class NativeDatabaseIsolate extends DatabaseIsolate {
         'changePort': changeReceivePort.sendPort,
         'functions': _customFunctions,
       },
-      debugName: 'SQFlow_DatabaseIsolate',
+      debugName: 'PHORM_DatabaseIsolate',
     );
 
     _sendPort = await receivePort.first as SendPort;
@@ -121,7 +121,8 @@ class NativeDatabaseIsolate extends DatabaseIsolate {
   }
 
   @override
-  Future<void> open(String path, {String? password}) => _sendCommand(OpenCommand(path, password: password));
+  Future<void> open(String path, {String? password}) =>
+      _sendCommand(OpenCommand(path, password: password));
 
   @override
   Future<void> close() => _sendCommand(const CloseCommand());
@@ -148,8 +149,7 @@ class NativeDatabaseIsolate extends DatabaseIsolate {
       _sendCommand<int>(UpdateCommand(table, values, where, whereArgs));
 
   @override
-  Future<int> delete(String table,
-          {String? where, List<Object?>? whereArgs}) =>
+  Future<int> delete(String table, {String? where, List<Object?>? whereArgs}) =>
       _sendCommand<int>(DeleteCommand(table, where, whereArgs));
 
   @override
@@ -161,8 +161,7 @@ class NativeDatabaseIsolate extends DatabaseIsolate {
       _sendCommand<int>(BatchCommand(operations));
 
   @override
-  Future<int> getVersion() =>
-      _sendCommand<int>(const GetVersionCommand());
+  Future<int> getVersion() => _sendCommand<int>(const GetVersionCommand());
 
   @override
   Future<void> setVersion(int version) =>
@@ -192,9 +191,9 @@ DatabaseIsolate createDatabaseIsolate() => NativeDatabaseIsolate();
 // ---------------------------------------------------------------------------
 
 void _isolateEntryPoint(Map<String, dynamic> args) {
-  final mainPort   = args['port']      as SendPort;
+  final mainPort = args['port'] as SendPort;
   final changePort = args['changePort'] as SendPort;
-  final functions  = args['functions']  as List<SqlFunction>;
+  final functions = args['functions'] as List<SqlFunction>;
 
   _FunctionRegistry.registerAll(functions);
 
@@ -265,7 +264,11 @@ Object? _handle(
         db.execute(sql);
       } else {
         final stmt = db.prepare(sql);
-        try { stmt.execute(na); } finally { stmt.dispose(); }
+        try {
+          stmt.execute(na);
+        } finally {
+          stmt.dispose();
+        }
       }
       return null;
 
@@ -277,7 +280,11 @@ Object? _handle(
         rs = db.select(sql);
       } else {
         final stmt = db.prepare(sql);
-        try { rs = stmt.select(na); } finally { stmt.dispose(); }
+        try {
+          rs = stmt.select(na);
+        } finally {
+          stmt.dispose();
+        }
       }
       // Convert sqlite3 Row objects to plain maps before sending across isolate boundary
       return rs.map((row) {
@@ -292,14 +299,22 @@ Object? _handle(
       if (db == null) throw StateError('Database not opened');
       final nv = normalizeMap(values);
       final cols = nv.keys.toList();
-      final ph   = List.filled(cols.length, '?').join(', ');
-      final stmt = db.prepare(
-          'INSERT INTO $table (${cols.join(', ')}) VALUES ($ph)');
-      try { stmt.execute(cols.map((c) => nv[c]).toList()); }
-      finally { stmt.dispose(); }
+      final ph = List.filled(cols.length, '?').join(', ');
+      final stmt =
+          db.prepare('INSERT INTO $table (${cols.join(', ')}) VALUES ($ph)');
+      try {
+        stmt.execute(cols.map((c) => nv[c]).toList());
+      } finally {
+        stmt.dispose();
+      }
       return db.lastInsertRowId;
 
-    case UpdateCommand(:final table, :final values, :final where, :final whereArgs):
+    case UpdateCommand(
+        :final table,
+        :final values,
+        :final where,
+        :final whereArgs
+      ):
       if (db == null) throw StateError('Database not opened');
       final nv = normalizeMap(values);
       final nw = normalizeArgs(whereArgs);
@@ -307,8 +322,11 @@ Object? _handle(
       final sql = 'UPDATE $table SET $setClauses'
           '${where != null ? ' WHERE $where' : ''}';
       final stmt = db.prepare(sql);
-      try { stmt.execute([...nv.values, ...?nw]); }
-      finally { stmt.dispose(); }
+      try {
+        stmt.execute([...nv.values, ...?nw]);
+      } finally {
+        stmt.dispose();
+      }
       return db.updatedRows;
 
     case DeleteCommand(:final table, :final where, :final whereArgs):
@@ -317,15 +335,20 @@ Object? _handle(
       final sql = 'DELETE FROM $table'
           '${where != null ? ' WHERE $where' : ''}';
       final stmt = db.prepare(sql);
-      try { stmt.execute(nw ?? []); }
-      finally { stmt.dispose(); }
+      try {
+        stmt.execute(nw ?? []);
+      } finally {
+        stmt.dispose();
+      }
       return db.updatedRows;
 
     case BatchCommand(:final operations):
       if (db == null) throw StateError('Database not opened');
       db.execute('BEGIN');
       try {
-        for (final op in operations) { _handleBatch(db, op); }
+        for (final op in operations) {
+          _handleBatch(db, op);
+        }
         db.execute('COMMIT');
       } catch (e) {
         db.execute('ROLLBACK');
@@ -362,31 +385,45 @@ Object? _handle(
 void _handleBatch(Database db, BatchOperation op) {
   switch (op) {
     case BatchInsert(:final table, :final values, :final replace):
-      final nv   = normalizeMap(values);
+      final nv = normalizeMap(values);
       final cols = nv.keys.toList();
-      final ph   = List.filled(cols.length, '?').join(', ');
+      final ph = List.filled(cols.length, '?').join(', ');
       final verb = replace ? 'INSERT OR REPLACE' : 'INSERT';
-      final stmt = db.prepare(
-          '$verb INTO $table (${cols.join(', ')}) VALUES ($ph)');
-      try { stmt.execute(cols.map((c) => nv[c]).toList()); }
-      finally { stmt.dispose(); }
+      final stmt =
+          db.prepare('$verb INTO $table (${cols.join(', ')}) VALUES ($ph)');
+      try {
+        stmt.execute(cols.map((c) => nv[c]).toList());
+      } finally {
+        stmt.dispose();
+      }
 
-    case BatchUpdate(:final table, :final values, :final where, :final whereArgs):
-      final nv  = normalizeMap(values);
-      final nw  = normalizeArgs(whereArgs);
+    case BatchUpdate(
+        :final table,
+        :final values,
+        :final where,
+        :final whereArgs
+      ):
+      final nv = normalizeMap(values);
+      final nw = normalizeArgs(whereArgs);
       final set = nv.keys.map((k) => '$k = ?').join(', ');
       final sql = 'UPDATE $table SET $set'
           '${where != null ? ' WHERE $where' : ''}';
       final stmt = db.prepare(sql);
-      try { stmt.execute([...nv.values, ...?nw]); }
-      finally { stmt.dispose(); }
+      try {
+        stmt.execute([...nv.values, ...?nw]);
+      } finally {
+        stmt.dispose();
+      }
 
     case BatchDelete(:final table, :final where, :final whereArgs):
-      final nw  = normalizeArgs(whereArgs);
+      final nw = normalizeArgs(whereArgs);
       final sql = 'DELETE FROM $table'
           '${where != null ? ' WHERE $where' : ''}';
       final stmt = db.prepare(sql);
-      try { stmt.execute(nw ?? []); }
-      finally { stmt.dispose(); }
+      try {
+        stmt.execute(nw ?? []);
+      } finally {
+        stmt.dispose();
+      }
   }
 }
