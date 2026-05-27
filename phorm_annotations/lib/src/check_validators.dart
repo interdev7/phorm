@@ -1,7 +1,7 @@
 import '../phorm_annotations.dart';
 
-class NotContainsValidator implements ICheckValidator {
-  final ICheckValidator condition;
+class NotContainsValidator implements ISqlValidator, IJsonValidator {
+  final ISqlValidator condition;
   @override
   final String? constraint;
   const NotContainsValidator(this.condition, {this.constraint});
@@ -9,10 +9,16 @@ class NotContainsValidator implements ICheckValidator {
   String toSql(String columnName) => 'NOT (${condition.toSql(columnName)})';
 
   @override
-  bool isValid(dynamic value) => !condition.isValid(value);
+  bool isValid(dynamic value) {
+    final cond = condition;
+    if (cond is IJsonValidator) {
+      return !(cond as IJsonValidator).isValid(value);
+    }
+    return true;
+  }
 }
 
-class LengthValidator implements ICheckValidator {
+class LengthValidator implements ISqlValidator, IJsonValidator {
   final int? min;
   final int? max;
   @override
@@ -41,7 +47,7 @@ class LengthValidator implements ICheckValidator {
   }
 }
 
-class NotEmptyValidator implements ICheckValidator {
+class NotEmptyValidator implements ISqlValidator, IJsonValidator {
   @override
   final String? constraint;
   const NotEmptyValidator({this.constraint});
@@ -52,7 +58,7 @@ class NotEmptyValidator implements ICheckValidator {
   bool isValid(dynamic value) => value != null && value.toString().isNotEmpty;
 }
 
-class ContainsValidator implements ICheckValidator {
+class ContainsValidator implements ISqlValidator, IJsonValidator {
   final List<dynamic> values;
   @override
   final String? constraint;
@@ -70,7 +76,7 @@ class ContainsValidator implements ICheckValidator {
   bool isValid(dynamic value) => values.contains(value);
 }
 
-class RangeValidator implements ICheckValidator {
+class RangeValidator implements ISqlValidator, IJsonValidator {
   final num? min;
   final num? max;
   @override
@@ -100,7 +106,7 @@ class RangeValidator implements ICheckValidator {
   }
 }
 
-class ComparisonValidator implements ICheckValidator {
+class ComparisonValidator implements ISqlValidator, IJsonValidator {
   final num value;
   final String operator;
   @override
@@ -135,7 +141,7 @@ class ComparisonValidator implements ICheckValidator {
   }
 }
 
-class CustomSqlValidator implements ICheckValidator {
+class CustomSqlValidator implements ISqlValidator {
   final String sql;
   @override
   final String? constraint;
@@ -148,10 +154,5 @@ class CustomSqlValidator implements ICheckValidator {
       return sql.replaceAll('{column}', columnName);
     }
     return sql;
-  }
-
-  @override
-  bool isValid(dynamic value) {
-    return true; // Dart-side execution is ignored for pure SQL custom checks
   }
 }

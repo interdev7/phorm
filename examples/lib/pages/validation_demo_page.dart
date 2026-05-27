@@ -275,7 +275,7 @@ class _ValidationDemoPageState extends State<ValidationDemoPage>
                     fontWeight: FontWeight.w700,
                     fontSize: 20,
                     color: Colors.white)),
-            Text('IJsonValidator · ICheckValidator · Exceptions',
+            Text('IJsonValidator · ISqlValidator · Exceptions',
                 style: GoogleFonts.inter(fontSize: 10, color: Colors.white54)),
           ],
         ),

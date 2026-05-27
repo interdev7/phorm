@@ -60,7 +60,7 @@ class _IsolateMessage {
 
 /// Native implementation of [DatabaseIsolate].
 /// Runs sqlite3 in a background Dart isolate so UI never stalls.
-class NativeDatabaseIsolate extends DatabaseIsolate {
+class NativeDatabaseIsolate implements DatabaseIsolate {
   Isolate? _isolate;
   SendPort? _sendPort;
   final _initCompleter = Completer<void>();
@@ -176,6 +176,11 @@ class NativeDatabaseIsolate extends DatabaseIsolate {
     _isolate!.kill(priority: Isolate.immediate);
     _isolate = null;
     _sendPort = null;
+  }
+
+  @override
+  BatchBuilder createBatch() {
+    return BatchBuilder(this);
   }
 }
 

@@ -125,7 +125,7 @@ Map<String, Object?> normalizeMap(Map<String, Object?> map) {
 /// Abstract database backend. Concrete implementations:
 ///   - `database_isolate_io.dart` — uses dart:isolate + sqlite3 (native)
 ///   - `database_isolate_web.dart` — uses sqlite3_web WASM (Flutter Web)
-abstract class DatabaseIsolate {
+abstract interface class DatabaseIsolate {
   /// Stream of table names that have been modified
   Stream<String> get changeStream;
 
@@ -188,7 +188,8 @@ class BatchBuilder {
 
   BatchBuilder(this._db);
 
-  void insert(String table, Map<String, Object?> values, {bool replace = false}) {
+  void insert(String table, Map<String, Object?> values,
+      {bool replace = false}) {
     _operations.add(BatchInsert(table, values, replace));
   }
 

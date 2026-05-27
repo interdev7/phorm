@@ -390,7 +390,7 @@ END;''';
       for (final validatorObj in validatorsReader.listValue) {
         final validatorReader = ConstantReader(validatorObj);
 
-        if (const TypeChecker.fromRuntime(ICheckValidator)
+        if (const TypeChecker.fromRuntime(ISqlValidator)
             .isAssignableFromType(validatorObj.type!)) {
           final sql = _getCheckSql(validatorReader, columnName);
           if (sql != null && sql.isNotEmpty) {
@@ -491,6 +491,18 @@ END;''';
     if (_customSqlChecker.isExactlyType(reader.objectValue.type!)) {
       final sql = reader.read('sql').stringValue;
       return sql.replaceAll('{column}', columnName);
+    }
+
+    // Generic fallback for custom ISqlValidator that declares a 'sql' string field
+    final type = reader.objectValue.type;
+    if (type != null &&
+        const TypeChecker.fromRuntime(ISqlValidator)
+            .isAssignableFromType(type)) {
+      final sqlField = reader.peek('sql');
+      if (sqlField != null && sqlField.isString) {
+        final sql = sqlField.stringValue;
+        return sql.replaceAll('{column}', columnName);
+      }
     }
 
     return null;

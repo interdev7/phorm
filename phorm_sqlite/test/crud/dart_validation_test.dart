@@ -4,7 +4,7 @@ import '../test_utils.dart';
 void main() {
   group('Dart-Side Validation Tests', () {
     test(
-        'toJson() should throw PhormCHECKValidatorException for invalid gender',
+        'toJson() should throw PhormJSONValidatorException for invalid gender',
         () {
       final user = User(
         id: '1',
@@ -21,7 +21,7 @@ void main() {
 
       expect(
         () => user.toJson(),
-        throwsA(isA<PhormCHECKValidatorException>()
+        throwsA(isA<PhormJSONValidatorException>()
             .having((e) => e.table, 'table', 'users')
             .having((e) => e.column, 'column', 'gender')
             .having((e) => e.constraint, 'constraint', 'gender_check')),
@@ -29,7 +29,7 @@ void main() {
     });
 
     test(
-        'toJson() should throw PhormCHECKValidatorException for short firstName',
+        'toJson() should throw PhormJSONValidatorException for short firstName',
         () {
       final user = User(
         id: '1',
@@ -46,7 +46,7 @@ void main() {
 
       expect(
         () => user.toJson(),
-        throwsA(isA<PhormCHECKValidatorException>()
+        throwsA(isA<PhormJSONValidatorException>()
             .having((e) => e.column, 'column', 'first_name')
             .having(
                 (e) => e.constraint, 'constraint', 'first_name_length_check')),

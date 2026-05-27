@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:phorm/phorm.dart';
+import 'package:sqlite3/sqlite3.dart' show SqliteException;
 import 'database_isolate.dart';
 import 'sql_function.dart';
 
@@ -29,12 +30,20 @@ class Database implements DatabaseExecutor {
 
   @override
   Future<void> execute(String sql, [List<Object?>? arguments]) =>
-      _isolate.execute(sql, arguments);
+      _wrapException(
+        () => _isolate.execute(sql, arguments),
+        table: _parseTableFromSql(sql),
+        sql: sql,
+      );
 
   @override
   Future<List<Map<String, Object?>>> rawQuery(String sql,
           [List<Object?>? arguments]) =>
-      _isolate.query(sql, arguments);
+      _wrapException(
+        () => _isolate.query(sql, arguments),
+        table: _parseTableFromSql(sql),
+        sql: sql,
+      );
 
   @override
   Future<List<Map<String, Object?>>> query(
@@ -60,7 +69,11 @@ class Database implements DatabaseExecutor {
     if (orderBy != null) sql.write(' ORDER BY $orderBy');
     if (limit != null) sql.write(' LIMIT $limit');
     if (offset != null) sql.write(' OFFSET $offset');
-    return _isolate.query(sql.toString(), whereArgs);
+    return _wrapException(
+      () => _isolate.query(sql.toString(), whereArgs),
+      table: table,
+      sql: sql.toString(),
+    );
   }
 
   @override
@@ -77,10 +90,17 @@ class Database implements DatabaseExecutor {
         : '';
     final sql =
         'INSERT$conflictClause INTO $table (${columns.join(', ')}) VALUES ($placeholders)';
-    await _isolate.execute(sql, columns.map((c) => values[c]).toList());
-    return await _isolate
-        .query('SELECT last_insert_rowid() as id')
-        .then((r) => r.first['id'] as int);
+    return _wrapException(
+      () async {
+        await _isolate.execute(sql, columns.map((c) => values[c]).toList());
+        return await _isolate
+            .query('SELECT last_insert_rowid() as id')
+            .then((r) => r.first['id'] as int);
+      },
+      table: table,
+      values: values,
+      sql: sql,
+    );
   }
 
   @override
@@ -91,11 +111,18 @@ class Database implements DatabaseExecutor {
     List<Object?>? whereArgs,
     ConflictAlgorithm? conflictAlgorithm,
   }) =>
-      _isolate.update(table, values, where: where, whereArgs: whereArgs);
+      _wrapException(
+        () => _isolate.update(table, values, where: where, whereArgs: whereArgs),
+        table: table,
+        values: values,
+      );
 
   @override
   Future<int> delete(String table, {String? where, List<Object?>? whereArgs}) =>
-      _isolate.delete(table, where: where, whereArgs: whereArgs);
+      _wrapException(
+        () => _isolate.delete(table, where: where, whereArgs: whereArgs),
+        table: table,
+      );
 
   @override
   Batch batch() => SqliteBatch._(this);
@@ -344,4 +371,80 @@ class _BatchOp {
         throw StateError('Unknown batch operation type: $type');
     }
   }
+}
+
+Future<T> _wrapException<T>(
+  Future<T> Function() action, {
+  required String table,
+  Map<String, Object?>? values,
+  String? sql,
+}) async {
+  try {
+    return await action();
+  } on SqliteException catch (e) {
+    final message = e.message;
+    if (message.contains('CHECK constraint failed')) {
+      final parts = message.split('CHECK constraint failed:');
+      String? constraint;
+      if (parts.length > 1) {
+        constraint = parts[1].trim();
+      }
+
+      String? column;
+      if (constraint != null && values != null) {
+        final sortedKeys = values.keys.toList()
+          ..sort((a, b) => b.length.compareTo(a.length));
+        for (final key in sortedKeys) {
+          if (constraint.contains(key)) {
+            column = key;
+            break;
+          }
+        }
+      }
+
+      if (column == null && constraint != null) {
+        var clean = constraint;
+        if (clean.endsWith('_check')) {
+          clean = clean.substring(0, clean.length - 6);
+        }
+        if (clean.endsWith('_length')) {
+          clean = clean.substring(0, clean.length - 7);
+        }
+        if (clean.startsWith('${table}_')) {
+          clean = clean.substring(table.length + 1);
+        }
+        column = clean;
+      }
+
+      throw PhormCHECKValidatorException(
+        table: table,
+        column: column ?? '',
+        message: message,
+        constraint: constraint,
+      );
+    }
+    rethrow;
+  }
+}
+
+String _parseTableFromSql(String sql) {
+  final insertMatch = RegExp(
+    r'INSERT\s+(?:OR\s+\w+\s+)?INTO\s+(\w+)',
+    caseSensitive: false,
+  ).firstMatch(sql);
+  if (insertMatch != null) return insertMatch.group(1)!;
+
+  final updateMatch = RegExp(
+    r'UPDATE\s+(\w+)',
+    caseSensitive: false,
+  ).firstMatch(sql);
+  if (updateMatch != null) return updateMatch.group(1)!;
+
+  final deleteMatch = RegExp(
+    r'DELETE\s+FROM\s+(\w+)',
+    caseSensitive: false,
+  ).firstMatch(sql);
+  if (deleteMatch != null) return deleteMatch.group(1)!;
+
+  return '';
 }

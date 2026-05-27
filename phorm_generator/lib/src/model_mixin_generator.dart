@@ -50,9 +50,9 @@ class ModelMixinGenerator extends GeneratorForAnnotation<Schema> {
       if (columnMeta == null) return false;
       final reader = ConstantReader(columnMeta.computeConstantValue());
       final validatorsReader = reader.peek('validators');
-      return validatorsReader != null &&
-          validatorsReader.isList &&
-          validatorsReader.listValue.isNotEmpty;
+      if (validatorsReader == null || !validatorsReader.isList) return false;
+      return validatorsReader.listValue.any((validatorObj) =>
+          _jsonValidatorChecker.isAssignableFromType(validatorObj.type!));
     });
     final useValidator =
         (annotation.peek('useValidator')?.boolValue ?? true) && hasValidators;
@@ -420,15 +420,16 @@ class ModelMixinGenerator extends GeneratorForAnnotation<Schema> {
           final sqlName = MetadataExtractor.getSqlColumnName(field, strategy);
 
           for (final validatorObj in validatorsReader.listValue) {
+            final isJsonValidator =
+                _jsonValidatorChecker.isAssignableFromType(validatorObj.type!);
+            if (!isJsonValidator) continue;
+
+            // Dart validation always throws PhormJSONValidatorException
+            const exceptionType = 'PhormJSONValidatorException';
+
             final validatorReader = ConstantReader(validatorObj);
             final revived = validatorReader.revive();
             final constString = _reviveToCheckCode(revived);
-
-            final isJsonValidator =
-                _jsonValidatorChecker.isAssignableFromType(validatorObj.type!);
-            final exceptionType = isJsonValidator
-                ? 'PhormJSONValidatorException'
-                : 'PhormCHECKValidatorException';
 
             // final isNullable =
             //   field.type.nullabilitySuffix == NullabilitySuffix.question;

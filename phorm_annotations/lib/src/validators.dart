@@ -1,26 +1,24 @@
-abstract interface class ISQLValidator {
-  /// Generates SQL expression for the condition.
-  /// [columnName] - the column name to which the condition is applied.
-  String toSql(String columnName);
-}
-
 /// Base interface for check conditions (CHECK constraints).
 abstract interface class IValidator {
   const IValidator();
 
   /// Optional constraint name (CONSTRAINT name for CHECK constraint or error name for JSON validation).
   String? get constraint;
+}
 
+/// JSON validation check (No SQL generation).
+abstract interface class IJsonValidator implements IValidator {
   /// Validates the [value] in Dart.
   /// Returns true if valid, false otherwise.
   bool isValid(dynamic value);
 }
 
-/// JSON validation check (No SQL generation).
-abstract interface class IJsonValidator implements IValidator {}
-
 /// CHECK constraint validation check (SQL generation).
-abstract interface class ICheckValidator implements ISQLValidator, IValidator {}
+abstract interface class ISqlValidator implements IValidator {
+  /// Generates SQL expression for the condition.
+  /// [columnName] - the column name to which the condition is applied.
+  String toSql(String columnName);
+}
 
 class RegExpValidator implements IJsonValidator {
   final String pattern;
