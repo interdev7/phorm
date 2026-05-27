@@ -21,21 +21,23 @@ void main() {
     test('CHECK constraint rejects invalid gender', () async {
       final service = await createTestService();
 
-      final badUser = User(
-        id: 'bad_gender_001',
-        firstName: 'Bad',
-        lastName: 'Gender',
-        email: 'bad.gender@example.com',
-        phone: '+359000000000',
-        birthDate: null,
-        age: 99,
-        gender: 'X', // invalid per CHECK
-        city: 'Nowhere',
-        country: 'Bulgaria',
-      );
+      final db = await service.dbManager.executor;
 
       expect(
-        () async => await service.insert(badUser),
+        () async => await db.insert('users', {
+          'id': 'bad_gender_001',
+          'first_name': 'Bad',
+          'last_name': 'Gender',
+          'email': 'bad.gender@example.com',
+          'phone': '+359000000000',
+          'birth_date': null,
+          'age': 99,
+          'gender': 'X', // invalid per CHECK
+          'city': 'Nowhere',
+          'country': 'Bulgaria',
+          'created_at': DateTime.now().toIso8601String(),
+          'updated_at': DateTime.now().toIso8601String(),
+        }),
         throwsA(isA<PhormCHECKValidatorException>()
             .having((e) => e.table, 'table', 'users')
             .having((e) => e.column, 'column', 'gender')

@@ -24,7 +24,7 @@ import 'sql_function.dart';
 /// Runs SQLite synchronously on the main thread (no isolates on Web).
 /// For heavy workloads, consider using a SharedWorker — that is an optional
 /// future optimisation and is NOT required for correctness.
-class WebDatabaseIsolate extends DatabaseIsolate {
+class WebDatabaseIsolate implements DatabaseIsolate {
   CommonDatabase? _db;
   final List<SqlFunction> _customFunctions = [];
 
@@ -261,6 +261,11 @@ class WebDatabaseIsolate extends DatabaseIsolate {
         throw UnsupportedError(
             'Unsupported command inside transaction: $command');
     }
+  }
+
+  @override
+  BatchBuilder createBatch() {
+    return BatchBuilder(this);
   }
 }
 

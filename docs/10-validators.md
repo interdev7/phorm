@@ -27,14 +27,14 @@ When you call `toJson()` on a generated model mixin, PHORM automatically runs th
 
 There are two primary interfaces for validators:
 
-### 1. `ICheckValidator` (Database + Dart)
+### 1. `ISqlValidator` (Database + Dart)
 
 These validators enforce constraints in both SQLite and Dart.
 
 - **SQL**: The generator adds a `CHECK (column_name ...)` constraint to the `CREATE TABLE` statement.
 - **Dart**: The generated `toJson()` method verifies the value before it's sent to the database.
 
-**Built-in `ICheckValidator`s:**
+**Built-in `ISqlValidator`s:**
 | Validator | Description | SQL Example |
 | :--- | :--- | :--- |
 | `NotEmptyValidator()` | Ensures the string is not empty. | `col <> ""` |
@@ -42,7 +42,7 @@ These validators enforce constraints in both SQLite and Dart.
 | `RangeValidator(min, max)` | Checks numeric range. | `col BETWEEN min AND max` |
 | `ComparisonValidator(val, op)` | Compares value using `>`, `<`, `>=`, `<=`, `=`, `!=`. | `col > 10` |
 | `ContainsValidator([values])` | Ensures value is in a list (Enum-like). | `col IN ('A', 'B')` |
-| `NotContainsValidator(inner)` | Negates another `ICheckValidator`. | `NOT (col IN ('A'))` |
+| `NotContainsValidator(inner)` | Negates another `ISqlValidator`. | `NOT (col IN ('A'))` |
 | `CustomSqlValidator(sql)` | Injects raw SQL `CHECK` condition. | `col % 2 = 0` |
 
 ### 2. `IJsonValidator` (Dart Only)
@@ -62,7 +62,7 @@ These validators only run in Dart and do not affect the SQLite schema. They are 
 
 When validation fails, PHORM throws one of the following exceptions:
 
-- **`PhormCHECKValidatorException`**: Thrown when an `ICheckValidator` fails.
+- **`PhormCHECKValidatorException`**: Thrown when an `ISqlValidator` fails.
 - **`PhormJSONValidatorException`**: Thrown when an `IJsonValidator` fails.
 
 Both exceptions contain the `constraint` name (if provided) and the invalid `value`.
@@ -98,7 +98,7 @@ If `useValidator` is `false`, the generator will still add `CHECK` constraints t
 
 ## Custom Validators
 
-You can create your own validators by implementing `IJsonValidator` or `ICheckValidator`.
+You can create your own validators by implementing `IJsonValidator` or `ISqlValidator`.
 
 ### Custom Dart Validator
 
@@ -119,7 +119,7 @@ class MyPasswordValidator implements IJsonValidator {
 ### Custom SQL + Dart Validator
 
 ```dart
-class IsEvenValidator implements ICheckValidator {
+class IsEvenValidator implements ISqlValidator {
   @override
   final String? constraint = 'must_be_even';
 
