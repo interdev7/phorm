@@ -10,7 +10,7 @@ The magic behind PHORM. This package uses `build_runner` to turn your Dart model
 - **Model Mixins**: Generates `_$UserMixin` with automatic `toJson`, `toString`, `copyWith`, and relationship getters.
 - **Pluralized Services**: Generates the `Users` service class for fluent, static-method-based interaction.
 - **JSON Helpers**: Provides optimized `_$UserFromJson` implementations.
-- **Runtime Metadata**: Produces the `Table` configuration needed for `PhormCore`.
+- **Runtime Metadata**: Produces the `Table` configuration needed for `PHORM`.
 
 ---
 
@@ -60,7 +60,7 @@ dart run build_runner watch --delete-conflicting-outputs
 ## Learn More
 
 - For annotation details, see [phorm_annotations](../phorm_annotations/README.md).
-- For runtime query engine details, see [phorm_core](../phorm_core/README.md).
+- For runtime query engine details, see [phorm](../phorm/README.md).
 - For the connection manager and SQLite driver implementation, see [phorm_sqlite](../phorm_sqlite/README.md).
 
 ---

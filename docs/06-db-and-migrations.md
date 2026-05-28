@@ -64,6 +64,10 @@ During initialization, the `DB` class:
 2. Creates all registered tables from their `schema` strings.
 3. Applies any pending migrations.
 
+<p align="center">
+  <img src="../assets/diagrams/diagram_3.png" alt="Phorm Architecture" />
+</p>
+
 ---
 
 ## Migration System

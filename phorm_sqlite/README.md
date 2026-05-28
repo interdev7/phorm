@@ -5,7 +5,7 @@
 
 `phorm_sqlite` is the official SQLite driver and connection manager implementation for the **PHORM ORM**.
 
-It implements the database interfaces from `phorm_core` (`PhormDatabase`, `DatabaseExecutor`) and handles connection lifecycles, background isolate execution, custom SQL functions, and smart schema migrations.
+It implements the database interfaces from `phorm` (`PhormDatabase`, `DatabaseExecutor`) and handles connection lifecycles, background isolate execution, custom SQL functions, and smart schema migrations.
 
 ---
 
@@ -14,7 +14,7 @@ It implements the database interfaces from `phorm_core` (`PhormDatabase`, `Datab
 The PHORM ORM is split into modular packages:
 
 1. **`phorm_annotations`** — Database-agnostic annotations (`@Schema`, `@Column`, `@ID`) and logical type definitions.
-2. **`phorm_core`** — Driver-agnostic runtime engine containing CRUD APIs, `WhereBuilder` query builder, soft deletes, and eager loading via JSON Aggregation.
+2. **`phorm`** — Driver-agnostic runtime engine containing CRUD APIs, `WhereBuilder` query builder, soft deletes, and eager loading via JSON Aggregation.
 3. **`phorm_generator`** — Code generator (`build_runner`) that automates mixin, JSON, and runtime table configuration.
 4. **`phorm_sqlite`** (This Package) — **The SQLite driver**. Implements connection pooling, background isolates (Native), WebAssembly persistence (Web), and smart migrations.
 
@@ -42,7 +42,7 @@ Add `phorm_sqlite` to your `pubspec.yaml`:
 ```yaml
 dependencies:
   phorm_sqlite: ^latest
-  # phorm_core and phorm_annotations are pulled in automatically
+  # phorm and phorm_annotations are pulled in automatically
 ```
 
 ---
@@ -120,7 +120,7 @@ In standard Flutter database setups, queries and subsequent data mapping (`fromJ
 `phorm_sqlite` resolves this by using an **Isolate-based proxy router**:
 
 <p>
-<image src="./assets/illustration_1.png" alt="Isolate Router" />
+<image src="../assets/illustration_1.png" alt="Isolate Router" />
 </p>
 
 1. **Native Platforms**: Spawns a background `Isolate` that owns the synchronous `sqlite3` connection. Commands are sent across ports, executing database writes/reads safely off the UI thread.

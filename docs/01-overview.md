@@ -35,60 +35,9 @@ Most apps need the same patterns: "When was this created?", "Don't actually dele
 
 ## Architecture
 
-```mermaid
-graph TD
-    %% Styles and colors
-    classDef dev fill:#e1f5fe,stroke:#03a9f4,stroke-width:2px,color:#01579b;
-    classDef gen fill:#e8f5e9,stroke:#4caf50,stroke-width:2px,color:#1b5e20;
-    classDef core fill:#fff3e0,stroke:#ff9800,stroke-width:2px,color:#e65100;
-    classDef driver fill:#f3e5f5,stroke:#9c27b0,stroke-width:2px,color:#4a148c;
-    classDef db fill:#ffebee,stroke:#f44336,stroke-width:2px,color:#b71c1c;
-
-    subgraph "1. Descriptions of Models (Developer)"
-        Model["@Schema Class User<br/>(Defines fields and relationships HasMany/BelongsTo)"]:::dev
-    end
-
-    subgraph "2. Code Generation (phorm_generator)"
-        Generator["build_runner"]:::gen
-        Mixin["_$PhormUserMixin<br/>(toJson, copyWith methods)"]:::gen
-        Service["class Users (Service)<br/>(Typed columns and CRUD API)"]:::gen
-
-        Model -->|Static analysis| Generator
-        Generator --> Mixin
-        Generator --> Service
-    end
-
-    subgraph "3. Building a Request (phorm)"
-        AppCall["Users.where(Users.age.gt(18))<br/>.include([Includable.model<Post>()])<br/>.get()"]:::dev
-        QueryBuilder["WhereBuilder & Include Resolver<br/>(Linking tables by foreign keys)"]:::core
-        Dialect["SqlDialect (sqlite/postgres)<br/>(Building into Single SQL with JSON Aggregation)"]:::core
-
-        Service -->|Calling from application| AppCall
-        AppCall --> QueryBuilder
-        QueryBuilder --> Dialect
-    end
-
-    subgraph "4. Executing a Query (phorm_sqlite)"
-        Driver["Database Connection Manager<br/>(Connection pool management)"]:::driver
-        Isolate["Background Isolate / Web WASM<br/>(Execution in a separate thread without UI freezes)"]:::driver
-        SQLite[("Database SQLite")]:::db
-
-        Dialect -->|Compiled SQL + parameters| Driver
-        Driver --> Isolate
-        Isolate -->|Execute a query| SQLite
-    end
-
-    subgraph "5. Result and Mapping"
-        RawResult["Single Nested JSON Result<br/>(Parent and child data in one response!)"]:::db
-        Parser["JSON Parser & Model Factory<br/>(Fast model assembly from JSON)"]:::core
-        AppModels["List of Dart models<br/>List<User>"]:::dev
-
-        SQLite -->|Returns| RawResult
-        RawResult --> Parser
-        Mixin -.->|Provides JSON factory| Parser
-        Parser --> AppModels
-    end
-```
+<p align="center">
+  <img src="../assets/diagrams/diagram_6.png" alt="Phorm Architecture" />
+</p>
 
 ---
 
@@ -122,7 +71,6 @@ When a new driver is introduced, your declarative schemas `@Schema(...)` and cod
 > [!NOTE]
 > **A Note on DDL Schemas:**
 > While your Dart models and generated database services remain identical and fully database-agnostic at runtime, the DDL table schema automatically emitted by the `phorm_generator` currently targets SQLite-specific constructs (such as mapped types and SQLite trigger syntax for timestamps). For other databases, manual schema definitions or custom migration scripts should be used.
-
 
 ---
 

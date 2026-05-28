@@ -13,7 +13,7 @@ dependencies:
   google_fonts: ^6.2.1
   path: ^1.9.0
   phorm:
-    path: ../
+    path: ../phorm
   phorm_sqlite:
     path: ../phorm_sqlite
   phorm_generator:
