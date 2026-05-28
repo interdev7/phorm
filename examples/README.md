@@ -38,7 +38,7 @@ To run this example project, ensure you have the `phorm_core` and `phorm_generat
 
 ## Testing
 
-The project includes widget tests that use `sqflite_common_ffi` to verify that the app's navigation and basic UI structure work properly without requiring a physical device or emulator.
+The project includes widget tests that use an in-memory `sqlite3` database to verify that the app's navigation and basic UI structure work properly without requiring a physical device or emulator.
 
 To run the tests:
 
