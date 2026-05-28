@@ -92,6 +92,10 @@ HasMany(
 
 PHORM uses **single-query JSON aggregation** to avoid N+1 problems:
 
+<p align="center">
+  <img src="../assets/diagrams/diagram_2.png" alt="Phorm Architecture" />
+</p>
+
 ### HasMany (JSON aggregation)
 
 ```sql

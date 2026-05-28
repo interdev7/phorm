@@ -14,6 +14,10 @@ Unlike traditional ORMs that require manual hooks, observers, or trigger methods
 2. **Isolate-Safe Dispatching**: For client-side drivers (like SQLite), these events are captured in the background database isolate and synchronously sent to the main isolate via `SendPort`.
 3. **Transaction Buffering**: If writes occur within a transaction, notifications are buffered at the database level and are only emitted once the transaction **commits successfully**. If the transaction rolls back, all buffered notifications are discarded. This prevents redundant notifications and eliminates UI flickering during bulk operations.
 
+<p align="center">
+  <img src="../assets/diagrams/diagram_5.png" alt="Phorm Architecture" />
+</p>
+
 ---
 
 ## Reactive APIs

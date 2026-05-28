@@ -17,7 +17,7 @@ This application includes several separate showcases, accessible via a bottom na
 
 ## Getting Started
 
-To run this example project, ensure you have the `phorm_core` and `phorm_generator` packages correctly set up in the parent directory, as they are referenced via relative paths.
+To run this example project, ensure you have the `phorm` and `phorm_generator` packages correctly set up in the parent directory, as they are referenced via relative paths.
 
 1. Install dependencies:
 

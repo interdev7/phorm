@@ -17,7 +17,7 @@ dependencies:
   path: ^1.9.0
   path_provider: ^2.1.5
   phorm:
-    path: ../
+    path: ../phorm
   phorm_annotations:
     path: ../phorm_annotations
   sqlite3: ^2.9.4

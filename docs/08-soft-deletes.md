@@ -20,6 +20,10 @@ The generator adds the `deleted_at TEXT` column to the SQL schema and injects a 
 
 ## How It Works
 
+<p align="center">
+  <img src="../assets/diagrams/diagram_4.png" alt="Phorm Architecture" />
+</p>
+
 | Operation                    | `paranoid: false`              | `paranoid: true`                            |
 | :--------------------------- | :----------------------------- | :------------------------------------------ |
 | `delete(id)`                 | `DELETE FROM ... WHERE id = ?` | `UPDATE ... SET deleted_at = NOW()`         |
