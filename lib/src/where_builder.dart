@@ -13,6 +13,41 @@ class _Condition {
   final String? column;
 
   _Condition(this.condition, this.args, this.column);
+
+  String compile(SqlDialect dialect, ParamIndex paramIndex) {
+    if (condition is WhereBuilder) {
+      final builder = condition as WhereBuilder;
+      final built = builder._buildWithDialect(dialect, paramIndex);
+      if (built.isEmpty) return '';
+      return builder._conditions.length > 1 ? '($built)' : built;
+    }
+
+    String sql = condition as String;
+
+    // 1. Escape column if specified, using word boundaries to prevent substring clashes
+    if (column != null && column!.isNotEmpty) {
+      final escapedColumn = dialect.escapeIdentifier(column!);
+      final regExp = RegExp('\\b${RegExp.escape(column!)}\\b');
+      sql = sql.replaceAll(regExp, escapedColumn);
+    }
+
+    // 2. Replace positional placeholders ? with dialect-specific ones
+    if (sql.contains('?')) {
+      final testPlaceholder = dialect.compilePlaceholder(paramIndex.value);
+      if (testPlaceholder == '?') {
+        // SQLite/MySQL case: placeholder is '?'. Just count how many '?' are in the sql and advance paramIndex
+        final count = '?'.allMatches(sql).length;
+        paramIndex.value += count;
+      } else {
+        while (sql.contains('?')) {
+          final placeholder = dialect.compilePlaceholder(paramIndex.value++);
+          sql = sql.replaceFirst('?', placeholder);
+        }
+      }
+    }
+
+    return sql;
+  }
 }
 
 ///
@@ -697,19 +732,17 @@ class WhereBuilder {
   ///
   /// print(where.build()); // "status = ? AND age > ?"
   /// ```
-  String build() {
+  String build([SqlDialect dialect = const NoEscapeDialect()]) {
+    return _buildWithDialect(dialect, ParamIndex());
+  }
+
+  String _buildWithDialect(SqlDialect dialect, ParamIndex paramIndex) {
     final parts = <String>[];
 
     for (final condition in _conditions) {
-      if (condition.condition is String) {
-        parts.add(condition.condition as String);
-      } else if (condition.condition is WhereBuilder) {
-        final builder = condition.condition as WhereBuilder;
-        final built = builder.build();
-        if (built.isNotEmpty) {
-          // Add parentheses only if multiple conditions in group
-          parts.add(builder._conditions.length > 1 ? '($built)' : built);
-        }
+      final compiled = condition.compile(dialect, paramIndex);
+      if (compiled.isNotEmpty) {
+        parts.add(compiled);
       }
     }
 

@@ -10,12 +10,8 @@ import 'package:source_gen/source_gen.dart';
 import 'metadata_extractor.dart';
 import 'string_schema_builder.dart';
 
-const _checkInListChecker = TypeChecker.fromRuntime(ContainsValidator);
-const _checkRangeChecker = TypeChecker.fromRuntime(RangeValidator);
-const _checkComparisonChecker = TypeChecker.fromRuntime(ComparisonValidator);
-const _checkLengthChecker = TypeChecker.fromRuntime(LengthValidator);
-const _checkNotChecker = TypeChecker.fromRuntime(NotContainsValidator);
-const _customSqlChecker = TypeChecker.fromRuntime(CustomSqlValidator);
+// Generator works with any ISqlValidator via its `sql` field.
+// No concrete checker classes needed — users define their own validators.
 
 class SqliteSchemaGenerator extends GeneratorForAnnotation<Schema> {
   @override
@@ -384,33 +380,38 @@ END;''';
     if (validatorsReader != null &&
         !validatorsReader.isNull &&
         validatorsReader.isList) {
-      final checkSqls = <String>[];
-      String? lastConstraintName;
+      // Anonymous ISqlValidator expressions to be combined into one CHECK(...)
+      final anonymousSqls = <String>[];
 
       for (final validatorObj in validatorsReader.listValue) {
         final validatorReader = ConstantReader(validatorObj);
 
-        if (const TypeChecker.fromRuntime(ISqlValidator)
+        if (!const TypeChecker.fromRuntime(ISqlValidator)
             .isAssignableFromType(validatorObj.type!)) {
-          final sql = _getCheckSql(validatorReader, columnName);
-          if (sql != null && sql.isNotEmpty) {
-            checkSqls.add(sql);
-            final constraint = validatorReader.peek('constraint')?.stringValue;
-            if (constraint != null) lastConstraintName = constraint;
-          }
+          // Not an ISqlValidator — skip (IJsonValidator only, no SQL needed)
+          continue;
+        }
+
+        final sql = _getCheckSql(validatorReader, columnName);
+        if (sql == null || sql.isEmpty) continue;
+
+        final constraintName = validatorReader.peek('constraint')?.stringValue;
+
+        if (constraintName != null) {
+          // Named validator: emit its own CONSTRAINT name CHECK(...) immediately
+          buffer.write(' CONSTRAINT $constraintName CHECK($sql)');
+        } else {
+          // Anonymous validator: accumulate to merge later
+          anonymousSqls.add(sql);
         }
       }
 
-      if (checkSqls.isNotEmpty) {
-        final combinedSql = checkSqls.length > 1
-            ? checkSqls.map((c) => '($c)').join('AND')
-            : checkSqls.first;
-
-        if (lastConstraintName != null) {
-          buffer.write(' CONSTRAINT $lastConstraintName CHECK($combinedSql)');
-        } else {
-          buffer.write(' CHECK($combinedSql)');
-        }
+      // Combine remaining anonymous checks into one CHECK(expr AND expr ...)
+      if (anonymousSqls.isNotEmpty) {
+        final combined = anonymousSqls.length > 1
+            ? anonymousSqls.map((c) => '($c)').join(' AND ')
+            : anonymousSqls.first;
+        buffer.write(' CHECK($combined)');
       }
     }
 
@@ -441,79 +442,61 @@ END;''';
         .toLowerCase();
   }
 
+  /// Resolves the CHECK SQL expression from any [ISqlValidator].
+  ///
+  /// **Primary path**: reads the `sql` field directly via [ConstantReader].
+  /// This works when implementors declare `sql` as a `final String sql` field
+  /// (or a trivially constant getter). Complex computed getters cannot be read
+  /// at generation time and fall through to the fallback.
+  ///
+  /// **Fallback path**: if `sql` is unreadable, the method looks for a `values`
+  /// field (a `List`) and generates an `IN (...)` clause from its elements.
+  /// This transparently handles validators like `ContainsValidator`.
   String? _getCheckSql(ConstantReader reader, String columnName) {
     if (reader.isNull) return null;
 
-    if (_checkInListChecker.isExactlyType(reader.objectValue.type!)) {
-      final values = reader.read('values').listValue.map((v) {
-        final r = ConstantReader(v);
-        if (r.isString) return "'${r.stringValue}'";
-        return r.objectValue.toString();
-      }).join(', ');
-      return '$columnName IN ($values)';
-    }
-
-    if (_checkRangeChecker.isExactlyType(reader.objectValue.type!)) {
-      final min = _readNum(reader.read('min'));
-      final max = _readNum(reader.read('max'));
-      if (min != null && max != null) {
-        return '$columnName BETWEEN $min AND $max';
-      }
-      if (min != null) return '$columnName >= $min';
-      if (max != null) return '$columnName <= $max';
-      return null;
-    }
-
-    if (_checkComparisonChecker.isExactlyType(reader.objectValue.type!)) {
-      final value = _readNum(reader.read('value'));
-      final operator = reader.read('operator').stringValue;
-      return '$columnName $operator $value';
-    }
-
-    if (_checkLengthChecker.isExactlyType(reader.objectValue.type!)) {
-      final min = reader.peek('min')?.intValue;
-      final max = reader.peek('max')?.intValue;
-      final lengthExpr = 'LENGTH($columnName)';
-      if (min != null && max != null) {
-        return '$lengthExpr BETWEEN $min AND $max';
-      }
-      if (min != null) return '$lengthExpr >= $min';
-      if (max != null) return '$lengthExpr <= $max';
-      return null;
-    }
-
-    if (_checkNotChecker.isExactlyType(reader.objectValue.type!)) {
-      final condition = reader.read('condition');
-      final innerSql = _getCheckSql(condition, columnName);
-      return innerSql != null ? 'NOT ($innerSql)' : null;
-    }
-
-    if (_customSqlChecker.isExactlyType(reader.objectValue.type!)) {
-      final sql = reader.read('sql').stringValue;
-      return sql.replaceAll('{column}', columnName);
-    }
-
-    // Generic fallback for custom ISqlValidator that declares a 'sql' string field
     final type = reader.objectValue.type;
-    if (type != null &&
-        const TypeChecker.fromRuntime(ISqlValidator)
-            .isAssignableFromType(type)) {
-      final sqlField = reader.peek('sql');
-      if (sqlField != null && sqlField.isString) {
-        final sql = sqlField.stringValue;
-        return sql.replaceAll('{column}', columnName);
+    if (type == null) return null;
+
+    // Only process ISqlValidator implementors
+    if (!const TypeChecker.fromRuntime(ISqlValidator)
+        .isAssignableFromType(type)) {
+      return null;
+    }
+
+    // ── Primary: read the `sql` final-field directly ──────────────────────
+    // Works for: `final String sql` fields and simple constant getters.
+    // Does NOT work for computed getters (if/else, method calls, etc.).
+    final sqlField = reader.peek('sql');
+    if (sqlField != null && !sqlField.isNull && sqlField.isString) {
+      final sql = sqlField.stringValue;
+      if (sql.isNotEmpty) return sql.replaceAll('{column}', columnName);
+    }
+
+    // ── Fallback: reconstruct IN clause from a `values` list field ────────
+    // Handles validators like ContainsValidator whose sql is computed at
+    // runtime from a list of allowed values that cannot be const-inlined.
+    final valuesObj = reader.objectValue.getField('values');
+    if (valuesObj != null && !valuesObj.isNull) {
+      final list = valuesObj.toListValue();
+      if (list != null && list.isNotEmpty) {
+        final formatted = list.map((v) {
+          final s = v.toStringValue();
+          if (s != null) return "'$s'";
+          final i = v.toIntValue();
+          if (i != null) return i.toString();
+          final d = v.toDoubleValue();
+          if (d != null) return d.toString();
+          return 'NULL';
+        }).join(', ');
+        return '$columnName IN ($formatted)';
       }
     }
 
     return null;
   }
 
-  num? _readNum(ConstantReader reader) {
-    if (reader.isNull) return null;
-    if (reader.isInt) return reader.intValue;
-    if (reader.isDouble) return reader.doubleValue;
-    return null;
-  }
+
 }
 
 class _ColumnResult {

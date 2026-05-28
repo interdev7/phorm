@@ -1,5 +1,7 @@
 import 'package:phorm_sqlite/phorm_sqlite.dart';
 
+import 'validators.dart';
+
 part 'user.sql.g.dart';
 
 late DB appDb;

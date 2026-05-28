@@ -1,8 +1,8 @@
 library phorm_annotations;
 
 export 'src/annotations.dart';
-export 'src/check_validators.dart';
 export 'src/columns.dart';
+export 'src/dialect.dart';
 export 'src/exceptions.dart';
 export 'src/executor.dart';
 export 'src/logger.dart';
