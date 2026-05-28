@@ -78,8 +78,8 @@ void main() {
     );
 
     // The SQL should contain a subquery for orders with only 'total'
-    expect(sql, contains("'total', orders.total"));
-    expect(sql, isNot(contains("'id', orders.id")));
+    expect(sql, contains("'total', \"orders\".\"total\""));
+    expect(sql, isNot(contains("'id', \"orders\".\"id\"")));
 
     final database = await db.database;
     final now = DateTime.now().toIso8601String();

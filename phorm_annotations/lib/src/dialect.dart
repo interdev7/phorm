@@ -1,3 +1,8 @@
+/// Parameter index holder to track sequential placeholders during SQL compilation.
+class ParamIndex {
+  int value = 1;
+}
+
 /// Interface defining SQL syntax generation rules for a specific database dialect.
 abstract class SqlDialect {
   /// Escapes identifiers such as tables or column names.
@@ -24,4 +29,27 @@ abstract class SqlDialect {
   /// SQLite: `(SELECT json_group_array(jsonObjectExpr) fromAndWhereClause)`
   /// Postgres: `coalesce((SELECT jsonb_agg(jsonObjectExpr) fromAndWhereClause), '[]'::jsonb)`
   String compileJsonArray(String jsonObjectExpr, String fromAndWhereClause);
+}
+
+/// Default dialect that does not escape identifiers and uses positional '?' placeholders.
+class NoEscapeDialect implements SqlDialect {
+  const NoEscapeDialect();
+
+  @override
+  String escapeIdentifier(String name) => name;
+
+  @override
+  String compilePlaceholder(int index) => '?';
+
+  @override
+  String compileJsonObject(Map<String, String> keyValues) {
+    if (keyValues.isEmpty) return 'json_object()';
+    final parts = keyValues.entries.map((e) => "'${e.key}', ${e.value}").join(', ');
+    return 'json_object($parts)';
+  }
+
+  @override
+  String compileJsonArray(String jsonObjectExpr, String fromAndWhereClause) {
+    return '(SELECT json_group_array($jsonObjectExpr) $fromAndWhereClause)';
+  }
 }

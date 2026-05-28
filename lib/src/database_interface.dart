@@ -2,7 +2,6 @@ import 'dart:async';
 
 import 'package:phorm_annotations/phorm_annotations.dart';
 
-import 'dialect.dart';
 
 /// Database engine conflict resolution algorithms.
 enum ConflictAlgorithm {

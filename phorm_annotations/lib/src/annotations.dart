@@ -29,6 +29,9 @@ abstract class ColumnBase {
   /// If you want to explicitly override the SQLite type (e.g. 'VARCHAR(255)', 'JSON'), set this field.
   final String? sqlType;
 
+  /// Concrete SQL type class definition (e.g. VARCHAR(256), DECIMAL(10, 2)).
+  final SqlType? type;
+
   /// Whether the column enforces uniqueness.
   ///
   /// Adds a UNIQUE constraint.
@@ -52,6 +55,7 @@ abstract class ColumnBase {
 
   const ColumnBase({
     this.sqlType,
+    this.type,
     this.columnName,
     this.unique = false,
     this.defaultValue,
@@ -67,6 +71,7 @@ abstract class ColumnBase {
 class Column extends ColumnBase {
   const Column({
     super.sqlType,
+    super.type,
     super.columnName,
     super.unique = false,
     super.defaultValue,
@@ -87,12 +92,14 @@ class ID extends ColumnBase {
 
   const ID({
     super.sqlType,
+    super.type,
     super.columnName,
     this.autoIncrement = false,
     super.unique = true,
     super.collate,
   });
 }
+
 
 /// Table-level schema configuration.
 class Schema {

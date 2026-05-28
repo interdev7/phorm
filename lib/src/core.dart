@@ -120,6 +120,13 @@ class PhormCore<T extends Model> implements IPhormCore<T> {
     return result;
   }
 
+  /// Safely builds the primary key WHERE clause using the active SQL dialect.
+  String _pkWhereClause() {
+    final escapedPk = dbManager.dialect.escapeIdentifier(table.primaryKey);
+    final placeholder = dbManager.dialect.compilePlaceholder(1);
+    return '$escapedPk = $placeholder';
+  }
+
   // -------------------------------------------------------
   // CRUD 📝
   // -------------------------------------------------------
@@ -161,7 +168,7 @@ class PhormCore<T extends Model> implements IPhormCore<T> {
       () => db.update(
         table.name,
         json,
-        where: '${table.primaryKey} = ?',
+        where: _pkWhereClause(),
         whereArgs: [item.toJson()[table.primaryKey]],
       ),
     );
@@ -207,7 +214,7 @@ class PhormCore<T extends Model> implements IPhormCore<T> {
         'DELETE FROM ${table.name}',
         [id],
         () => db.delete(table.name,
-            where: '${table.primaryKey} = ?', whereArgs: [id]),
+            where: _pkWhereClause(), whereArgs: [id]),
       );
       return res;
     }
@@ -217,7 +224,7 @@ class PhormCore<T extends Model> implements IPhormCore<T> {
       () => db.update(
         table.name,
         _prepareDataForDb({'deleted_at': DateTime.now().toIso8601String()}),
-        where: '${table.primaryKey} = ?',
+        where: _pkWhereClause(),
         whereArgs: [id],
       ),
     );
@@ -236,7 +243,7 @@ class PhormCore<T extends Model> implements IPhormCore<T> {
     final res = await db.update(
       table.name,
       _prepareDataForDb({'deleted_at': null}),
-      where: '${table.primaryKey} = ?',
+      where: _pkWhereClause(),
       whereArgs: [id],
     );
     return res;
@@ -279,7 +286,7 @@ class PhormCore<T extends Model> implements IPhormCore<T> {
           batch.update(
             table.name,
             _prepareDataForDb(item.toJson()),
-            where: '${table.primaryKey} = ?',
+            where: _pkWhereClause(),
             whereArgs: [item.toJson()[table.primaryKey]],
           );
         }
@@ -326,7 +333,7 @@ class PhormCore<T extends Model> implements IPhormCore<T> {
         if (!table.paranoid || force) {
           for (final id in ids) {
             batch.delete(table.name,
-                where: '${table.primaryKey} = ?', whereArgs: [id]);
+                where: _pkWhereClause(), whereArgs: [id]);
           }
         } else {
           for (final id in ids) {
@@ -334,7 +341,7 @@ class PhormCore<T extends Model> implements IPhormCore<T> {
               table.name,
               _prepareDataForDb(
                   {'deleted_at': DateTime.now().toIso8601String()}),
-              where: '${table.primaryKey} = ?',
+              where: _pkWhereClause(),
               whereArgs: [id],
             );
           }
@@ -363,7 +370,7 @@ class PhormCore<T extends Model> implements IPhormCore<T> {
           batch.update(
             table.name,
             _prepareDataForDb({'deleted_at': null}),
-            where: '${table.primaryKey} = ?',
+            where: _pkWhereClause(),
             whereArgs: [id],
           );
         }
@@ -460,6 +467,7 @@ class PhormCore<T extends Model> implements IPhormCore<T> {
 
   Map<String, String> _buildJsonObjectFields(
       Table currentTable, Attributes? attributes, List<Includable>? include) {
+    final d = dbManager.dialect;
     final relCols = attributes != null
         ? attributes.apply(currentTable.columns)
         : currentTable.columns;
@@ -467,10 +475,12 @@ class PhormCore<T extends Model> implements IPhormCore<T> {
 
     if (relCols.isNotEmpty) {
       for (final c in relCols) {
-        fields[c] = '${currentTable.name}.$c';
+        // Escape table.column for safe use in all dialects
+        fields[c] = d.escapeIdentifier('${currentTable.name}.$c');
       }
     } else {
-      fields['id'] = '${currentTable.name}.${currentTable.primaryKey}';
+      fields['id'] =
+          d.escapeIdentifier('${currentTable.name}.${currentTable.primaryKey}');
     }
 
     if (include == null || include.isEmpty) return fields;
@@ -495,32 +505,52 @@ class PhormCore<T extends Model> implements IPhormCore<T> {
 
       final subFields =
           _buildJsonObjectFields(relatedTable, inc.attributes, inc.include);
-      final subJsonObject = dbManager.dialect.compileJsonObject(subFields);
+      final subJsonObject = d.compileJsonObject(subFields);
 
       if (rel is HasMany) {
+        final escRelated = d.escapeIdentifier(relatedTable.name);
+        final escForeign =
+            d.escapeIdentifier('${relatedTable.name}.${rel.foreignKey}');
+        final escCurrent =
+            d.escapeIdentifier('${currentTable.name}.${rel.localKey}');
         final paranoidFilter = relatedTable.paranoid
-            ? ' AND ${relatedTable.name}.deleted_at IS NULL'
+            ? ' AND ${d.escapeIdentifier('${relatedTable.name}.deleted_at')} IS NULL'
             : '';
-        fields[relName] = dbManager.dialect.compileJsonArray(
+        fields[relName] = d.compileJsonArray(
           subJsonObject,
-          'FROM ${relatedTable.name} WHERE ${relatedTable.name}.${rel.foreignKey} = ${currentTable.name}.${rel.localKey}$paranoidFilter',
+          'FROM $escRelated WHERE $escForeign = $escCurrent$paranoidFilter',
         );
       } else if (rel is ManyToMany) {
+        final escRelated = d.escapeIdentifier(relatedTable.name);
+        final escPivot = d.escapeIdentifier(rel.pivotTable);
+        final escPivotRelated =
+            d.escapeIdentifier('${rel.pivotTable}.${rel.relatedKey}');
+        final escRelatedLocal =
+            d.escapeIdentifier('${relatedTable.name}.${rel.relatedLocalKey}');
+        final escPivotForeign =
+            d.escapeIdentifier('${rel.pivotTable}.${rel.foreignKey}');
+        final escCurrent =
+            d.escapeIdentifier('${currentTable.name}.${rel.localKey}');
         final paranoidFilter = relatedTable.paranoid
-            ? ' AND ${relatedTable.name}.deleted_at IS NULL'
+            ? ' AND ${d.escapeIdentifier('${relatedTable.name}.deleted_at')} IS NULL'
             : '';
-        fields[relName] = dbManager.dialect.compileJsonArray(
+        fields[relName] = d.compileJsonArray(
           subJsonObject,
-          'FROM ${relatedTable.name} INNER JOIN ${rel.pivotTable} ON ${rel.pivotTable}.${rel.relatedKey} = ${relatedTable.name}.${rel.relatedLocalKey} WHERE ${rel.pivotTable}.${rel.foreignKey} = ${currentTable.name}.${rel.localKey}$paranoidFilter',
+          'FROM $escRelated INNER JOIN $escPivot ON $escPivotRelated = $escRelatedLocal WHERE $escPivotForeign = $escCurrent$paranoidFilter',
         );
       } else {
+        final escRelated = d.escapeIdentifier(relatedTable.name);
+        final escForeign = d.escapeIdentifier(
+            '${relatedTable.name}.${rel is BelongsTo ? rel.localKey : rel.foreignKey}');
+        final escCurrent = d.escapeIdentifier(
+            '${currentTable.name}.${rel is BelongsTo ? rel.foreignKey : rel.localKey}');
         final paranoidFilter = relatedTable.paranoid
-            ? ' AND ${relatedTable.name}.deleted_at IS NULL'
+            ? ' AND ${d.escapeIdentifier('${relatedTable.name}.deleted_at')} IS NULL'
             : '';
         fields[relName] = '''
           (SELECT $subJsonObject 
-           FROM ${relatedTable.name} 
-           WHERE ${relatedTable.name}.${rel is BelongsTo ? rel.localKey : rel.foreignKey} = ${currentTable.name}.${rel is BelongsTo ? rel.foreignKey : rel.localKey}$paranoidFilter)
+           FROM $escRelated 
+           WHERE $escForeign = $escCurrent$paranoidFilter)
         ''';
       }
     }
@@ -568,23 +598,44 @@ class PhormCore<T extends Model> implements IPhormCore<T> {
         if (rel != null) {
           final relatedTable = _findTable(rel.model);
           if (relatedTable != null) {
+            final d = dbManager.dialect;
+            final escRelated = d.escapeIdentifier(relatedTable.name);
             if (rel is HasMany || rel is HasOne) {
+              final escForeign =
+                  d.escapeIdentifier('${relatedTable.name}.${rel.foreignKey}');
+              final escLocal =
+                  d.escapeIdentifier('${table.name}.${rel.localKey}');
               joins.add(
-                  'LEFT JOIN ${relatedTable.name} ON ${relatedTable.name}.${rel.foreignKey} = ${table.name}.${rel.localKey}');
+                  'LEFT JOIN $escRelated ON $escForeign = $escLocal');
             } else if (rel is BelongsTo) {
+              final escRelatedLocal =
+                  d.escapeIdentifier('${relatedTable.name}.${rel.localKey}');
+              final escForeign =
+                  d.escapeIdentifier('${table.name}.${rel.foreignKey}');
               joins.add(
-                  'LEFT JOIN ${relatedTable.name} ON ${relatedTable.name}.${rel.localKey} = ${table.name}.${rel.foreignKey}');
+                  'LEFT JOIN $escRelated ON $escRelatedLocal = $escForeign');
             } else if (rel is ManyToMany) {
+              final escPivot = d.escapeIdentifier(rel.pivotTable);
+              final escPivotForeign =
+                  d.escapeIdentifier('${rel.pivotTable}.${rel.foreignKey}');
+              final escLocal =
+                  d.escapeIdentifier('${table.name}.${rel.localKey}');
+              final escRelatedLocal = d.escapeIdentifier(
+                  '${relatedTable.name}.${rel.relatedLocalKey}');
+              final escPivotRelated =
+                  d.escapeIdentifier('${rel.pivotTable}.${rel.relatedKey}');
               joins
                 ..add(
-                    'LEFT JOIN ${rel.pivotTable} ON ${rel.pivotTable}.${rel.foreignKey} = ${table.name}.${rel.localKey}')
+                    'LEFT JOIN $escPivot ON $escPivotForeign = $escLocal')
                 ..add(
-                    'LEFT JOIN ${relatedTable.name} ON ${relatedTable.name}.${rel.relatedLocalKey} = ${rel.pivotTable}.${rel.relatedKey}');
+                    'LEFT JOIN $escRelated ON $escRelatedLocal = $escPivotRelated');
             }
           }
         }
       }
     }
+
+    final d = dbManager.dialect;
 
     // Main table fields
     List<String> effectiveColumns;
@@ -597,10 +648,12 @@ class PhormCore<T extends Model> implements IPhormCore<T> {
     }
 
     if (effectiveColumns.isEmpty) {
-      // Fallback to * if no columns specified (though table.columns should have them)
-      selectFields.add('${table.name}.*');
+      // Fallback: escape table name and use wildcard
+      selectFields.add('${d.escapeIdentifier(table.name)}.*');
     } else {
-      selectFields.addAll(effectiveColumns.map((c) => '${table.name}.$c'));
+      // Escape every table.column reference
+      selectFields.addAll(
+          effectiveColumns.map((c) => d.escapeIdentifier('${table.name}.$c')));
     }
 
     if (includeTotalCount) {
@@ -628,53 +681,75 @@ class PhormCore<T extends Model> implements IPhormCore<T> {
 
         final subFields =
             _buildJsonObjectFields(relatedTable, inc.attributes, inc.include);
-        final subJsonObject = dbManager.dialect.compileJsonObject(subFields);
+        final subJsonObject = d.compileJsonObject(subFields);
 
         if (rel is HasMany) {
+          final escRelated = d.escapeIdentifier(relatedTable.name);
+          final escForeign =
+              d.escapeIdentifier('${relatedTable.name}.${rel.foreignKey}');
+          final escLocal =
+              d.escapeIdentifier('${table.name}.${rel.localKey}');
           final paranoidFilter = relatedTable.paranoid
-              ? ' AND ${relatedTable.name}.deleted_at IS NULL'
+              ? ' AND ${d.escapeIdentifier('${relatedTable.name}.deleted_at')} IS NULL'
               : '';
           selectFields.add('''
-            ${dbManager.dialect.compileJsonArray(
+            ${d.compileJsonArray(
             subJsonObject,
-            'FROM ${relatedTable.name} WHERE ${relatedTable.name}.${rel.foreignKey} = ${table.name}.${rel.localKey}$paranoidFilter',
+            'FROM $escRelated WHERE $escForeign = $escLocal$paranoidFilter',
           )} AS $relName
           ''');
         } else if (rel is ManyToMany) {
+          final escRelated = d.escapeIdentifier(relatedTable.name);
+          final escPivot = d.escapeIdentifier(rel.pivotTable);
+          final escPivotRelated =
+              d.escapeIdentifier('${rel.pivotTable}.${rel.relatedKey}');
+          final escRelatedLocal = d.escapeIdentifier(
+              '${relatedTable.name}.${rel.relatedLocalKey}');
+          final escPivotForeign =
+              d.escapeIdentifier('${rel.pivotTable}.${rel.foreignKey}');
+          final escLocal =
+              d.escapeIdentifier('${table.name}.${rel.localKey}');
           final paranoidFilter = relatedTable.paranoid
-              ? ' AND ${relatedTable.name}.deleted_at IS NULL'
+              ? ' AND ${d.escapeIdentifier('${relatedTable.name}.deleted_at')} IS NULL'
               : '';
           selectFields.add('''
-            ${dbManager.dialect.compileJsonArray(
+            ${d.compileJsonArray(
             subJsonObject,
-            'FROM ${relatedTable.name} INNER JOIN ${rel.pivotTable} ON ${rel.pivotTable}.${rel.relatedKey} = ${relatedTable.name}.${rel.relatedLocalKey} WHERE ${rel.pivotTable}.${rel.foreignKey} = ${table.name}.${rel.localKey}$paranoidFilter',
+            'FROM $escRelated INNER JOIN $escPivot ON $escPivotRelated = $escRelatedLocal WHERE $escPivotForeign = $escLocal$paranoidFilter',
           )} AS $relName
           ''');
         } else {
           // BelongsTo or HasOne
+          final escRelated = d.escapeIdentifier(relatedTable.name);
+          final escForeign = d.escapeIdentifier(
+              '${relatedTable.name}.${rel is BelongsTo ? rel.localKey : rel.foreignKey}');
+          final escLocal = d.escapeIdentifier(
+              '${table.name}.${rel is BelongsTo ? rel.foreignKey : rel.localKey}');
           final paranoidFilter = relatedTable.paranoid
-              ? ' AND ${relatedTable.name}.deleted_at IS NULL'
+              ? ' AND ${d.escapeIdentifier('${relatedTable.name}.deleted_at')} IS NULL'
               : '';
           selectFields.add('''
             (SELECT $subJsonObject 
-             FROM ${relatedTable.name} 
-             WHERE ${relatedTable.name}.${rel is BelongsTo ? rel.localKey : rel.foreignKey} = ${table.name}.${rel is BelongsTo ? rel.foreignKey : rel.localKey}$paranoidFilter
+             FROM $escRelated 
+             WHERE $escForeign = $escLocal$paranoidFilter
             ) AS $relName
           ''');
         }
       }
     }
 
-    var query = 'SELECT ${selectFields.join(', ')} FROM ${table.name}';
+    final escTable = d.escapeIdentifier(table.name);
+    var query = 'SELECT ${selectFields.join(', ')} FROM $escTable';
     if (joins.isNotEmpty) {
       query += ' ${joins.toList().join(' ')}';
     }
     if (where != null && where.isNotEmpty) {
-      query += ' WHERE ${where.build()}';
+      query += ' WHERE ${where.build(d)}';
     }
 
     if (joins.isNotEmpty) {
-      query += ' GROUP BY ${table.name}.${table.primaryKey}';
+      query +=
+          ' GROUP BY ${d.escapeIdentifier('${table.name}.${table.primaryKey}')}'; 
     }
 
     if (sort != null) {
@@ -711,7 +786,7 @@ class PhormCore<T extends Model> implements IPhormCore<T> {
       [id, ...where.args],
       () => db.query(table.name,
           columns: [table.primaryKey],
-          where: where.build(),
+          where: where.build(dbManager.dialect),
           whereArgs: where.args,
           limit: 1),
     );
@@ -725,11 +800,16 @@ class PhormCore<T extends Model> implements IPhormCore<T> {
   Future<num> _aggregate(String function, String column,
       {WhereBuilder? where, DatabaseExecutor? executor}) async {
     final db = executor ?? await database;
+    final d = dbManager.dialect;
     final effectiveWhere = where?.copy() ?? WhereBuilder();
     if (table.paranoid && !effectiveWhere.hasConditionOn('deleted_at')) {
       effectiveWhere.isNull('${table.name}.deleted_at');
     }
-    var sql = 'SELECT $function($column) as val FROM ${table.name}';
+
+    // Escape the column name unless it's a wildcard (*)
+    final escColumn = column == '*' ? '*' : d.escapeIdentifier(column);
+    final escTable = d.escapeIdentifier(table.name);
+    var sql = 'SELECT $function($escColumn) as val FROM $escTable';
 
     // Add joins if WhereBuilder uses related tables
     if (effectiveWhere.isNotEmpty) {
@@ -751,18 +831,25 @@ class PhormCore<T extends Model> implements IPhormCore<T> {
         if (rel != null) {
           final relatedTable = _findTable(rel.model);
           if (relatedTable != null) {
+            final escRelated = d.escapeIdentifier(relatedTable.name);
             if (rel is HasMany || rel is HasOne) {
-              sql +=
-                  ' LEFT JOIN ${relatedTable.name} ON ${relatedTable.name}.${rel.foreignKey} = ${table.name}.${rel.localKey}';
+              final escForeign = d
+                  .escapeIdentifier('${relatedTable.name}.${rel.foreignKey}');
+              final escLocal =
+                  d.escapeIdentifier('${table.name}.${rel.localKey}');
+              sql += ' LEFT JOIN $escRelated ON $escForeign = $escLocal';
             } else if (rel is BelongsTo) {
-              sql +=
-                  ' LEFT JOIN ${relatedTable.name} ON ${relatedTable.name}.${rel.localKey} = ${table.name}.${rel.foreignKey}';
+              final escRelatedLocal =
+                  d.escapeIdentifier('${relatedTable.name}.${rel.localKey}');
+              final escForeign =
+                  d.escapeIdentifier('${table.name}.${rel.foreignKey}');
+              sql += ' LEFT JOIN $escRelated ON $escRelatedLocal = $escForeign';
             }
           }
         }
       }
 
-      sql += ' WHERE ${effectiveWhere.build()}';
+      sql += ' WHERE ${effectiveWhere.build(d)}';
     }
 
     final result = await dbManager.logAction(

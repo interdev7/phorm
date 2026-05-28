@@ -124,6 +124,13 @@ class MetadataExtractor {
       final explicitType = reader.peek('sqlType')?.stringValue;
       if (explicitType != null) return explicitType;
 
+      // 1.5. If explicit SqlType object is provided, parse it
+      final typeObj = reader.peek('type');
+      if (typeObj != null && !typeObj.isNull) {
+        final resolved = _resolveSqlTypeObject(typeObj);
+        if (resolved != null) return resolved;
+      }
+
       // 2. Check if there's a converter
       final info = getConverterInfo(field);
       if (info != null) {
@@ -237,6 +244,49 @@ class MetadataExtractor {
         return field.name[0].toUpperCase() + field.name.substring(1);
       default:
         return field.name;
+    }
+  }
+
+  static String? _resolveSqlTypeObject(ConstantReader typeReader) {
+    final type = typeReader.objectValue.type;
+    if (type == null) return null;
+    final className = type.element?.name;
+    if (className == null) return null;
+
+    switch (className) {
+      case 'VARCHAR':
+        final length = typeReader.peek('length')?.intValue ?? 255;
+        return 'VARCHAR($length)';
+      case 'TEXT':
+        return 'TEXT';
+      case 'INTEGER':
+        return 'INTEGER';
+      case 'BIGINT':
+        return 'BIGINT';
+      case 'BOOLEAN':
+        return 'BOOLEAN';
+      case 'REAL':
+        return 'REAL';
+      case 'DOUBLE':
+        return 'DOUBLE';
+      case 'DECIMAL':
+        final precision = typeReader.peek('precision')?.intValue ?? 10;
+        final scale = typeReader.peek('scale')?.intValue ?? 2;
+        return 'DECIMAL($precision, $scale)';
+      case 'DATE':
+        return 'DATE';
+      case 'TIME':
+        return 'TIME';
+      case 'TIMESTAMP':
+        return 'TIMESTAMP';
+      case 'JSON':
+        return 'JSON';
+      case 'JSONB':
+        return 'JSONB';
+      case 'BLOB':
+        return 'BLOB';
+      default:
+        return className.toUpperCase();
     }
   }
 }

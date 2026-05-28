@@ -3,6 +3,7 @@ import 'package:phorm_sqlite/phorm_sqlite.dart';
 import 'package:phorm_example/db.dart';
 
 import 'post.dart';
+import 'validators.dart';
 
 part 'user.sql.g.dart';
 

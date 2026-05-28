@@ -6,7 +6,6 @@ export 'package:phorm_annotations/phorm_annotations.dart';
 
 export 'src/core.dart';
 export 'src/database_interface.dart';
-export 'src/dialect.dart';
 export 'src/extensions.dart';
 export 'src/query.dart';
 export 'src/seeder.dart';
