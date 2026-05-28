@@ -274,3 +274,31 @@ SQLite does not have a native `BOOLEAN` type. PHORM stores them as `1` (true) an
 
 > [!NOTE]
 > Future drivers like `phorm_postgres` will map Booleans directly to PostgreSQL's native `boolean` type, handled transparently by its custom dialect.
+
+---
+
+### Schema & Generator Limitations
+
+#### Schema Generator is SQLite-Specific
+
+While PHORM's core runtime (Query Builder, Where Builder, Eager Loading) is fully database-agnostic and dynamically adapts to the active `SqlDialect` (handling identifier escaping and dynamic placeholders programmatically), the **code generator (`phorm_generator`) is currently SQLite-specific**.
+
+By default, the schema generator (`SqliteSchemaGenerator`):
+- Maps Dart data types directly to SQLite types (e.g., `DateTime` is mapped to `TEXT`).
+- Generates automatic update triggers for the `updated_at` column using the SQLite-specific `datetime('now')` syntax:
+  ```sql
+  CREATE TRIGGER update_users_timestamp
+  AFTER UPDATE ON users
+  FOR EACH ROW
+  BEGIN
+      UPDATE users SET updated_at = datetime('now') WHERE id = OLD.id;
+  END;
+  ```
+
+**Implication for future drivers:**
+If you plan to target PostgreSQL or MySQL in the future, the generated `Table.schema` string might not be fully compatible with their DDL syntax (as PostgreSQL uses `BEFORE UPDATE` triggers, custom functions, and the native `TIMESTAMP` type with `NOW()`). 
+
+To run PHORM against alternative databases, you will need to:
+1. Define your own custom table schemas DDL and migrations instead of relying on the generator's `Table.schema`.
+2. Use alternative/custom schema builders or define triggers manually at the database level.
+

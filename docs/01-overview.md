@@ -119,6 +119,11 @@ PHORM's modularity paves the way for cross-platform, enterprise-ready database a
 
 When a new driver is introduced, your declarative schemas `@Schema(...)` and code-generated services (like `Users`) remain **100% identical**. Only the database initialization (`DB` manager instantiation) changes!
 
+> [!NOTE]
+> **A Note on DDL Schemas:**
+> While your Dart models and generated database services remain identical and fully database-agnostic at runtime, the DDL table schema automatically emitted by the `phorm_generator` currently targets SQLite-specific constructs (such as mapped types and SQLite trigger syntax for timestamps). For other databases, manual schema definitions or custom migration scripts should be used.
+
+
 ---
 
 ## Package Structure

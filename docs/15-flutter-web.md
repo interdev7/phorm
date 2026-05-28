@@ -137,11 +137,11 @@ final db = DB(databaseName: ':memory:', version: 1, tables: [...]);
 
 The WASM binary is missing from your `web/` directory. Run Step 2 above.
 
-### `MissingPluginException` on web (when migrating from `sqflite`)
+### `MissingPluginException` on web (when using native libraries)
 
-If you are migrating to PHORM from standard `sqflite` (or `sqflite_common_ffi`), you might encounter a `MissingPluginException` on Web because those packages rely on native method channels which are not supported in browsers.
+If you are migrating to PHORM from platform-specific SQLite frameworks that rely on Flutter's native plugins, you might encounter a `MissingPluginException` on Web because standard platform channels are not supported in browsers.
 
-**Solution:** Ensure you are using `phorm_sqlite`'s `DB` class rather than standard `sqflite` APIs. You can safely remove the `sqflite` package from your dependencies. Note that you **must keep** `sqlite3_flutter_libs` (or `sqlcipher_flutter_libs` if using encryption) in your `pubspec.yaml` if your application also targets native platforms (iOS, Android, Desktop), as they are required to bundle the native SQLite binaries. They will be safely ignored when compiling for Web.
+**Solution:** Ensure you are using `phorm_sqlite`'s `DB` class which dynamically loads the SQLite WASM binary. If you use external native bindings, ensure they are excluded or conditionally imported for Web platforms. Note that you **must keep** `sqlite3_flutter_libs` (or `sqlcipher_flutter_libs` if using encryption) in your `pubspec.yaml` if your application also targets native platforms (iOS, Android, Desktop), as they are required to bundle the native SQLite binaries. They will be safely ignored when compiling for Web.
 
 ### `SharedArrayBuffer` warning in browser console
 
