@@ -157,7 +157,7 @@ class User extends Model with _$PhormUserMixin {
 
 ```dart
 // Service usage (No manual setup needed!)
-import 'user.sql.g.dart';
+import 'package:phorm_sqlite/phorm_sqlite.dart';
 
 // 1. Querying
 final users = await Users.where(Users.firstName.eq('John')).get();
@@ -171,10 +171,9 @@ final user = await Users.readOne('id123');
 
 ## Automatic Timestamp Fields
 
-When `timestamps: true` (default), the generator automatically adds the following fields to your `_$PhormClassNameMixin`:
+### `timestamps: true` injects fields into the generated mixin
 
-- `DateTime? createdAt`
-- `DateTime? updatedAt`
+The generator adds `created_at`, `updated_at` to the SQL schema **and** injects `DateTime? createdAt` / `DateTime? updatedAt` into the generated `_$PhormClassNameMixin` automatically. You do **not** need to declare them manually — they are accessible directly on your model via the mixin.
 
 If `paranoid: true` is enabled, it also adds:
 
@@ -322,9 +321,10 @@ extension doubleValuePhormColumnExtension on PhormColumn<int> {
 Provide `customSqlFunctions` when opening your database:
 
 ```dart
-final db = await DB.open(
-  path: 'path_to_db.db',
+final db = DB.autoVersion(
+  databaseName: 'path_to_db.db',
   customFunctions: customSqlFunctions,
+  tables: [usersTable],
 );
 ```
 

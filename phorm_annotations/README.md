@@ -23,9 +23,9 @@ Annotation library for declarative SQL table and schema definitions in **Dart**.
 ### 1. Annotate your model
 
 ```dart
-import 'lib/phorm_annotations.dart';
+import 'package:phorm_annotations/phorm_annotations.dart';
 
-part '../phorm_annotations/user.sql.g.dart';
+part 'user.sql.g.dart';
 
 @Schema(
   tableName: 'users',
@@ -183,11 +183,6 @@ Relationships define how models connect. They are used by `phorm` for automatic 
 )
 class User extends Model with _$PhormUserMixin { ... }
 ```
-
-- **`HasMany`**: One-to-Many (e.g., User has many Posts).
-- **`HasOne`**: One-to-One (e.g., User has one Profile).
-- **`BelongsTo`**: Many-to-One (e.g., Post belongs to User).
-- **`ManyToMany`**: Many-to-Many via a pivot table (e.g., User belongs to many Roles).
 
 ---
 
