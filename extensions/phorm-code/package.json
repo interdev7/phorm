@@ -1,0 +1,59 @@
+{
+  "name": "sqflow-dart",
+  "displayName": "SQFlow Dart",
+  "description": "Convert plain Dart classes to SQFlow ORM models",
+  "version": "0.0.1",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/interdev7/sqflow-dart.git"
+  },
+  "publisher": "sqflow",
+  "engines": {
+    "vscode": "^1.85.0"
+  },
+  "categories": [
+    "Other"
+  ],
+  "icon": "images/icon.png",
+  "activationEvents": [
+    "onLanguage:dart"
+  ],
+  "main": "./out/extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "sqflow.convertToModel",
+        "title": "To SQFlow Model",
+        "category": "SQFlow"
+      }
+    ],
+    "menus": {
+      "explorer/context": [
+        {
+          "command": "sqflow.convertToModel",
+          "when": "resourceExtname == .dart",
+          "group": "1_modification@99"
+        }
+      ],
+      "editor/context": [
+        {
+          "command": "sqflow.convertToModel",
+          "when": "editorLangId == dart",
+          "group": "1_modification@99"
+        }
+      ]
+    }
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run compile",
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./",
+    "package": "vsce package"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "@types/vscode": "^1.85.0",
+    "@vscode/vsce": "^2.22.0",
+    "typescript": "^5.3.0"
+  }
+}
