@@ -110,8 +110,6 @@ final paged = await userService.readAllWithCount(limit: 20);
 | `exists(id)`            | `Future<bool>`               | Check presence            |
 | `transaction(fn)`       | `Future<R>`                  | Raw transaction           |
 
-All methods have fire-and-forget variants: `insert(item, onSuccess: ..., onError: ...)`.
-
 ---
 
 ## WhereBuilder Highlights
