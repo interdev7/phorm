@@ -1,9 +1,10 @@
 name: phorm_sqlite
 description: The SQLite driver and connection manager implementation for the PHORM ORM.
 version: 1.0.0
-repository: https://github.com/interdev7/phorm_sqlite
-homepage: https://github.com/interdev7/phorm_sqlite
-issues: https://github.com/interdev7/phorm_sqlite/issues
+repository: https://github.com/interdev7/phorm
+homepage: https://github.com/interdev7/phorm/tree/main/phorm_sqlite
+issue_tracker: https://github.com/interdev7/phorm/issues
+license: MIT
 publish_to: none
 resolution: workspace
 
@@ -18,8 +19,6 @@ dependencies:
   path_provider: ^2.1.5
   phorm:
     path: ../phorm
-  phorm_annotations:
-    path: ../phorm_annotations
   sqlite3: ^2.9.4
   sqlite3_flutter_libs: ^0.5.0
   sqlite3_web: ^0.3.1
