@@ -54,7 +54,7 @@ dependencies:
 Create an instance of `DB` or `DB.autoVersion` to manage your SQLite connection:
 
 ```dart
-import 'lib/phorm_sqlite.dart';
+import 'package:phorm_sqlite/phorm_sqlite.dart';
 
 // Declare your tables (normally generated in .sql.g.dart)
 final usersTable = Table<User>(...);
@@ -133,7 +133,7 @@ In standard Flutter database setups, queries and subsequent data mapping (`fromJ
 SQLite allows executing custom logic inside SQL queries by registering Dart functions.
 
 ```dart
-import 'lib/phorm_sqlite.dart';
+import 'package:phorm_sqlite/phorm_sqlite.dart';
 
 // Create a custom reverse function
 final reverseFn = SqlFunction(

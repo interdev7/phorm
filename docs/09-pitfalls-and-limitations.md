@@ -192,9 +192,11 @@ When cross-table filtering generates a `LEFT JOIN`, `GROUP BY users.id` is autom
 
 ---
 
-### `timestamps: true` does not add Dart fields
+### `timestamps: true` automatically injects Dart fields via mixin
 
-The generator adds `created_at`, `updated_at` to the SQL schema when `timestamps: true`, but does **NOT** generate Dart fields for them automatically. Declare them manually if you need to read them in your code.
+The generator adds `created_at`, `updated_at` to the SQL schema **and** injects `DateTime? createdAt` / `DateTime? updatedAt` into the generated `_$PhormModelMixin`. You do **not** need to declare them manually — they are accessible directly on your model instance via the mixin.
+
+If you need to customize them (e.g. rename the column or add annotations), declare them manually in your class body — the generator will detect your manual declaration and skip generating the duplicate.
 
 ---
 

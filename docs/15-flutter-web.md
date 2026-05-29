@@ -160,7 +160,7 @@ For Flutter's built-in dev server, this is handled automatically by `flutter run
 
 | phorm_sqlite | sqlite3 | sqlite3_web | Dart SDK |
 | ------------ | ------- | ----------- | -------- |
-| 1.1.x        | ^2.9.4  | ^0.3.1      | >=3.5.0  |
+| 1.0.x        | ^2.9.4  | ^0.3.1      | >=3.5.0  |
 
 > **Note on sqlite3 3.x:**  
 > `sqlite3: ^3.x.x` requires Dart SDK `>=3.9.999` (not yet released as of May 2026).  
