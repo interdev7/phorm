@@ -1,11 +1,11 @@
-import 'package:sqflow_core/sqflow_core.dart';
-import 'package:sqflow_example/db.dart';
+import 'package:phorm/phorm.dart';
+import 'package:phorm_example/db.dart';
 import 'user.dart';
 
 part 'post.sql.g.dart';
 
 @Schema(tableName: 'posts')
-class Post extends Model with _$SQFlowPostMixin {
+class Post extends Model with _$PhormPostMixin {
   Post({
     required this.id,
     required this.title,
@@ -14,8 +14,7 @@ class Post extends Model with _$SQFlowPostMixin {
     this.user,
   });
 
-  factory Post.fromJson(Map<String, dynamic> json) =>
-      _$SQFlowPostFromJson(json);
+  factory Post.fromJson(Map<String, dynamic> json) => _$PhormPostFromJson(json);
 
   @ID()
   final String id;
@@ -29,7 +28,11 @@ class Post extends Model with _$SQFlowPostMixin {
   @Column()
   final String userId;
 
-  @Join(model: 'users', foreignKey: 'user_id')
+  @Join(
+    model: 'users',
+    foreignKey: 'user_id',
+    onDelete: ReferentialAction.cascade,
+  )
   final User? user;
 
   /// Beautiful API Showcase

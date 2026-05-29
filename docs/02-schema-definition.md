@@ -1,6 +1,6 @@
 # Schema Definition
 
-All schema configuration is done via annotations from `sqflow_platform_interface`. The `sqflow_generator` reads these annotations and generates the SQL schema, mixins, and serialization helpers.
+All schema configuration is done via annotations from `phorm_annotations`. The `phorm_generator` reads these annotations and generates the SQL schema, mixins, and serialization helpers.
 
 ---
 
@@ -22,28 +22,28 @@ Defines table-level configuration for a class.
     HasMany(model: Post, foreignKey: 'user_id'),
     HasOne(model: Profile, foreignKey: 'user_id'),
   ],
-  useToJson: true,    // Generate _$SQFlowClassToJson() (default: true)
-  useFromJson: true,  // Generate _$SQFlowClassFromJson() (default: true)
+  useToJson: true,    // Generate _$PhormClassToJson() (default: true)
+  useFromJson: true,  // Generate _$PhormClassFromJson() (default: true)
   useCopyWith: true,  // Generate copyWith() (default: true)
 )
-class User extends Model with _$SQFlowUserMixin { ... }
+class User extends Model with _$PhormUserMixin { ... }
 ```
 
 ### `@Schema` Parameters
 
-| Parameter       | Type                   | Default     | Description                      |
-| :-------------- | :--------------------- | :---------- | :------------------------------- |
-| `tableName`     | `String?`              | class name  | Explicit SQL table name          |
-| `paranoid`      | `bool`                 | `false`     | Soft delete support              |
-| `timestamps`    | `bool`                 | `true`      | Auto `created_at`/`updated_at`   |
-| `columnNaming`  | `ColumnNamingStrategy` | `snakeCase` | Field → column mapping strategy  |
-| `indexes`       | `List<Index>`          | `[]`        | Table indexes                    |
+| Parameter       | Type                   | Default     | Description                                           |
+| :-------------- | :--------------------- | :---------- | :---------------------------------------------------- |
+| `tableName`     | `String?`              | class name  | Explicit SQL table name                               |
+| `paranoid`      | `bool`                 | `false`     | Soft delete support                                   |
+| `timestamps`    | `bool`                 | `true`      | Auto `created_at`/`updated_at`                        |
+| `columnNaming`  | `ColumnNamingStrategy` | `snakeCase` | Field → column mapping strategy                       |
+| `indexes`       | `List<Index>`          | `[]`        | Table indexes                                         |
 | `relationships` | `List<Relationship>`   | `[]`        | `HasMany`, `HasOne`, `BelongsTo`/`Join`, `ManyToMany` |
-| `useToJson`     | `bool`                 | `true`      | Generate toJson mixin            |
-| `useFromJson`   | `bool`                 | `true`      | Generate fromJson helper         |
-| `useCopyWith`   | `bool`                 | `true`      | Generate copyWith method         |
-| `useValidator`  | `bool`                 | `true`      | Generate validate() method       |
-| `useToString`   | `bool`                 | `true`      | Generate toString() helper       |
+| `useToJson`     | `bool`                 | `true`      | Generate toJson mixin                                 |
+| `useFromJson`   | `bool`                 | `true`      | Generate fromJson helper                              |
+| `useCopyWith`   | `bool`                 | `true`      | Generate copyWith method                              |
+| `useValidator`  | `bool`                 | `true`      | Generate validate() method                            |
+| `useToString`   | `bool`                 | `true`      | Generate toString() helper                            |
 
 ### Column Naming Strategies
 
@@ -77,11 +77,11 @@ final String uid;
 
 ### Automatic Primary Key Resolution
 
-The `sqflow_generator` automatically identifies the primary key of your model by looking for the `@ID` annotation. 
+The `phorm_generator` automatically identifies the primary key of your model by looking for the `@ID` annotation.
 
 1. **SQL Schema**: It adds the `PRIMARY KEY` constraint to the corresponding column in the generated `CREATE TABLE` statement.
 2. **Table Configuration**: It automatically injects the `primaryKey` column name into the generated `Table` instance (e.g., `primaryKey: 'user_uid'`).
-3. **Runtime Support**: The `SqflowCore` engine uses `table.primaryKey` to perform ID-based lookups (`readOne`, `delete`, etc.), ensuring that custom primary key names work seamlessly.
+3. **Runtime Support**: The `PhormCore` engine uses `table.primaryKey` to perform ID-based lookups (`readOne`, `delete`, etc.), ensuring that custom primary key names work seamlessly.
 4. **Relationship Resolution**: Other models referencing this model via `BelongsTo` or `ManyToMany` will automatically use this primary key name for foreign key serialization.
 
 > [!NOTE]
@@ -89,14 +89,13 @@ The `sqflow_generator` automatically identifies the primary key of your model by
 
 ### `@ID` Parameters
 
-| Parameter       | Type      | Default  | Description                   |
-| :-------------- | :-------- | :------- | :---------------------------- |
-| `sqlType`       | `String?` | inferred | Explicit SQLite type override |
-| `autoIncrement` | `bool`    | `false`  | Auto-increment (for `int` PK) |
-| `unique`        | `bool`    | `true`   | Enforce uniqueness            |
-| `columnName`    | `String?` | `null`   | Override column name          |
-| `collate`       | `String?` | `null`   | SQLite collation (NOCASE, etc.)|
-
+| Parameter       | Type      | Default  | Description                     |
+| :-------------- | :-------- | :------- | :------------------------------ |
+| `sqlType`       | `String?` | inferred | Explicit SQLite type override   |
+| `autoIncrement` | `bool`    | `false`  | Auto-increment (for `int` PK)   |
+| `unique`        | `bool`    | `true`   | Enforce uniqueness              |
+| `columnName`    | `String?` | `null`   | Override column name            |
+| `collate`       | `String?` | `null`   | SQLite collation (NOCASE, etc.) |
 
 > [!WARNING]
 > `autoIncrement: true` only works with `int` fields (mapped to `INTEGER`). For string UUIDs, use `autoIncrement: false` (default).
@@ -144,14 +143,13 @@ final String bio;
 | `defaultValue` | `dynamic`           | `null`   | SQL `DEFAULT` value                  |
 | `validators`   | `List<IValidator>?` | `null`   | Value constraints (Check/Regex/etc.) |
 | `converter`    | `ValueConverter?`   | `null`   | Custom type transformer              |
-| `collate`      | `String?`          | `null`   | SQLite collation (NOCASE, etc.) |
-
+| `collate`      | `String?`           | `null`   | SQLite collation (NOCASE, etc.)      |
 
 ---
 
 ## Data Types
 
-SQFlow automatically infers the SQLite data type from your Dart field types. You generally do not need to specify `sqlType` manually.
+PHORM automatically infers the SQLite data type from your Dart field types. You generally do not need to specify `sqlType` manually.
 
 ### Automatic Mapping
 
@@ -212,7 +210,7 @@ Value Converters allow you to transform complex Dart types into simple types sup
 - **Support for any data type**: Store complex objects (Colors, Points, custom classes) in standard SQL columns.
 - **Encapsulation**: Keep transformation logic (like `jsonEncode`/`jsonDecode`) in one place instead of scattering it throughout your UI or service layers.
 - **Type Safety**: Work with strongly-typed objects in your Dart code while the converter handles the low-level SQL representation.
-- **Automatic Integration**: Sqflow automatically uses converters in `toJson()`, `fromJson()`, and database operations.
+- **Automatic Integration**: PHORM automatically uses converters in `toJson()`, `fromJson()`, and database operations.
 
 ### Creating a Converter
 
@@ -268,8 +266,8 @@ final Map<String, dynamic>? metadata;
 
 ### How it Works
 
-1.  **To Database**: When you save a model or call `toJson()`, SQFlow calls `converter.toSql()`.
-2.  **From Database**: When you read a model or call `fromJson()`, SQFlow calls `converter.fromSql()`.
+1.  **To Database**: When you save a model or call `toJson()`, PHORM calls `converter.toSql()`.
+2.  **From Database**: When you read a model or call `fromJson()`, PHORM calls `converter.fromSql()`.
 
 > [!IMPORTANT]
 > The converter must have a **`const`** constructor so it can be used inside the `@Column` annotation.
@@ -290,7 +288,7 @@ Validators allow you to enforce data integrity both in SQLite (via `CHECK` const
 final String status;
 ```
 
-For a full list of available validators and details on how they work, see the [Validators](file:///Users/interdev7/Documents/sqflow/docs/10-validators.md) documentation.
+For a full list of available validators and details on how they work, see the [Validators](file:///Users/interdev7/Documents/phorm/docs/10-validators.md) documentation.
 
 ---
 
@@ -322,7 +320,7 @@ Indexes dramatically speed up query performance on frequently filtered columns.
 ## Complete Model Example
 
 ```dart
-import 'package:sqflow_platform_interface/sqflow_platform_interface.dart';
+import 'package:phorm_annotations/phorm_annotations.dart';
 
 part 'user.sql.g.dart';
 
@@ -338,7 +336,7 @@ part 'user.sql.g.dart';
     HasMany(model: Order, foreignKey: 'user_id'),
   ],
 )
-class User extends Model with _$SQFlowUserMixin {
+class User extends Model with _$PhormUserMixin {
   @ID()
   @override
   final String id;
@@ -401,6 +399,6 @@ class User extends Model with _$SQFlowUserMixin {
 
   String get fullName => '$firstName $lastName';
 
-  factory User.fromJson(Map<String, dynamic> json) => _$SQFlowUserFromJson(json);
+  factory User.fromJson(Map<String, dynamic> json) => _$PhormUserFromJson(json);
 }
 ```

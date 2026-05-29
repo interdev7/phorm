@@ -1,15 +1,22 @@
-name: sqflow
-publish_to: "none"
-repository: https://github.com/interdev7/sqflow
-issue_tracker: https://github.com/interdev7/sqflow/issues
+name: phorm_workspace
+description: PHORM Workspace Root — A lightweight, type-safe, driver-agnostic ORM for Dart and Flutter.
+version: 1.0.0
+publish_to: none
 
 environment:
   sdk: ">=3.5.0 <4.0.0"
 
 workspace:
-  - sqflow_core
-  - sqflow_platform_interface
-  - sqflow_generator
+  - phorm
+  - phorm_annotations
+  - phorm_sqlite
+  - phorm_generator
+  - examples
+
+dependencies:
+  flutter:
+    sdk: flutter
 
 dev_dependencies:
+  flutter_lints: ^3.0.0
   very_good_analysis: ^8.0.0

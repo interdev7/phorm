@@ -1,6 +1,6 @@
 # Query Builder (Fluent API)
 
-SQFlow provides a fluent, type-safe query builder that allows you to chain conditions, sorting, and pagination in a readable way. This is the recommended way to perform read operations.
+PHORM provides a fluent, type-safe query builder that allows you to chain conditions, sorting, and pagination in a readable way. This is the recommended way to perform read operations.
 
 ---
 
@@ -9,6 +9,7 @@ SQFlow provides a fluent, type-safe query builder that allows you to chain condi
 You can start a query from any pluralized service class (e.g., `Users`, `Posts`).
 
 ### `.query`
+
 Returns an empty query builder.
 
 ```dart
@@ -16,6 +17,7 @@ final allUsers = await Users.query.get();
 ```
 
 ### `.where(condition)`
+
 Starts a query with an initial condition.
 
 ```dart
@@ -29,6 +31,7 @@ final activeUsers = await Users.where(Users.isActive.eq(true)).get();
 The query builder allows chaining multiple methods. Each method returns the query builder instance (`this`).
 
 ### `.where(condition)`
+
 Adds a filter condition. You can call it multiple times; conditions are joined with `AND`.
 
 ```dart
@@ -39,6 +42,7 @@ final result = await Users.query
 ```
 
 ### `.whereIf(flag, conditionBuilder)`
+
 Adds a filter condition only if the provided boolean `flag` is true. This helps avoid complex conditional blocks when constructing dynamic filters.
 
 ```dart
@@ -48,6 +52,7 @@ final result = await Users.query
 ```
 
 ### `.whereNotNull(value, conditionBuilder)`
+
 Adds a filter condition only if the provided `value` is not null. Extremely useful for handling optional query parameters or search filters.
 
 ```dart
@@ -57,6 +62,7 @@ final result = await Users.query
 ```
 
 ### `.orderBy(column, {bool descending = false})`
+
 Adds an `ORDER BY` clause.
 
 ```dart
@@ -66,6 +72,7 @@ final latestPosts = await Posts.query
 ```
 
 ### `.limit(count)` and `.offset(count)`
+
 Control pagination.
 
 ```dart
@@ -76,6 +83,7 @@ final page2 = await Users.query
 ```
 
 ### `.include(List<Includable> relations)`
+
 Eager-loads relationships.
 
 ```dart
@@ -86,6 +94,7 @@ final user = await Users.query
 ```
 
 ### `.attributes(Attributes attr)`
+
 Selects specific columns to reduce memory usage.
 
 ```dart
@@ -95,6 +104,7 @@ final names = await Users.query
 ```
 
 ### `.withDeleted()`
+
 Includes soft-deleted records in the result (only works if `paranoid: true` is enabled in the schema).
 
 ```dart
@@ -108,6 +118,7 @@ final allIncludingDeleted = await Users.query.withDeleted().get();
 There are two main methods to execute the query and fetch results.
 
 ### `.get()`
+
 Executes the query and returns a **`List<T>`**. If no records match, it returns an empty list.
 
 ```dart
@@ -115,6 +126,7 @@ List<User> users = await Users.query.where(Users.age.gt(18)).get();
 ```
 
 ### `.first()`
+
 Executes the query (automatically adding `LIMIT 1`) and returns the **first result** or **`null`** if no records match.
 
 ```dart
@@ -122,6 +134,7 @@ User? user = await Users.query.where(Users.email.eq('john@example.com')).first()
 ```
 
 ### `.count({Object? column})`
+
 Executes the query and returns the **total count of rows** matching the filtering conditions.
 
 ```dart
@@ -129,6 +142,7 @@ int activeCount = await Users.query.where(Users.isActive.isTrue()).count();
 ```
 
 ### `.getWithCount()`
+
 Executes the query with pagination and simultaneously returns the **current page of results** and the **total matching rows** (extremely useful for paginated lists).
 
 ```dart
@@ -137,6 +151,7 @@ print('Loaded ${result.data.length} of ${result.count}');
 ```
 
 ### Aggregations (`.sum()`, `.avg()`, `.min()`, `.max()`)
+
 Executes the respective SQL aggregations directly on the database level for the specified column:
 
 ```dart
@@ -173,13 +188,13 @@ final users = await Users.query
 
 ## Fluent API vs. Method-Based API
 
-| Feature | Fluent API (`Users.query...`) | Method API (`userService.readAll(...)`) |
-| :--- | :--- | :--- |
-| **Readability** | ✅ High (chains) | ⚠️ Moderate (many parameters) |
-| **Type Safety** | ✅ Full | ✅ Full |
-| **Total Count** | ✅ Supported via `.getWithCount()` | ✅ Supported via `readAllWithCount` |
-| **Aggregates** | ✅ Supported (`.count()`, `.sum()`, etc.) | ✅ Supported (`.count()`, `.sum()`, etc.) |
-| **Complexity** | Best for almost all query scenarios | Alternative fallback |
+| Feature         | Fluent API (`Users.query...`)             | Method API (`userService.readAll(...)`)   |
+| :-------------- | :---------------------------------------- | :---------------------------------------- |
+| **Readability** | ✅ High (chains)                          | ⚠️ Moderate (many parameters)             |
+| **Type Safety** | ✅ Full                                   | ✅ Full                                   |
+| **Total Count** | ✅ Supported via `.getWithCount()`        | ✅ Supported via `readAllWithCount`       |
+| **Aggregates**  | ✅ Supported (`.count()`, `.sum()`, etc.) | ✅ Supported (`.count()`, `.sum()`, etc.) |
+| **Complexity**  | Best for almost all query scenarios       | Alternative fallback                      |
 
 > [!TIP]
 > Use the **Fluent API** for the primary business logic of your application—it is far more expressive, flexible, and fully supports retrieval, aggregation, and pagination.

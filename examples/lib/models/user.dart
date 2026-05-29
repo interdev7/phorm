@@ -1,7 +1,9 @@
-import 'dart:convert';
-import 'package:sqflow_core/sqflow_core.dart'; // forced rebuild
-import 'package:sqflow_example/db.dart';
+import 'package:phorm/phorm.dart'; // forced rebuild
+import 'package:phorm_sqlite/phorm_sqlite.dart';
+import 'package:phorm_example/db.dart';
+
 import 'post.dart';
+import 'validators.dart';
 
 part 'user.sql.g.dart';
 
@@ -33,7 +35,7 @@ class IsNumberValidator implements IJsonValidator {
     ),
   ],
 )
-class User extends Model with _$SQFlowUserMixin {
+class User extends Model with _$PhormUserMixin {
   User({
     required this.id,
     required this.firstName,
@@ -55,8 +57,7 @@ class User extends Model with _$SQFlowUserMixin {
 
   final List<Post> posts;
 
-  factory User.fromJson(Map<String, dynamic> json) =>
-      _$SQFlowUserFromJson(json);
+  factory User.fromJson(Map<String, dynamic> json) => _$PhormUserFromJson(json);
   @ID(autoIncrement: false, unique: true)
   final String id;
 

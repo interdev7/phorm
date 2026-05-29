@@ -1,12 +1,11 @@
-import 'package:sqflow_core/sqflow_core.dart';
-
+import 'package:phorm_sqlite/phorm_sqlite.dart';
 
 import 'models/post.dart';
 import 'models/todo.dart';
 import 'models/user.dart';
 
 final appDb = DB.autoVersion(
-  databaseName: 'sqflow_showcase.db',
+  databaseName: 'phorm_showcase.db',
   tables: [
     usersTable,
     postsTable,

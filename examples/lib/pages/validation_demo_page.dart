@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:sqflow_core/sqflow_core.dart' hide Column;
-import 'package:sqflow_example/models/user.dart';
+import 'package:phorm/phorm.dart' hide Column;
+import 'package:phorm_example/models/user.dart';
 import 'package:uuid/uuid.dart';
 
 class ValidationDemoPage extends StatefulWidget {
@@ -11,7 +11,8 @@ class ValidationDemoPage extends StatefulWidget {
   State<ValidationDemoPage> createState() => _ValidationDemoPageState();
 }
 
-class _ValidationDemoPageState extends State<ValidationDemoPage> {
+class _ValidationDemoPageState extends State<ValidationDemoPage>
+    with SingleTickerProviderStateMixin {
   final _formKey = GlobalKey<FormState>();
 
   final _firstNameCtrl = TextEditingController();
@@ -29,14 +30,21 @@ class _ValidationDemoPageState extends State<ValidationDemoPage> {
   String? _errorMessage;
   String? _errorType;
 
+  late TabController _tabController;
+  List<User> _activeUsers = [];
+  List<User> _deletedUsers = [];
+  bool _isUsersLoading = false;
 
   @override
   void initState() {
     super.initState();
+    _tabController = TabController(length: 2, vsync: this);
+    _loadUsers();
   }
 
   @override
   void dispose() {
+    _tabController.dispose();
     _firstNameCtrl.dispose();
     _lastNameCtrl.dispose();
     _emailCtrl.dispose();
@@ -46,6 +54,82 @@ class _ValidationDemoPageState extends State<ValidationDemoPage> {
     _countryCtrl.dispose();
     _addressCtrl.dispose();
     super.dispose();
+  }
+
+  Future<void> _loadUsers() async {
+    setState(() => _isUsersLoading = true);
+    try {
+      final activeResult = await Users.readAll(limit: 100);
+      final deletedResult = await Users.readAll(limit: 100, onlyDeleted: true);
+      setState(() {
+        _activeUsers = activeResult.data;
+        _deletedUsers = deletedResult.data;
+      });
+    } catch (e) {
+      debugPrint('Error loading users: $e');
+    } finally {
+      setState(() => _isUsersLoading = false);
+    }
+  }
+
+  Future<void> _softDeleteUser(User user) async {
+    await Users.delete(user.id);
+    _loadUsers();
+  }
+
+  Future<void> _restoreUser(User user) async {
+    await Users.restore(user.id);
+    _loadUsers();
+  }
+
+  Future<void> _hardDeleteUser(User user) async {
+    try {
+      await Users.delete(user.id, force: true);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              'User "${user.firstName} ${user.lastName}" permanently deleted.',
+              style: GoogleFonts.inter(),
+            ),
+            backgroundColor: const Color(0xFF00C896),
+          ),
+        );
+      }
+      _loadUsers();
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            duration: const Duration(seconds: 5),
+            backgroundColor: const Color(0xFFFF6B6B),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    const Icon(Icons.warning_amber_rounded,
+                        color: Colors.white, size: 18),
+                    const SizedBox(width: 8),
+                    Text(
+                      'Integrity Error',
+                      style: GoogleFonts.inter(
+                          fontWeight: FontWeight.bold, color: Colors.white),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  'Cannot permanently delete this user because they have active posts in the Social Feed. SQLite foreign key constraint prevents orphaned records.',
+                  style: GoogleFonts.inter(color: Colors.white70, fontSize: 12),
+                ),
+              ],
+            ),
+          ),
+        );
+      }
+    }
   }
 
   Future<void> _submit() async {
@@ -79,13 +163,20 @@ class _ValidationDemoPageState extends State<ValidationDemoPage> {
             'User "${user.firstName} ${user.lastName}" created successfully!';
         _isLoading = false;
       });
-    } on SqflowJSONValidatorException catch (e) {
+      _loadUsers();
+      // Auto-switch to management tab upon successful user creation so they can see it instantly
+      Future.delayed(const Duration(milliseconds: 600), () {
+        if (mounted) {
+          _tabController.animateTo(1);
+        }
+      });
+    } on PhormJSONValidatorException catch (e) {
       setState(() {
         _errorType = 'JSON Validation (Dart-side)';
         _errorMessage = 'Constraint: ${e.constraint}\n${e.message}';
         _isLoading = false;
       });
-    } on SqflowCHECKValidatorException catch (e) {
+    } on PhormCHECKValidatorException catch (e) {
       setState(() {
         _errorType = 'CHECK Constraint (Dart-side)';
         _errorMessage = 'Constraint: ${e.constraint}\n${e.message}';
@@ -117,7 +208,7 @@ class _ValidationDemoPageState extends State<ValidationDemoPage> {
     _firstNameCtrl.text = 'Alice';
     _lastNameCtrl.text = 'Smith';
     _emailCtrl.text =
-        'NOT-AN-EMAIL'; // EmailValidator → SqflowJSONValidatorException
+        'NOT-AN-EMAIL'; // EmailValidator → PhormJSONValidatorException
     _phoneCtrl.text = '+359888123456';
     _birthDateCtrl.text = '1990-05-21';
     _cityCtrl.text = 'Sofia';
@@ -128,7 +219,7 @@ class _ValidationDemoPageState extends State<ValidationDemoPage> {
 
   void _fillInvalidCheck() {
     _firstNameCtrl.text =
-        'A'; // LengthValidator(min:2) → SqflowCHECKValidatorException
+        'A'; // LengthValidator(min:2) → PhormCHECKValidatorException
     _lastNameCtrl.text = 'Smith';
     _emailCtrl.text = 'alice2@example.com';
     _phoneCtrl.text = '+359888999000';
@@ -142,36 +233,39 @@ class _ValidationDemoPageState extends State<ValidationDemoPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: CustomScrollView(
-        slivers: [
+      body: NestedScrollView(
+        headerSliverBuilder: (ctx, _) => [
           _buildAppBar(),
-          SliverPadding(
-            padding: const EdgeInsets.fromLTRB(16, 0, 16, 100),
-            sliver: SliverList(
-              delegate: SliverChildListDelegate([
-                _buildInfoBanner(),
-                const SizedBox(height: 20),
-                _buildQuickFillRow(),
-                const SizedBox(height: 20),
-                _buildForm(),
-                const SizedBox(height: 20),
-                _buildResultPanel(),
-              ]),
-            ),
-          ),
         ],
+        body: TabBarView(
+          controller: _tabController,
+          children: [
+            _buildCreateTab(),
+            _buildManageTab(),
+          ],
+        ),
       ),
     );
   }
 
   Widget _buildAppBar() {
     return SliverAppBar(
-      expandedHeight: 140,
+      expandedHeight: 180,
       floating: false,
       pinned: true,
       backgroundColor: const Color(0xFF0F0F1A),
+      bottom: TabBar(
+        controller: _tabController,
+        indicatorColor: const Color(0xFF6C63FF),
+        labelColor: Colors.white,
+        unselectedLabelColor: Colors.white54,
+        tabs: const [
+          Tab(icon: Icon(Icons.edit_note), text: 'Create & Validate'),
+          Tab(icon: Icon(Icons.manage_accounts), text: 'Manage Users'),
+        ],
+      ),
       flexibleSpace: FlexibleSpaceBar(
-        titlePadding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+        titlePadding: const EdgeInsets.fromLTRB(16, 0, 16, 64),
         title: Column(
           mainAxisAlignment: MainAxisAlignment.end,
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -181,7 +275,7 @@ class _ValidationDemoPageState extends State<ValidationDemoPage> {
                     fontWeight: FontWeight.w700,
                     fontSize: 20,
                     color: Colors.white)),
-            Text('IJsonValidator · ICheckValidator · Exceptions',
+            Text('IJsonValidator · ISqlValidator · Exceptions',
                 style: GoogleFonts.inter(fontSize: 10, color: Colors.white54)),
           ],
         ),
@@ -194,7 +288,7 @@ class _ValidationDemoPageState extends State<ValidationDemoPage> {
             ),
           ),
           child: Padding(
-            padding: const EdgeInsets.fromLTRB(16, 48, 16, 16),
+            padding: const EdgeInsets.fromLTRB(16, 48, 16, 64),
             child: Align(
               alignment: Alignment.topRight,
               child: Icon(Icons.verified_user,
@@ -202,6 +296,232 @@ class _ValidationDemoPageState extends State<ValidationDemoPage> {
             ),
           ),
         ),
+      ),
+    );
+  }
+
+  Widget _buildCreateTab() {
+    return ListView(
+      padding: const EdgeInsets.fromLTRB(16, 16, 16, 100),
+      children: [
+        _buildInfoBanner(),
+        const SizedBox(height: 20),
+        _buildQuickFillRow(),
+        const SizedBox(height: 20),
+        _buildForm(),
+        const SizedBox(height: 20),
+        _buildResultPanel(),
+      ],
+    );
+  }
+
+  Widget _buildManageTab() {
+    if (_isUsersLoading && _activeUsers.isEmpty && _deletedUsers.isEmpty) {
+      return const Center(child: CircularProgressIndicator());
+    }
+
+    return ListView(
+      padding: const EdgeInsets.fromLTRB(16, 16, 16, 100),
+      children: [
+        _buildManageHeader(
+            'Active Users', _activeUsers.length, const Color(0xFF00C896)),
+        const SizedBox(height: 10),
+        if (_activeUsers.isEmpty)
+          _buildEmptyState('No active users found. Create one!')
+        else
+          ..._activeUsers.map((user) => _buildUserCard(user, isDeleted: false)),
+        const SizedBox(height: 30),
+        _buildManageHeader('Trash Bin (Soft Deleted)', _deletedUsers.length,
+            const Color(0xFFFF6B6B)),
+        const SizedBox(height: 10),
+        if (_deletedUsers.isEmpty)
+          _buildEmptyState('Trash bin is empty.')
+        else
+          ..._deletedUsers.map((user) => _buildUserCard(user, isDeleted: true)),
+      ],
+    );
+  }
+
+  Widget _buildManageHeader(String title, int count, Color color) {
+    return Row(
+      children: [
+        Container(
+          width: 4,
+          height: 16,
+          decoration: BoxDecoration(
+            color: color,
+            borderRadius: BorderRadius.circular(2),
+          ),
+        ),
+        const SizedBox(width: 8),
+        Text(
+          title,
+          style: GoogleFonts.inter(
+            fontSize: 14,
+            fontWeight: FontWeight.w700,
+            color: Colors.white,
+          ),
+        ),
+        const SizedBox(width: 8),
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+          decoration: BoxDecoration(
+            color: color.withOpacity(0.15),
+            borderRadius: BorderRadius.circular(10),
+          ),
+          child: Text(
+            count.toString(),
+            style: GoogleFonts.inter(
+              fontSize: 11,
+              fontWeight: FontWeight.w700,
+              color: color,
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildEmptyState(String message) {
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: const Color(0xFF1A1A2E).withOpacity(0.5),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Colors.white.withOpacity(0.05)),
+      ),
+      child: Center(
+        child: Text(
+          message,
+          textAlign: TextAlign.center,
+          style: GoogleFonts.inter(fontSize: 12, color: Colors.white38),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildUserCard(User user, {required bool isDeleted}) {
+    final genderColor = user.gender == 'F'
+        ? const Color(0xFFFC5C7D)
+        : user.gender == 'M'
+            ? const Color(0xFF4FACFE)
+            : const Color(0xFF6C63FF);
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: const Color(0xFF1A1A2E),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: isDeleted
+              ? const Color(0xFFFF6B6B).withOpacity(0.2)
+              : Colors.white.withOpacity(0.05),
+        ),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            width: 40,
+            height: 40,
+            decoration: BoxDecoration(
+              color: genderColor.withOpacity(0.15),
+              shape: BoxShape.circle,
+              border:
+                  Border.all(color: genderColor.withOpacity(0.3), width: 1.5),
+            ),
+            child: Center(
+              child: Text(
+                user.gender,
+                style: GoogleFonts.inter(
+                  fontWeight: FontWeight.w800,
+                  fontSize: 14,
+                  color: genderColor,
+                ),
+              ),
+            ),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  '${user.firstName} ${user.lastName}',
+                  style: GoogleFonts.inter(
+                    fontWeight: FontWeight.w700,
+                    fontSize: 14,
+                    color: Colors.white,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Row(
+                  children: [
+                    const Icon(Icons.email_outlined,
+                        size: 12, color: Colors.white38),
+                    const SizedBox(width: 4),
+                    Expanded(
+                      child: Text(
+                        user.email,
+                        overflow: TextOverflow.ellipsis,
+                        style: GoogleFonts.inter(
+                            fontSize: 12, color: Colors.white70),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 2),
+                Row(
+                  children: [
+                    const Icon(Icons.phone_outlined,
+                        size: 12, color: Colors.white38),
+                    const SizedBox(width: 4),
+                    Text(
+                      user.phone,
+                      style: GoogleFonts.inter(
+                          fontSize: 12, color: Colors.white70),
+                    ),
+                  ],
+                ),
+                if (user.city.isNotEmpty || user.country.isNotEmpty) ...[
+                  const SizedBox(height: 4),
+                  Row(
+                    children: [
+                      const Icon(Icons.location_on_outlined,
+                          size: 12, color: Colors.white38),
+                      const SizedBox(width: 4),
+                      Text(
+                        '${user.city}, ${user.country}',
+                        style: GoogleFonts.inter(
+                            fontSize: 11, color: Colors.white38),
+                      ),
+                    ],
+                  ),
+                ]
+              ],
+            ),
+          ),
+          const SizedBox(width: 8),
+          if (!isDeleted)
+            IconButton(
+              icon: const Icon(Icons.delete_outline, color: Color(0xFFFF6B6B)),
+              tooltip: 'Soft Delete User',
+              onPressed: () => _softDeleteUser(user),
+            )
+          else ...[
+            IconButton(
+              icon: const Icon(Icons.restore, color: Color(0xFF00C896)),
+              tooltip: 'Restore User',
+              onPressed: () => _restoreUser(user),
+            ),
+            IconButton(
+              icon: const Icon(Icons.delete_forever, color: Color(0xFFFF4B4B)),
+              tooltip: 'Hard Delete User (Permanent)',
+              onPressed: () => _hardDeleteUser(user),
+            ),
+          ]
+        ],
       ),
     );
   }
@@ -222,7 +542,7 @@ class _ValidationDemoPageState extends State<ValidationDemoPage> {
           const SizedBox(width: 10),
           Expanded(
             child: Text(
-              'Sqflow validates data on the Dart side before any DB write. '
+              'PHORM validates data on the Dart side before any DB write. '
               'Use the buttons below to trigger different exception types.',
               style: GoogleFonts.inter(
                   fontSize: 12, color: Colors.white70, height: 1.5),

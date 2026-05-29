@@ -2,9 +2,9 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:sqflow_core/sqflow_core.dart' hide Column;
-import 'package:sqflow_example/db.dart';
-import 'package:sqflow_example/models/todo.dart';
+import 'package:phorm/phorm.dart' hide Column;
+import 'package:phorm_example/db.dart';
+import 'package:phorm_example/models/todo.dart';
 import 'package:uuid/uuid.dart';
 
 class ReactiveTodoPage extends StatefulWidget {
@@ -41,7 +41,7 @@ class _ReactiveTodoPageState extends State<ReactiveTodoPage>
     _subscribeToChanges();
   }
 
-  /// Demonstrates: DB.onTableChanged stream — real-time reactivity
+  /// Demonstrates: DB.changeStream stream — real-time reactivity
   void _subscribeToChanges() {
     _sub = appDb.changeStream.listen((tableName) {
       if (tableName == 'tasks' || tableName == 'categories') {
@@ -80,10 +80,11 @@ class _ReactiveTodoPageState extends State<ReactiveTodoPage>
     // Active tasks filtered by category
     final active =
         await Tasks.where(Tasks.categoryId.eq(_selectedCategoryId!)).get();
-    // Demonstrates: onlyDeleted — reads paranoid soft-deleted rows
+    // Demonstrates: onlyDeleted — reads paranoid soft-deleted rows filtered by category
     final deleted = await Tasks.readAll(
       limit: 200,
       onlyDeleted: true,
+      where: WhereBuilder().eq('category_id', _selectedCategoryId!),
     );
     if (mounted) {
       setState(() {
@@ -99,7 +100,7 @@ class _ReactiveTodoPageState extends State<ReactiveTodoPage>
     _taskCtrl.clear();
     await Tasks.insert(
         Task(id: 0, title: title, categoryId: _selectedCategoryId!));
-    // onTableChanged stream fires → _loadTasks() runs automatically
+    // changeStream fires → _loadTasks() runs automatically
   }
 
   Future<void> _toggleComplete(Task task) async {

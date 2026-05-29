@@ -1,16 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-import 'package:sqflow_example/main.dart';
-import 'package:sqflow_example/pages/reactive_todo_page.dart';
-import 'package:sqflow_example/pages/social_feed_page.dart';
-import 'package:sqflow_example/pages/validation_demo_page.dart';
+import 'package:phorm_example/main.dart';
+import 'package:phorm_example/pages/reactive_todo_page.dart';
+import 'package:phorm_example/pages/social_feed_page.dart';
+import 'package:phorm_example/pages/validation_demo_page.dart';
 
 void main() {
-
-  testWidgets('SqflowShowcaseApp navigation smoke test', (WidgetTester tester) async {
+  testWidgets('PhormShowcaseApp navigation smoke test',
+      (WidgetTester tester) async {
     // Build our app and trigger a frame.
-    await tester.pumpWidget(const SqflowShowcaseApp());
+    await tester.pumpWidget(const PhormShowcaseApp());
 
     // Verify that the NavigationBar is present.
     expect(find.byType(NavigationBar), findsOneWidget);

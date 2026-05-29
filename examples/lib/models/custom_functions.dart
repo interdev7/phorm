@@ -1,4 +1,4 @@
-import 'package:sqflow_core/sqflow_core.dart';
+import 'package:phorm_sqlite/phorm_sqlite.dart';
 
 part 'custom_functions.fn.g.dart';
 
