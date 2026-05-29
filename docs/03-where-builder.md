@@ -74,7 +74,7 @@ Users.where(Users.city.ilike('%sofia%'))      // Case-insensitive contains
 ```
 
 > [!TIP]
-> `REGEXP` requires the `regexp` function to be registered in the database. SQFlow makes this extremely easy! Just pass `SqlFunction.regexp()` inside the `customFunctions` list when initializing `DB`:
+> `REGEXP` requires the `regexp` function to be registered in the database. PHORM makes this extremely easy! Just pass `SqlFunction.regexp()` inside the `customFunctions` list when initializing `DB`:
 >
 > ```dart
 > final db = DB(
@@ -168,7 +168,7 @@ Users.where(Users.isActive.isTrue())
 
 ### Date/Time Operations
 
-Dates in SQFlow are stored as ISO-8601 strings. These helpers extract the date or time part for comparison.
+Dates in PHORM are stored as ISO-8601 strings. These helpers extract the date or time part for comparison.
 
 ```dart
 // Date-only equality (ignores time)
@@ -213,7 +213,7 @@ WhereBuilder()
 
 ### Cross-Table Filtering (Dot Notation)
 
-When a filter references a related table column, SQFlow **automatically generates a `LEFT JOIN`**. No manual configuration needed.
+When a filter references a related table column, PHORM **automatically generates a `LEFT JOIN`**. No manual configuration needed.
 
 You can perform cross-table filtering in two ways:
 
@@ -267,20 +267,20 @@ WhereBuilder().raw('julianday("now") - julianday(created_at) > ?', [30]);
 ```
 
 > [!CAUTION]
-> The placeholder count (`?`) must **exactly match** the number of arguments. SQFlow validates this and throws `ArgumentError` if they don't match. Never interpolate user input into raw conditions.
+> The placeholder count (`?`) must **exactly match** the number of arguments. PHORM validates this and throws `ArgumentError` if they don't match. Never interpolate user input into raw conditions.
 
 ---
 
 ## Extension Methods (Conditional Helpers)
 
-Extension methods on `WhereBuilder` simplify handling dynamic search and filter forms with optional fields. They support passing either standard `String` column names or typed `SqflowColumn` instances.
+Extension methods on `WhereBuilder` simplify handling dynamic search and filter forms with optional fields. They support passing either standard `String` column names or typed `PhormColumn` instances.
 
 ### `.eqIfNotNull(column, value)`
 
 Adds an equality condition (`=`) only if the provided `value` is not null and not an empty string.
 
 ```dart
-// You can pass either a SqflowColumn or a String:
+// You can pass either a PhormColumn or a String:
 WhereBuilder().eqIfNotNull(Users.city, selectedCity);
 WhereBuilder().eqIfNotNull('city', selectedCity);
 ```

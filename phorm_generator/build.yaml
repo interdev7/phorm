@@ -1,0 +1,30 @@
+targets:
+  $default:
+    builders:
+      phorm_generator|standalone_sql_schema:
+        generate_for:
+          - lib/**/*.dart
+          - test/**/*.dart
+      phorm_generator|standalone_sql_function:
+        generate_for:
+          - lib/**/*.dart
+          - test/**/*.dart
+        options:
+          # header: "// GENERATED CODE - DO NOT MODIFY BY HAND\n"
+
+builders:
+  standalone_sql_schema:
+    import: "package:phorm_generator/builder.dart"
+    builder_factories: ["standaloneSqlSchemaBuilder"]
+    build_extensions: { ".dart": [".sql.g.dart"] }
+    auto_apply: dependents
+    build_to: source
+    applies_builders: ["source_gen|combining_builder"]
+
+  standalone_sql_function:
+    import: "package:phorm_generator/builder.dart"
+    builder_factories: ["standaloneSqlFunctionBuilder"]
+    build_extensions: { ".dart": [".fn.g.dart"] }
+    auto_apply: dependents
+    build_to: source
+    applies_builders: ["source_gen|combining_builder"]

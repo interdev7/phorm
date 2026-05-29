@@ -1,10 +1,10 @@
-# Code Generation (sqflow_generator)
+# Code Generation (phorm_generator)
 
-`sqflow_generator` is a `build_runner` plugin that reads your `@Schema` annotated classes and generates:
+`phorm_generator` is a `build_runner` plugin that reads your `@Schema` annotated classes and generates:
 
 - SQL `CREATE TABLE` statement with indexes
-- `_$SQFlowClassNameMixin` mixin with automatic `toJson()`, `toString()` and `copyWith()`
-- `_$SQFlowClassNameFromJson()` helper
+- `_$PhormClassNameMixin` mixin with automatic `toJson()`, `toString()` and `copyWith()`
+- `_$PhormClassNameFromJson()` helper
 - `ClassName` service class (e.g. `Users`) with static CRUD methods and type-safe columns
 
 ---
@@ -14,7 +14,7 @@
 ```yaml
 # pubspec.yaml
 dev_dependencies:
-  sqflow_generator: ^latest
+  phorm_generator: ^latest
   build_runner: ^latest
 ```
 
@@ -40,13 +40,13 @@ dart run build_runner watch --delete-conflicting-outputs
 For a file `lib/models/user.dart` with `part 'user.sql.g.dart';`, the generator produces `lib/models/user.sql.g.dart` containing:
 
 ```dart
-mixin _$SQFlowUserMixin {
+mixin _$PhormUserMixin {
   // toJson — automatic TOP-LEVEL serialization
-  Map<String, dynamic> toJson() => _$SQFlowUserToJson(this as User);
+  Map<String, dynamic> toJson() => _$PhormUserToJson(this as User);
 
   // toString — automatic implementation for debugging
   @override
-  String toString() => _$SQFlowUserToString(this as User);
+  String toString() => _$PhormUserToString(this as User);
 
   // copyWith — immutable update pattern
   User copyWith({
@@ -73,14 +73,14 @@ This class is the primary API for your model.
 ```dart
 class Users {
   // Type-safe columns for queries
-  static const id = SqflowColumn<String>('id');
-  static const firstName = SqflowColumn<String>('first_name');
+  static const id = PhormColumn<String>('id');
+  static const firstName = PhormColumn<String>('first_name');
   ...
 
   // Static CRUD methods
   static Future<int> insert(User item) => ...;
   static Future<User?> read(Object id) => ...;
-  static SqflowQuery<User> where(SqflowCondition c) => ...;
+  static PhormQuery<User> where(PhormCondition c) => ...;
   ...
 }
 ```
@@ -88,7 +88,7 @@ class Users {
 ### Generated `fromJson` Helper
 
 ```dart
-User _$SQFlowUserFromJson(Map<String, dynamic> json) => User(
+User _$PhormUserFromJson(Map<String, dynamic> json) => User(
   id: json['id'] as String,
   firstName: json['first_name'] as String,
   isActive: (json['is_active'] as int?) == 1,
@@ -116,7 +116,7 @@ final usersTable = Table<User>(
     CREATE UNIQUE INDEX idx_users_email ON users(email);
     CREATE INDEX idx_users_name ON users(first_name, last_name);
   ''',
-  fromJson: _$SQFlowUserFromJson,
+  fromJson: _$PhormUserFromJson,
   primaryKey: 'id', // Resolved from @ID annotation (e.g. 'custom_id')
   paranoid: true,
   timestamps: true,
@@ -139,7 +139,7 @@ part 'user.sql.g.dart';
   tableName: 'users',
   paranoid: true,
 )
-class User extends Model with _$SQFlowUserMixin {
+class User extends Model with _$PhormUserMixin {
   @ID()
   final String id;
 
@@ -151,13 +151,13 @@ class User extends Model with _$SQFlowUserMixin {
     required this.firstName,
   });
 
-  factory User.fromJson(Map<String, dynamic> json) => _$SQFlowUserFromJson(json);
+  factory User.fromJson(Map<String, dynamic> json) => _$PhormUserFromJson(json);
 }
 ```
 
 ```dart
 // Service usage (No manual setup needed!)
-import 'user.sql.g.dart';
+import 'package:phorm_sqlite/phorm_sqlite.dart';
 
 // 1. Querying
 final users = await Users.where(Users.firstName.eq('John')).get();
@@ -171,10 +171,9 @@ final user = await Users.readOne('id123');
 
 ## Automatic Timestamp Fields
 
-When `timestamps: true` (default), the generator automatically adds the following fields to your `_$SQFlowClassNameMixin`:
+### `timestamps: true` injects fields into the generated mixin
 
-- `DateTime? createdAt`
-- `DateTime? updatedAt`
+The generator adds `created_at`, `updated_at` to the SQL schema **and** injects `DateTime? createdAt` / `DateTime? updatedAt` into the generated `_$PhormClassNameMixin` automatically. You do **not** need to declare them manually — they are accessible directly on your model via the mixin.
 
 If `paranoid: true` is enabled, it also adds:
 
@@ -199,11 +198,11 @@ You can disable specific generated code parts:
 ```dart
 @Schema(
   tableName: 'users',
-  useToJson: false,   // Don't generate _$SQFlowUserToJson
-  useFromJson: false, // Don't generate _$SQFlowUserFromJson
+  useToJson: false,   // Don't generate _$PhormUserToJson
+  useFromJson: false, // Don't generate _$PhormUserFromJson
   useCopyWith: false, // Don't generate copyWith
 )
-class User extends Model with _$SQFlowUserMixin { ... }
+class User extends Model with _$PhormUserMixin { ... }
 ```
 
 This is useful when you have custom serialization logic that conflicts with generated code.
@@ -230,31 +229,32 @@ The generator does not automatically detect changes in non-annotated files (like
 dart run build_runner build --delete-conflicting-outputs
 ```
 
-### `_$SQFlowUserMixin` not found
+### `_$PhormUserMixin` not found
 
 Make sure:
 
 1. The file has `part 'user.sql.g.dart';`
-2. The class has `with _$SQFlowUserMixin` (capital `SQ`, capital `F`, capital `U`)
+2. The class has `with _$PhormUserMixin` (capital `SQ`, capital `F`, capital `U`)
 3. The generator has been run successfully
 
 > [!NOTE]
-> The generated mixin name follows the pattern: `_$SQFlow` + `ClassName` + `Mixin`.
-> For `class MyModel` → `_$SQFlowMyModelMixin`
-> For `class UserProfile` → `_$SQFlowUserProfileMixin`
+> The generated mixin name follows the pattern: `_$Phorm` + `ClassName` + `Mixin`.
+> For `class MyModel` → `_$PhormMyModelMixin`
+> For `class UserProfile` → `_$PhormUserProfileMixin`
 
 ---
 
 ## Custom SQL Functions Code Generation (`@SqlFunc`)
 
-`sqflow_generator` also provides an automatic code generator for your custom SQLite functions, eliminating all boilerplate (such as manual registry creation, column extensions, and argument casting).
+`phorm_generator` also provides an automatic code generator for your custom SQLite functions, eliminating all boilerplate (such as manual registry creation, column extensions, and argument casting).
 
 ### 1. Annotate Top-Level Dart Functions
+
 Write regular Dart functions containing your custom SQLite function logic and annotate them with `@SqlFunc`:
 
 ```dart
 // lib/models/custom_functions.dart
-import 'package:sqflow_core/sqflow_core.dart';
+import 'package:phorm/phorm.dart';
 
 part 'custom_functions.fn.g.dart';
 
@@ -272,6 +272,7 @@ int? doubleValue(int? val) {
 ```
 
 ### 2. Generate
+
 Run `build_runner`. The generator creates a standalone `.fn.g.dart` file (e.g. `custom_functions.fn.g.dart`):
 
 > [!NOTE]
@@ -300,33 +301,36 @@ final customSqlFunctions = [
 ];
 
 // Type-safe column extensions for custom SQL functions
-extension toSlugSqflowColumnExtension on SqflowColumn<String> {
+extension toSlugPhormColumnExtension on PhormColumn<String> {
   /// Applies the custom SQL function `TO_SLUG` to this column.
-  SqflowColumn<String> toSlug() {
+  PhormColumn<String> toSlug() {
     return sqlFunction<String>('TO_SLUG');
   }
 }
 
-extension doubleValueSqflowColumnExtension on SqflowColumn<int> {
+extension doubleValuePhormColumnExtension on PhormColumn<int> {
   /// Applies the custom SQL function `DOUBLE` to this column.
-  SqflowColumn<int> doubleValue() {
+  PhormColumn<int> doubleValue() {
     return sqlFunction<int>('DOUBLE');
   }
 }
 ```
 
 ### 3. Register Custom Functions in Database
+
 Provide `customSqlFunctions` when opening your database:
 
 ```dart
-final db = await DB.open(
-  path: 'path_to_db.db',
+final db = DB.autoVersion(
+  databaseName: 'path_to_db.db',
   customFunctions: customSqlFunctions,
+  tables: [usersTable],
 );
 ```
 
 ### 4. Query Type-Safely
-The generated extension methods allow calling your custom SQL functions directly on matching `SqflowColumn` instances:
+
+The generated extension methods allow calling your custom SQL functions directly on matching `PhormColumn` instances:
 
 ```dart
 // Type-safe query!
@@ -339,42 +343,48 @@ final doubledUsers = await Users.where(
 ).get();
 ```
 
-If you try to call `.doubleValue()` on a `SqflowColumn<String>`, Dart will produce a compile-time error!
+If you try to call `.doubleValue()` on a `PhormColumn<String>`, Dart will produce a compile-time error!
 
 ---
 
 ## Advanced Features & Code Generation Details
 
-The `sqflow_generator` produces highly optimized, clean, and warning-free Dart code by employing smart static analysis.
+The `phorm_generator` produces highly optimized, clean, and warning-free Dart code by employing smart static analysis.
 
 ### 1. Smart Validation Code Generation
+
 To keep the generated files lightweight, **validation methods (`_$validate[ClassName]`) are generated dynamically**:
-* If a model class has **no validators** defined on any of its fields, the generator completely omits the helper `_$validate[ClassName]` function and its execution call inside `toJson()`.
-* This ensures that generated files stay clean and strictly relevant, avoiding any unused validation boilerplate.
+
+- If a model class has **no validators** defined on any of its fields, the generator completely omits the helper `_$validate[ClassName]` function and its execution call inside `toJson()`.
+- This ensures that generated files stay clean and strictly relevant, avoiding any unused validation boilerplate.
 
 ### 2. Elimination of Unused Helper Utilities
+
 The generator performs a static scan of the class attributes and relationships to keep the output pristine:
-* The JSON decoder helper `_$SQFlowDecodeJson` is omitted if it isn't referenced by any custom deserialization rules.
-* Unnecessary `_$SQFlowToJsonValue` helper declarations are excluded when no complex type conversions or collection fields are present in the schema.
+
+- The JSON decoder helper `_$PhormDecodeJson` is omitted if it isn't referenced by any custom deserialization rules.
+- Unnecessary `_$PhormToJsonValue` helper declarations are excluded when no complex type conversions or collection fields are present in the schema.
 
 ### 3. Explicit Type Arguments for Generic Models
+
 For generic model classes (e.g. `class ApiResponse<T>`), the generated Pluralized Service (e.g., `class ApiResponses`) uses explicit type arguments:
+
 ```dart
-class ApiResponses extends SqflowCore<ApiResponse<dynamic>> { ... }
+class ApiResponses extends PhormCore<ApiResponse<dynamic>> { ... }
 ```
-This ensures complete type safety and avoids compiler warnings (*The generic type 'ApiResponse<dynamic>' should have explicit type arguments but doesn't*).
+
+This ensures complete type safety and avoids compiler warnings (_The generic type 'ApiResponse<dynamic>' should have explicit type arguments but doesn't_).
 
 ### 4. Overriding Column Names vs Global Strategies
+
 When a `@Schema` defines a global column naming strategy (e.g., `columnNaming: ColumnNamingStrategy.snakeCase`), specific fields can still be overridden using a per-field level configuration:
+
 ```dart
 @Column(columnName: 'userId')
 final String userId;
 ```
+
 Direct `columnName` overrides have the **highest priority** and are strictly preserved exactly as defined. This allows seamless mapping of backend payload keys to local properties while maintaining global naming strategy conventions.
 
 > [!TIP]
 > **Best Practice for API Integration:** If your application communicates with backend APIs or other external services, it is highly recommended to establish unified property naming conventions across your frontend models, database schemas, and backend payloads. Aligning these names beforehand minimizes manual mapping boilerplate, simplifies code maintenance, and prevents any property-naming confusion.
-
-
-
-

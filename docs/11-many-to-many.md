@@ -26,10 +26,10 @@ A User can have many Roles, and a Role can be assigned to many Users.
     ),
   ],
 )
-class User extends Model with _$SQFlowUserMixin {
+class User extends Model with _$PhormUserMixin {
   @ID()
   final String id;
-  
+
   @Column()
   final String name;
 
@@ -37,8 +37,8 @@ class User extends Model with _$SQFlowUserMixin {
   final List<Role> roles;
 
   User({required this.id, required this.name, this.roles = const []});
-  
-  factory User.fromJson(Map<String, dynamic> json) => _$SQFlowUserFromJson(json);
+
+  factory User.fromJson(Map<String, dynamic> json) => _$PhormUserFromJson(json);
 }
 
 @Schema(
@@ -52,7 +52,7 @@ class User extends Model with _$SQFlowUserMixin {
     ),
   ],
 )
-class Role extends Model with _$SQFlowRoleMixin {
+class Role extends Model with _$PhormRoleMixin {
   @ID()
   final String id;
 
@@ -63,7 +63,7 @@ class Role extends Model with _$SQFlowRoleMixin {
 
   Role({required this.id, required this.title, this.users = const []});
 
-  factory Role.fromJson(Map<String, dynamic> json) => _$SQFlowRoleFromJson(json);
+  factory Role.fromJson(Map<String, dynamic> json) => _$PhormRoleFromJson(json);
 }
 ```
 
@@ -72,7 +72,7 @@ class Role extends Model with _$SQFlowRoleMixin {
 ## The Pivot Table
 
 > [!IMPORTANT]
-> **Manual Setup Required**: `sqflow_generator` does **not** automatically generate the SQL for the pivot table. You must define it yourself in a migration or in the `schema` string of one of your models.
+> **Manual Setup Required**: `phorm_generator` does **not** automatically generate the SQL for the pivot table. You must define it yourself in a migration or in the `schema` string of one of your models.
 
 ### Recommended Pivot Table Schema
 
@@ -142,18 +142,19 @@ final user = await Users.readOne('u1', include: [
 
 ## Filtering by Many-to-Many
 
-You can filter records based on columns in the related table using dot notation. SQFlow will automatically generate a `LEFT JOIN` through the pivot table.
+You can filter records based on columns in the related table using dot notation. PHORM will automatically generate a `LEFT JOIN` through the pivot table.
 
 ```dart
 // Find all users who have the 'Admin' role
 final admins = await Users.where(
-  const SqflowColumn<String>('roles.title').eq('Admin')
+  const PhormColumn<String>('roles.title').eq('Admin')
 ).get();
 ```
 
 **Generated SQL:**
+
 ```sql
-SELECT users.* 
+SELECT users.*
 FROM users
 LEFT JOIN user_roles ON user_roles.user_id = users.id
 LEFT JOIN roles ON roles.id = user_roles.role_id
@@ -165,10 +166,10 @@ GROUP BY users.id
 
 ## How It Works (JSON Aggregation)
 
-When you include a `ManyToMany` relationship, SQFlow performs a correlated subquery using `json_group_array` and `json_object`.
+When you include a `ManyToMany` relationship, PHORM performs a correlated subquery using `json_group_array` and `json_object`.
 
 ```sql
-SELECT 
+SELECT
   users.*,
   (SELECT json_group_array(json_object('id', roles.id, 'title', roles.title))
    FROM roles
@@ -183,11 +184,11 @@ This approach allows fetching all many-to-many relationships in a **single query
 
 ## Parameters Reference
 
-| Parameter | Type | Required | Description |
-| :--- | :--- | :--- | :--- |
-| `model` | `Type` or `String` | Yes | The related model class or table name |
-| `pivotTable` | `String` | Yes | Name of the join table |
-| `foreignKey` | `String` | Yes | Column in `pivotTable` pointing to the current model |
-| `relatedKey` | `String` | Yes | Column in `pivotTable` pointing to the related model |
-| `localKey` | `String` | No | Column in current table referenced by `foreignKey` (default: `id`) |
-| `relatedLocalKey` | `String` | No | Column in related table referenced by `relatedKey` (default: `id`) |
+| Parameter         | Type               | Required | Description                                                        |
+| :---------------- | :----------------- | :------- | :----------------------------------------------------------------- |
+| `model`           | `Type` or `String` | Yes      | The related model class or table name                              |
+| `pivotTable`      | `String`           | Yes      | Name of the join table                                             |
+| `foreignKey`      | `String`           | Yes      | Column in `pivotTable` pointing to the current model               |
+| `relatedKey`      | `String`           | Yes      | Column in `pivotTable` pointing to the related model               |
+| `localKey`        | `String`           | No       | Column in current table referenced by `foreignKey` (default: `id`) |
+| `relatedLocalKey` | `String`           | No       | Column in related table referenced by `relatedKey` (default: `id`) |

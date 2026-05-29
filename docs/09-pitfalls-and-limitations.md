@@ -1,6 +1,6 @@
 # Known Limitations & Pitfalls
 
-This page documents the known limitations, gotchas, and design trade-offs in SQFlow. Understanding these will help you avoid surprises in production.
+This page documents the known limitations, gotchas, and design trade-offs in PHORM. Understanding these will help you avoid surprises in production.
 
 ---
 
@@ -55,10 +55,12 @@ No error is thrown at build time. The generated SQL will reference a table that 
 
 The `REGEXP` operator (and other custom SQL functions) is **not available** in standard `sqlite3` builds by default. Using `.regexp()` or custom functions without setup will throw a `DatabaseException` at runtime.
 
-However, SQFlow provides an elegant built-in way to register custom SQL functions and regular expressions via the `SqlFunction` utility.
+However, PHORM provides an elegant built-in way to register custom SQL functions and regular expressions via the `SqlFunction` utility.
 
 #### How to configure:
+
 1. Provide `customFunctions` when initializing your `DB` manager:
+
 ```dart
 final db = DB(
   databaseName: 'app.db',
@@ -79,6 +81,7 @@ final db = DB(
 ```
 
 2. Once registered, these functions are fully available inside isolate database sessions, custom raw queries, and `WhereBuilder` clauses:
+
 ```dart
 // 1. Using built-in regexp helper
 final users = await userService.readAll(
@@ -96,7 +99,7 @@ final olderUsers = await userService.readAll(
 ### `SortBuilder` requires joined tables for dot notation
 
 ```dart
-SortBuilder().asc('orders.created_at'); 
+SortBuilder().asc('orders.created_at');
 ```
 
 While `SortBuilder` supports dot notation, the query will fail at runtime if the `orders` table is not joined. Joins are automatically triggered by adding a condition on the related table in `WhereBuilder`.
@@ -108,6 +111,7 @@ While `SortBuilder` supports dot notation, the query will fail at runtime if the
 ### `upsert` deletes and re-inserts rows
 
 SQLite's `INSERT OR REPLACE` deletes the existing row and inserts a new one when there's a conflict. This means:
+
 - The internal `rowid` changes.
 - `ON DELETE CASCADE` foreign key constraints may trigger.
 - Any columns not present in `toJson()` are lost.
@@ -140,7 +144,7 @@ await db.transaction((txn) async {
 
 ### Timestamps are always UTC
 
-`DateTime.now().toIso8601String()` produces a local time string without timezone info. If your app uses multiple timezones, consider using `DateTime.now().toUtc().toIso8601String()` in your models manually, since SQFlow injects `DateTime.now()` directly.
+`DateTime.now().toIso8601String()` produces a local time string without timezone info. If your app uses multiple timezones, consider using `DateTime.now().toUtc().toIso8601String()` in your models manually, since PHORM injects `DateTime.now()` directly.
 
 ---
 
@@ -151,6 +155,7 @@ await db.transaction((txn) async {
 When using eager loading (`include`), the generated subquery does NOT filter by `deleted_at`. If your related records use soft deletes, deleted ones will appear in the `HasMany` list.
 
 **Workaround:** Filter them out in Dart after fetching:
+
 ```dart
 user.orders.where((o) => o.deletedAt == null).toList()
 ```
@@ -166,6 +171,7 @@ The generator sets up the model-to-table mapping automatically. Only a concern w
 ### `HasMany` performance on large datasets
 
 JSON aggregation with `json_group_array` builds the entire related collection in-memory within SQLite. For large `HasMany` relationships (thousands of rows), consider:
+
 1. Using `Attributes.include(...)` on the relationship to limit columns.
 2. Paginating the related records with a separate query.
 3. Loading related data separately instead of using `include`.
@@ -186,9 +192,11 @@ When cross-table filtering generates a `LEFT JOIN`, `GROUP BY users.id` is autom
 
 ---
 
-### `timestamps: true` does not add Dart fields
+### `timestamps: true` automatically injects Dart fields via mixin
 
-The generator adds `created_at`, `updated_at` to the SQL schema when `timestamps: true`, but does **NOT** generate Dart fields for them automatically. Declare them manually if you need to read them in your code.
+The generator adds `created_at`, `updated_at` to the SQL schema **and** injects `DateTime? createdAt` / `DateTime? updatedAt` into the generated `_$PhormModelMixin`. You do **not** need to declare them manually — they are accessible directly on your model instance via the mixin.
+
+If you need to customize them (e.g. rename the column or add annotations), declare them manually in your class body — the generator will detect your manual declaration and skip generating the duplicate.
 
 ---
 
@@ -227,7 +235,7 @@ Even if no migrations are defined, `DB.autoVersion` returns version `1` as the m
 ```dart
 setUp(() {
   db = DB(databaseName: ':memory:', version: 1, tables: [usersTable]);
-  userService = SqflowCore<User>(dbManager: db, table: usersTable);
+  userService = PhormCore<User>(dbManager: db, table: usersTable);
 });
 
 tearDown(() async {
@@ -241,17 +249,58 @@ In-memory databases are destroyed when closed, ensuring test isolation.
 
 ### `@visibleForTesting` on `buildJoinQuery`
 
-`SqflowCore.buildJoinQuery` is exposed with `@visibleForTesting` to allow unit testing of the SQL generation logic. It is not part of the public API and may change without notice.
+## `PhormCore.buildJoinQuery` is exposed with `@visibleForTesting` to allow unit testing of the SQL generation logic. It is not part of the public API and may change without notice.
+
+## SQL Dialect & Database Specifics
+
+### Pluggable Dialect Differences
+
+Because PHORM compiles queries dynamically using the `SqlDialect` defined by the driver, minor syntax differences exist when executing raw SQL queries (`db.rawQuery()` or `WhereBuilder().raw()`) across different database drivers:
+
+- **Placeholders**: SQLite (`phorm_sqlite`) utilizes standard `?` positional parameters. PostgreSQL (`phorm_postgres`) uses `$1`, `$2` positional arguments.
+- **Identifiers**: Avoid hardcoded identifier escapes (backticks or double quotes) inside raw strings where possible. Let `SqlDialect.escapeIdentifier` handle it programmatically, or use the generated table/column attributes.
+
 ---
 
-## SQLite Specifics
+### SQLite Specifics (`phorm_sqlite`)
 
-### SQLite is weakly typed
+#### SQLite is weakly typed
 
-Unlike other relational databases, SQLite does **not** strictly enforce column types (except for `INTEGER PRIMARY KEY`). You can technically insert a string into an integer column.
+Unlike other relational databases (like PostgreSQL or MySQL) which fail fast on mismatched types, SQLite does **not** strictly enforce column types. You can technically insert a string into an integer column without database-level errors.
 
-**Recommendation:** Always perform validation at the application layer using `sqflow_generator`'s built-in validators or custom logic in `fromJson`.
+**Recommendation:** Always perform validation at the application layer using `phorm_generator`'s built-in validators or custom logic in `fromJson`.
 
-### Booleans are stored as Integers
+#### Booleans are stored as Integers
 
-SQLite does not have a native `BOOLEAN` type. SQFlow stores them as `1` (true) and `0` (false). The generator automatically handles the conversion in `toJson` and `fromJson`, but if you are writing raw SQL queries, you must use `1` and `0`.
+SQLite does not have a native `BOOLEAN` type. PHORM stores them as `1` (true) and `0` (false) on disk. The generator automatically handles the boolean conversion in `toJson` and `fromJson`, but if you are writing raw SQLite queries, you must filter using `1` and `0`.
+
+> [!NOTE]
+> Future drivers like `phorm_postgres` will map Booleans directly to PostgreSQL's native `boolean` type, handled transparently by its custom dialect.
+
+---
+
+### Schema & Generator Limitations
+
+#### Schema Generator is SQLite-Specific
+
+While PHORM's core runtime (Query Builder, Where Builder, Eager Loading) is fully database-agnostic and dynamically adapts to the active `SqlDialect` (handling identifier escaping and dynamic placeholders programmatically), the **code generator (`phorm_generator`) is currently SQLite-specific**.
+
+By default, the schema generator (`SqliteSchemaGenerator`):
+- Maps Dart data types directly to SQLite types (e.g., `DateTime` is mapped to `TEXT`).
+- Generates automatic update triggers for the `updated_at` column using the SQLite-specific `datetime('now')` syntax:
+  ```sql
+  CREATE TRIGGER update_users_timestamp
+  AFTER UPDATE ON users
+  FOR EACH ROW
+  BEGIN
+      UPDATE users SET updated_at = datetime('now') WHERE id = OLD.id;
+  END;
+  ```
+
+**Implication for future drivers:**
+If you plan to target PostgreSQL or MySQL in the future, the generated `Table.schema` string might not be fully compatible with their DDL syntax (as PostgreSQL uses `BEFORE UPDATE` triggers, custom functions, and the native `TIMESTAMP` type with `NOW()`). 
+
+To run PHORM against alternative databases, you will need to:
+1. Define your own custom table schemas DDL and migrations instead of relying on the generator's `Table.schema`.
+2. Use alternative/custom schema builders or define triggers manually at the database level.
+
