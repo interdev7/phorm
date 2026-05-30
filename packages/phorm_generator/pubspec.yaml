@@ -7,8 +7,6 @@ issue_tracker: https://github.com/interdev7/phorm/issues
 license: MIT
 resolution: workspace
 
-publish_to: none
-
 environment:
   sdk: ">=3.5.0 <4.0.0"
 
@@ -27,3 +25,7 @@ dev_dependencies:
   build_test: ^2.0.0
   lints: ^3.0.0
   test: ^1.25.15
+
+screenshots:
+  - description: The PHORM Generator package logo.
+    path: screenshots/logo.png

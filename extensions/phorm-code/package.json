@@ -1,13 +1,13 @@
 {
-  "name": "sqflow-dart",
-  "displayName": "SQFlow Dart",
-  "description": "Convert plain Dart classes to SQFlow ORM models",
+  "name": "phorm-code",
+  "displayName": "Phorm",
+  "description": "Convert plain Dart classes to Phorm ORM models",
   "version": "0.0.1",
   "repository": {
     "type": "git",
-    "url": "https://github.com/interdev7/sqflow-dart.git"
+    "url": "https://github.com/interdev7/phorm.git"
   },
-  "publisher": "sqflow",
+  "publisher": "interdev7",
   "engines": {
     "vscode": "^1.85.0"
   },
@@ -22,22 +22,22 @@
   "contributes": {
     "commands": [
       {
-        "command": "sqflow.convertToModel",
-        "title": "To SQFlow Model",
-        "category": "SQFlow"
+        "command": "phorm.convertToModel",
+        "title": "To Phorm Model",
+        "category": "Phorm"
       }
     ],
     "menus": {
       "explorer/context": [
         {
-          "command": "sqflow.convertToModel",
+          "command": "phorm.convertToModel",
           "when": "resourceExtname == .dart",
           "group": "1_modification@99"
         }
       ],
       "editor/context": [
         {
-          "command": "sqflow.convertToModel",
+          "command": "phorm.convertToModel",
           "when": "editorLangId == dart",
           "group": "1_modification@99"
         }

@@ -1,6 +1,6 @@
 name: phorm_postgres
 description: >
-  PostgreSQL driver for the PHORM ORM.
+  PostgreSQL driver for the PHORM.
   Provides a PhormDatabase implementation backed by PostgreSQL,
   including connection pooling, dialect support, and async query execution.
 version: 0.0.1
@@ -8,7 +8,6 @@ repository: https://github.com/interdev7/phorm
 homepage: https://github.com/interdev7/phorm/tree/main/packages/phorm_postgres
 issue_tracker: https://github.com/interdev7/phorm/issues
 license: MIT
-publish_to: none
 resolution: workspace
 
 environment:
@@ -22,3 +21,7 @@ dependencies:
 dev_dependencies:
   lints: ^3.0.0
   test: ^1.25.15
+
+screenshots:
+  - description: The PHORM Postgres package logo.
+    path: screenshots/logo.png

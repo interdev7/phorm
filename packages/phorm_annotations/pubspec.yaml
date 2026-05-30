@@ -11,8 +11,6 @@ issue_tracker: https://github.com/interdev7/phorm/issues
 license: MIT
 resolution: workspace
 
-publish_to: none
-
 environment:
   sdk: ">=3.5.0 <4.0.0"
 
@@ -21,3 +19,7 @@ dependencies:
 
 dev_dependencies:
   lints: ^3.0.0
+
+screenshots:
+  - description: The PHORM Annotations package logo.
+    path: screenshots/logo.png

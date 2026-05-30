@@ -35,7 +35,10 @@ export interface ParsedFile {
  * Uses regex-based approach — covers 90%+ of real-world classes.
  */
 export function parseFile(source: string, fileName: string): ParsedFile {
-  const hasImport = source.includes("package:sqflow_core/sqflow_core.dart");
+  const hasImport = source.includes("package:phorm/phorm.dart") ||
+                     source.includes("package:phorm_sqlite/phorm_sqlite.dart") ||
+                     source.includes("package:phorm_postgres/phorm_postgres.dart") ||
+                     source.includes("package:phorm_mysql/phorm_mysql.dart");
   const hasPart = source.includes(".sql.g.dart'") || source.includes('.sql.g.dart"');
 
   const classes = extractClasses(source);

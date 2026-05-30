@@ -1,11 +1,11 @@
-# SQFlow Dart — VS Code Extension
+# PHORM — VS Code Extension
 
-Convert regular Dart classes into SQFlow ORM models with a single click.
+Convert regular Dart classes into PHORM models with a single click.
 
 ## Usage
 
-1. Right-click a `.dart` file in the Explorer → **To SQFlow Model**
-2. Or right-click inside the editor → **To SQFlow Model**
+1. Right-click a `.dart` file in the Explorer → **To PHORM Model**
+2. Or right-click inside the editor → **To PHORM Model**
 
 ## What it does
 
@@ -23,14 +23,13 @@ class User {
 **After:**
 
 ```dart
-import 'package:sqflow_core/sqflow_core.dart';
+import 'package:phorm/phorm.dart';
 
 part 'user.sql.g.dart';
 
 @Schema(tableName: 'users')
-class User extends Model with _$SQFlowUserMixin {
+class User extends Model with _$PhormUserMixin {
   @ID(autoIncrement: true)
-  @override
   final int id;
 
   @Column()
@@ -46,7 +45,7 @@ class User extends Model with _$SQFlowUserMixin {
   });
 
   factory User.fromJson(Map<String, dynamic> json) =>
-      _$SQFlowUserFromJson(json);
+      _$PhormUserFromJson(json);
 }
 ```
 
