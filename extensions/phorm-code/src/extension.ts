@@ -6,19 +6,19 @@ import { transformFile } from './transformer';
 
 export function activate(context: vscode.ExtensionContext) {
   const command = vscode.commands.registerCommand(
-    'sqflow.convertToModel',
+    'phorm.convertToModel',
     async (uri?: vscode.Uri) => {
       try {
         // Resolve file URI: from context menu (uri) or active editor
         const fileUri = uri ?? vscode.window.activeTextEditor?.document.uri;
         if (!fileUri) {
-          vscode.window.showErrorMessage('SQFlow: No Dart file selected.');
+          vscode.window.showErrorMessage('Phorm: No Dart file selected.');
           return;
         }
 
         // Ensure it's a .dart file
         if (!fileUri.fsPath.endsWith('.dart')) {
-          vscode.window.showErrorMessage('SQFlow: Only .dart files are supported.');
+          vscode.window.showErrorMessage('Phorm: Only .dart files are supported.');
           return;
         }
 
@@ -33,14 +33,14 @@ export function activate(context: vscode.ExtensionContext) {
         const parsed = parseFile(source, fileName);
 
         if (parsed.classes.length === 0) {
-          vscode.window.showWarningMessage('SQFlow: No Dart classes found in this file.');
+          vscode.window.showWarningMessage('Phorm: No Dart classes found in this file.');
           return;
         }
 
         const unconverted = parsed.classes.filter(c => !c.alreadyConverted);
         if (unconverted.length === 0) {
           vscode.window.showInformationMessage(
-            'SQFlow: All classes in this file are already SQFlow models.'
+            'Phorm: All classes in this file are already Phorm models.'
           );
           return;
         }
@@ -65,12 +65,12 @@ export function activate(context: vscode.ExtensionContext) {
 
         const classNames = unconverted.map(c => c.name).join(', ');
         vscode.window.showInformationMessage(
-          `✅ SQFlow: Converted ${unconverted.length} class(es): ${classNames}`
+          `✅ Phorm: Converted ${unconverted.length} class(es): ${classNames}`
         );
       } catch (err: unknown) {
         const message = err instanceof Error ? err.message : String(err);
-        vscode.window.showErrorMessage(`SQFlow: Error — ${message}`);
-        console.error('[sqflow-dart]', err);
+        vscode.window.showErrorMessage(`Phorm: Error — ${message}`);
+        console.error('[phorm-code]', err);
       }
     }
   );

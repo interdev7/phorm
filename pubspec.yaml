@@ -13,7 +13,6 @@ workspace:
   - packages/phorm_generator
   - packages/phorm_postgres
   - packages/phorm_mysql
-  - packages/phorm_mariadb
   - examples
 
 dependencies:

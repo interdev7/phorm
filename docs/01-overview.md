@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="../assets/logo/phorm.png" alt="phorm" height=350/>
+</p>
+
 # PHORM — Overview
 
 PHORM (Single Query Flow) is a lightweight, type-safe, driver-agnostic ORM for Dart and Flutter. It is designed to separate model definitions and fluent query building from database-specific SQL grammar using a pluggable **Dialect system**. This allows you to write one unified set of models and type-safe query calls, and execute them seamlessly across SQLite (via `phorm_sqlite`), PostgreSQL, or MySQL, utilizing background isolates and asynchronous connection pooling without raw SQL concatenation.
@@ -88,15 +92,12 @@ When a new driver is introduced, your declarative schemas `@Schema(...)` and cod
 ## Quick Install
 
 ```yaml
-# pubspec.yaml
 dependencies:
-  phorm: ^latest
-  phorm_sqlite: ^latest # SQLite driver and connection lifecycle manager
+  phorm_sqlite: ^1.0.0 # SQLite driver — automatically includes phorm core
 
 dev_dependencies:
-  phorm_annotations: ^latest
-  phorm_generator: ^latest
-  build_runner: ^latest
+  phorm_generator: ^1.0.0 # Code generation (SQL schemas, toJson/fromJson)
+  build_runner: ^2.4.0
 ```
 
 ---

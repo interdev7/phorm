@@ -1,5 +1,4 @@
 <div align="center">
-  <!-- <img src="assets/logo/logo.png" alt="phorm" height=250/> -->
   <img src="assets/logo/phorm.png" alt="phorm" height=350/>
 
   <br/>
@@ -30,12 +29,12 @@ By leveraging **Single-Query JSON Aggregation**, PHORM aggregates complex parent
 
 ## Packages
 
-| Package                                           | Install?            | Description                                                                   |
-| :------------------------------------------------ | :------------------ | :---------------------------------------------------------------------------- |
-| [phorm_sqlite](./packages/phorm_sqlite)           | ✅ `dependencies`   | SQLite driver — includes full phorm core, use this for all SQLite projects    |
-| [phorm_generator](./packages/phorm_generator)     | ✅ `dev_dependencies`| Code generator — SQL schemas, `toJson`/`fromJson`, static service mixins     |
-| [phorm](./packages/phorm)                         | ⚙️ driver authors   | Core engine only — CRUD, WhereBuilder, Transactions; already included via phorm_sqlite |
-| [phorm_annotations](./packages/phorm_annotations) | ⚙️ driver authors   | Annotation library — `@Schema`, `@Column`, `@ID`; already included via phorm |
+| Package                                           | Install?              | Description                                                                            |
+| :------------------------------------------------ | :-------------------- | :------------------------------------------------------------------------------------- |
+| [phorm_sqlite](./packages/phorm_sqlite)           | ✅ `dependencies`     | SQLite driver — includes full phorm core, use this for all SQLite projects             |
+| [phorm_generator](./packages/phorm_generator)     | ✅ `dev_dependencies` | Code generator — SQL schemas, `toJson`/`fromJson`, static service mixins               |
+| [phorm](./packages/phorm)                         | ⚙️ driver authors     | Core engine only — CRUD, WhereBuilder, Transactions; already included via phorm_sqlite |
+| [phorm_annotations](./packages/phorm_annotations) | ⚙️ driver authors     | Annotation library — `@Schema`, `@Column`, `@ID`; already included via phorm           |
 
 ---
 
@@ -55,10 +54,10 @@ For most projects, you only need **two packages**:
 
 ```yaml
 dependencies:
-  phorm_sqlite: ^1.0.0   # SQLite driver — automatically includes phorm core
+  phorm_sqlite: ^1.0.0 # SQLite driver — automatically includes phorm core
 
 dev_dependencies:
-  phorm_generator: ^1.0.0  # Code generation (SQL schemas, toJson/fromJson)
+  phorm_generator: ^1.0.0 # Code generation (SQL schemas, toJson/fromJson)
   build_runner: ^2.4.0
 ```
 

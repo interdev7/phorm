@@ -41,9 +41,9 @@ export function transformFile(parsed: ParsedFile): string {
 function buildHeader(parsed: ParsedFile, source: string): string {
   const lines: string[] = [];
 
-  // Add sqflow import if missing
+  // Add phorm import if missing
   if (!parsed.hasImport) {
-    lines.push("import 'package:sqflow_core/sqflow_core.dart';");
+    lines.push("import 'package:phorm/phorm.dart';");
     lines.push('');
   }
 
@@ -88,14 +88,13 @@ function transformClass(cls: DartClass): string {
   buf.push(`@Schema(tableName: '${tableName}')`);
 
   // Class declaration line
-  buf.push(`class ${name} extends Model with _\$SQFlow${name}Mixin {`);
+  buf.push(`class ${name} extends Model with _\$Phorm${name}Mixin {`);
 
   // --- Fields ---
 
   // If no id field exists → inject one at the top
   if (!cls.hasIdField) {
     buf.push('  @ID(autoIncrement: true)');
-    buf.push('  @override');
     buf.push('  final int id;');
     buf.push('');
   }
@@ -112,7 +111,6 @@ function transformClass(cls: DartClass): string {
         } else {
           buf.push('  @ID(autoIncrement: true)');
         }
-        buf.push('  @override');
       } else {
         // Already has @ID — preserve existing annotations as-is
         for (const ann of field.annotations) {
@@ -157,7 +155,7 @@ function transformClass(cls: DartClass): string {
 
   // --- factory fromJson ---
   buf.push(`  factory ${name}.fromJson(Map<String, dynamic> json) =>`);
-  buf.push(`      _\$SQFlow${name}FromJson(json);`);
+  buf.push(`      _\$Phorm${name}FromJson(json);`);
 
   buf.push('}');
 
