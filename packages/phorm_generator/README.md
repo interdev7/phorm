@@ -67,4 +67,4 @@ dart run build_runner watch --delete-conflicting-outputs
 
 ## License
 
-Apache 2.0
+MIT License

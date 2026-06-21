@@ -1,9 +1,9 @@
 # PHORM Core 🚀
 
 [![Dart](https://img.shields.io/badge/Dart-3.0%2B-blue)](https://dart.dev/)
-[![License: Apache 2.0](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
 
-**`phorm`** is the core runtime engine of **PHORM** (Predictable Harmonious ORM) — a lightweight, type-safe, and driver-agnostic ORM for Dart and Flutter. 
+**`phorm`** is the core runtime engine of **PHORM** (Predictable Harmonious ORM) — a lightweight, type-safe, and driver-agnostic ORM for Dart and Flutter.
 
 It defines the unified interface for queries, transactions, soft deletes, and complex parent-child relationships, delegating the low-level database execution to specific driver packages (such as `phorm_sqlite`).
 
@@ -111,4 +111,4 @@ Users.where(Users.age.gt(30) & (Users.role.eq('admin') | Users.role.eq('editor')
 
 ## 📄 License
 
-Apache 2.0 License.
+MIT License

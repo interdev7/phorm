@@ -1,6 +1,6 @@
-# phorm_postgres
+# PHORM PostgreSQL 🚀
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
 [![Dart SDK](https://img.shields.io/badge/Dart-%3E%3D3.5.0-blue?logo=dart)](https://dart.dev)
 
 > [!WARNING]
@@ -37,10 +37,10 @@ await users.insert(user);
 
 ## Related packages
 
-| Package | Description |
-| :--- | :--- |
-| [phorm_sqlite](../phorm_sqlite) | ✅ Stable SQLite driver |
-| [phorm](../phorm) | Core engine (included automatically) |
+| Package                         | Description                          |
+| :------------------------------ | :----------------------------------- |
+| [phorm_sqlite](../phorm_sqlite) | ✅ Stable SQLite driver              |
+| [phorm](../phorm)               | Core engine (included automatically) |
 
 ## License
 

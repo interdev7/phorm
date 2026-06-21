@@ -1,4 +1,4 @@
-# phorm_annotations
+# PHORM Annotations 🚀
 
 Annotation library for declarative SQL table and schema definitions in **Dart**.
 
@@ -230,4 +230,4 @@ final users = UserFactory().createMany(50); // List<User>
 ## Status
 
 - Dart SDK: `>=3.0.0 <4.0.0`
-- License: Apache 2.0
+- License: MIT License
