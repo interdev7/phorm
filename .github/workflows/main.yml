@@ -62,25 +62,15 @@ jobs:
           channel: stable
           version: 3.29.2
 
-      # Resolve dependencies depending on SDK type
+      # Resolve dependencies
       - name: Install dependencies
         working-directory: ${{ matrix.package-path }}
-        run: |
-          if [ "${{ matrix.sdk }}" = "flutter" ]; then
-            flutter pub get
-          else
-            dart pub get
-          fi
+        run: flutter pub get
 
       # Analyze code
       - name: Analyze code
         working-directory: ${{ matrix.package-path }}
-        run: |
-          if [ "${{ matrix.sdk }}" = "flutter" ]; then
-            flutter analyze
-          else
-            dart analyze
-          fi
+        run: flutter analyze
 
       # Run Flutter unit tests with coverage
       - name: Run tests with coverage (Flutter)
@@ -93,8 +83,8 @@ jobs:
         if: ${{ matrix.run-tests && matrix.sdk == 'dart' }}
         working-directory: ${{ matrix.package-path }}
         run: |
-          dart pub global activate coverage
-          dart pub global run coverage:test_with_coverage
+          flutter pub global activate coverage
+          flutter pub global run coverage:test_with_coverage
 
       # Upload coverage reports to Codecov
       - name: Upload coverage reports to Codecov
