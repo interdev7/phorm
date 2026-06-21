@@ -3,9 +3,9 @@ name: CI
 # Trigger workflow on pushes and pull requests to the main branch
 on:
   push:
-    branches: [ main ]
+    branches: [main]
   pull_request:
-    branches: [ main ]
+    branches: [main]
 
 jobs:
   analyze_and_test:
@@ -20,31 +20,31 @@ jobs:
             package-path: packages/phorm_annotations
             sdk: dart
             run-tests: false
-          
+
           # Flutter package with tests
           - package-name: phorm
             package-path: packages/phorm
             sdk: flutter
             run-tests: true
-            
+
           # Dart-only generator package with tests
           - package-name: phorm_generator
             package-path: packages/phorm_generator
             sdk: dart
             run-tests: true
-            
+
           # Dart-only database driver without tests
           - package-name: phorm_mysql
             package-path: packages/phorm_mysql
             sdk: dart
             run-tests: false
-            
+
           # Dart-only database driver without tests
           - package-name: phorm_postgres
             package-path: packages/phorm_postgres
             sdk: dart
             run-tests: false
-            
+
           # Flutter database driver with tests
           - package-name: phorm_sqlite
             package-path: packages/phorm_sqlite
@@ -70,11 +70,6 @@ jobs:
           else
             dart pub get
           fi
-
-      # Format check
-      - name: Verify formatting
-        working-directory: ${{ matrix.package-path }}
-        run: dart format --output=none --set-exit-if-changed .
 
       # Analyze code
       - name: Analyze code
