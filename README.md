@@ -5,7 +5,7 @@
 
 [![pub.dev](https://img.shields.io/pub/v/phorm.svg?label=phorm&logo=dart)](https://pub.dev/packages/phorm)
 [![pub.dev](https://img.shields.io/pub/v/phorm_sqlite.svg?label=phorm_sqlite&logo=dart)](https://pub.dev/packages/phorm_sqlite)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
 [![Dart SDK](https://img.shields.io/badge/Dart-%3E%3D3.5.0-blue?logo=dart)](https://dart.dev)
 [![Flutter](https://img.shields.io/badge/Flutter-compatible-54C5F8?logo=flutter)](https://flutter.dev)
 

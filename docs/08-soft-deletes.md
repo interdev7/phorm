@@ -21,7 +21,7 @@ The generator adds the `deleted_at TEXT` column to the SQL schema and injects a 
 ## How It Works
 
 <p align="center">
-  <img src="../assets/diagrams/diagram_4.png" alt="Phorm Architecture" />
+  <img src="../assets/diagrams/diagram_4.png" width="60%" alt="Phorm Architecture" />
 </p>
 
 | Operation                    | `paranoid: false`              | `paranoid: true`                            |

@@ -65,7 +65,7 @@ During initialization, the `DB` class:
 3. Applies any pending migrations.
 
 <p align="center">
-  <img src="../assets/diagrams/diagram_3.png" alt="Phorm Architecture" />
+  <img src="../assets/diagrams/diagram_3.png" width="60%" alt="Phorm Architecture" />
 </p>
 
 ---

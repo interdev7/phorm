@@ -1,7 +1,7 @@
-# PHORM Lite 🚀
+# PHORM SQLite 🚀
 
 [![Dart](https://img.shields.io/badge/Dart-3.0%2B-blue)](https://dart.dev/)
-[![License: Apache 2.0](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
 
 `phorm_sqlite` is the official SQLite driver and connection manager implementation for the **PHORM ORM**.
 
@@ -19,7 +19,7 @@ The PHORM ORM is split into modular packages:
 4. **`phorm_sqlite`** (This Package) — **The SQLite driver**. Implements connection pooling, background isolates (Native), WebAssembly persistence (Web), and smart migrations.
 
 <p align="center">
-  <img src="../assets/architecture.png" alt="PHORM Architecture" />
+  <img src="../../assets/architecture.png" width="60%" alt="PHORM Architecture" />
 </p>
 
 ---
@@ -119,8 +119,8 @@ In standard Flutter database setups, queries and subsequent data mapping (`fromJ
 
 `phorm_sqlite` resolves this by using an **Isolate-based proxy router**:
 
-<p>
-<image src="../assets/illustration_1.png" alt="Isolate Router" />
+<p align="center">
+  <img src="../../assets/illustration_1.png" alt="Isolate Router" />
 </p>
 
 1. **Native Platforms**: Spawns a background `Isolate` that owns the synchronous `sqlite3` connection. Commands are sent across ports, executing database writes/reads safely off the UI thread.
@@ -182,4 +182,4 @@ _Note: SQLCipher encryption is only available on Native IO platforms (iOS, Andro
 
 ## 📄 License
 
-Apache 2.0 License.
+MIT License
