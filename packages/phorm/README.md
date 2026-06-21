@@ -1,7 +1,12 @@
+<div align="center">
+  <img src="../../assets/logo/phorm.png" alt="phorm" height=350/>
+</div>
+
 # PHORM Core 🚀
 
-[![Dart](https://img.shields.io/badge/Dart-3.0%2B-blue)](https://dart.dev/)
+[![Dart SDK](https://img.shields.io/badge/Dart-%3E%3D3.5.0-blue?logo=dart)](https://dart.dev)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
+[![Flutter](https://img.shields.io/badge/Flutter-compatible-54C5F8?logo=flutter)](https://flutter.dev)
 
 **`phorm`** is the core runtime engine of **PHORM** (Predictable Harmonious ORM) — a lightweight, type-safe, and driver-agnostic ORM for Dart and Flutter.
 

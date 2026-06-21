@@ -5,7 +5,6 @@ repository: https://github.com/interdev7/phorm
 homepage: https://github.com/interdev7/phorm/tree/main/phorm
 issue_tracker: https://github.com/interdev7/phorm/issues
 license: MIT
-# resolution: workspace
 
 environment:
   sdk: ">=3.5.0 <4.0.0"

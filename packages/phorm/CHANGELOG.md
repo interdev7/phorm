@@ -1,6 +1,13 @@
 # Changelog
 
-## 1.0.0
+## [1.0.0]
+
+- Changed license to MIT
+- Removed `resolution: workspace` from `pubspec.yaml`
+- Changed logo
+- Updated README
+
+## [1.0.0]
 
 - First stable release of the PHORM Core.
 - Driver-agnostic runtime query builder (`WhereBuilder`, `SortBuilder`).
