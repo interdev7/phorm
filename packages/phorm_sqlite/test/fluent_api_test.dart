@@ -66,11 +66,12 @@ void main() {
 
     test('Complex fluent query', () async {
       // Demonstrate chaining
-      final users = await Users.query
-          .where(Users.age.gt(25))
-          .orderBy(Users.age, descending: true)
-          .limit(5)
-          .get();
+      final users =
+          await Users.query
+              .where(Users.age.gt(25))
+              .orderBy(Users.age, descending: true)
+              .limit(5)
+              .get();
 
       expect(users.length, lessThanOrEqualTo(5));
       if (users.length > 1) {
@@ -79,42 +80,48 @@ void main() {
       print('✅ Fluent query returned ${users.length} users over 25.');
     });
 
-    test('PhormQuery conditional query builders (whereIf and whereNotNull)',
-        () async {
-      // Test 1: whereIf true vs false
-      final femaleUsers = await Users.query
-          .limit(100)
-          .whereIf(true, () => Users.gender.eq('F'))
-          .get();
-      final skippedUsers = await Users.query
-          .limit(100)
-          .whereIf(false, () => Users.gender.eq('F'))
-          .get();
+    test(
+      'PhormQuery conditional query builders (whereIf and whereNotNull)',
+      () async {
+        // Test 1: whereIf true vs false
+        final femaleUsers =
+            await Users.query
+                .limit(100)
+                .whereIf(true, () => Users.gender.eq('F'))
+                .get();
+        final skippedUsers =
+            await Users.query
+                .limit(100)
+                .whereIf(false, () => Users.gender.eq('F'))
+                .get();
 
-      expect(femaleUsers.length, greaterThan(0));
-      expect(
+        expect(femaleUsers.length, greaterThan(0));
+        expect(
           skippedUsers.length,
-          greaterThan(
-              femaleUsers.length)); // since false didn't filter out male users
+          greaterThan(femaleUsers.length),
+        ); // since false didn't filter out male users
 
-      // Test 2: whereNotNull with valid vs null value
-      final String? validCity = 'Sofia';
-      final String? nullCity = null;
+        // Test 2: whereNotNull with valid vs null value
+        final String? validCity = 'Sofia';
+        final String? nullCity = null;
 
-      final sofiaUsers = await Users.query
-          .limit(100)
-          .whereNotNull(validCity, (val) => Users.city.eq(val))
-          .get();
-      final allUsers = await Users.query
-          .limit(100)
-          .whereNotNull(nullCity, (val) => Users.city.eq(val))
-          .get();
+        final sofiaUsers =
+            await Users.query
+                .limit(100)
+                .whereNotNull(validCity, (val) => Users.city.eq(val))
+                .get();
+        final allUsers =
+            await Users.query
+                .limit(100)
+                .whereNotNull(nullCity, (val) => Users.city.eq(val))
+                .get();
 
-      for (final u in sofiaUsers) {
-        expect(u.city, 'Sofia');
-      }
-      expect(allUsers.length, greaterThan(sofiaUsers.length));
-    });
+        for (final u in sofiaUsers) {
+          expect(u.city, 'Sofia');
+        }
+        expect(allUsers.length, greaterThan(sofiaUsers.length));
+      },
+    );
 
     test('PhormQuery terminal aggregates and getWithCount', () async {
       // 1. count()
@@ -123,31 +130,36 @@ void main() {
       expect(totalSofia, greaterThan(0));
 
       // 2. getWithCount()
-      final result = await Users.query
-          .where(Users.city.eq('Sofia'))
-          .limit(2)
-          .getWithCount();
+      final result =
+          await Users.query
+              .where(Users.city.eq('Sofia'))
+              .limit(2)
+              .getWithCount();
       expect(result.data.length, lessThanOrEqualTo(2));
       expect(result.count, totalSofia);
 
       // 3. sum()
-      final totalAge =
-          await Users.query.where(Users.city.eq('Sofia')).sum(Users.age);
+      final totalAge = await Users.query
+          .where(Users.city.eq('Sofia'))
+          .sum(Users.age);
       expect(totalAge, greaterThan(0));
 
       // 4. avg()
-      final averageAge =
-          await Users.query.where(Users.city.eq('Sofia')).avg(Users.age);
+      final averageAge = await Users.query
+          .where(Users.city.eq('Sofia'))
+          .avg(Users.age);
       expect(averageAge, greaterThan(0));
 
       // 5. min()
-      final minAge =
-          await Users.query.where(Users.city.eq('Sofia')).min(Users.age);
+      final minAge = await Users.query
+          .where(Users.city.eq('Sofia'))
+          .min(Users.age);
       expect(minAge, greaterThan(0));
 
       // 6. max()
-      final maxAge =
-          await Users.query.where(Users.city.eq('Sofia')).max(Users.age);
+      final maxAge = await Users.query
+          .where(Users.city.eq('Sofia'))
+          .max(Users.age);
       expect(maxAge, greaterThan(minAge));
     });
 
@@ -163,11 +175,7 @@ void main() {
       final user = mockUsers.first;
       await PhormCore<User>(dbManager: db, table: usersTable).insert(user);
 
-      final post = Post(
-        id: 99,
-        title: 'Super Post',
-        userId: user.id,
-      );
+      final post = Post(id: 99, title: 'Super Post', userId: user.id);
       await PhormCore<Post>(dbManager: db, table: postsTable).insert(post);
 
       // Eager load using the new generated fluent API
@@ -176,7 +184,8 @@ void main() {
       expect(loadedUsers.first.posts.length, 1);
       expect(loadedUsers.first.posts.first.title, 'Super Post');
       print(
-          '✅ Eager-loaded typed relationship: ${loadedUsers.first.posts.first.title}');
+        '✅ Eager-loaded typed relationship: ${loadedUsers.first.posts.first.title}',
+      );
     });
 
     group('Table Schema', () {

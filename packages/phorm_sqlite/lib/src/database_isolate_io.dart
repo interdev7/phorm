@@ -86,15 +86,11 @@ class NativeDatabaseIsolate implements DatabaseIsolate {
     final receivePort = ReceivePort();
     final changeReceivePort = ReceivePort();
 
-    _isolate = await Isolate.spawn<Map<String, dynamic>>(
-      _isolateEntryPoint,
-      {
-        'port': receivePort.sendPort,
-        'changePort': changeReceivePort.sendPort,
-        'functions': _customFunctions,
-      },
-      debugName: 'PHORM_DatabaseIsolate',
-    );
+    _isolate = await Isolate.spawn<Map<String, dynamic>>(_isolateEntryPoint, {
+      'port': receivePort.sendPort,
+      'changePort': changeReceivePort.sendPort,
+      'functions': _customFunctions,
+    }, debugName: 'PHORM_DatabaseIsolate');
 
     _sendPort = await receivePort.first as SendPort;
 
@@ -115,7 +111,9 @@ class NativeDatabaseIsolate implements DatabaseIsolate {
     final response = await responsePort.first as _DatabaseResponse;
     if (response.isError) {
       Error.throwWithStackTrace(
-          response.error!, response.stackTrace ?? StackTrace.current);
+        response.error!,
+        response.stackTrace ?? StackTrace.current,
+      );
     }
     return response.result as T;
   }
@@ -145,8 +143,7 @@ class NativeDatabaseIsolate implements DatabaseIsolate {
     Map<String, Object?> values, {
     String? where,
     List<Object?>? whereArgs,
-  }) =>
-      _sendCommand<int>(UpdateCommand(table, values, where, whereArgs));
+  }) => _sendCommand<int>(UpdateCommand(table, values, where, whereArgs));
 
   @override
   Future<int> delete(String table, {String? where, List<Object?>? whereArgs}) =>
@@ -305,8 +302,9 @@ Object? _handle(
       final nv = normalizeMap(values);
       final cols = nv.keys.toList();
       final ph = List.filled(cols.length, '?').join(', ');
-      final stmt =
-          db.prepare('INSERT INTO $table (${cols.join(', ')}) VALUES ($ph)');
+      final stmt = db.prepare(
+        'INSERT INTO $table (${cols.join(', ')}) VALUES ($ph)',
+      );
       try {
         stmt.execute(cols.map((c) => nv[c]).toList());
       } finally {
@@ -315,16 +313,17 @@ Object? _handle(
       return db.lastInsertRowId;
 
     case UpdateCommand(
-        :final table,
-        :final values,
-        :final where,
-        :final whereArgs
-      ):
+      :final table,
+      :final values,
+      :final where,
+      :final whereArgs,
+    ):
       if (db == null) throw StateError('Database not opened');
       final nv = normalizeMap(values);
       final nw = normalizeArgs(whereArgs);
       final setClauses = nv.keys.map((k) => '$k = ?').join(', ');
-      final sql = 'UPDATE $table SET $setClauses'
+      final sql =
+          'UPDATE $table SET $setClauses'
           '${where != null ? ' WHERE $where' : ''}';
       final stmt = db.prepare(sql);
       try {
@@ -337,7 +336,8 @@ Object? _handle(
     case DeleteCommand(:final table, :final where, :final whereArgs):
       if (db == null) throw StateError('Database not opened');
       final nw = normalizeArgs(whereArgs);
-      final sql = 'DELETE FROM $table'
+      final sql =
+          'DELETE FROM $table'
           '${where != null ? ' WHERE $where' : ''}';
       final stmt = db.prepare(sql);
       try {
@@ -394,8 +394,9 @@ void _handleBatch(Database db, BatchOperation op) {
       final cols = nv.keys.toList();
       final ph = List.filled(cols.length, '?').join(', ');
       final verb = replace ? 'INSERT OR REPLACE' : 'INSERT';
-      final stmt =
-          db.prepare('$verb INTO $table (${cols.join(', ')}) VALUES ($ph)');
+      final stmt = db.prepare(
+        '$verb INTO $table (${cols.join(', ')}) VALUES ($ph)',
+      );
       try {
         stmt.execute(cols.map((c) => nv[c]).toList());
       } finally {
@@ -403,15 +404,16 @@ void _handleBatch(Database db, BatchOperation op) {
       }
 
     case BatchUpdate(
-        :final table,
-        :final values,
-        :final where,
-        :final whereArgs
-      ):
+      :final table,
+      :final values,
+      :final where,
+      :final whereArgs,
+    ):
       final nv = normalizeMap(values);
       final nw = normalizeArgs(whereArgs);
       final set = nv.keys.map((k) => '$k = ?').join(', ');
-      final sql = 'UPDATE $table SET $set'
+      final sql =
+          'UPDATE $table SET $set'
           '${where != null ? ' WHERE $where' : ''}';
       final stmt = db.prepare(sql);
       try {
@@ -422,7 +424,8 @@ void _handleBatch(Database db, BatchOperation op) {
 
     case BatchDelete(:final table, :final where, :final whereArgs):
       final nw = normalizeArgs(whereArgs);
-      final sql = 'DELETE FROM $table'
+      final sql =
+          'DELETE FROM $table'
           '${where != null ? ' WHERE $where' : ''}';
       final stmt = db.prepare(sql);
       try {

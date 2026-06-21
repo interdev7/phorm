@@ -11,17 +11,11 @@ class Location {
   const Location({required this.lat, required this.lng});
 
   factory Location.fromJson(Map<String, dynamic> json) {
-    return Location(
-      lat: json['lat'] as double,
-      lng: json['lng'] as double,
-    );
+    return Location(lat: json['lat'] as double, lng: json['lng'] as double);
   }
 
   Map<String, dynamic> toJson() {
-    return {
-      'lat': lat,
-      'lng': lng,
-    };
+    return {'lat': lat, 'lng': lng};
   }
 }
 

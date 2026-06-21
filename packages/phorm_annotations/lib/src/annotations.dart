@@ -100,7 +100,6 @@ class ID extends ColumnBase {
   });
 }
 
-
 /// Table-level schema configuration.
 class Schema {
   /// Optional explicit table name.
@@ -266,10 +265,7 @@ class Index {
   /// Whether the index enforces uniqueness.
   final bool unique;
 
-  const Index({
-    required this.columns,
-    this.unique = false,
-  });
+  const Index({required this.columns, this.unique = false});
 }
 
 /// Base interface for specifying relationships to include in a query.
@@ -289,16 +285,19 @@ abstract interface class Includable {
   List<Includable>? get include;
 
   /// Includes a relationship by its explicit table name.
-  static Includable table(String name,
-          {Attributes? attributes, List<Includable>? include}) =>
-      _TableIncludable(name, attributes: attributes, include: include);
+  static Includable table(
+    String name, {
+    Attributes? attributes,
+    List<Includable>? include,
+  }) => _TableIncludable(name, attributes: attributes, include: include);
 
   /// Includes a relationship by its model class type.
   ///
   /// Provides compile-time safety and refactoring support.
-  static Includable model<T>(
-          {Attributes? attributes, List<Includable>? include}) =>
-      _ModelIncludable<T>(attributes: attributes, include: include);
+  static Includable model<T>({
+    Attributes? attributes,
+    List<Includable>? include,
+  }) => _ModelIncludable<T>(attributes: attributes, include: include);
 }
 
 class _TableIncludable implements Includable {
@@ -331,7 +330,8 @@ class _ModelIncludable<T> implements Includable {
       if (table.type == T) return table.name;
     }
     throw ArgumentError(
-        'Table for model type $T not found in registered tables.');
+      'Table for model type $T not found in registered tables.',
+    );
   }
 }
 

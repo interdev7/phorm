@@ -28,10 +28,7 @@ void main() {
       await userService.insert(user);
 
       // Update
-      final updatedUser = user.copyWith(
-        firstName: 'Updated',
-        city: 'New City',
-      );
+      final updatedUser = user.copyWith(firstName: 'Updated', city: 'New City');
 
       final rows = await userService.update(updatedUser);
       expect(rows, 1);

@@ -188,8 +188,11 @@ class BatchBuilder {
 
   BatchBuilder(this._db);
 
-  void insert(String table, Map<String, Object?> values,
-      {bool replace = false}) {
+  void insert(
+    String table,
+    Map<String, Object?> values, {
+    bool replace = false,
+  }) {
     _operations.add(BatchInsert(table, values, replace));
   }
 

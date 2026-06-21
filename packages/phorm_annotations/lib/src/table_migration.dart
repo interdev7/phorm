@@ -19,7 +19,7 @@ class TableMigration<T extends Model> {
   final int targetVersion;
   final String description;
   final Future<void> Function(PhormDatabaseExecutor db, Table<Model> table)
-      migrate;
+  migrate;
   final int priority;
 
   TableMigration({

@@ -47,11 +47,17 @@ class PhormQuery<T extends Model> {
       case 'BETWEEN':
         final range = condition.value as List;
         _where.between(
-            condition.column, range[0] as Object, range[1] as Object);
+          condition.column,
+          range[0] as Object,
+          range[1] as Object,
+        );
       case 'NOT BETWEEN':
         final range = condition.value as List;
         _where.notBetween(
-            condition.column, range[0] as Object, range[1] as Object);
+          condition.column,
+          range[0] as Object,
+          range[1] as Object,
+        );
       case 'STARTS WITH':
         _where.startsWith(condition.column, condition.value as String);
       case 'ENDS WITH':
@@ -75,15 +81,27 @@ class PhormQuery<T extends Model> {
       case 'SUBSTR =':
         final s = condition.value as List;
         _where.substrEq(
-            condition.column, s[0] as int, s[1] as int, s[2] as String);
+          condition.column,
+          s[0] as int,
+          s[1] as int,
+          s[2] as String,
+        );
       case 'SUBSTR LIKE':
         final s = condition.value as List;
         _where.substrLike(
-            condition.column, s[0] as int, s[1] as int, s[2] as String);
+          condition.column,
+          s[0] as int,
+          s[1] as int,
+          s[2] as String,
+        );
       case 'SUBSTR ILIKE':
         final s = condition.value as List;
         _where.substrIlike(
-            condition.column, s[0] as int, s[1] as int, s[2] as String);
+          condition.column,
+          s[0] as int,
+          s[1] as int,
+          s[2] as String,
+        );
       case 'DATE =':
         _where.dateOnlyEq(condition.column, condition.value as DateTime);
       case 'DATE >':
@@ -93,7 +111,10 @@ class PhormQuery<T extends Model> {
       case 'DATE BETWEEN':
         final d = condition.value as List;
         _where.dateOnlyBetween(
-            condition.column, d[0] as DateTime, d[1] as DateTime);
+          condition.column,
+          d[0] as DateTime,
+          d[1] as DateTime,
+        );
       case 'TIME =':
         _where.timeOnlyEq(condition.column, condition.value as DateTime);
       default:
@@ -123,7 +144,9 @@ class PhormQuery<T extends Model> {
   /// query.whereNotNull(searchQuery, (val) => Users.name.like('%$val%'))
   /// ```
   PhormQuery<T> whereNotNull<V>(
-      V? value, PhormCondition Function(V value) conditionBuilder) {
+    V? value,
+    PhormCondition Function(V value) conditionBuilder,
+  ) {
     if (value != null) {
       where(conditionBuilder(value));
     }
@@ -152,8 +175,10 @@ class PhormQuery<T extends Model> {
   }
 
   /// Adds an ORDER BY clause.
-  PhormQuery<T> orderBy(PhormColumn<dynamic> column,
-      {bool descending = false}) {
+  PhormQuery<T> orderBy(
+    PhormColumn<dynamic> column, {
+    bool descending = false,
+  }) {
     _sort ??= SortBuilder();
     if (descending) {
       _sort!.desc(column.name);
@@ -227,42 +252,27 @@ class PhormQuery<T extends Model> {
   /// final activeCount = await Users.query.where(Users.isActive.isTrue()).count();
   /// ```
   Future<int> count({Object? column}) async {
-    return service.count(
-      column: column,
-      where: _where.isEmpty ? null : _where,
-    );
+    return service.count(column: column, where: _where.isEmpty ? null : _where);
   }
 
   /// Calculates the sum of a specific column.
   Future<num> sum(Object column) async {
-    return service.sum(
-      column,
-      where: _where.isEmpty ? null : _where,
-    );
+    return service.sum(column, where: _where.isEmpty ? null : _where);
   }
 
   /// Calculates the average of a specific column.
   Future<num> avg(Object column) async {
-    return service.avg(
-      column,
-      where: _where.isEmpty ? null : _where,
-    );
+    return service.avg(column, where: _where.isEmpty ? null : _where);
   }
 
   /// Finds the minimum value of a specific column.
   Future<num> min(Object column) async {
-    return service.min(
-      column,
-      where: _where.isEmpty ? null : _where,
-    );
+    return service.min(column, where: _where.isEmpty ? null : _where);
   }
 
   /// Finds the maximum value of a specific column.
   Future<num> max(Object column) async {
-    return service.max(
-      column,
-      where: _where.isEmpty ? null : _where,
-    );
+    return service.max(column, where: _where.isEmpty ? null : _where);
   }
 
   /// Executes the query and returns both the current page of results and the total count.

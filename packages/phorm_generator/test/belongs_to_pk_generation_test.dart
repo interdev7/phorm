@@ -99,7 +99,8 @@ void main() {
       expect(
         line,
         equals(
-            r"  dynamic get customUserId => customUser?.toJson()['user_uid'] ?? _$customUserId;"),
+          r"  dynamic get customUserId => customUser?.toJson()['user_uid'] ?? _$customUserId;",
+        ),
       );
     });
   });
@@ -115,7 +116,8 @@ void main() {
       expect(
         line,
         equals(
-            r"  dynamic get categoryId => category?.toJson()['id'] ?? _$categoryId;"),
+          r"  dynamic get categoryId => category?.toJson()['id'] ?? _$categoryId;",
+        ),
       );
     });
   });
@@ -169,13 +171,20 @@ void main() {
     final testCases = [
       buildFkGetterLine(fkName: 'userId', fieldName: 'user', relatedPk: 'id'),
       buildFkGetterLine(
-          fkName: 'authorId', fieldName: 'author', relatedPk: 'id'),
+        fkName: 'authorId',
+        fieldName: 'author',
+        relatedPk: 'id',
+      ),
       buildFkGetterLine(
-          fkName: 'categoryId',
-          fieldName: 'category',
-          relatedPk: 'category_pk'),
+        fkName: 'categoryId',
+        fieldName: 'category',
+        relatedPk: 'category_pk',
+      ),
       buildFkGetterLine(
-          fkName: 'ownerId', fieldName: 'owner', relatedPk: 'owner_uuid'),
+        fkName: 'ownerId',
+        fieldName: 'owner',
+        relatedPk: 'owner_uuid',
+      ),
     ];
 
     for (final line in testCases) {

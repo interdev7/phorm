@@ -2,6 +2,7 @@
 
 ## [1.0.2]
 
+- Updated SDK environment constraint to >=3.7.0 <4.0.0
 - Updated README with badges
 
 ## [1.0.1]

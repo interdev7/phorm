@@ -47,15 +47,18 @@ class MigrationBuilder<T extends Model> {
     required int version,
     String description = '',
   }) {
-    _migrations.add(TableMigration<T>(
-      table: _table,
-      targetVersion: version,
-      description: description.isNotEmpty
-          ? description
-          : 'Raw SQL: ${_truncate(sql, 50)}',
-      migrate: (db, _) async => await db.execute(sql),
-      priority: _currentPriority++,
-    ));
+    _migrations.add(
+      TableMigration<T>(
+        table: _table,
+        targetVersion: version,
+        description:
+            description.isNotEmpty
+                ? description
+                : 'Raw SQL: ${_truncate(sql, 50)}',
+        migrate: (db, _) async => await db.execute(sql),
+        priority: _currentPriority++,
+      ),
+    );
     return this;
   }
 
@@ -79,8 +82,9 @@ class MigrationBuilder<T extends Model> {
     String? defaultValue,
     String? description,
   }) {
-    final sql =
-        StringBuffer('ALTER TABLE ${_table.name} ADD COLUMN $name $type');
+    final sql = StringBuffer(
+      'ALTER TABLE ${_table.name} ADD COLUMN $name $type',
+    );
 
     if (!nullable) {
       sql.write(' NOT NULL');
@@ -111,8 +115,8 @@ class MigrationBuilder<T extends Model> {
     return custom(
       description: description ?? 'Drop column $name',
       version: version,
-      migrate: (db, table) async =>
-          await _dropColumnWorkaround(db, table, name),
+      migrate:
+          (db, table) async => await _dropColumnWorkaround(db, table, name),
     );
   }
 
@@ -206,15 +210,17 @@ class MigrationBuilder<T extends Model> {
     required String description,
     required int version,
     required Future<void> Function(PhormDatabaseExecutor db, Table<T> table)
-        migrate,
+    migrate,
   }) {
-    _migrations.add(TableMigration<T>(
-      table: _table,
-      targetVersion: version,
-      description: description,
-      migrate: (db, table) => migrate(db, table as Table<T>),
-      priority: _currentPriority++,
-    ));
+    _migrations.add(
+      TableMigration<T>(
+        table: _table,
+        targetVersion: version,
+        description: description,
+        migrate: (db, table) => migrate(db, table as Table<T>),
+        priority: _currentPriority++,
+      ),
+    );
     return this;
   }
 
@@ -242,13 +248,15 @@ class MigrationBuilder<T extends Model> {
     // SQLite doesn't support ADD FOREIGN KEY directly
     // This would need table recreation
     return custom(
-      description: description ??
+      description:
+          description ??
           'Add foreign key $column → $referenceTable($referenceColumn)',
       version: version,
       migrate: (db, table) async {
         print('⚠️  Foreign key constraints require table recreation in SQLite');
         print(
-            '    Skipping foreign key: $column → $referenceTable($referenceColumn)');
+          '    Skipping foreign key: $column → $referenceTable($referenceColumn)',
+        );
         // In production, you might want to implement table recreation here
       },
     );
@@ -268,7 +276,8 @@ class MigrationBuilder<T extends Model> {
       version: version,
       migrate: (db, table) async {
         print(
-            '⚠️  SQLite doesn\'t support adding CHECK constraints to existing tables');
+          '⚠️  SQLite doesn\'t support adding CHECK constraints to existing tables',
+        );
         print('    Constraint would be: $constraint');
         // In production, implement table recreation if needed
       },
@@ -292,8 +301,10 @@ class MigrationBuilder<T extends Model> {
     // 5. Rename new table
     // 6. Recreate indexes
 
-    throw UnsupportedError('Column dropping requires manual implementation. '
-        'Consider using .custom() with your own migration logic.');
+    throw UnsupportedError(
+      'Column dropping requires manual implementation. '
+      'Consider using .custom() with your own migration logic.',
+    );
   }
 
   /// Truncates a string for display in descriptions

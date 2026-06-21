@@ -4,9 +4,7 @@ part 'migration_user.sql.g.dart';
 
 late DB appDb;
 
-@Schema(
-  tableName: 'migration_users',
-)
+@Schema(tableName: 'migration_users')
 class MigrationUser extends Model with _$PhormMigrationUserMixin {
   @ID(autoIncrement: false, columnName: 'custom_id')
   final String id;

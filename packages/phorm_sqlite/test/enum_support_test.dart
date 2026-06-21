@@ -6,11 +6,7 @@ void main() {
   late DB db;
 
   setUp(() {
-    db = DB(
-      databaseName: ':memory:',
-      version: 1,
-      tables: [enum_postsTable],
-    );
+    db = DB(databaseName: ':memory:', version: 1, tables: [enum_postsTable]);
     appDb =
         db; // Assign to global appDb needed for generated pluralized service
   });

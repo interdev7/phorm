@@ -3,8 +3,10 @@ import 'common.dart';
 void main() {
   group('WhereBuilder Tests:', () {
     test('Basic conditions (eq, gt, lt)', () {
-      final where =
-          WhereBuilder().eq('is_active', 1).gt('age', 30).lt('age', 50);
+      final where = WhereBuilder()
+          .eq('is_active', 1)
+          .gt('age', 30)
+          .lt('age', 50);
 
       expect(where.build(), 'is_active = ? AND age > ? AND age < ?');
       expect(where.args, [1, 30, 50]);
@@ -20,8 +22,9 @@ void main() {
     });
 
     test('IN and NOT IN conditions', () {
-      final where = WhereBuilder().inList(
-          'city', ['Sofia', 'Plovdiv', 'Varna']).notInList('gender', ['Other']);
+      final where = WhereBuilder()
+          .inList('city', ['Sofia', 'Plovdiv', 'Varna'])
+          .notInList('gender', ['Other']);
 
       expect(where.build(), 'city IN (?, ?, ?) AND gender NOT IN (?)');
       expect(where.args, ['Sofia', 'Plovdiv', 'Varna', 'Other']);
@@ -35,9 +38,12 @@ void main() {
     });
 
     test('AND grouping', () {
-      final where = WhereBuilder().eq('country', 'Bulgaria').andGroup((wg) {
-        wg.gt('age', 18).lt('age', 65);
-      }).eq('is_verified', 1);
+      final where = WhereBuilder()
+          .eq('country', 'Bulgaria')
+          .andGroup((wg) {
+            wg.gt('age', 18).lt('age', 65);
+          })
+          .eq('is_verified', 1);
 
       expect(
         where.build(),
@@ -51,19 +57,18 @@ void main() {
         wg.eq('city', 'Sofia').eq('city', 'Plovdiv');
       });
 
-      expect(
-        where.build(),
-        'is_active = ? AND (city = ? OR city = ?)',
-      );
+      expect(where.build(), 'is_active = ? AND (city = ? OR city = ?)');
       expect(where.args, [1, 'Sofia', 'Plovdiv']);
     });
 
     test('Nested groups', () {
-      final where = WhereBuilder().andGroup((ag) {
-        ag.eq('gender', 'M').gt('age', 40);
-      }).orGroup((og) {
-        og.eq('city', 'Sofia').eq('city', 'Varna');
-      });
+      final where = WhereBuilder()
+          .andGroup((ag) {
+            ag.eq('gender', 'M').gt('age', 40);
+          })
+          .orGroup((og) {
+            og.eq('city', 'Sofia').eq('city', 'Varna');
+          });
 
       expect(
         where.build(),
@@ -74,10 +79,14 @@ void main() {
 
     test('Raw SQL conditions', () {
       final where = WhereBuilder().raw('LENGTH(first_name) > ?', [3]).raw(
-          'SUBSTR(last_name, 1, 1) = ?', ['S']);
+        'SUBSTR(last_name, 1, 1) = ?',
+        ['S'],
+      );
 
-      expect(where.build(),
-          'LENGTH(first_name) > ? AND SUBSTR(last_name, 1, 1) = ?');
+      expect(
+        where.build(),
+        'LENGTH(first_name) > ? AND SUBSTR(last_name, 1, 1) = ?',
+      );
       expect(where.args, [3, 'S']);
     });
 
@@ -98,10 +107,23 @@ void main() {
         'LENGTH(first_name) = ? AND LENGTH(last_name) != ? AND LENGTH(nickname) > ? AND LENGTH(alias) >= ? AND LENGTH(short) < ? AND LENGTH(tiny) <= ? AND SUBSTR(last_name, ?, ?) = ? AND SUBSTR(email, ?, ?) LIKE ? AND LOWER(SUBSTR(first_name, ?, ?)) LIKE LOWER(?)',
       );
 
-      expect(
-        where.args,
-        [5, 3, 2, 4, 10, 1, 1, 1, 'S', 1, 3, '%@g', 1, 2, 'jo'],
-      );
+      expect(where.args, [
+        5,
+        3,
+        2,
+        4,
+        10,
+        1,
+        1,
+        1,
+        'S',
+        1,
+        3,
+        '%@g',
+        1,
+        2,
+        'jo',
+      ]);
     });
 
     test('hasConditionOn check', () {
@@ -109,8 +131,8 @@ void main() {
           .eq('age', 25)
           .like('email', '%@gmail.com')
           .orGroup((og) {
-        og.eq('city', 'Sofia').eq('city', 'Plovdiv');
-      });
+            og.eq('city', 'Sofia').eq('city', 'Plovdiv');
+          });
 
       expect(where.hasConditionOn('age'), true);
       expect(where.hasConditionOn('email'), true);
@@ -119,8 +141,9 @@ void main() {
     });
 
     test('Builder copy', () {
-      final original =
-          WhereBuilder().eq('is_active', 1).like('email', '%gmail.com');
+      final original = WhereBuilder()
+          .eq('is_active', 1)
+          .like('email', '%gmail.com');
 
       final copy = original.copy();
 
@@ -174,8 +197,10 @@ void main() {
           .gt(Users.age, 30)
           .lengthEq(Users.firstName, 5);
 
-      expect(where.build(),
-          'users.is_active = ? AND users.email LIKE ? AND users.age > ? AND LENGTH(users.first_name) = ?');
+      expect(
+        where.build(),
+        'users.is_active = ? AND users.email LIKE ? AND users.age > ? AND LENGTH(users.first_name) = ?',
+      );
       expect(where.args, [1, '%gmail.com', 30, 5]);
     });
 
@@ -201,11 +226,11 @@ void main() {
     });
 
     test('WhereBuilders.multiColumnSearch factory', () {
-      final where = WhereBuilders.multiColumnSearch(
-        'john',
-        ['first_name', 'last_name', 'email'],
-        caseSensitive: true,
-      );
+      final where = WhereBuilders.multiColumnSearch('john', [
+        'first_name',
+        'last_name',
+        'email',
+      ], caseSensitive: true);
 
       expect(
         where.build(),
@@ -213,11 +238,10 @@ void main() {
       );
       expect(where.args, ['%john%', '%john%', '%john%']);
 
-      final caseInsensitive = WhereBuilders.multiColumnSearch(
-        'john',
-        ['first_name', 'last_name'],
-        caseSensitive: false,
-      );
+      final caseInsensitive = WhereBuilders.multiColumnSearch('john', [
+        'first_name',
+        'last_name',
+      ], caseSensitive: false);
       expect(
         caseInsensitive.build(),
         '(LOWER(first_name) LIKE LOWER(?) OR LOWER(last_name) LIKE LOWER(?))',
@@ -243,8 +267,11 @@ void main() {
 
       // 3. dateRangeIfProvided with PhormColumn
       final now = DateTime(2026, 5, 19);
-      final where3 =
-          WhereBuilder().dateRangeIfProvided(Users.createdAt, now, null);
+      final where3 = WhereBuilder().dateRangeIfProvided(
+        Users.createdAt,
+        now,
+        null,
+      );
       expect(where3.build(), 'users.created_at >= ?');
       expect(where3.args, [now.toIso8601String()]);
 

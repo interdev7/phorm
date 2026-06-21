@@ -74,12 +74,10 @@ void main() {
       await userService.insertBatch(users);
 
       // Prepare updated versions
-      final updatedUsers = users
-          .map((u) => u.copyWith(
-                city: 'Updated City',
-                isVerified: true,
-              ))
-          .toList();
+      final updatedUsers =
+          users
+              .map((u) => u.copyWith(city: 'Updated City', isVerified: true))
+              .toList();
 
       await userService.updateBatch(updatedUsers);
 

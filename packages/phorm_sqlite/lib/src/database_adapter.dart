@@ -37,13 +37,14 @@ class Database implements DatabaseExecutor {
       );
 
   @override
-  Future<List<Map<String, Object?>>> rawQuery(String sql,
-          [List<Object?>? arguments]) =>
-      _wrapException(
-        () => _isolate.query(sql, arguments),
-        table: _parseTableFromSql(sql),
-        sql: sql,
-      );
+  Future<List<Map<String, Object?>>> rawQuery(
+    String sql, [
+    List<Object?>? arguments,
+  ]) => _wrapException(
+    () => _isolate.query(sql, arguments),
+    table: _parseTableFromSql(sql),
+    sql: sql,
+  );
 
   @override
   Future<List<Map<String, Object?>>> query(
@@ -85,9 +86,10 @@ class Database implements DatabaseExecutor {
   }) async {
     final columns = values.keys.toList();
     final placeholders = List.filled(columns.length, '?').join(', ');
-    final conflictClause = conflictAlgorithm != null
-        ? ' OR ${_conflictToString(conflictAlgorithm)}'
-        : '';
+    final conflictClause =
+        conflictAlgorithm != null
+            ? ' OR ${_conflictToString(conflictAlgorithm)}'
+            : '';
     final sql =
         'INSERT$conflictClause INTO $table (${columns.join(', ')}) VALUES ($placeholders)';
     return _wrapException(
@@ -110,12 +112,11 @@ class Database implements DatabaseExecutor {
     String? where,
     List<Object?>? whereArgs,
     ConflictAlgorithm? conflictAlgorithm,
-  }) =>
-      _wrapException(
-        () => _isolate.update(table, values, where: where, whereArgs: whereArgs),
-        table: table,
-        values: values,
-      );
+  }) => _wrapException(
+    () => _isolate.update(table, values, where: where, whereArgs: whereArgs),
+    table: table,
+    values: values,
+  );
 
   @override
   Future<int> delete(String table, {String? where, List<Object?>? whereArgs}) =>
@@ -173,9 +174,10 @@ class Transaction implements DatabaseExecutor {
       _db.execute(sql, arguments);
 
   @override
-  Future<List<Map<String, Object?>>> rawQuery(String sql,
-          [List<Object?>? arguments]) =>
-      _db.rawQuery(sql, arguments);
+  Future<List<Map<String, Object?>>> rawQuery(
+    String sql, [
+    List<Object?>? arguments,
+  ]) => _db.rawQuery(sql, arguments);
 
   @override
   Future<List<Map<String, Object?>>> query(
@@ -189,19 +191,18 @@ class Transaction implements DatabaseExecutor {
     String? orderBy,
     int? limit,
     int? offset,
-  }) =>
-      _db.query(
-        table,
-        distinct: distinct,
-        columns: columns,
-        where: where,
-        whereArgs: whereArgs,
-        groupBy: groupBy,
-        having: having,
-        orderBy: orderBy,
-        limit: limit,
-        offset: offset,
-      );
+  }) => _db.query(
+    table,
+    distinct: distinct,
+    columns: columns,
+    where: where,
+    whereArgs: whereArgs,
+    groupBy: groupBy,
+    having: having,
+    orderBy: orderBy,
+    limit: limit,
+    offset: offset,
+  );
 
   @override
   Future<int> insert(
@@ -209,9 +210,12 @@ class Transaction implements DatabaseExecutor {
     Map<String, Object?> values, {
     String? nullColumnHack,
     ConflictAlgorithm? conflictAlgorithm,
-  }) =>
-      _db.insert(table, values,
-          nullColumnHack: nullColumnHack, conflictAlgorithm: conflictAlgorithm);
+  }) => _db.insert(
+    table,
+    values,
+    nullColumnHack: nullColumnHack,
+    conflictAlgorithm: conflictAlgorithm,
+  );
 
   @override
   Future<int> update(
@@ -220,11 +224,13 @@ class Transaction implements DatabaseExecutor {
     String? where,
     List<Object?>? whereArgs,
     ConflictAlgorithm? conflictAlgorithm,
-  }) =>
-      _db.update(table, values,
-          where: where,
-          whereArgs: whereArgs,
-          conflictAlgorithm: conflictAlgorithm);
+  }) => _db.update(
+    table,
+    values,
+    where: where,
+    whereArgs: whereArgs,
+    conflictAlgorithm: conflictAlgorithm,
+  );
 
   @override
   Future<int> delete(String table, {String? where, List<Object?>? whereArgs}) =>
@@ -260,7 +266,8 @@ class SqliteBatch implements Batch {
     ConflictAlgorithm? conflictAlgorithm,
   }) {
     _operations.add(
-        _BatchOp.update(table, values, where, whereArgs, conflictAlgorithm));
+      _BatchOp.update(table, values, where, whereArgs, conflictAlgorithm),
+    );
   }
 
   @override
@@ -325,43 +332,53 @@ class _BatchOp {
   final List<Object?>? arguments;
 
   _BatchOp.insert(this.table, this.values, this.conflictAlgorithm)
-      : type = 'insert',
-        where = null,
-        whereArgs = null,
-        sql = null,
-        arguments = null;
+    : type = 'insert',
+      where = null,
+      whereArgs = null,
+      sql = null,
+      arguments = null;
 
-  _BatchOp.update(this.table, this.values, this.where, this.whereArgs,
-      this.conflictAlgorithm)
-      : type = 'update',
-        sql = null,
-        arguments = null;
+  _BatchOp.update(
+    this.table,
+    this.values,
+    this.where,
+    this.whereArgs,
+    this.conflictAlgorithm,
+  ) : type = 'update',
+      sql = null,
+      arguments = null;
 
   _BatchOp.delete(this.table, this.where, this.whereArgs)
-      : type = 'delete',
-        values = null,
-        conflictAlgorithm = null,
-        sql = null,
-        arguments = null;
+    : type = 'delete',
+      values = null,
+      conflictAlgorithm = null,
+      sql = null,
+      arguments = null;
 
   _BatchOp.execute(this.sql, this.arguments)
-      : type = 'execute',
-        table = null,
-        values = null,
-        where = null,
-        whereArgs = null,
-        conflictAlgorithm = null;
+    : type = 'execute',
+      table = null,
+      values = null,
+      where = null,
+      whereArgs = null,
+      conflictAlgorithm = null;
 
   Future<Object?> execute(Database db) async {
     switch (type) {
       case 'insert':
-        return await db.insert(table!, values!,
-            conflictAlgorithm: conflictAlgorithm);
+        return await db.insert(
+          table!,
+          values!,
+          conflictAlgorithm: conflictAlgorithm,
+        );
       case 'update':
-        return await db.update(table!, values!,
-            where: where,
-            whereArgs: whereArgs,
-            conflictAlgorithm: conflictAlgorithm);
+        return await db.update(
+          table!,
+          values!,
+          where: where,
+          whereArgs: whereArgs,
+          conflictAlgorithm: conflictAlgorithm,
+        );
       case 'delete':
         return await db.delete(table!, where: where, whereArgs: whereArgs);
       case 'execute':
@@ -392,8 +409,8 @@ Future<T> _wrapException<T>(
 
       String? column;
       if (constraint != null && values != null) {
-        final sortedKeys = values.keys.toList()
-          ..sort((a, b) => b.length.compareTo(a.length));
+        final sortedKeys =
+            values.keys.toList()..sort((a, b) => b.length.compareTo(a.length));
         for (final key in sortedKeys) {
           if (constraint.contains(key)) {
             column = key;

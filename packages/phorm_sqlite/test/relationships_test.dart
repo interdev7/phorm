@@ -48,18 +48,29 @@ void main() {
 
     // Seed data
     await database.insert('users', {'id': 'u1', 'name': 'John'});
-    await database
-        .insert('posts', {'id': 1, 'title': 'Post 1', 'user_id': 'u1'});
-    await database
-        .insert('posts', {'id': 2, 'title': 'Post 2', 'user_id': 'u1'});
-    await database
-        .insert('posts', {'id': 3, 'title': 'Post 3', 'user_id': 'other'});
+    await database.insert('posts', {
+      'id': 1,
+      'title': 'Post 1',
+      'user_id': 'u1',
+    });
+    await database.insert('posts', {
+      'id': 2,
+      'title': 'Post 2',
+      'user_id': 'u1',
+    });
+    await database.insert('posts', {
+      'id': 3,
+      'title': 'Post 3',
+      'user_id': 'other',
+    });
 
     final userService = PhormCore<User>(dbManager: db, table: usersTable);
 
     // Test readOne with include
-    final user =
-        await userService.readOne('u1', include: [Includable.model<Post>()]);
+    final user = await userService.readOne(
+      'u1',
+      include: [Includable.model<Post>()],
+    );
 
     expect(user, isNotNull);
     expect(user!.name, 'John');
@@ -73,14 +84,19 @@ void main() {
 
     // Seed data
     await database.insert('users', {'id': 'u1', 'name': 'John'});
-    await database
-        .insert('posts', {'id': 1, 'title': 'Post 1', 'user_id': 'u1'});
+    await database.insert('posts', {
+      'id': 1,
+      'title': 'Post 1',
+      'user_id': 'u1',
+    });
 
     final postService = PhormCore<Post>(dbManager: db, table: postsTable);
 
     // Test readOne with include
-    final post =
-        await postService.readOne(1, include: [Includable.model<User>()]);
+    final post = await postService.readOne(
+      1,
+      include: [Includable.model<User>()],
+    );
 
     expect(post, isNotNull);
     expect(post!.title, 'Post 1');
@@ -98,8 +114,9 @@ void main() {
 
     final userService = PhormCore<User>(dbManager: db, table: usersTable);
 
-    final result =
-        await userService.readAll(include: [Includable.model<Post>()]);
+    final result = await userService.readAll(
+      include: [Includable.model<Post>()],
+    );
 
     expect(result.data, hasLength(2));
     final john = result.data.firstWhere((u) => u.id == 'u1');
@@ -124,11 +141,12 @@ class User extends Model {
     return User(
       id: json['id'] as String,
       name: json['name'] as String,
-      posts: json['posts'] != null
-          ? (json['posts'] as List)
-              .map((p) => Post.fromJson(p as Map<String, dynamic>))
-              .toList()
-          : const [],
+      posts:
+          json['posts'] != null
+              ? (json['posts'] as List)
+                  .map((p) => Post.fromJson(p as Map<String, dynamic>))
+                  .toList()
+              : const [],
     );
   }
 
@@ -142,21 +160,29 @@ class Post extends Model {
   final String userId;
   final User? user;
 
-  Post(
-      {required this.id, required this.title, required this.userId, this.user});
+  Post({
+    required this.id,
+    required this.title,
+    required this.userId,
+    this.user,
+  });
 
   factory Post.fromJson(Map<String, dynamic> json) {
     return Post(
       id: json['id'] as int,
       title: json['title'] as String,
       userId: json['user_id'] as String,
-      user: json['users'] != null
-          ? User.fromJson(json['users'] as Map<String, dynamic>)
-          : null,
+      user:
+          json['users'] != null
+              ? User.fromJson(json['users'] as Map<String, dynamic>)
+              : null,
     );
   }
 
   @override
-  Map<String, dynamic> toJson() =>
-      {'id': id, 'title': title, 'user_id': userId};
+  Map<String, dynamic> toJson() => {
+    'id': id,
+    'title': title,
+    'user_id': userId,
+  };
 }

@@ -33,15 +33,18 @@ class SqliteSchemaGenerator extends GeneratorForAnnotation<Schema> {
     final useFromJson = schemaReader.peek('useFromJson')?.boolValue ?? true;
 
     final strategyReader = schemaReader.peek('columnNaming');
-    final strategy = strategyReader == null || strategyReader.isNull
-        ? ColumnNamingStrategy.snakeCase
-        : ColumnNamingStrategy.values.firstWhere(
-            (e) => e.name == strategyReader.revive().accessor.split('.').last,
-            orElse: () => throw InvalidGenerationSourceError(
-              'Unknown ColumnNamingStrategy value',
-              element: element,
-            ),
-          );
+    final strategy =
+        strategyReader == null || strategyReader.isNull
+            ? ColumnNamingStrategy.snakeCase
+            : ColumnNamingStrategy.values.firstWhere(
+              (e) => e.name == strategyReader.revive().accessor.split('.').last,
+              orElse:
+                  () =>
+                      throw InvalidGenerationSourceError(
+                        'Unknown ColumnNamingStrategy value',
+                        element: element,
+                      ),
+            );
 
     final timestamps = schemaReader.peek('timestamps')?.boolValue ?? true;
     final paranoid = schemaReader.peek('paranoid')?.boolValue ?? false;
@@ -65,10 +68,11 @@ class SqliteSchemaGenerator extends GeneratorForAnnotation<Schema> {
       if (sqlName == 'updated_at') hasUpdatedAt = true;
       if (sqlName == 'deleted_at') hasDeletedAt = true;
 
-      final annotationMeta = field.metadata.where((m) {
-        final name = m.element?.enclosingElement3?.name;
-        return name == 'Column' || name == 'ID';
-      }).firstOrNull;
+      final annotationMeta =
+          field.metadata.where((m) {
+            final name = m.element?.enclosingElement3?.name;
+            return name == 'Column' || name == 'ID';
+          }).firstOrNull;
 
       if (annotationMeta != null &&
           annotationMeta.element?.enclosingElement3?.name == 'ID') {
@@ -116,18 +120,19 @@ class SqliteSchemaGenerator extends GeneratorForAnnotation<Schema> {
     }
 
     final List<Map<String, dynamic>> relationships = [
-      ..._extractRelationships(schemaReader)
+      ..._extractRelationships(schemaReader),
     ];
 
     // Also scan fields for @BelongsTo, @HasMany, @HasOne, @Join
     for (final field in fields) {
-      final fieldMeta = field.metadata.where((m) {
-        final name = m.element?.enclosingElement3?.name;
-        return name == 'BelongsTo' ||
-            name == 'HasMany' ||
-            name == 'HasOne' ||
-            name == 'Join';
-      }).firstOrNull;
+      final fieldMeta =
+          field.metadata.where((m) {
+            final name = m.element?.enclosingElement3?.name;
+            return name == 'BelongsTo' ||
+                name == 'HasMany' ||
+                name == 'HasOne' ||
+                name == 'Join';
+          }).firstOrNull;
 
       if (fieldMeta != null) {
         relationships.add(_parseRelationship(fieldMeta));
@@ -157,8 +162,10 @@ class SqliteSchemaGenerator extends GeneratorForAnnotation<Schema> {
         final onDelete = rel['onDelete'] as String?;
         final onUpdate = rel['onUpdate'] as String?;
 
-        final fk = StringBuffer()
-          ..write('  FOREIGN KEY($fkSqlName) REFERENCES $refTable($refColumn)');
+        final fk =
+            StringBuffer()..write(
+              '  FOREIGN KEY($fkSqlName) REFERENCES $refTable($refColumn)',
+            );
         if (onDelete != null) fk.write(' ON DELETE $onDelete');
         if (onUpdate != null) fk.write(' ON UPDATE $onUpdate');
 
@@ -241,13 +248,15 @@ class SqliteSchemaGenerator extends GeneratorForAnnotation<Schema> {
       final element = type.element;
       if (element is ClassElement) {
         // Try to find @Schema annotation on the class
-        final schemaMeta = element.metadata
-            .where((m) => m.element?.enclosingElement3?.name == 'Schema')
-            .firstOrNull;
+        final schemaMeta =
+            element.metadata
+                .where((m) => m.element?.enclosingElement3?.name == 'Schema')
+                .firstOrNull;
 
         if (schemaMeta != null) {
-          final schemaReader =
-              ConstantReader(schemaMeta.computeConstantValue());
+          final schemaReader = ConstantReader(
+            schemaMeta.computeConstantValue(),
+          );
           final tableName = schemaReader.peek('tableName')?.stringValue;
           if (tableName != null) return tableName;
         }
@@ -342,7 +351,8 @@ END;''';
       }
     }
 
-    final nullable = reader.peek('nullable')?.boolValue ??
+    final nullable =
+        reader.peek('nullable')?.boolValue ??
         field.type.nullabilitySuffix == NullabilitySuffix.question;
 
     final unique = reader.peek('unique')?.boolValue ?? false;
@@ -386,8 +396,9 @@ END;''';
       for (final validatorObj in validatorsReader.listValue) {
         final validatorReader = ConstantReader(validatorObj);
 
-        if (!const TypeChecker.fromRuntime(ISqlValidator)
-            .isAssignableFromType(validatorObj.type!)) {
+        if (!const TypeChecker.fromRuntime(
+          ISqlValidator,
+        ).isAssignableFromType(validatorObj.type!)) {
           // Not an ISqlValidator — skip (IJsonValidator only, no SQL needed)
           continue;
         }
@@ -408,17 +419,15 @@ END;''';
 
       // Combine remaining anonymous checks into one CHECK(expr AND expr ...)
       if (anonymousSqls.isNotEmpty) {
-        final combined = anonymousSqls.length > 1
-            ? anonymousSqls.map((c) => '($c)').join(' AND ')
-            : anonymousSqls.first;
+        final combined =
+            anonymousSqls.length > 1
+                ? anonymousSqls.map((c) => '($c)').join(' AND ')
+                : anonymousSqls.first;
         buffer.write(' CHECK($combined)');
       }
     }
 
-    return _ColumnResult(
-      columnName: columnName,
-      columnSql: buffer.toString(),
-    );
+    return _ColumnResult(columnName: columnName, columnSql: buffer.toString());
   }
 
   // ─────────────────────────────────────────────────────────────
@@ -459,8 +468,9 @@ END;''';
     if (type == null) return null;
 
     // Only process ISqlValidator implementors
-    if (!const TypeChecker.fromRuntime(ISqlValidator)
-        .isAssignableFromType(type)) {
+    if (!const TypeChecker.fromRuntime(
+      ISqlValidator,
+    ).isAssignableFromType(type)) {
       return null;
     }
 
@@ -480,15 +490,17 @@ END;''';
     if (valuesObj != null && !valuesObj.isNull) {
       final list = valuesObj.toListValue();
       if (list != null && list.isNotEmpty) {
-        final formatted = list.map((v) {
-          final s = v.toStringValue();
-          if (s != null) return "'$s'";
-          final i = v.toIntValue();
-          if (i != null) return i.toString();
-          final d = v.toDoubleValue();
-          if (d != null) return d.toString();
-          return 'NULL';
-        }).join(', ');
+        final formatted = list
+            .map((v) {
+              final s = v.toStringValue();
+              if (s != null) return "'$s'";
+              final i = v.toIntValue();
+              if (i != null) return i.toString();
+              final d = v.toDoubleValue();
+              if (d != null) return d.toString();
+              return 'NULL';
+            })
+            .join(', ');
         return '$columnName IN ($formatted)';
       }
     }
@@ -501,8 +513,5 @@ class _ColumnResult {
   final String columnName;
   final String columnSql;
 
-  _ColumnResult({
-    required this.columnName,
-    required this.columnSql,
-  });
+  _ColumnResult({required this.columnName, required this.columnSql});
 }

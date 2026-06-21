@@ -35,11 +35,9 @@ void main() {
       );
 
       // 2. Insert a row
-      await service.insert(CollationTest(
-        id: '1',
-        nameNoCase: 'Alice',
-        nameBinary: 'Alice',
-      ));
+      await service.insert(
+        CollationTest(id: '1', nameNoCase: 'Alice', nameBinary: 'Alice'),
+      );
 
       // 3. Read it back
       final listBeforeClose = await service.readAll();
@@ -74,76 +72,79 @@ void main() {
     });
 
     test(
-        'Should fail to read when opened with incorrect password (if SQLCipher is supported)',
-        () async {
-      // 1. Initialize DB with a password
-      final db = DB(
-        databaseName: dbPath,
-        version: 1,
-        password: 'correct_password_123',
-        tables: [collation_testsTable],
-        singleInstance: false,
-      );
-
-      final service = PhormCore<CollationTest>(
-        dbManager: db,
-        table: collation_testsTable,
-      );
-
-      // 2. Insert a row to ensure database is created and written
-      await service.insert(CollationTest(
-        id: '1',
-        nameNoCase: 'Alice',
-        nameBinary: 'Alice',
-      ));
-
-      // 3. Close the database
-      final dbInstance = await db.database;
-
-      // Detect if SQLCipher is actually supported in the current test environment
-      final cipherCheck = await dbInstance.rawQuery('PRAGMA cipher_version');
-      final isSqlCipherSupported = cipherCheck.isNotEmpty &&
-          cipherCheck.first.values.first != null &&
-          (cipherCheck.first.values.first as String).isNotEmpty;
-
-      await dbInstance.close();
-
-      // 4. Attempt to open with WRONG password
-      final dbWrongPassword = DB(
-        databaseName: dbPath,
-        version: 1,
-        password: 'wrong_password_xyz',
-        tables: [collation_testsTable],
-        singleInstance: false,
-      );
-
-      if (isSqlCipherSupported) {
-        // If SQLCipher is active, reading should fail with SqliteException (usually code 26 - SQLITE_NOTADB)
-        expect(
-          () async {
-            final serviceWrong = PhormCore<CollationTest>(
-              dbManager: dbWrongPassword,
-              table: collation_testsTable,
-            );
-            await serviceWrong.readAll();
-          },
-          throwsA(isA<Exception>()),
-          reason:
-              'SQLCipher is active; opening with the wrong password must fail.',
+      'Should fail to read when opened with incorrect password (if SQLCipher is supported)',
+      () async {
+        // 1. Initialize DB with a password
+        final db = DB(
+          databaseName: dbPath,
+          version: 1,
+          password: 'correct_password_123',
+          tables: [collation_testsTable],
+          singleInstance: false,
         );
-      } else {
-        // If standard SQLite (no SQLCipher), PRAGMA key is a no-op, so it opens and reads normally
-        final serviceWrong = PhormCore<CollationTest>(
-          dbManager: dbWrongPassword,
+
+        final service = PhormCore<CollationTest>(
+          dbManager: db,
           table: collation_testsTable,
         );
-        final list = await serviceWrong.readAll();
-        expect(list.data.length, 1,
-            reason: 'Standard SQLite ignores PRAGMA key, so reading succeeds.');
 
-        final dbInstanceWrong = await dbWrongPassword.database;
-        await dbInstanceWrong.close();
-      }
-    });
+        // 2. Insert a row to ensure database is created and written
+        await service.insert(
+          CollationTest(id: '1', nameNoCase: 'Alice', nameBinary: 'Alice'),
+        );
+
+        // 3. Close the database
+        final dbInstance = await db.database;
+
+        // Detect if SQLCipher is actually supported in the current test environment
+        final cipherCheck = await dbInstance.rawQuery('PRAGMA cipher_version');
+        final isSqlCipherSupported =
+            cipherCheck.isNotEmpty &&
+            cipherCheck.first.values.first != null &&
+            (cipherCheck.first.values.first as String).isNotEmpty;
+
+        await dbInstance.close();
+
+        // 4. Attempt to open with WRONG password
+        final dbWrongPassword = DB(
+          databaseName: dbPath,
+          version: 1,
+          password: 'wrong_password_xyz',
+          tables: [collation_testsTable],
+          singleInstance: false,
+        );
+
+        if (isSqlCipherSupported) {
+          // If SQLCipher is active, reading should fail with SqliteException (usually code 26 - SQLITE_NOTADB)
+          expect(
+            () async {
+              final serviceWrong = PhormCore<CollationTest>(
+                dbManager: dbWrongPassword,
+                table: collation_testsTable,
+              );
+              await serviceWrong.readAll();
+            },
+            throwsA(isA<Exception>()),
+            reason:
+                'SQLCipher is active; opening with the wrong password must fail.',
+          );
+        } else {
+          // If standard SQLite (no SQLCipher), PRAGMA key is a no-op, so it opens and reads normally
+          final serviceWrong = PhormCore<CollationTest>(
+            dbManager: dbWrongPassword,
+            table: collation_testsTable,
+          );
+          final list = await serviceWrong.readAll();
+          expect(
+            list.data.length,
+            1,
+            reason: 'Standard SQLite ignores PRAGMA key, so reading succeeds.',
+          );
+
+          final dbInstanceWrong = await dbWrongPassword.database;
+          await dbInstanceWrong.close();
+        }
+      },
+    );
   });
 }

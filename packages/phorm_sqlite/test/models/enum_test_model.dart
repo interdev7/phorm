@@ -4,15 +4,9 @@ part 'enum_test_model.sql.g.dart';
 
 late DB appDb;
 
-enum PostStatus {
-  draft,
-  published,
-  archived,
-}
+enum PostStatus { draft, published, archived }
 
-@Schema(
-  tableName: 'enum_posts',
-)
+@Schema(tableName: 'enum_posts')
 class EnumPost extends Model with _$PhormEnumPostMixin {
   @ID(autoIncrement: true)
   final int id;

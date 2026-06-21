@@ -9,10 +9,10 @@ import 'src/sql_function_generator.dart';
 import 'src/sqlite_schema_generator.dart';
 
 Builder sqlSchemaBuilder(BuilderOptions options) {
-  return SharedPartBuilder(
-    [SqliteSchemaGenerator(), ModelMixinGenerator()],
-    'phorm',
-  );
+  return SharedPartBuilder([
+    SqliteSchemaGenerator(),
+    ModelMixinGenerator(),
+  ], 'phorm');
 }
 
 Builder standaloneSqlSchemaBuilder(BuilderOptions options) {
@@ -38,7 +38,8 @@ class _PhormCombinedGenerator extends Generator {
     final buffer = StringBuffer();
 
     const schemaChecker = TypeChecker.fromUrl(
-        'package:phorm_annotations/src/annotations.dart#Schema');
+      'package:phorm_annotations/src/annotations.dart#Schema',
+    );
     var annotated = library.annotatedWith(schemaChecker);
 
     if (annotated.isEmpty) {

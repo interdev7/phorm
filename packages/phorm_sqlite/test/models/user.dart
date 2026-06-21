@@ -131,9 +131,7 @@ class User extends Model with _$PhormUserMixin {
   indexes: [
     Index(columns: ['user_id']),
   ],
-  relationships: [
-    BelongsTo(model: User, foreignKey: 'user_id'),
-  ],
+  relationships: [BelongsTo(model: User, foreignKey: 'user_id')],
 )
 class Post extends Model with _$PhormPostMixin {
   @ID(autoIncrement: true)
@@ -145,11 +143,7 @@ class Post extends Model with _$PhormPostMixin {
   @Column(columnName: 'user_id')
   final String userId;
 
-  Post({
-    required this.id,
-    required this.title,
-    required this.userId,
-  });
+  Post({required this.id, required this.title, required this.userId});
 
   factory Post.fromJson(Map<String, dynamic> json) => _$PhormPostFromJson(json);
 }
@@ -159,9 +153,7 @@ class Post extends Model with _$PhormPostMixin {
   indexes: [
     Index(columns: ['user_id'], unique: true),
   ],
-  relationships: [
-    BelongsTo(model: User, foreignKey: 'user_id'),
-  ],
+  relationships: [BelongsTo(model: User, foreignKey: 'user_id')],
 )
 class Profile extends Model with _$PhormProfileMixin {
   @ID(autoIncrement: true)
@@ -173,11 +165,7 @@ class Profile extends Model with _$PhormProfileMixin {
   @Column(columnName: 'user_id')
   final String userId;
 
-  Profile({
-    required this.id,
-    required this.bio,
-    required this.userId,
-  });
+  Profile({required this.id, required this.bio, required this.userId});
 
   factory Profile.fromJson(Map<String, dynamic> json) =>
       _$PhormProfileFromJson(json);
@@ -189,9 +177,7 @@ class Profile extends Model with _$PhormProfileMixin {
   indexes: [
     Index(columns: ['user_id']),
   ],
-  relationships: [
-    BelongsTo(model: User, foreignKey: 'user_id'),
-  ],
+  relationships: [BelongsTo(model: User, foreignKey: 'user_id')],
 )
 class Order extends Model with _$PhormOrderMixin {
   @ID(autoIncrement: true)
@@ -203,11 +189,7 @@ class Order extends Model with _$PhormOrderMixin {
   @Column(columnName: 'user_id')
   final String userId;
 
-  Order({
-    required this.id,
-    required this.total,
-    required this.userId,
-  });
+  Order({required this.id, required this.total, required this.userId});
 
   factory Order.fromJson(Map<String, dynamic> json) =>
       _$PhormOrderFromJson(json);

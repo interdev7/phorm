@@ -84,8 +84,9 @@ class WhereBuilder {
   final Set<String> _usedColumns = {};
 
   /// Column name validation regex (letters, numbers, underscores, and dots for joined tables)
-  static final RegExp _columnRegExp =
-      RegExp(r'^[a-zA-Z_][a-zA-Z0-9_]*(\.[a-zA-Z_][a-zA-Z0-9_]*)*$');
+  static final RegExp _columnRegExp = RegExp(
+    r'^[a-zA-Z_][a-zA-Z0-9_]*(\.[a-zA-Z_][a-zA-Z0-9_]*)*$',
+  );
 
   /// Creates a new WhereBuilder instance
   ///
@@ -113,9 +114,11 @@ class WhereBuilder {
     }
     final colStr = column.toString();
     if (!_columnRegExp.hasMatch(colStr)) {
-      throw ArgumentError('Invalid column name: "$colStr". '
-          'Must contain only letters, numbers, underscores, '
-          'and dots, and parts must start with a letter or underscore.');
+      throw ArgumentError(
+        'Invalid column name: "$colStr". '
+        'Must contain only letters, numbers, underscores, '
+        'and dots, and parts must start with a letter or underscore.',
+      );
     }
   }
 
@@ -376,26 +379,33 @@ class WhereBuilder {
   /// and avoid embedding literals directly into SQL.
   WhereBuilder substrEq(Object column, int start, int len, String value) {
     _validate(column);
-    _addCondition(
-        'SUBSTR($column, ?, ?) = ?',
-        [_prepareValue(start), _prepareValue(len), _prepareValue(value)],
-        column);
+    _addCondition('SUBSTR($column, ?, ?) = ?', [
+      _prepareValue(start),
+      _prepareValue(len),
+      _prepareValue(value),
+    ], column);
     return this;
   }
 
   /// Adds SUBSTR LIKE condition: `SUBSTR(column, start, len) LIKE ?`
   WhereBuilder substrLike(Object column, int start, int len, String pattern) {
     _validate(column);
-    _addCondition('SUBSTR($column, ?, ?) LIKE ?',
-        [_prepareValue(start), _prepareValue(len), pattern], column);
+    _addCondition('SUBSTR($column, ?, ?) LIKE ?', [
+      _prepareValue(start),
+      _prepareValue(len),
+      pattern,
+    ], column);
     return this;
   }
 
   /// Adds case-insensitive SUBSTR LIKE: `LOWER(SUBSTR(column, start, len)) LIKE LOWER(?)`
   WhereBuilder substrIlike(Object column, int start, int len, String pattern) {
     _validate(column);
-    _addCondition('LOWER(SUBSTR($column, ?, ?)) LIKE LOWER(?)',
-        [_prepareValue(start), _prepareValue(len), pattern], column);
+    _addCondition('LOWER(SUBSTR($column, ?, ?)) LIKE LOWER(?)', [
+      _prepareValue(start),
+      _prepareValue(len),
+      pattern,
+    ], column);
     return this;
   }
 
@@ -413,22 +423,20 @@ class WhereBuilder {
   /// ```
   WhereBuilder between(Object column, Object from, Object to) {
     _validate(column);
-    _addCondition(
-      '$column BETWEEN ? AND ?',
-      [_prepareValue(from), _prepareValue(to)],
-      column,
-    );
+    _addCondition('$column BETWEEN ? AND ?', [
+      _prepareValue(from),
+      _prepareValue(to),
+    ], column);
     return this;
   }
 
   /// Adds NOT BETWEEN condition: `column NOT BETWEEN ? AND ?`
   WhereBuilder notBetween(Object column, Object from, Object to) {
     _validate(column);
-    _addCondition(
-      '$column NOT BETWEEN ? AND ?',
-      [_prepareValue(from), _prepareValue(to)],
-      column,
-    );
+    _addCondition('$column NOT BETWEEN ? AND ?', [
+      _prepareValue(from),
+      _prepareValue(to),
+    ], column);
     return this;
   }
 
@@ -616,9 +624,11 @@ class WhereBuilder {
 
     final questionCount = '?'.allMatches(condition).length;
     if (args != null && args.length != questionCount) {
-      throw ArgumentError('Placeholder/argument mismatch in raw condition. '
-          'Expected $questionCount arguments, got ${args.length}. '
-          'Condition: $condition');
+      throw ArgumentError(
+        'Placeholder/argument mismatch in raw condition. '
+        'Expected $questionCount arguments, got ${args.length}. '
+        'Condition: $condition',
+      );
     }
 
     final preparedArgs = args?.map(_prepareValue).toList() ?? [];
@@ -642,7 +652,8 @@ class WhereBuilder {
   /// ```
   WhereBuilder dateOnlyEq(Object column, DateTime date) {
     _validate(column);
-    final dateStr = '${date.year}-${date.month.toString().padLeft(2, '0')}-'
+    final dateStr =
+        '${date.year}-${date.month.toString().padLeft(2, '0')}-'
         '${date.day.toString().padLeft(2, '0')}';
     _addCondition('DATE($column) = ?', [dateStr], column);
     return this;
@@ -658,7 +669,8 @@ class WhereBuilder {
   /// ```
   WhereBuilder dateOnlyGt(Object column, DateTime date) {
     _validate(column);
-    final dateStr = '${date.year}-${date.month.toString().padLeft(2, '0')}-'
+    final dateStr =
+        '${date.year}-${date.month.toString().padLeft(2, '0')}-'
         '${date.day.toString().padLeft(2, '0')}';
     _addCondition('DATE($column) > ?', [dateStr], column);
     return this;
@@ -674,7 +686,8 @@ class WhereBuilder {
   /// ```
   WhereBuilder dateOnlyLt(Object column, DateTime date) {
     _validate(column);
-    final dateStr = '${date.year}-${date.month.toString().padLeft(2, '0')}-'
+    final dateStr =
+        '${date.year}-${date.month.toString().padLeft(2, '0')}-'
         '${date.day.toString().padLeft(2, '0')}';
     _addCondition('DATE($column) < ?', [dateStr], column);
     return this;
@@ -693,9 +706,11 @@ class WhereBuilder {
   /// ```
   WhereBuilder dateOnlyBetween(Object column, DateTime from, DateTime to) {
     _validate(column);
-    final fromStr = '${from.year}-${from.month.toString().padLeft(2, '0')}-'
+    final fromStr =
+        '${from.year}-${from.month.toString().padLeft(2, '0')}-'
         '${from.day.toString().padLeft(2, '0')}';
-    final toStr = '${to.year}-${to.month.toString().padLeft(2, '0')}-'
+    final toStr =
+        '${to.year}-${to.month.toString().padLeft(2, '0')}-'
         '${to.day.toString().padLeft(2, '0')}';
     _addCondition('DATE($column) BETWEEN ? AND ?', [fromStr, toStr], column);
     return this;
@@ -711,7 +726,8 @@ class WhereBuilder {
   /// ```
   WhereBuilder timeOnlyEq(Object column, DateTime time) {
     _validate(column);
-    final timeStr = '${time.hour.toString().padLeft(2, '0')}:'
+    final timeStr =
+        '${time.hour.toString().padLeft(2, '0')}:'
         '${time.minute.toString().padLeft(2, '0')}:'
         '${time.second.toString().padLeft(2, '0')}';
     _addCondition('TIME($column) = ?', [timeStr], column);
@@ -961,7 +977,9 @@ extension WhereBuilderExtensions on WhereBuilder {
   /// where.addIf(onlyActive, (w) => w.isTrue(Users.isActive));
   /// ```
   WhereBuilder addIf(
-      bool condition, WhereBuilder Function(WhereBuilder builder) builderFunc) {
+    bool condition,
+    WhereBuilder Function(WhereBuilder builder) builderFunc,
+  ) {
     if (condition) {
       return builderFunc(this);
     }
@@ -974,8 +992,10 @@ extension WhereBuilderExtensions on WhereBuilder {
   /// ```dart
   /// where.addNotNull(searchQuery, (w, val) => w.like(Users.name, '%$val%'));
   /// ```
-  WhereBuilder addNotNull<V>(V? value,
-      WhereBuilder Function(WhereBuilder builder, V value) builderFunc) {
+  WhereBuilder addNotNull<V>(
+    V? value,
+    WhereBuilder Function(WhereBuilder builder, V value) builderFunc,
+  ) {
     if (value != null) {
       return builderFunc(this, value);
     }

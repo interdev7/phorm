@@ -34,7 +34,7 @@ void main() {
       'city': 'Sofia',
       'country': 'Bulgaria',
       'created_at': now,
-      'updated_at': now
+      'updated_at': now,
     });
 
     // Posts
@@ -43,14 +43,14 @@ void main() {
       'title': 'First Post',
       'user_id': 'u1',
       'created_at': now,
-      'updated_at': now
+      'updated_at': now,
     });
     await database.insert('posts', {
       'id': 2,
       'title': 'Second Post',
       'user_id': 'u1',
       'created_at': now,
-      'updated_at': now
+      'updated_at': now,
     });
 
     // Profile
@@ -59,16 +59,16 @@ void main() {
       'bio': 'Software Engineer',
       'user_id': 'u1',
       'created_at': now,
-      'updated_at': now
+      'updated_at': now,
     });
 
     final userService = PhormCore<User>(dbManager: db, table: usersTable);
 
     // Test readOne with both relationships
-    final user = await userService.readOne('u1', include: [
-      Includable.model<Post>(),
-      Includable.model<Profile>(),
-    ]);
+    final user = await userService.readOne(
+      'u1',
+      include: [Includable.model<Post>(), Includable.model<Profile>()],
+    );
 
     expect(user, isNotNull);
     expect(user!.firstName, 'John');
@@ -84,91 +84,92 @@ void main() {
     expect(user.profile!.userId, 'u1');
   });
 
-  test('Batch load with readAll: Multiple Users with Posts and Profile',
-      () async {
-    final database = await db.database;
+  test(
+    'Batch load with readAll: Multiple Users with Posts and Profile',
+    () async {
+      final database = await db.database;
 
-    final now = DateTime.now().toIso8601String();
-    // Seed User 1
-    await database.insert('users', {
-      'id': 'u1',
-      'first_name': 'John',
-      'last_name': 'Doe',
-      'email': 'john@example.com',
-      'phone': '123456',
-      'gender': 'M',
-      'city': 'Sofia',
-      'country': 'Bulgaria',
-      'created_at': now,
-      'updated_at': now
-    });
-    await database.insert('posts', {
-      'id': 1,
-      'title': 'P1',
-      'user_id': 'u1',
-      'created_at': now,
-      'updated_at': now
-    });
-    await database.insert('profiles', {
-      'id': 10,
-      'bio': 'B1',
-      'user_id': 'u1',
-      'created_at': now,
-      'updated_at': now
-    });
+      final now = DateTime.now().toIso8601String();
+      // Seed User 1
+      await database.insert('users', {
+        'id': 'u1',
+        'first_name': 'John',
+        'last_name': 'Doe',
+        'email': 'john@example.com',
+        'phone': '123456',
+        'gender': 'M',
+        'city': 'Sofia',
+        'country': 'Bulgaria',
+        'created_at': now,
+        'updated_at': now,
+      });
+      await database.insert('posts', {
+        'id': 1,
+        'title': 'P1',
+        'user_id': 'u1',
+        'created_at': now,
+        'updated_at': now,
+      });
+      await database.insert('profiles', {
+        'id': 10,
+        'bio': 'B1',
+        'user_id': 'u1',
+        'created_at': now,
+        'updated_at': now,
+      });
 
-    // Seed User 2
-    await database.insert('users', {
-      'id': 'u2',
-      'first_name': 'Jane',
-      'last_name': 'Doe',
-      'email': 'jane@example.com',
-      'phone': '123456',
-      'gender': 'F',
-      'city': 'Sofia',
-      'country': 'Bulgaria',
-      'created_at': now,
-      'updated_at': now
-    });
-    await database.insert('posts', {
-      'id': 2,
-      'title': 'P2',
-      'user_id': 'u2',
-      'created_at': now,
-      'updated_at': now
-    });
-    await database.insert('posts', {
-      'id': 3,
-      'title': 'P3',
-      'user_id': 'u2',
-      'created_at': now,
-      'updated_at': now
-    });
-    // User 2 has no profile (test null handling)
+      // Seed User 2
+      await database.insert('users', {
+        'id': 'u2',
+        'first_name': 'Jane',
+        'last_name': 'Doe',
+        'email': 'jane@example.com',
+        'phone': '123456',
+        'gender': 'F',
+        'city': 'Sofia',
+        'country': 'Bulgaria',
+        'created_at': now,
+        'updated_at': now,
+      });
+      await database.insert('posts', {
+        'id': 2,
+        'title': 'P2',
+        'user_id': 'u2',
+        'created_at': now,
+        'updated_at': now,
+      });
+      await database.insert('posts', {
+        'id': 3,
+        'title': 'P3',
+        'user_id': 'u2',
+        'created_at': now,
+        'updated_at': now,
+      });
+      // User 2 has no profile (test null handling)
 
-    final userService = PhormCore<User>(dbManager: db, table: usersTable);
+      final userService = PhormCore<User>(dbManager: db, table: usersTable);
 
-    final result = await userService.readAll(include: [
-      Includable.model<Post>(),
-      Includable.model<Profile>(),
-    ]);
+      final result = await userService.readAll(
+        include: [Includable.model<Post>(), Includable.model<Profile>()],
+      );
 
-    expect(result.data, hasLength(2));
+      expect(result.data, hasLength(2));
 
-    final john = result.data.firstWhere((u) => u.id == 'u1');
-    final jane = result.data.firstWhere((u) => u.id == 'u2');
+      final john = result.data.firstWhere((u) => u.id == 'u1');
+      final jane = result.data.firstWhere((u) => u.id == 'u2');
 
-    // John
-    expect(john.posts, hasLength(1));
-    expect(john.posts[0].title, 'P1');
-    expect(john.profile, isNotNull);
-    expect(john.profile!.bio, 'B1');
+      // John
+      expect(john.posts, hasLength(1));
+      expect(john.posts[0].title, 'P1');
+      expect(john.profile, isNotNull);
+      expect(john.profile!.bio, 'B1');
 
-    // Jane
-    expect(jane.posts, hasLength(2));
-    expect(jane.posts.map((p) => p.title), containsAll(['P2', 'P3']));
-    expect(jane.profile, isNull);
-  });
+      // Jane
+      expect(jane.posts, hasLength(2));
+      expect(jane.posts.map((p) => p.title), containsAll(['P2', 'P3']));
+      expect(jane.profile, isNull);
+    },
+  );
 
   test('BelongsTo eager loading: Post with User', () async {
     final database = await db.database;
@@ -184,20 +185,22 @@ void main() {
       'city': 'Sofia',
       'country': 'Bulgaria',
       'created_at': now,
-      'updated_at': now
+      'updated_at': now,
     });
     await database.insert('posts', {
       'id': 100,
       'title': 'Hello World',
       'user_id': 'u1',
       'created_at': now,
-      'updated_at': now
+      'updated_at': now,
     });
 
     final postService = PhormCore<Post>(dbManager: db, table: postsTable);
 
-    final post =
-        await postService.readOne(100, include: [Includable.model<User>()]);
+    final post = await postService.readOne(
+      100,
+      include: [Includable.model<User>()],
+    );
 
     expect(post, isNotNull);
     expect(post!.title, 'Hello World');
@@ -220,7 +223,7 @@ void main() {
       'city': 'Sofia',
       'country': 'Bulgaria',
       'created_at': now,
-      'updated_at': now
+      'updated_at': now,
     });
     await database.insert('users', {
       'id': 'u2',
@@ -232,7 +235,7 @@ void main() {
       'city': 'Sofia',
       'country': 'Bulgaria',
       'created_at': now,
-      'updated_at': now
+      'updated_at': now,
     });
 
     await database.insert('posts', {
@@ -240,27 +243,28 @@ void main() {
       'title': 'News 1',
       'user_id': 'u1',
       'created_at': now,
-      'updated_at': now
+      'updated_at': now,
     });
     await database.insert('posts', {
       'id': 2,
       'title': 'News 2',
       'user_id': 'u1',
       'created_at': now,
-      'updated_at': now
+      'updated_at': now,
     });
     await database.insert('posts', {
       'id': 3,
       'title': 'News 3',
       'user_id': 'u2',
       'created_at': now,
-      'updated_at': now
+      'updated_at': now,
     });
 
     final postService = PhormCore<Post>(dbManager: db, table: postsTable);
 
-    final result =
-        await postService.readAll(include: [Includable.model<User>()]);
+    final result = await postService.readAll(
+      include: [Includable.model<User>()],
+    );
 
     expect(result.data, hasLength(3));
 
@@ -274,172 +278,176 @@ void main() {
     }
   });
 
-  test('Complex WhereBuilder with relationships: nested groups and functions',
-      () async {
-    final database = await db.database;
+  test(
+    'Complex WhereBuilder with relationships: nested groups and functions',
+    () async {
+      final database = await db.database;
 
-    final now = DateTime.now().toIso8601String();
-    // Seed Data
-    await database.insert('users', {
-      'id': 'u1',
-      'first_name': 'Alice',
-      'last_name': 'Admin',
-      'email': 'alice@example.com',
-      'phone': '123456',
-      'gender': 'F',
-      'city': 'Sofia',
-      'country': 'Bulgaria',
-      'created_at': now,
-      'updated_at': now
-    });
-    await database.insert('users', {
-      'id': 'u2',
-      'first_name': 'Bob',
-      'last_name': 'Editor',
-      'email': 'bob@example.com',
-      'phone': '123456',
-      'gender': 'M',
-      'city': 'Sofia',
-      'country': 'Bulgaria',
-      'created_at': now,
-      'updated_at': now
-    });
-    await database.insert('users', {
-      'id': 'u3',
-      'first_name': 'Charlie',
-      'last_name': 'Guest',
-      'email': 'charlie@example.com',
-      'phone': '123456',
-      'gender': 'M',
-      'city': 'Sofia',
-      'country': 'Bulgaria',
-      'created_at': now,
-      'updated_at': now
-    });
+      final now = DateTime.now().toIso8601String();
+      // Seed Data
+      await database.insert('users', {
+        'id': 'u1',
+        'first_name': 'Alice',
+        'last_name': 'Admin',
+        'email': 'alice@example.com',
+        'phone': '123456',
+        'gender': 'F',
+        'city': 'Sofia',
+        'country': 'Bulgaria',
+        'created_at': now,
+        'updated_at': now,
+      });
+      await database.insert('users', {
+        'id': 'u2',
+        'first_name': 'Bob',
+        'last_name': 'Editor',
+        'email': 'bob@example.com',
+        'phone': '123456',
+        'gender': 'M',
+        'city': 'Sofia',
+        'country': 'Bulgaria',
+        'created_at': now,
+        'updated_at': now,
+      });
+      await database.insert('users', {
+        'id': 'u3',
+        'first_name': 'Charlie',
+        'last_name': 'Guest',
+        'email': 'charlie@example.com',
+        'phone': '123456',
+        'gender': 'M',
+        'city': 'Sofia',
+        'country': 'Bulgaria',
+        'created_at': now,
+        'updated_at': now,
+      });
 
-    // Posts
-    await database.insert('posts', {
-      'id': 1,
-      'title': 'A1',
-      'user_id': 'u1',
-      'created_at': now,
-      'updated_at': now
-    });
-    await database.insert('posts', {
-      'id': 2,
-      'title': 'B1',
-      'user_id': 'u2',
-      'created_at': now,
-      'updated_at': now
-    });
-    await database.insert('posts', {
-      'id': 3,
-      'title': 'C1',
-      'user_id': 'u3',
-      'created_at': now,
-      'updated_at': now
-    });
+      // Posts
+      await database.insert('posts', {
+        'id': 1,
+        'title': 'A1',
+        'user_id': 'u1',
+        'created_at': now,
+        'updated_at': now,
+      });
+      await database.insert('posts', {
+        'id': 2,
+        'title': 'B1',
+        'user_id': 'u2',
+        'created_at': now,
+        'updated_at': now,
+      });
+      await database.insert('posts', {
+        'id': 3,
+        'title': 'C1',
+        'user_id': 'u3',
+        'created_at': now,
+        'updated_at': now,
+      });
 
-    final userService = PhormCore<User>(dbManager: db, table: usersTable);
+      final userService = PhormCore<User>(dbManager: db, table: usersTable);
 
-    // Complex filter:
-    // (firstName contains 'Alice' OR firstName contains 'Bob')
-    // AND (firstName length > 2)
-    final where = WhereBuilder().andGroup((ag) {
-      ag
-        ..orGroup((og) {
-          og
-            ..like('first_name', '%Alice%')
-            ..like('first_name', '%Bob%');
-        })
-        ..lengthGt('first_name', 2);
-    });
+      // Complex filter:
+      // (firstName contains 'Alice' OR firstName contains 'Bob')
+      // AND (firstName length > 2)
+      final where = WhereBuilder().andGroup((ag) {
+        ag
+          ..orGroup((og) {
+            og
+              ..like('first_name', '%Alice%')
+              ..like('first_name', '%Bob%');
+          })
+          ..lengthGt('first_name', 2);
+      });
 
-    final result = await userService.readAll(
-      where: where,
-      include: [Includable.model<Post>()],
-      sort: SortBuilder().asc('first_name'),
-    );
+      final result = await userService.readAll(
+        where: where,
+        include: [Includable.model<Post>()],
+        sort: SortBuilder().asc('first_name'),
+      );
 
-    // Expected: Alice and Bob (Charlie is excluded by orGroup)
-    expect(result.data, hasLength(2));
-    expect(result.data[0].firstName, contains('Alice'));
-    expect(result.data[1].firstName, contains('Bob'));
+      // Expected: Alice and Bob (Charlie is excluded by orGroup)
+      expect(result.data, hasLength(2));
+      expect(result.data[0].firstName, contains('Alice'));
+      expect(result.data[1].firstName, contains('Bob'));
 
-    // Verify relationships were still loaded for the filtered set
-    expect(result.data[0].posts, hasLength(1));
-    expect(result.data[0].posts[0].title, 'A1');
-    expect(result.data[1].posts, hasLength(1));
-    expect(result.data[1].posts[0].title, 'B1');
-  });
+      // Verify relationships were still loaded for the filtered set
+      expect(result.data[0].posts, hasLength(1));
+      expect(result.data[0].posts[0].title, 'A1');
+      expect(result.data[1].posts, hasLength(1));
+      expect(result.data[1].posts[0].title, 'B1');
+    },
+  );
 
-  test('Complex filtering with BelongsTo: filtering posts by multiple criteria',
-      () async {
-    final database = await db.database;
+  test(
+    'Complex filtering with BelongsTo: filtering posts by multiple criteria',
+    () async {
+      final database = await db.database;
 
-    final now = DateTime.now().toIso8601String();
-    await database.insert('users', {
-      'id': 'u1',
-      'first_name': 'Author',
-      'last_name': 'Someone',
-      'email': 'a@example.com',
-      'phone': '123456',
-      'gender': 'M',
-      'city': 'Sofia',
-      'country': 'Bulgaria',
-      'created_at': now,
-      'updated_at': now
-    });
-    await database.insert('users', {
-      'id': 'u2',
-      'first_name': 'Author',
-      'last_name': 'SomeoneElse',
-      'email': 'b@example.com',
-      'phone': '123456',
-      'gender': 'M',
-      'city': 'Sofia',
-      'country': 'Bulgaria',
-      'created_at': now,
-      'updated_at': now
-    });
+      final now = DateTime.now().toIso8601String();
+      await database.insert('users', {
+        'id': 'u1',
+        'first_name': 'Author',
+        'last_name': 'Someone',
+        'email': 'a@example.com',
+        'phone': '123456',
+        'gender': 'M',
+        'city': 'Sofia',
+        'country': 'Bulgaria',
+        'created_at': now,
+        'updated_at': now,
+      });
+      await database.insert('users', {
+        'id': 'u2',
+        'first_name': 'Author',
+        'last_name': 'SomeoneElse',
+        'email': 'b@example.com',
+        'phone': '123456',
+        'gender': 'M',
+        'city': 'Sofia',
+        'country': 'Bulgaria',
+        'created_at': now,
+        'updated_at': now,
+      });
 
-    await database.insert('posts', {
-      'id': 1,
-      'title': 'Tech News',
-      'user_id': 'u1',
-      'created_at': now,
-      'updated_at': now
-    });
-    await database.insert('posts', {
-      'id': 2,
-      'title': 'Tech Review',
-      'user_id': 'u2',
-      'created_at': now,
-      'updated_at': now
-    });
-    await database.insert('posts', {
-      'id': 3,
-      'title': 'Food Blog',
-      'user_id': 'u1',
-      'created_at': now,
-      'updated_at': now
-    });
+      await database.insert('posts', {
+        'id': 1,
+        'title': 'Tech News',
+        'user_id': 'u1',
+        'created_at': now,
+        'updated_at': now,
+      });
+      await database.insert('posts', {
+        'id': 2,
+        'title': 'Tech Review',
+        'user_id': 'u2',
+        'created_at': now,
+        'updated_at': now,
+      });
+      await database.insert('posts', {
+        'id': 3,
+        'title': 'Food Blog',
+        'user_id': 'u1',
+        'created_at': now,
+        'updated_at': now,
+      });
 
-    final postService = PhormCore<Post>(dbManager: db, table: postsTable);
+      final postService = PhormCore<Post>(dbManager: db, table: postsTable);
 
-    // Filter: title starts with 'Tech' AND user_id is 'u2'
-    final where = WhereBuilder().like('title', 'Tech%').eq('user_id', 'u2');
+      // Filter: title starts with 'Tech' AND user_id is 'u2'
+      final where = WhereBuilder().like('title', 'Tech%').eq('user_id', 'u2');
 
-    final result = await postService.readAll(
-      where: where,
-      include: [Includable.model<User>()],
-    );
+      final result = await postService.readAll(
+        where: where,
+        include: [Includable.model<User>()],
+      );
 
-    expect(result.data, hasLength(1));
-    expect(result.data[0].title, 'Tech Review');
-    expect(result.data[0].user, isNotNull);
-    expect(result.data[0].user!.lastName, 'SomeoneElse');
-  });
+      expect(result.data, hasLength(1));
+      expect(result.data[0].title, 'Tech Review');
+      expect(result.data[0].user, isNotNull);
+      expect(result.data[0].user!.lastName, 'SomeoneElse');
+    },
+  );
 
   test('Filter main table (Users) by related table (Posts) columns', () async {
     final database = await db.database;
@@ -455,7 +463,7 @@ void main() {
       'city': 'Sofia',
       'country': 'Bulgaria',
       'created_at': now,
-      'updated_at': now
+      'updated_at': now,
     });
     await database.insert('users', {
       'id': 'ub',
@@ -467,7 +475,7 @@ void main() {
       'city': 'Sofia',
       'country': 'Bulgaria',
       'created_at': now,
-      'updated_at': now
+      'updated_at': now,
     });
 
     await database.insert('posts', {
@@ -475,14 +483,14 @@ void main() {
       'title': 'Dart News',
       'user_id': 'ua',
       'created_at': now,
-      'updated_at': now
+      'updated_at': now,
     });
     await database.insert('posts', {
       'id': 102,
       'title': 'Java News',
       'user_id': 'ub',
       'created_at': now,
-      'updated_at': now
+      'updated_at': now,
     });
 
     final userService = PhormCore<User>(dbManager: db, table: usersTable);
@@ -499,88 +507,92 @@ void main() {
   });
 
   test(
-      'Backend Payload Integration: User with nested relations from JSON should be parsed and inserted into DB without errors',
-      () async {
-    final serverJson = {
-      'id': 'user_from_backend',
-      'first_name': 'Backend',
-      'last_name': 'Developer',
-      'email': 'backend@example.com',
-      'phone': '999999',
-      'gender': 'M',
-      'city': 'San Francisco',
-      'country': 'USA',
-      'is_active': true,
-      'is_verified': true,
-      // Nested HasMany relation from backend
-      'posts': [
-        {
-          'id': 700,
-          'title': 'Post from Backend 1',
+    'Backend Payload Integration: User with nested relations from JSON should be parsed and inserted into DB without errors',
+    () async {
+      final serverJson = {
+        'id': 'user_from_backend',
+        'first_name': 'Backend',
+        'last_name': 'Developer',
+        'email': 'backend@example.com',
+        'phone': '999999',
+        'gender': 'M',
+        'city': 'San Francisco',
+        'country': 'USA',
+        'is_active': true,
+        'is_verified': true,
+        // Nested HasMany relation from backend
+        'posts': [
+          {
+            'id': 700,
+            'title': 'Post from Backend 1',
+            'user_id': 'user_from_backend',
+            'created_at': DateTime.now().toIso8601String(),
+            'updated_at': DateTime.now().toIso8601String(),
+          },
+          {
+            'id': 701,
+            'title': 'Post from Backend 2',
+            'user_id': 'user_from_backend',
+            'created_at': DateTime.now().toIso8601String(),
+            'updated_at': DateTime.now().toIso8601String(),
+          },
+        ],
+        // Nested HasOne relation from backend
+        'profiles': {
+          'id': 800,
+          'bio': 'Prefers JSON serialization',
           'user_id': 'user_from_backend',
           'created_at': DateTime.now().toIso8601String(),
           'updated_at': DateTime.now().toIso8601String(),
         },
-        {
-          'id': 701,
-          'title': 'Post from Backend 2',
-          'user_id': 'user_from_backend',
-          'created_at': DateTime.now().toIso8601String(),
-          'updated_at': DateTime.now().toIso8601String(),
-        }
-      ],
-      // Nested HasOne relation from backend
-      'profiles': {
-        'id': 800,
-        'bio': 'Prefers JSON serialization',
-        'user_id': 'user_from_backend',
-        'created_at': DateTime.now().toIso8601String(),
-        'updated_at': DateTime.now().toIso8601String(),
+      };
+
+      // 1. Deserialize backend response using User.fromJson
+      final user = User.fromJson(serverJson);
+
+      expect(user.id, 'user_from_backend');
+      expect(user.posts, hasLength(2));
+      expect(user.posts[0].title, 'Post from Backend 1');
+      expect(user.profile, isNotNull);
+      expect(user.profile!.bio, 'Prefers JSON serialization');
+
+      // 2. Insert User to DB.
+      // Ensure that sqlite does not fail because of non-column nested fields ('posts', 'profiles')!
+      final userService = PhormCore<User>(dbManager: db, table: usersTable);
+      await userService.insert(user);
+
+      // 3. Read User back from DB. Since nested relations are stored in their own tables,
+      // readOne without 'include' should load only User columns.
+      final retrievedUser = await userService.readOne('user_from_backend');
+      expect(retrievedUser, isNotNull);
+      expect(retrievedUser!.firstName, 'Backend');
+      expect(
+        retrievedUser.posts,
+        isEmpty,
+      ); // Empty because they are not eager-loaded from users table
+
+      // 4. In a real scenario, we would also insert posts and profiles to their respective tables:
+      final postService = PhormCore<Post>(dbManager: db, table: postsTable);
+      final profileService = PhormCore<Profile>(
+        dbManager: db,
+        table: profilesTable,
+      );
+
+      for (final post in user.posts) {
+        await postService.insert(post);
       }
-    };
+      await profileService.insert(user.profile!);
 
-    // 1. Deserialize backend response using User.fromJson
-    final user = User.fromJson(serverJson);
+      // 5. Query user again with Eager loading to verify they are perfectly linked!
+      final fullyLoadedUser = await userService.readOne(
+        'user_from_backend',
+        include: [Includable.model<Post>(), Includable.model<Profile>()],
+      );
 
-    expect(user.id, 'user_from_backend');
-    expect(user.posts, hasLength(2));
-    expect(user.posts[0].title, 'Post from Backend 1');
-    expect(user.profile, isNotNull);
-    expect(user.profile!.bio, 'Prefers JSON serialization');
-
-    // 2. Insert User to DB.
-    // Ensure that sqlite does not fail because of non-column nested fields ('posts', 'profiles')!
-    final userService = PhormCore<User>(dbManager: db, table: usersTable);
-    await userService.insert(user);
-
-    // 3. Read User back from DB. Since nested relations are stored in their own tables,
-    // readOne without 'include' should load only User columns.
-    final retrievedUser = await userService.readOne('user_from_backend');
-    expect(retrievedUser, isNotNull);
-    expect(retrievedUser!.firstName, 'Backend');
-    expect(retrievedUser.posts,
-        isEmpty); // Empty because they are not eager-loaded from users table
-
-    // 4. In a real scenario, we would also insert posts and profiles to their respective tables:
-    final postService = PhormCore<Post>(dbManager: db, table: postsTable);
-    final profileService =
-        PhormCore<Profile>(dbManager: db, table: profilesTable);
-
-    for (final post in user.posts) {
-      await postService.insert(post);
-    }
-    await profileService.insert(user.profile!);
-
-    // 5. Query user again with Eager loading to verify they are perfectly linked!
-    final fullyLoadedUser =
-        await userService.readOne('user_from_backend', include: [
-      Includable.model<Post>(),
-      Includable.model<Profile>(),
-    ]);
-
-    expect(fullyLoadedUser, isNotNull);
-    expect(fullyLoadedUser!.posts, hasLength(2));
-    expect(fullyLoadedUser.posts[0].title, 'Post from Backend 1');
-    expect(fullyLoadedUser.profile!.bio, 'Prefers JSON serialization');
-  });
+      expect(fullyLoadedUser, isNotNull);
+      expect(fullyLoadedUser!.posts, hasLength(2));
+      expect(fullyLoadedUser.posts[0].title, 'Post from Backend 1');
+      expect(fullyLoadedUser.profile!.bio, 'Prefers JSON serialization');
+    },
+  );
 }

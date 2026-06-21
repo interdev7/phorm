@@ -13,27 +13,29 @@ String stringSchemaBuilder({
   String primaryKey = 'id',
   bool isGeneric = false,
 }) {
-  final relationshipsCode = relationships.map((r) {
-    final lk = r['localKey'];
-    final lkCode = lk == 'id' ? '' : ", localKey: '$lk'";
-    return "${r['type']}(model: '${r['model']}', foreignKey: '${r['foreignKey']}'$lkCode)";
-  }).join(', ');
+  final relationshipsCode = relationships
+      .map((r) {
+        final lk = r['localKey'];
+        final lkCode = lk == 'id' ? '' : ", localKey: '$lk'";
+        return "${r['type']}(model: '${r['model']}', foreignKey: '${r['foreignKey']}'$lkCode)";
+      })
+      .join(', ');
 
   final schemaVarName = '_\$Phorm${className}Schema';
   final tableClassName = '_\$Phorm${className}Table';
   final tableVarName = '${tableName}Table';
 
-  final fromJsonValue = isGeneric
-      ? '(json) => _\$Phorm${className}FromJson(json, (x) => x)'
-      : (useFromJson ? '_\$Phorm${className}FromJson' : '$className.fromJson');
+  final fromJsonValue =
+      isGeneric
+          ? '(json) => _\$Phorm${className}FromJson(json, (x) => x)'
+          : (useFromJson
+              ? '_\$Phorm${className}FromJson'
+              : '$className.fromJson');
 
   return '''
 const $schemaVarName = """
 CREATE TABLE $tableName (
-${[
-    ...columns,
-    ...foreignKeys,
-  ].join(',\n')}
+${[...columns, ...foreignKeys].join(',\n')}
 );
 ${indexSql != null ? '\n$indexSql' : ''}
 """;

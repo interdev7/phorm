@@ -22,19 +22,20 @@ void main() {
   test('readAll uses isolate for > 50 rows', () async {
     // Insert 100 users
     final users = List.generate(
-        100,
-        (i) => User(
-              id: 'u$i',
-              firstName: 'User$i',
-              lastName: 'Last$i',
-              email: 'user$i@example.com',
-              phone: '123456789$i',
-              gender: 'Other',
-              city: 'City$i',
-              country: 'Country$i',
-              isActive: true,
-              isVerified: false,
-            ));
+      100,
+      (i) => User(
+        id: 'u$i',
+        firstName: 'User$i',
+        lastName: 'Last$i',
+        email: 'user$i@example.com',
+        phone: '123456789$i',
+        gender: 'Other',
+        city: 'City$i',
+        country: 'Country$i',
+        isActive: true,
+        isVerified: false,
+      ),
+    );
 
     await userService.insertBatch(users);
 

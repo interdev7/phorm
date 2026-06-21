@@ -76,10 +76,7 @@ void main() {
         if (userToUpdate != null) {
           final updatedData = userToUpdate.toJson();
           updatedData['first_name'] = 'UpdatedInTxn';
-          await userService.update(
-            User.fromJson(updatedData),
-            executor: txn,
-          );
+          await userService.update(User.fromJson(updatedData), executor: txn);
         }
       });
 

@@ -13,13 +13,16 @@ import 'package:phorm/phorm.dart' show PhormCore;
 /// - Column validation to prevent errors.
 class SortBuilder {
   final List<String> _orders = [];
-  static final RegExp _columnRegExp =
-      RegExp(r'^[a-zA-Z_][a-zA-Z0-9_]*(\.[a-zA-Z_][a-zA-Z0-9_]*)*$');
+  static final RegExp _columnRegExp = RegExp(
+    r'^[a-zA-Z_][a-zA-Z0-9_]*(\.[a-zA-Z_][a-zA-Z0-9_]*)*$',
+  );
 
   void _validate(String column) {
     if (!_columnRegExp.hasMatch(column)) {
-      throw ArgumentError('Invalid column name: $column. '
-          'Column name must contain only letters, numbers and underscores, and start with a letter or underscore.');
+      throw ArgumentError(
+        'Invalid column name: $column. '
+        'Column name must contain only letters, numbers and underscores, and start with a letter or underscore.',
+      );
     }
   }
 
