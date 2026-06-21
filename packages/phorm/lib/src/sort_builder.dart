@@ -1,6 +1,8 @@
 // =======================================================
 // SORT BUILDER 📊
 // =======================================================
+import 'package:phorm/phorm.dart' show PhormCore;
+
 ///
 /// Fluent builder for SQL ORDER BY clauses. Supports ASC/DESC ordering by columns.
 /// Validates column names. Use in [PhormCore.readAll] for sorted results.

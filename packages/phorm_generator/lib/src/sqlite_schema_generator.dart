@@ -1,7 +1,7 @@
 import 'dart:async';
 
-import 'package:_fe_analyzer_shared/src/type_inference/nullability_suffix.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:build/build.dart';
 import 'package:path/path.dart' as p;
 import 'package:phorm_annotations/phorm_annotations.dart';
@@ -495,8 +495,6 @@ END;''';
 
     return null;
   }
-
-
 }
 
 class _ColumnResult {
