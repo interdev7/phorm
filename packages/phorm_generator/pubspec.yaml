@@ -24,6 +24,10 @@ dev_dependencies:
   test: ^1.25.15
   very_good_analysis: ^8.0.0
 
+dependency_overrides:
+  phorm_annotations:
+    path: ../phorm_annotations
+
 screenshots:
   - description: The PHORM Generator package logo.
     path: screenshots/logo.png

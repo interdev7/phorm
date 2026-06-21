@@ -25,9 +25,15 @@ dev_dependencies:
   flutter_lints: ^3.0.0
   flutter_test:
     sdk: flutter
-  phorm_generator: ^1.0.0
+  phorm_generator: ^1.0.1
   test: ^1.25.15
   very_good_analysis: ^8.0.0
+
+dependency_overrides:
+  phorm_generator:
+    path: ../phorm_generator
+  phorm:
+    path: ../phorm
 
 screenshots:
   - description: The PHORM SQLite package logo.
