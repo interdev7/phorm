@@ -3,7 +3,6 @@
 ## [1.0.1]
 
 - Changed license to MIT
-- Removed `resolution: workspace` from `pubspec.yaml`
 - Changed logo
 - Updated README
 
