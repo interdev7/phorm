@@ -2,7 +2,7 @@ name: phorm_example
 description: Example app for PHORM.
 publish_to: "none"
 version: 1.0.0+1
-resolution: workspace
+# resolution: workspace
 
 environment:
   sdk: ">=3.5.0 <4.0.0"

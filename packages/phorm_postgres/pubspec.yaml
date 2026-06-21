@@ -8,7 +8,7 @@ repository: https://github.com/interdev7/phorm
 homepage: https://github.com/interdev7/phorm/tree/main/packages/phorm_postgres
 issue_tracker: https://github.com/interdev7/phorm/issues
 license: MIT
-resolution: workspace
+# resolution: workspace
 
 environment:
   sdk: ">=3.5.0 <4.0.0"

@@ -5,7 +5,7 @@ repository: https://github.com/interdev7/phorm
 homepage: https://github.com/interdev7/phorm/tree/main/phorm_sqlite
 issue_tracker: https://github.com/interdev7/phorm/issues
 license: MIT
-resolution: workspace
+# resolution: workspace
 
 environment:
   sdk: ">=3.5.0 <4.0.0"
@@ -26,8 +26,7 @@ dev_dependencies:
   flutter_lints: ^3.0.0
   flutter_test:
     sdk: flutter
-  phorm_generator:
-    path: ../phorm_generator
+  phorm_generator: ^1.0.0
   test: ^1.25.15
 
 screenshots:
