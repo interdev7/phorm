@@ -7,7 +7,7 @@
 > **🚧 This package is under active development and is not yet functional.**
 > The API is unstable and subject to change. Do not use in production.
 
-A MySQL driver for the [PHORM ORM](https://github.com/interdev7/phorm) — a lightweight, type-safe, driver-agnostic ORM for Dart and Flutter.
+A MySQL driver for the [PHORM](https://github.com/interdev7/phorm) — a lightweight, type-safe, driver-agnostic ORM for Dart and Flutter.
 
 ## Roadmap
 
@@ -37,10 +37,10 @@ await users.insert(user);
 
 ## Related packages
 
-| Package | Description |
-| :--- | :--- |
-| [phorm_sqlite](../phorm_sqlite) | ✅ Stable SQLite driver |
-| [phorm](../phorm) | Core engine (included automatically) |
+| Package                         | Description                          |
+| :------------------------------ | :----------------------------------- |
+| [phorm_sqlite](../phorm_sqlite) | ✅ Stable SQLite driver              |
+| [phorm](../phorm)               | Core engine (included automatically) |
 
 ## License
 

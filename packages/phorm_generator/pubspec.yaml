@@ -16,8 +16,7 @@ dependencies:
   build: ^2.4.0
   dart_style: ^2.2.0
   path: ^1.9.1
-  phorm_annotations:
-    path: ../phorm_annotations
+  phorm_annotations: ^1.0.0
   source_gen: ^1.3.0
 
 dev_dependencies:
