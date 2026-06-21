@@ -12,10 +12,8 @@ dependencies:
     sdk: flutter
   google_fonts: ^6.2.1
   path: ^1.9.0
-  phorm_sqlite:
-    path: ../packages/phorm_sqlite
-  phorm_generator:
-    path: ../packages/phorm_generator
+  phorm_sqlite: ^1.0.0
+  phorm_generator: ^1.0.0
   uuid: ^4.5.2
 
 dev_dependencies:
