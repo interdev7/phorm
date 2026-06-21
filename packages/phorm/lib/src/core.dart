@@ -213,8 +213,7 @@ class PhormCore<T extends Model> implements IPhormCore<T> {
       final res = await dbManager.logAction(
         'DELETE FROM ${table.name}',
         [id],
-        () => db.delete(table.name,
-            where: _pkWhereClause(), whereArgs: [id]),
+        () => db.delete(table.name, where: _pkWhereClause(), whereArgs: [id]),
       );
       return res;
     }
@@ -332,8 +331,7 @@ class PhormCore<T extends Model> implements IPhormCore<T> {
         final batch = db.batch();
         if (!table.paranoid || force) {
           for (final id in ids) {
-            batch.delete(table.name,
-                where: _pkWhereClause(), whereArgs: [id]);
+            batch.delete(table.name, where: _pkWhereClause(), whereArgs: [id]);
           }
         } else {
           for (final id in ids) {
@@ -605,8 +603,7 @@ class PhormCore<T extends Model> implements IPhormCore<T> {
                   d.escapeIdentifier('${relatedTable.name}.${rel.foreignKey}');
               final escLocal =
                   d.escapeIdentifier('${table.name}.${rel.localKey}');
-              joins.add(
-                  'LEFT JOIN $escRelated ON $escForeign = $escLocal');
+              joins.add('LEFT JOIN $escRelated ON $escForeign = $escLocal');
             } else if (rel is BelongsTo) {
               final escRelatedLocal =
                   d.escapeIdentifier('${relatedTable.name}.${rel.localKey}');
@@ -625,8 +622,7 @@ class PhormCore<T extends Model> implements IPhormCore<T> {
               final escPivotRelated =
                   d.escapeIdentifier('${rel.pivotTable}.${rel.relatedKey}');
               joins
-                ..add(
-                    'LEFT JOIN $escPivot ON $escPivotForeign = $escLocal')
+                ..add('LEFT JOIN $escPivot ON $escPivotForeign = $escLocal')
                 ..add(
                     'LEFT JOIN $escRelated ON $escRelatedLocal = $escPivotRelated');
             }
@@ -687,8 +683,7 @@ class PhormCore<T extends Model> implements IPhormCore<T> {
           final escRelated = d.escapeIdentifier(relatedTable.name);
           final escForeign =
               d.escapeIdentifier('${relatedTable.name}.${rel.foreignKey}');
-          final escLocal =
-              d.escapeIdentifier('${table.name}.${rel.localKey}');
+          final escLocal = d.escapeIdentifier('${table.name}.${rel.localKey}');
           final paranoidFilter = relatedTable.paranoid
               ? ' AND ${d.escapeIdentifier('${relatedTable.name}.deleted_at')} IS NULL'
               : '';
@@ -703,12 +698,11 @@ class PhormCore<T extends Model> implements IPhormCore<T> {
           final escPivot = d.escapeIdentifier(rel.pivotTable);
           final escPivotRelated =
               d.escapeIdentifier('${rel.pivotTable}.${rel.relatedKey}');
-          final escRelatedLocal = d.escapeIdentifier(
-              '${relatedTable.name}.${rel.relatedLocalKey}');
+          final escRelatedLocal =
+              d.escapeIdentifier('${relatedTable.name}.${rel.relatedLocalKey}');
           final escPivotForeign =
               d.escapeIdentifier('${rel.pivotTable}.${rel.foreignKey}');
-          final escLocal =
-              d.escapeIdentifier('${table.name}.${rel.localKey}');
+          final escLocal = d.escapeIdentifier('${table.name}.${rel.localKey}');
           final paranoidFilter = relatedTable.paranoid
               ? ' AND ${d.escapeIdentifier('${relatedTable.name}.deleted_at')} IS NULL'
               : '';
@@ -749,7 +743,7 @@ class PhormCore<T extends Model> implements IPhormCore<T> {
 
     if (joins.isNotEmpty) {
       query +=
-          ' GROUP BY ${d.escapeIdentifier('${table.name}.${table.primaryKey}')}'; 
+          ' GROUP BY ${d.escapeIdentifier('${table.name}.${table.primaryKey}')}';
     }
 
     if (sort != null) {
@@ -833,8 +827,8 @@ class PhormCore<T extends Model> implements IPhormCore<T> {
           if (relatedTable != null) {
             final escRelated = d.escapeIdentifier(relatedTable.name);
             if (rel is HasMany || rel is HasOne) {
-              final escForeign = d
-                  .escapeIdentifier('${relatedTable.name}.${rel.foreignKey}');
+              final escForeign =
+                  d.escapeIdentifier('${relatedTable.name}.${rel.foreignKey}');
               final escLocal =
                   d.escapeIdentifier('${table.name}.${rel.localKey}');
               sql += ' LEFT JOIN $escRelated ON $escForeign = $escLocal';
