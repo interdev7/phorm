@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.0.1]
+
+- Changed license to MIT
+- Updated README with badges
+- Removed commented workspace resolution configuration
+
 ## 1.0.0
 
 - First stable release.

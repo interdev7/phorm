@@ -1,0 +1,112 @@
+name: CI
+
+# Trigger workflow on pushes and pull requests to the main branch
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  analyze_and_test:
+    name: ${{ matrix.package-name }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          # Dart-only package without tests
+          - package-name: phorm_annotations
+            package-path: packages/phorm_annotations
+            sdk: dart
+            run-tests: false
+          
+          # Flutter package with tests
+          - package-name: phorm
+            package-path: packages/phorm
+            sdk: flutter
+            run-tests: true
+            
+          # Dart-only generator package with tests
+          - package-name: phorm_generator
+            package-path: packages/phorm_generator
+            sdk: dart
+            run-tests: true
+            
+          # Dart-only database driver without tests
+          - package-name: phorm_mysql
+            package-path: packages/phorm_mysql
+            sdk: dart
+            run-tests: false
+            
+          # Dart-only database driver without tests
+          - package-name: phorm_postgres
+            package-path: packages/phorm_postgres
+            sdk: dart
+            run-tests: false
+            
+          # Flutter database driver with tests
+          - package-name: phorm_sqlite
+            package-path: packages/phorm_sqlite
+            sdk: flutter
+            run-tests: true
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # Set up Flutter SDK which also contains Dart SDK
+      - name: Setup Flutter SDK
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+
+      # Resolve dependencies depending on SDK type
+      - name: Install dependencies
+        working-directory: ${{ matrix.package-path }}
+        run: |
+          if [ "${{ matrix.sdk }}" = "flutter" ]; then
+            flutter pub get
+          else
+            dart pub get
+          fi
+
+      # Format check
+      - name: Verify formatting
+        working-directory: ${{ matrix.package-path }}
+        run: dart format --output=none --set-exit-if-changed .
+
+      # Analyze code
+      - name: Analyze code
+        working-directory: ${{ matrix.package-path }}
+        run: |
+          if [ "${{ matrix.sdk }}" = "flutter" ]; then
+            flutter analyze
+          else
+            dart analyze
+          fi
+
+      # Run Flutter unit tests with coverage
+      - name: Run tests with coverage (Flutter)
+        if: ${{ matrix.run-tests && matrix.sdk == 'flutter' }}
+        working-directory: ${{ matrix.package-path }}
+        run: flutter test --coverage
+
+      # Run Dart unit tests with coverage using globally activated coverage package
+      - name: Run tests with coverage (Dart)
+        if: ${{ matrix.run-tests && matrix.sdk == 'dart' }}
+        working-directory: ${{ matrix.package-path }}
+        run: |
+          dart pub global activate coverage
+          dart pub global run coverage:test_with_coverage
+
+      # Upload coverage reports to Codecov
+      - name: Upload coverage reports to Codecov
+        if: ${{ matrix.run-tests }}
+        uses: codecov/codecov-action@v4
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          file: ${{ matrix.package-path }}/coverage/lcov.info
+          flags: ${{ matrix.package-name }}
+          name: ${{ matrix.package-name }}-coverage
+          fail_ci_if_error: false
