@@ -1,6 +1,11 @@
 # Changelog
 
-## 1.0.0
+## [1.0.1]
+
+- Updated README with badges
+- Removed commented workspace resolution configuration
+
+## [1.0.0]
 
 - First stable release of the PHORM SQLite Driver.
 - Implements `phorm` runtime database execution layer on top of `sqlite3`.

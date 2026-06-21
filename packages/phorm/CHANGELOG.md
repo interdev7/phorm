@@ -1,5 +1,9 @@
 # Changelog
 
+## [1.0.2]
+
+- Updated README with badges
+
 ## [1.0.1]
 
 - Changed license to MIT
