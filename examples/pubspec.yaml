@@ -13,14 +13,21 @@ dependencies:
   google_fonts: ^6.2.1
   path: ^1.9.0
   phorm_sqlite: ^1.0.0
-  phorm_generator: ^1.0.0
+
   uuid: ^4.5.2
+
+dependency_overrides:
+  phorm_generator:
+    path: ../packages/phorm_generator
+  phorm_sqlite:
+    path: ../packages/phorm_sqlite
 
 dev_dependencies:
   build_runner: ^2.0.0
   flutter_lints: ^3.0.0
   flutter_test:
     sdk: flutter
+  phorm_generator: ^1.0.1
 
 flutter:
   uses-material-design: true
