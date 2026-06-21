@@ -1,6 +1,6 @@
 # Changelog
 
-## [1.0.1]
+## 1.0.1
 
 - Updated README with badges
 - Removed commented workspace resolution configuration
