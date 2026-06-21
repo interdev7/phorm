@@ -14,6 +14,7 @@ analyzer:
     lines_longer_than_80_chars: ignore
     non_constant_identifier_names: ignore
     omit_local_variable_types: ignore
+    one_member_abstracts: ignore
     prefer_single_quotes: ignore
     prefer_typing_uninitialized_variables: ignore
     public_member_api_docs: ignore
