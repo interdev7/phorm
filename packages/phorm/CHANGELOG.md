@@ -1,6 +1,6 @@
 # Changelog
 
-## [1.0.0]
+## [1.0.1]
 
 - Changed license to MIT
 - Removed `resolution: workspace` from `pubspec.yaml`
