@@ -3,13 +3,7 @@ import 'dart:async';
 import 'package:phorm_annotations/phorm_annotations.dart';
 
 /// Database engine conflict resolution algorithms.
-enum ConflictAlgorithm {
-  rollback,
-  abort,
-  fail,
-  ignore,
-  replace,
-}
+enum ConflictAlgorithm { rollback, abort, fail, ignore, replace }
 
 /// Abstract interface representing a batch of write operations.
 abstract interface class Batch {
@@ -42,8 +36,10 @@ abstract interface class Batch {
 abstract interface class DatabaseExecutor {
   Future<void> execute(String sql, [List<Object?>? arguments]);
 
-  Future<List<Map<String, Object?>>> rawQuery(String sql,
-      [List<Object?>? arguments]);
+  Future<List<Map<String, Object?>>> rawQuery(
+    String sql, [
+    List<Object?>? arguments,
+  ]);
 
   Future<List<Map<String, Object?>>> query(
     String table, {
@@ -97,7 +93,10 @@ abstract interface class PhormDatabase {
 
   /// Executes an operation inside a trace/log block.
   Future<T> logAction<T>(
-      String label, List<Object?>? arguments, Future<T> Function() action);
+    String label,
+    List<Object?>? arguments,
+    Future<T> Function() action,
+  );
 
   /// Resolves the underlying database executor.
   Future<DatabaseExecutor> get executor;

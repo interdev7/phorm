@@ -22,12 +22,13 @@ import 'models/user.dart';
 // Helper: build a fresh in-memory DB + services for each test
 // ---------------------------------------------------------------------------
 
-typedef _TestContext = ({
-  DB dbManager,
-  PhormCore<User> userService,
-  PhormCore<Post> postService,
-  DatabaseExecutor db,
-});
+typedef _TestContext =
+    ({
+      DB dbManager,
+      PhormCore<User> userService,
+      PhormCore<Post> postService,
+      DatabaseExecutor db,
+    });
 
 Future<_TestContext> _setup() async {
   final dbManager = DB.autoVersion(
@@ -42,7 +43,7 @@ Future<_TestContext> _setup() async {
     dbManager: dbManager,
     userService: userService,
     postService: postService,
-    db: db
+    db: db,
   );
 }
 
@@ -53,15 +54,15 @@ Future<void> _teardown(_TestContext ctx) => ctx.dbManager.close();
 // ---------------------------------------------------------------------------
 
 User _user({String id = 'u1', String firstName = 'Alice'}) => User(
-      id: id,
-      firstName: firstName,
-      lastName: 'Smith',
-      email: '$id@example.com',
-      phone: '1234567890',
-      gender: 'F',
-      city: 'Tashkent',
-      country: 'Uzbekistan',
-    );
+  id: id,
+  firstName: firstName,
+  lastName: 'Smith',
+  email: '$id@example.com',
+  phone: '1234567890',
+  gender: 'F',
+  city: 'Tashkent',
+  country: 'Uzbekistan',
+);
 
 Post _post({int id = 1, String userId = 'u1', String title = 'Hello'}) =>
     Post(id: id, title: title, userId: userId);
@@ -109,16 +110,19 @@ void main() {
     // -----------------------------------------------------------------------
     // KEY SCENARIO: raw SQL triggers updatesSync — no manual _notify() needed
     // -----------------------------------------------------------------------
-    test('emits table name after raw SQL execute (updatesSync advantage)',
-        () async {
-      await ctx.userService.insert(_user());
+    test(
+      'emits table name after raw SQL execute (updatesSync advantage)',
+      () async {
+        await ctx.userService.insert(_user());
 
-      // Execute a raw UPDATE bypassing ORM — manual _notify() would miss this
-      final future = ctx.dbManager.changeStream.first;
-      await ctx.db
-          .execute("UPDATE users SET first_name = 'RawName' WHERE id = 'u1'");
-      expect(await future, 'users');
-    });
+        // Execute a raw UPDATE bypassing ORM — manual _notify() would miss this
+        final future = ctx.dbManager.changeStream.first;
+        await ctx.db.execute(
+          "UPDATE users SET first_name = 'RawName' WHERE id = 'u1'",
+        );
+        expect(await future, 'users');
+      },
+    );
 
     test('emits correct table name for posts insert', () async {
       await ctx.userService.insert(_user());
@@ -129,9 +133,9 @@ void main() {
     });
   });
 
-// ---------------------------------------------------------------------------
-// 2. watchOne()
-// ---------------------------------------------------------------------------
+  // ---------------------------------------------------------------------------
+  // 2. watchOne()
+  // ---------------------------------------------------------------------------
 
   group('2. watchOne()', () {
     late _TestContext ctx;
@@ -181,8 +185,9 @@ void main() {
 
       await Future.delayed(const Duration(milliseconds: 50));
       // Raw SQL — no ORM call, no manual _notify()
-      await ctx.db
-          .execute("UPDATE users SET first_name = 'RawUpdate' WHERE id = 'u1'");
+      await ctx.db.execute(
+        "UPDATE users SET first_name = 'RawUpdate' WHERE id = 'u1'",
+      );
 
       final updated = await secondEmission;
       expect(updated?.firstName, 'RawUpdate');
@@ -215,9 +220,9 @@ void main() {
     });
   });
 
-// ---------------------------------------------------------------------------
-// 3. watchAll()
-// ---------------------------------------------------------------------------
+  // ---------------------------------------------------------------------------
+  // 3. watchAll()
+  // ---------------------------------------------------------------------------
 
   group('3. watchAll()', () {
     late _TestContext ctx;
@@ -307,9 +312,9 @@ void main() {
     });
   });
 
-// ---------------------------------------------------------------------------
-// 4. Soft-delete behavior in watchers
-// ---------------------------------------------------------------------------
+  // ---------------------------------------------------------------------------
+  // 4. Soft-delete behavior in watchers
+  // ---------------------------------------------------------------------------
 
   group('4. Soft delete in watchers', () {
     late _TestContext ctx;
@@ -328,18 +333,20 @@ void main() {
       expect(await secondEmission, isNull);
     });
 
-    test('watchOne with withDeleted: true still shows after soft delete',
-        () async {
-      await ctx.userService.insert(_user());
+    test(
+      'watchOne with withDeleted: true still shows after soft delete',
+      () async {
+        await ctx.userService.insert(_user());
 
-      final stream = ctx.userService.watchOne('u1', withDeleted: true);
-      final secondEmission = stream.skip(1).first;
+        final stream = ctx.userService.watchOne('u1', withDeleted: true);
+        final secondEmission = stream.skip(1).first;
 
-      await Future.delayed(const Duration(milliseconds: 50));
-      await ctx.userService.delete('u1');
+        await Future.delayed(const Duration(milliseconds: 50));
+        await ctx.userService.delete('u1');
 
-      expect((await secondEmission)?.id, 'u1');
-    });
+        expect((await secondEmission)?.id, 'u1');
+      },
+    );
 
     test('watchAll excludes soft-deleted by default', () async {
       await ctx.userService.insert(_user());
@@ -354,9 +361,9 @@ void main() {
     });
   });
 
-// ---------------------------------------------------------------------------
-// 5. Explicit dependencies parameter
-// ---------------------------------------------------------------------------
+  // ---------------------------------------------------------------------------
+  // 5. Explicit dependencies parameter
+  // ---------------------------------------------------------------------------
 
   group('5. Explicit dependencies', () {
     late _TestContext ctx;
@@ -390,135 +397,153 @@ void main() {
       expect(list.length, 1);
     });
 
-    test('without dependency, unrelated table change does NOT re-emit',
-        () async {
-      print('Starting test: without dependency watchAll');
-      await ctx.userService.insert(_user());
-      await ctx.postService.insert(_post());
+    test(
+      'without dependency, unrelated table change does NOT re-emit',
+      () async {
+        print('Starting test: without dependency watchAll');
+        await ctx.userService.insert(_user());
+        await ctx.postService.insert(_post());
 
-      bool emitted = false;
-      final sub = ctx.userService
-          .watchAll() // no 'posts' dependency
-          .skip(1)
-          .listen((_) {
-        print('watchAll emitted unrelated change!');
-        emitted = true;
-      });
+        bool emitted = false;
+        final sub = ctx.userService
+            .watchAll() // no 'posts' dependency
+            .skip(1)
+            .listen((_) {
+              print('watchAll emitted unrelated change!');
+              emitted = true;
+            });
 
-      await Future.delayed(const Duration(milliseconds: 50));
+        await Future.delayed(const Duration(milliseconds: 50));
 
-      print('Inserting unrelated post in watchAll test');
-      await ctx.postService.insert(_post(id: 2, title: 'Second post'));
+        print('Inserting unrelated post in watchAll test');
+        await ctx.postService.insert(_post(id: 2, title: 'Second post'));
 
-      await Future.delayed(const Duration(milliseconds: 100));
+        await Future.delayed(const Duration(milliseconds: 100));
 
-      expect(emitted, isFalse);
-      print('Cancelling watchAll subscription');
-      sub.cancel(); // do not await
-      print('Finished watchAll test successfully');
-    });
+        expect(emitted, isFalse);
+        print('Cancelling watchAll subscription');
+        sub.cancel(); // do not await
+        print('Finished watchAll test successfully');
+      },
+    );
   });
 
-// ---------------------------------------------------------------------------
-// 6. Auto-detected include-based dependencies
-// ---------------------------------------------------------------------------
+  // ---------------------------------------------------------------------------
+  // 6. Auto-detected include-based dependencies
+  // ---------------------------------------------------------------------------
 
   group('6. Auto include-based dependency detection', () {
     late _TestContext ctx;
     setUp(() async => ctx = await _setup());
     tearDown(() => _teardown(ctx));
 
-    test('watchOne with include re-emits when included table changes',
-        () async {
-      await ctx.userService.insert(_user());
+    test(
+      'watchOne with include re-emits when included table changes',
+      () async {
+        await ctx.userService.insert(_user());
 
-      final stream = ctx.userService.watchOne(
-        'u1',
-        include: [Includable.table('posts')],
-      );
-      final secondEmission = stream.skip(1).first;
+        final stream = ctx.userService.watchOne(
+          'u1',
+          include: [Includable.table('posts')],
+        );
+        final secondEmission = stream.skip(1).first;
 
-      await Future.delayed(const Duration(milliseconds: 50));
-      await ctx.postService.insert(_post(userId: 'u1'));
+        await Future.delayed(const Duration(milliseconds: 50));
+        await ctx.postService.insert(_post(userId: 'u1'));
 
-      final user = await secondEmission;
-      expect(user?.id, 'u1');
-    });
+        final user = await secondEmission;
+        expect(user?.id, 'u1');
+      },
+    );
 
-    test('watchAll with include re-emits when included table changes',
-        () async {
-      await ctx.userService.insert(_user());
+    test(
+      'watchAll with include re-emits when included table changes',
+      () async {
+        await ctx.userService.insert(_user());
 
-      final stream = ctx.userService.watchAll(
-        include: [Includable.table('posts')],
-      );
-      final secondEmission = stream.skip(1).first;
+        final stream = ctx.userService.watchAll(
+          include: [Includable.table('posts')],
+        );
+        final secondEmission = stream.skip(1).first;
 
-      await Future.delayed(const Duration(milliseconds: 50));
-      await ctx.postService.insert(_post(userId: 'u1'));
+        await Future.delayed(const Duration(milliseconds: 50));
+        await ctx.postService.insert(_post(userId: 'u1'));
 
-      final list = await secondEmission;
-      expect(list.length, 1);
-    });
+        final list = await secondEmission;
+        expect(list.length, 1);
+      },
+    );
   });
 
-// ---------------------------------------------------------------------------
-// 7. Transaction buffering
-// ---------------------------------------------------------------------------
+  // ---------------------------------------------------------------------------
+  // 7. Transaction buffering
+  // ---------------------------------------------------------------------------
 
   group('7. Transaction buffering', () {
     late _TestContext ctx;
     setUp(() async => ctx = await _setup());
     tearDown(() => _teardown(ctx));
 
-    test('multiple inserts in one transaction emit only ONE notification',
-        () async {
-      final emitted = <String>[];
-      final sub = ctx.dbManager.changeStream.listen(emitted.add);
+    test(
+      'multiple inserts in one transaction emit only ONE notification',
+      () async {
+        final emitted = <String>[];
+        final sub = ctx.dbManager.changeStream.listen(emitted.add);
 
-      await Future.delayed(const Duration(milliseconds: 50));
+        await Future.delayed(const Duration(milliseconds: 50));
 
-      await ctx.dbManager.transaction((txn) async {
-        await ctx.userService.insert(_user(id: 'u1'), executor: txn);
-        await ctx.userService
-            .insert(_user(id: 'u2', firstName: 'Bob'), executor: txn);
-        await ctx.userService
-            .insert(_user(id: 'u3', firstName: 'Charlie'), executor: txn);
-      });
+        await ctx.dbManager.transaction((txn) async {
+          await ctx.userService.insert(_user(id: 'u1'), executor: txn);
+          await ctx.userService.insert(
+            _user(id: 'u2', firstName: 'Bob'),
+            executor: txn,
+          );
+          await ctx.userService.insert(
+            _user(id: 'u3', firstName: 'Charlie'),
+            executor: txn,
+          );
+        });
 
-      // Wait for notifications to settle
-      await Future.delayed(const Duration(milliseconds: 150));
-      sub.cancel(); // do not await
+        // Wait for notifications to settle
+        await Future.delayed(const Duration(milliseconds: 150));
+        sub.cancel(); // do not await
 
-      // After transaction: only ONE unique table name should be buffered & emitted
-      expect(emitted.where((t) => t == 'users').length, 1);
-    });
+        // After transaction: only ONE unique table name should be buffered & emitted
+        expect(emitted.where((t) => t == 'users').length, 1);
+      },
+    );
 
-    test('watchAll receives only ONE re-emission for multi-insert transaction',
-        () async {
-      final stream = ctx.userService.watchAll();
+    test(
+      'watchAll receives only ONE re-emission for multi-insert transaction',
+      () async {
+        final stream = ctx.userService.watchAll();
 
-      // Collect all emissions after initial
-      final emissions = <List<User>>[];
-      final sub = stream.skip(1).listen(emissions.add);
+        // Collect all emissions after initial
+        final emissions = <List<User>>[];
+        final sub = stream.skip(1).listen(emissions.add);
 
-      await Future.delayed(const Duration(milliseconds: 50));
+        await Future.delayed(const Duration(milliseconds: 50));
 
-      await ctx.dbManager.transaction((txn) async {
-        await ctx.userService.insert(_user(id: 'u1'), executor: txn);
-        await ctx.userService
-            .insert(_user(id: 'u2', firstName: 'Bob'), executor: txn);
-        await ctx.userService
-            .insert(_user(id: 'u3', firstName: 'Charlie'), executor: txn);
-      });
+        await ctx.dbManager.transaction((txn) async {
+          await ctx.userService.insert(_user(id: 'u1'), executor: txn);
+          await ctx.userService.insert(
+            _user(id: 'u2', firstName: 'Bob'),
+            executor: txn,
+          );
+          await ctx.userService.insert(
+            _user(id: 'u3', firstName: 'Charlie'),
+            executor: txn,
+          );
+        });
 
-      await Future.delayed(const Duration(milliseconds: 200));
-      sub.cancel(); // do not await
+        await Future.delayed(const Duration(milliseconds: 200));
+        sub.cancel(); // do not await
 
-      // Exactly 1 re-emission containing all 3 users (not 3 separate emissions)
-      expect(emissions.length, 1);
-      expect(emissions.first.length, 3);
-    });
+        // Exactly 1 re-emission containing all 3 users (not 3 separate emissions)
+        expect(emissions.length, 1);
+        expect(emissions.first.length, 3);
+      },
+    );
 
     test('transaction rollback emits NO notification', () async {
       final emitted = <String>[];

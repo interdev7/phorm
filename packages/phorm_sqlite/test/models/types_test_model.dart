@@ -86,15 +86,10 @@ class ApiResponse<T> with _$PhormApiResponseMixin<T> implements Model {
   /// Generic payload — not a DB column, populated from JSON
   final T? data;
 
-  ApiResponse({
-    required this.id,
-    required this.status,
-    this.data,
-  });
+  ApiResponse({required this.id, required this.status, this.data});
 
   factory ApiResponse.fromJson(
     Map<String, dynamic> json,
     T Function(Object? json) fromJsonT,
-  ) =>
-      _$PhormApiResponseFromJson(json, fromJsonT);
+  ) => _$PhormApiResponseFromJson(json, fromJsonT);
 }

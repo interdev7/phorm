@@ -41,20 +41,24 @@ class PhormConsoleLogger implements PhormLogger {
 
   @override
   void query(String sql, List<Object?>? arguments, Duration duration) {
-    final argsStr = arguments != null && arguments.isNotEmpty
-        ? ' ${_color(_gray, 'Args: $arguments')}'
-        : '';
+    final argsStr =
+        arguments != null && arguments.isNotEmpty
+            ? ' ${_color(_gray, 'Args: $arguments')}'
+            : '';
     print(
-        '${_color(_green, '⚡ [Phorm Query]')} ${_color(_gray, '(${duration.inMilliseconds}ms)')} $sql$argsStr');
+      '${_color(_green, '⚡ [Phorm Query]')} ${_color(_gray, '(${duration.inMilliseconds}ms)')} $sql$argsStr',
+    );
   }
 
   @override
   void slowQuery(String sql, List<Object?>? arguments, Duration duration) {
-    final argsStr = arguments != null && arguments.isNotEmpty
-        ? ' ${_color(_gray, 'Args: $arguments')}'
-        : '';
+    final argsStr =
+        arguments != null && arguments.isNotEmpty
+            ? ' ${_color(_gray, 'Args: $arguments')}'
+            : '';
     print(
-        '${_color(_yellow, '⚠️ [Phorm Slow Query]')} ${_color(_red, '(${duration.inMilliseconds}ms)')} $sql$argsStr');
+      '${_color(_yellow, '⚠️ [Phorm Slow Query]')} ${_color(_red, '(${duration.inMilliseconds}ms)')} $sql$argsStr',
+    );
   }
 
   @override

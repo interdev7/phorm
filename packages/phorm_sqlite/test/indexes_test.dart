@@ -23,7 +23,8 @@ void main() {
 
     // Check indices for 'users' table
     final userIndexes = await database.rawQuery(
-        "SELECT name FROM sqlite_master WHERE type='index' AND tbl_name='users'");
+      "SELECT name FROM sqlite_master WHERE type='index' AND tbl_name='users'",
+    );
     final userIndexNames = userIndexes.map((i) => i['name'] as String).toList();
 
     expect(userIndexNames, contains('users_email_idx'));
@@ -31,7 +32,8 @@ void main() {
 
     // Check index for 'orders' table
     final orderIndexes = await database.rawQuery(
-        "SELECT name FROM sqlite_master WHERE type='index' AND tbl_name='orders'");
+      "SELECT name FROM sqlite_master WHERE type='index' AND tbl_name='orders'",
+    );
     final orderIndexNames =
         orderIndexes.map((i) => i['name'] as String).toList();
 
@@ -39,30 +41,35 @@ void main() {
   });
 
   test('Unique index prevents duplicate emails', () async {
-    await userService.insert(User(
-      id: 'u1',
-      firstName: 'John',
-      lastName: 'Doe',
-      email: 'john@example.com',
-      phone: '1234567',
-      gender: 'M',
-      city: 'NY',
-      country: 'USA',
-    ));
+    await userService.insert(
+      User(
+        id: 'u1',
+        firstName: 'John',
+        lastName: 'Doe',
+        email: 'john@example.com',
+        phone: '1234567',
+        gender: 'M',
+        city: 'NY',
+        country: 'USA',
+      ),
+    );
 
     // Inserting another user with same email should fail
     expect(
-        () => userService.insert(User(
-              id: 'u2',
-              firstName: 'Jane',
-              lastName: 'Doe',
-              email: 'john@example.com',
-              phone: '4567890',
-              gender: 'F',
-              city: 'LA',
-              country: 'USA',
-            )),
-        throwsException);
+      () => userService.insert(
+        User(
+          id: 'u2',
+          firstName: 'Jane',
+          lastName: 'Doe',
+          email: 'john@example.com',
+          phone: '4567890',
+          gender: 'F',
+          city: 'LA',
+          country: 'USA',
+        ),
+      ),
+      throwsException,
+    );
   });
 
   test('Query plan uses index for JOIN relationship', () async {
@@ -71,8 +78,10 @@ void main() {
     // We want to see if a query for orders by user_id uses the index
     final orderService = PhormCore(dbManager: db, table: ordersTable);
     final where = WhereBuilder().eq('user_id', 'u1');
-    final sql =
-        orderService.getBuildJoinQuery(where: where, explainQueryPlan: true);
+    final sql = orderService.getBuildJoinQuery(
+      where: where,
+      explainQueryPlan: true,
+    );
 
     final queryPlan = await database.rawQuery(sql, where.args);
 

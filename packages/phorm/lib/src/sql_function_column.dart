@@ -10,7 +10,7 @@ class SqlFunctionColumn<T> extends PhormColumn<T> {
   final PhormColumn<dynamic> innerColumn;
 
   const SqlFunctionColumn(this.functionName, this.innerColumn)
-      : super('$functionName($innerColumn)');
+    : super('$functionName($innerColumn)');
 }
 
 /// Helper class to apply registered SQL functions to database columns in a type-safe way.

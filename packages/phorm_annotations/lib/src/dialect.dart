@@ -44,7 +44,9 @@ class NoEscapeDialect implements SqlDialect {
   @override
   String compileJsonObject(Map<String, String> keyValues) {
     if (keyValues.isEmpty) return 'json_object()';
-    final parts = keyValues.entries.map((e) => "'${e.key}', ${e.value}").join(', ');
+    final parts = keyValues.entries
+        .map((e) => "'${e.key}', ${e.value}")
+        .join(', ');
     return 'json_object($parts)';
   }
 

@@ -13,10 +13,7 @@ void main() {
 
   group('PhormCore ReadAll Tests:', () {
     test('Basic pagination', () async {
-      final result = await userService.readAllWithCount(
-        limit: 5,
-        offset: 0,
-      );
+      final result = await userService.readAllWithCount(limit: 5, offset: 0);
 
       expect(result.data.length, 5);
       expect(result.count, greaterThan(5));
@@ -24,13 +21,12 @@ void main() {
     });
 
     test('Filtering with conditions', () async {
-      final where =
-          WhereBuilder().eq('gender', 'M').gt('age', 40).eq('city', 'Sofia');
+      final where = WhereBuilder()
+          .eq('gender', 'M')
+          .gt('age', 40)
+          .eq('city', 'Sofia');
 
-      final result = await userService.readAll(
-        limit: 10,
-        where: where,
-      );
+      final result = await userService.readAll(limit: 10, where: where);
 
       // Verify all returned users match the conditions
       for (final user in result.data) {
@@ -43,10 +39,7 @@ void main() {
     test('Sorting', () async {
       final sort = SortBuilder().asc('last_name').desc('age');
 
-      final result = await userService.readAll(
-        limit: 10,
-        sort: sort,
-      );
+      final result = await userService.readAll(limit: 10, sort: sort);
 
       // Verify the data is sorted
       for (var i = 0; i < result.data.length - 1; i++) {
@@ -65,7 +58,8 @@ void main() {
           expect(
             (current.age ?? 0) >= (next.age ?? 0),
             true,
-            reason: 'When last names are equal (${current.lastName}), '
+            reason:
+                'When last names are equal (${current.lastName}), '
                 'age should be descending: ${current.age} >= ${next.age}',
           );
         }
@@ -91,11 +85,13 @@ void main() {
     test('readAll with OR and AND group filters', () async {
       final service = await createTestService();
 
-      final where = WhereBuilder().andGroup((ag) {
-        ag.eq('country', 'Bulgaria').lengthGt('first_name', 4);
-      }).orGroup((og) {
-        og.substrLike('email', 1, 3, '%@g').eq('city', 'Varna');
-      });
+      final where = WhereBuilder()
+          .andGroup((ag) {
+            ag.eq('country', 'Bulgaria').lengthGt('first_name', 4);
+          })
+          .orGroup((og) {
+            og.substrLike('email', 1, 3, '%@g').eq('city', 'Varna');
+          });
 
       final result = await service.readAllWithCount(where: where, limit: 50);
 
@@ -109,10 +105,7 @@ void main() {
       await userService.delete('u001');
       await userService.delete('u002');
 
-      final result = await userService.readAll(
-        limit: 10,
-        onlyDeleted: true,
-      );
+      final result = await userService.readAll(limit: 10, onlyDeleted: true);
 
       expect(result.data.length, greaterThan(0));
 
@@ -129,15 +122,13 @@ void main() {
             .like('email', '%gmail.com');
       });
 
-      final result = await userService.readAll(
-        limit: 10,
-        where: where,
-      );
+      final result = await userService.readAll(limit: 10, where: where);
 
       expect(result.data.length, greaterThan(0));
 
       for (final user in result.data) {
-        final matches = user.firstName.contains('James') ||
+        final matches =
+            user.firstName.contains('James') ||
             user.lastName.contains('Smith') ||
             user.email.contains('gmail.com');
 
@@ -146,16 +137,16 @@ void main() {
     });
 
     test('Combined conditions with AND and OR', () async {
-      final where = WhereBuilder().eq('is_active', 1).andGroup((ag) {
-        ag.gt('age', 25).lt('age', 40);
-      }).orGroup((og) {
-        og.eq('city', 'Sofia').eq('city', 'Plovdiv');
-      });
+      final where = WhereBuilder()
+          .eq('is_active', 1)
+          .andGroup((ag) {
+            ag.gt('age', 25).lt('age', 40);
+          })
+          .orGroup((og) {
+            og.eq('city', 'Sofia').eq('city', 'Plovdiv');
+          });
 
-      final result = await userService.readAll(
-        limit: 20,
-        where: where,
-      );
+      final result = await userService.readAll(limit: 20, where: where);
 
       for (final user in result.data) {
         expect(user.isActive, true);

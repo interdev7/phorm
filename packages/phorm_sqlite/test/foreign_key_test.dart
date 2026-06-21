@@ -51,31 +51,42 @@ void main() {
     await db.close();
   });
 
-  test('onDelete: ReferentialAction.cascade should delete related records',
-      () async {
-    final database = await db.database;
+  test(
+    'onDelete: ReferentialAction.cascade should delete related records',
+    () async {
+      final database = await db.database;
 
-    // 1. Insert User
-    await database.insert('users', {'id': 'u1', 'name': 'John'});
+      // 1. Insert User
+      await database.insert('users', {'id': 'u1', 'name': 'John'});
 
-    // 2. Insert Posts for User
-    await database
-        .insert('posts', {'id': 1, 'title': 'Post 1', 'user_id': 'u1'});
-    await database
-        .insert('posts', {'id': 2, 'title': 'Post 2', 'user_id': 'u1'});
+      // 2. Insert Posts for User
+      await database.insert('posts', {
+        'id': 1,
+        'title': 'Post 1',
+        'user_id': 'u1',
+      });
+      await database.insert('posts', {
+        'id': 2,
+        'title': 'Post 2',
+        'user_id': 'u1',
+      });
 
-    // Verify initial count
-    final initialPosts = await database.query('posts');
-    expect(initialPosts, hasLength(2));
+      // Verify initial count
+      final initialPosts = await database.query('posts');
+      expect(initialPosts, hasLength(2));
 
-    // 3. Delete User
-    await database.delete('users', where: 'id = ?', whereArgs: ['u1']);
+      // 3. Delete User
+      await database.delete('users', where: 'id = ?', whereArgs: ['u1']);
 
-    // 4. Verify Posts are deleted automatically (Cascade)
-    final remainingPosts = await database.query('posts');
-    expect(remainingPosts, isEmpty,
-        reason: 'Posts should have been deleted by CASCADE');
-  });
+      // 4. Verify Posts are deleted automatically (Cascade)
+      final remainingPosts = await database.query('posts');
+      expect(
+        remainingPosts,
+        isEmpty,
+        reason: 'Posts should have been deleted by CASCADE',
+      );
+    },
+  );
 
   test('ReferentialAction constants values', () {
     expect(ReferentialAction.cascade, 'CASCADE');
@@ -93,10 +104,8 @@ class User extends Model {
 
   User({required this.id, required this.name});
 
-  factory User.fromJson(Map<String, dynamic> json) => User(
-        id: json['id'] as String,
-        name: json['name'] as String,
-      );
+  factory User.fromJson(Map<String, dynamic> json) =>
+      User(id: json['id'] as String, name: json['name'] as String);
 
   @override
   Map<String, dynamic> toJson() => {'id': id, 'name': name};
@@ -110,12 +119,15 @@ class Post extends Model {
   Post({required this.id, required this.title, required this.userId});
 
   factory Post.fromJson(Map<String, dynamic> json) => Post(
-        id: json['id'] as int,
-        title: json['title'] as String,
-        userId: json['user_id'] as String,
-      );
+    id: json['id'] as int,
+    title: json['title'] as String,
+    userId: json['user_id'] as String,
+  );
 
   @override
-  Map<String, dynamic> toJson() =>
-      {'id': id, 'title': title, 'user_id': userId};
+  Map<String, dynamic> toJson() => {
+    'id': id,
+    'title': title,
+    'user_id': userId,
+  };
 }

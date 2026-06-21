@@ -24,9 +24,10 @@ void main() {
         where: WhereBuilder().eq(Users.isActive, true),
       );
 
-      final expectedCount = mockUsers
-          .where((u) => u.deletedAt == null && u.isActive == true)
-          .length;
+      final expectedCount =
+          mockUsers
+              .where((u) => u.deletedAt == null && u.isActive == true)
+              .length;
       expect(activeCount, expectedCount);
     });
 

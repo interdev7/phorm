@@ -68,16 +68,18 @@ void main() {
 
       await Future.delayed(const Duration(milliseconds: 100));
 
-      await userService.insert(User(
-        id: 'u1',
-        firstName: 'John',
-        lastName: 'Doe',
-        email: 'john@example.com',
-        phone: '123456',
-        gender: 'M',
-        city: 'NY',
-        country: 'USA',
-      ));
+      await userService.insert(
+        User(
+          id: 'u1',
+          firstName: 'John',
+          lastName: 'Doe',
+          email: 'john@example.com',
+          phone: '123456',
+          gender: 'M',
+          city: 'NY',
+          country: 'USA',
+        ),
+      );
 
       final secondEmission = await futureValue;
       expect(secondEmission.length, 1);
@@ -99,8 +101,9 @@ void main() {
 
       // Verify initial
       expect(
-          (await userService.watchOne('u1', dependencies: ['posts']).first)?.id,
-          'u1');
+        (await userService.watchOne('u1', dependencies: ['posts']).first)?.id,
+        'u1',
+      );
 
       // Watch user and specify 'posts' as a dependency
       final stream = userService.watchOne('u1', dependencies: ['posts']);
@@ -110,11 +113,7 @@ void main() {
 
       // Insert a post for the user. Even if we don't 'include' posts in the watch,
       // the stream should re-emit because we marked 'posts' as a dependency.
-      await postService.insert(Post(
-        id: 1,
-        title: 'New Post',
-        userId: 'u1',
-      ));
+      await postService.insert(Post(id: 1, title: 'New Post', userId: 'u1'));
 
       final emissionAfterPost = await futureValue;
       expect(emissionAfterPost?.id, 'u1');
@@ -122,8 +121,7 @@ void main() {
       // and want to see the new post in the user object.
     });
 
-    test('watchAll() automatically detects dependencies from includes',
-        () async {
+    test('watchAll() automatically detects dependencies from includes', () async {
       final user = User(
         id: 'u1',
         firstName: 'John',
@@ -138,26 +136,20 @@ void main() {
 
       // Watch all users with posts included
       expect(
-          (await userService
-                  .watchAll(include: [Includable.table('posts')]).first)
-              .first
-              .id,
-          'u1');
-
-      final stream = userService.watchAll(
-        include: [Includable.table('posts')],
+        (await userService.watchAll(include: [Includable.table('posts')]).first)
+            .first
+            .id,
+        'u1',
       );
+
+      final stream = userService.watchAll(include: [Includable.table('posts')]);
 
       final futureValue = stream.skip(1).first;
 
       await Future.delayed(const Duration(milliseconds: 100));
 
       // Add a post. watchAll should detect 'posts' is in 'include' and re-emit.
-      await postService.insert(Post(
-        id: 1,
-        title: 'Post 1',
-        userId: 'u1',
-      ));
+      await postService.insert(Post(id: 1, title: 'Post 1', userId: 'u1'));
 
       final updated = await futureValue;
       expect(updated.first.id, 'u1');

@@ -25,12 +25,13 @@ class ModelMixinGenerator extends GeneratorForAnnotation<Schema> {
     final isGeneric = element.typeParameters.isNotEmpty;
     final classType = isGeneric ? '$className<dynamic>' : className;
     final strategyReader = annotation.peek('columnNaming');
-    final strategy = strategyReader == null || strategyReader.isNull
-        ? ColumnNamingStrategy.snakeCase
-        : ColumnNamingStrategy.values.firstWhere(
-            (e) => e.name == strategyReader.revive().accessor.split('.').last,
-            orElse: () => ColumnNamingStrategy.snakeCase,
-          );
+    final strategy =
+        strategyReader == null || strategyReader.isNull
+            ? ColumnNamingStrategy.snakeCase
+            : ColumnNamingStrategy.values.firstWhere(
+              (e) => e.name == strategyReader.revive().accessor.split('.').last,
+              orElse: () => ColumnNamingStrategy.snakeCase,
+            );
     final useToJson = annotation.peek('useToJson')?.boolValue ?? true;
     final useFromJson = annotation.peek('useFromJson')?.boolValue ?? true;
     final useCopyWith = annotation.peek('useCopyWith')?.boolValue ?? true;
@@ -38,21 +39,25 @@ class ModelMixinGenerator extends GeneratorForAnnotation<Schema> {
     final timestamps = annotation.peek('timestamps')?.boolValue ?? true;
     final paranoid = annotation.peek('paranoid')?.boolValue ?? false;
 
-    final tableName = annotation.peek('tableName')?.stringValue ??
+    final tableName =
+        annotation.peek('tableName')?.stringValue ??
         MetadataExtractor.camelToSnake(className);
 
     final fields = element.fields.where((f) => !f.isStatic).toList();
     final hasValidators = fields.any((field) {
-      final columnMeta = field.metadata.where((m) {
-        final name = m.element?.enclosingElement3?.name;
-        return name == 'Column' || name == 'ID';
-      }).firstOrNull;
+      final columnMeta =
+          field.metadata.where((m) {
+            final name = m.element?.enclosingElement3?.name;
+            return name == 'Column' || name == 'ID';
+          }).firstOrNull;
       if (columnMeta == null) return false;
       final reader = ConstantReader(columnMeta.computeConstantValue());
       final validatorsReader = reader.peek('validators');
       if (validatorsReader == null || !validatorsReader.isList) return false;
-      return validatorsReader.listValue.any((validatorObj) =>
-          _jsonValidatorChecker.isAssignableFromType(validatorObj.type!));
+      return validatorsReader.listValue.any(
+        (validatorObj) =>
+            _jsonValidatorChecker.isAssignableFromType(validatorObj.type!),
+      );
     });
     final useValidator =
         (annotation.peek('useValidator')?.boolValue ?? true) && hasValidators;
@@ -75,9 +80,13 @@ class ModelMixinGenerator extends GeneratorForAnnotation<Schema> {
         final foreignKey = r.read('foreignKey').stringValue;
 
         // Resolve the PK SQL name of the related model (used in BelongsTo getter)
-        final relatedIdInfo = type == 'BelongsTo'
-            ? MetadataExtractor.resolveRelatedIdInfo(r.read('model'), strategy)
-            : null;
+        final relatedIdInfo =
+            type == 'BelongsTo'
+                ? MetadataExtractor.resolveRelatedIdInfo(
+                  r.read('model'),
+                  strategy,
+                )
+                : null;
 
         relationships.add({
           'type': type,
@@ -94,14 +103,15 @@ class ModelMixinGenerator extends GeneratorForAnnotation<Schema> {
 
     // Field level relationships
     for (final field in fields) {
-      final relMeta = field.metadata.where((m) {
-        final name = m.element?.enclosingElement3?.name;
-        return name == 'BelongsTo' ||
-            name == 'HasMany' ||
-            name == 'HasOne' ||
-            name == 'ManyToMany' ||
-            name == 'Join';
-      }).firstOrNull;
+      final relMeta =
+          field.metadata.where((m) {
+            final name = m.element?.enclosingElement3?.name;
+            return name == 'BelongsTo' ||
+                name == 'HasMany' ||
+                name == 'HasOne' ||
+                name == 'ManyToMany' ||
+                name == 'Join';
+          }).firstOrNull;
 
       if (relMeta != null) {
         final r = ConstantReader(relMeta.computeConstantValue());
@@ -134,9 +144,13 @@ class ModelMixinGenerator extends GeneratorForAnnotation<Schema> {
         final foreignKey = r.read('foreignKey').stringValue;
 
         // Resolve the PK SQL name of the related model (used in BelongsTo getter)
-        final relatedIdInfo = type == 'BelongsTo'
-            ? MetadataExtractor.resolveRelatedIdInfo(r.read('model'), strategy)
-            : null;
+        final relatedIdInfo =
+            type == 'BelongsTo'
+                ? MetadataExtractor.resolveRelatedIdInfo(
+                  r.read('model'),
+                  strategy,
+                )
+                : null;
 
         relationships.add({
           'type': type,
@@ -157,27 +171,32 @@ class ModelMixinGenerator extends GeneratorForAnnotation<Schema> {
     final toJsonTypeParams = element.typeParameters
         .map((p) => 'Object? Function(${p.name} value) toJson${p.name}')
         .join(', ');
-    final toJsonArgs =
-        element.typeParameters.map((p) => 'toJson${p.name}').join(', ');
+    final toJsonArgs = element.typeParameters
+        .map((p) => 'toJson${p.name}')
+        .join(', ');
 
     final fromJsonTypeParams = element.typeParameters
         .map((p) => '${p.name} Function(Object? json) fromJson${p.name}')
         .join(', ');
 
-    final buffer = StringBuffer()
-      ..writeln('mixin _\$Phorm${className}Mixin$typeParamsBrackets {');
+    final buffer =
+        StringBuffer()
+          ..writeln('mixin _\$Phorm${className}Mixin$typeParamsBrackets {');
 
     if (useToJson) {
-      final paramList = toJsonTypeParams.isNotEmpty
-          ? '[${element.typeParameters.map((p) => 'Object? Function(${p.name} value)? toJson${p.name}').join(', ')}]'
-          : '';
-      final argList = toJsonArgs.isNotEmpty
-          ? ', ${element.typeParameters.map((p) => 'toJson${p.name} ?? (x) => x').join(', ')}'
-          : '';
+      final paramList =
+          toJsonTypeParams.isNotEmpty
+              ? '[${element.typeParameters.map((p) => 'Object? Function(${p.name} value)? toJson${p.name}').join(', ')}]'
+              : '';
+      final argList =
+          toJsonArgs.isNotEmpty
+              ? ', ${element.typeParameters.map((p) => 'toJson${p.name} ?? (x) => x').join(', ')}'
+              : '';
       buffer
         ..writeln()
         ..writeln(
-            '  Map<String, dynamic> toJson($paramList) => _\$Phorm${className}ToJson(this as $className$typeParamsBrackets$argList);');
+          '  Map<String, dynamic> toJson($paramList) => _\$Phorm${className}ToJson(this as $className$typeParamsBrackets$argList);',
+        );
     }
 
     if (useToString) {
@@ -185,7 +204,8 @@ class ModelMixinGenerator extends GeneratorForAnnotation<Schema> {
         ..writeln()
         ..writeln('  @override')
         ..writeln(
-            '  String toString() => _\$Phorm${className}ToString(this as $className$typeParamsBrackets);');
+          '  String toString() => _\$Phorm${className}ToString(this as $className$typeParamsBrackets);',
+        );
     }
 
     // Timestamps fields
@@ -230,7 +250,8 @@ class ModelMixinGenerator extends GeneratorForAnnotation<Schema> {
           buffer
             ..writeln('  var _\$$fkName;')
             ..writeln(
-                "  dynamic get $fkName => $fieldName?.toJson()['$relatedPk'] ?? _\$$fkName;")
+              "  dynamic get $fkName => $fieldName?.toJson()['$relatedPk'] ?? _\$$fkName;",
+            )
             ..writeln('  set $fkName(dynamic value) => _\$$fkName = value;');
         }
       }
@@ -246,7 +267,8 @@ class ModelMixinGenerator extends GeneratorForAnnotation<Schema> {
       buffer
         ..writeln()
         ..writeln(
-            'Map<String, dynamic> _\$Phorm${className}ToJson$typeParamsBrackets($className$typeParamsBrackets instance$paramList) {')
+          'Map<String, dynamic> _\$Phorm${className}ToJson$typeParamsBrackets($className$typeParamsBrackets instance$paramList) {',
+        )
         ..writeln('  final ${className.toLowerCase()}Json = {');
       for (final field in fields) {
         if (relationships.any((r) => r['fieldName'] == field.name)) continue;
@@ -254,9 +276,10 @@ class ModelMixinGenerator extends GeneratorForAnnotation<Schema> {
         final sqlName = MetadataExtractor.getSqlColumnName(field, strategy);
         final info = MetadataExtractor.getConverterInfo(field);
         // For generic type parameters (T), pass the corresponding toJsonT function
-        final toJsonParam = field.type is TypeParameterType
-            ? 'toJson${(field.type as TypeParameterType).element.name}'
-            : null;
+        final toJsonParam =
+            field.type is TypeParameterType
+                ? 'toJson${(field.type as TypeParameterType).element.name}'
+                : null;
         final valueExpr = _generateToJsonValue(
           field.type,
           'instance.${field.name}',
@@ -269,16 +292,19 @@ class ModelMixinGenerator extends GeneratorForAnnotation<Schema> {
       if (timestamps) {
         if (!existsCreatedAt) {
           buffer.writeln(
-              r"    'created_at': _$PhormToJsonValue(instance.createdAt),");
+            r"    'created_at': _$PhormToJsonValue(instance.createdAt),",
+          );
         }
         if (!existsUpdatedAt) {
           buffer.writeln(
-              r"    'updated_at': _$PhormToJsonValue(instance.updatedAt),");
+            r"    'updated_at': _$PhormToJsonValue(instance.updatedAt),",
+          );
         }
       }
       if (paranoid && !existsDeletedAt) {
         buffer.writeln(
-            r"    'deleted_at': _$PhormToJsonValue(instance.deletedAt),");
+          r"    'deleted_at': _$PhormToJsonValue(instance.deletedAt),",
+        );
       }
 
       // Output synthesized foreign keys in toJson
@@ -289,16 +315,19 @@ class ModelMixinGenerator extends GeneratorForAnnotation<Schema> {
           final existsFk = fields.any((f) => f.name == fkName);
           if (!existsFk) {
             buffer.writeln(
-                "    '$fkSqlName': _\$PhormToJsonValue(instance.$fkName),");
+              "    '$fkSqlName': _\$PhormToJsonValue(instance.$fkName),",
+            );
           }
         }
       }
 
       buffer
         ..writeln('  };')
-        ..writeln(useValidator
-            ? "  _\$validate$className(${className.toLowerCase()}Json, tableName: '$tableName');\n"
-            : '')
+        ..writeln(
+          useValidator
+              ? "  _\$validate$className(${className.toLowerCase()}Json, tableName: '$tableName');\n"
+              : '',
+        )
         ..writeln('  return ${className.toLowerCase()}Json;')
         ..writeln('}');
     }
@@ -307,7 +336,8 @@ class ModelMixinGenerator extends GeneratorForAnnotation<Schema> {
       buffer
         ..writeln()
         ..writeln(
-            'String _\$Phorm${className}ToString$typeParamsBrackets($className$typeParamsBrackets instance) {')
+          'String _\$Phorm${className}ToString$typeParamsBrackets($className$typeParamsBrackets instance) {',
+        )
         ..writeln('  return """')
         ..writeln('$className(');
 
@@ -352,7 +382,8 @@ class ModelMixinGenerator extends GeneratorForAnnotation<Schema> {
       buffer
         ..writeln()
         ..writeln(
-            'extension Phorm${className}Ext$typeParamsBrackets on $className$typeParamsBrackets {');
+          'extension Phorm${className}Ext$typeParamsBrackets on $className$typeParamsBrackets {',
+        );
 
       final constructor =
           element.unnamedConstructor ?? element.constructors.first;
@@ -378,7 +409,8 @@ class ModelMixinGenerator extends GeneratorForAnnotation<Schema> {
 
       for (final param in constructor.parameters) {
         buffer.writeln(
-            '      ${param.name}: ${param.name} ?? this.${param.name},');
+          '      ${param.name}: ${param.name} ?? this.${param.name},',
+        );
       }
 
       buffer.write('    )');
@@ -404,12 +436,14 @@ class ModelMixinGenerator extends GeneratorForAnnotation<Schema> {
     // 3. Validation Method
     if (useValidator) {
       buffer.writeln(
-          '\nvoid _\$validate$className(Map<String, dynamic> json, {required String tableName}) {');
+        '\nvoid _\$validate$className(Map<String, dynamic> json, {required String tableName}) {',
+      );
       for (final field in fields) {
-        final columnMeta = field.metadata.where((m) {
-          final name = m.element?.enclosingElement3?.name;
-          return name == 'Column' || name == 'ID';
-        }).firstOrNull;
+        final columnMeta =
+            field.metadata.where((m) {
+              final name = m.element?.enclosingElement3?.name;
+              return name == 'Column' || name == 'ID';
+            }).firstOrNull;
 
         if (columnMeta == null) continue;
 
@@ -420,8 +454,9 @@ class ModelMixinGenerator extends GeneratorForAnnotation<Schema> {
           final sqlName = MetadataExtractor.getSqlColumnName(field, strategy);
 
           for (final validatorObj in validatorsReader.listValue) {
-            final isJsonValidator =
-                _jsonValidatorChecker.isAssignableFromType(validatorObj.type!);
+            final isJsonValidator = _jsonValidatorChecker.isAssignableFromType(
+              validatorObj.type!,
+            );
             if (!isJsonValidator) continue;
 
             // Dart validation always throws PhormJSONValidatorException
@@ -437,12 +472,14 @@ class ModelMixinGenerator extends GeneratorForAnnotation<Schema> {
 
             buffer
               ..writeln(
-                  "  if (!const $constString.isValid(json['$sqlName'])) {")
+                "  if (!const $constString.isValid(json['$sqlName'])) {",
+              )
               ..writeln('    throw $exceptionType(')
               ..writeln('      table: tableName,')
               ..writeln("      column: '$sqlName',")
               ..writeln(
-                  '      message: \'Value "\${json[\'$sqlName\']}" failed validation\',');
+                '      message: \'Value "\${json[\'$sqlName\']}" failed validation\',',
+              );
 
             final constraint = validatorReader.peek('constraint')?.stringValue;
             if (constraint != null) {
@@ -463,7 +500,8 @@ class ModelMixinGenerator extends GeneratorForAnnotation<Schema> {
           fromJsonTypeParams.isNotEmpty ? ', $fromJsonTypeParams' : '';
       buffer
         ..writeln(
-            '\n$className$typeParamsBrackets _\$Phorm${className}FromJson$typeParamsBrackets(Map<String, dynamic> json$paramList) {')
+          '\n$className$typeParamsBrackets _\$Phorm${className}FromJson$typeParamsBrackets(Map<String, dynamic> json$paramList) {',
+        )
         // ..writeln(useValidator
         //     ? '  _\$validate$className(json, tableName: \'$tableName\');\n'
         //     : '')
@@ -475,26 +513,30 @@ class ModelMixinGenerator extends GeneratorForAnnotation<Schema> {
         final FieldElement? field =
             fields.where((f) => f.name == param.name).firstOrNull;
 
-        final rel = relationships
-            .where((r) => r['fieldName'] == param.name)
-            .firstOrNull;
+        final rel =
+            relationships
+                .where((r) => r['fieldName'] == param.name)
+                .firstOrNull;
         if (rel != null) {
           final modelClass = rel['modelClass'];
           final modelTable = rel['model'];
           if (rel['isCollection'] as bool) {
             buffer.writeln(
-                "    ${param.name}: json['$modelTable'] != null ? (json['$modelTable'] as List).map((e) => $modelClass.fromJson(e as Map<String, dynamic>)).toList() : [],");
+              "    ${param.name}: json['$modelTable'] != null ? (json['$modelTable'] as List).map((e) => $modelClass.fromJson(e as Map<String, dynamic>)).toList() : [],",
+            );
           } else {
             buffer.writeln(
-                "    ${param.name}: json['$modelTable'] != null ? $modelClass.fromJson(json['$modelTable'] as Map<String, dynamic>) : null,");
+              "    ${param.name}: json['$modelTable'] != null ? $modelClass.fromJson(json['$modelTable'] as Map<String, dynamic>) : null,",
+            );
           }
         } else if (field != null) {
           final sqlName = MetadataExtractor.getSqlColumnName(field, strategy);
           final info = MetadataExtractor.getConverterInfo(field);
           // For generic type parameters (T), pass the corresponding fromJsonT function
-          final fromJsonParam = param.type is TypeParameterType
-              ? 'fromJson${(param.type as TypeParameterType).element.name}'
-              : null;
+          final fromJsonParam =
+              param.type is TypeParameterType
+                  ? 'fromJson${(param.type as TypeParameterType).element.name}'
+                  : null;
           final parsedExpr = _generateFromJsonValue(
             param.type,
             "json['$sqlName']",
@@ -512,16 +554,19 @@ class ModelMixinGenerator extends GeneratorForAnnotation<Schema> {
       if (timestamps) {
         if (!existsCreatedAt) {
           buffer.write(
-              "\n    ..createdAt = json['created_at'] != null ? DateTime.parse(json['created_at'] as String) : null");
+            "\n    ..createdAt = json['created_at'] != null ? DateTime.parse(json['created_at'] as String) : null",
+          );
         }
         if (!existsUpdatedAt) {
           buffer.write(
-              "\n    ..updatedAt = json['updated_at'] != null ? DateTime.parse(json['updated_at'] as String) : null");
+            "\n    ..updatedAt = json['updated_at'] != null ? DateTime.parse(json['updated_at'] as String) : null",
+          );
         }
       }
       if (paranoid && !existsDeletedAt) {
         buffer.write(
-            "\n    ..deletedAt = json['deleted_at'] != null ? DateTime.parse(json['deleted_at'] as String) : null");
+          "\n    ..deletedAt = json['deleted_at'] != null ? DateTime.parse(json['deleted_at'] as String) : null",
+        );
       }
 
       for (final rel in relationships) {
@@ -535,10 +580,12 @@ class ModelMixinGenerator extends GeneratorForAnnotation<Schema> {
         if (!existsRel && !paramRel) {
           if (isCollection) {
             buffer.write(
-                "\n    ..$fieldName.addAll(json['$modelTable'] != null ? (json['$modelTable'] as List).map((e) => $modelClass.fromJson(e as Map<String, dynamic>)).toList() : [])");
+              "\n    ..$fieldName.addAll(json['$modelTable'] != null ? (json['$modelTable'] as List).map((e) => $modelClass.fromJson(e as Map<String, dynamic>)).toList() : [])",
+            );
           } else {
             buffer.write(
-                "\n    .._\$$fieldName = json['$modelTable'] != null ? $modelClass.fromJson(json['$modelTable'] as Map<String, dynamic>) : null");
+              "\n    .._\$$fieldName = json['$modelTable'] != null ? $modelClass.fromJson(json['$modelTable'] as Map<String, dynamic>) : null",
+            );
           }
         }
 
@@ -560,10 +607,11 @@ class ModelMixinGenerator extends GeneratorForAnnotation<Schema> {
     }
 
     // 5. Pluralized service object (e.g. Posts)
-    final serviceName = tableName
-        .split('_')
-        .map((s) => s[0].toUpperCase() + s.substring(1))
-        .join();
+    final serviceName =
+        tableName
+            .split('_')
+            .map((s) => s[0].toUpperCase() + s.substring(1))
+            .join();
     buffer
       ..writeln()
       ..writeln('/// Pluralized service for $className')
@@ -575,22 +623,26 @@ class ModelMixinGenerator extends GeneratorForAnnotation<Schema> {
       var type = field.type.getDisplayString();
       if (type.endsWith('?')) type = type.substring(0, type.length - 1);
       buffer.writeln(
-          "  static const PhormColumn<$type> ${field.name} = PhormColumn<$type>('$sqlName', tableName: '$tableName');");
+        "  static const PhormColumn<$type> ${field.name} = PhormColumn<$type>('$sqlName', tableName: '$tableName');",
+      );
     }
 
     if (timestamps) {
       if (!existsCreatedAt) {
         buffer.writeln(
-            "  static const PhormColumn<DateTime> createdAt = PhormColumn<DateTime>('created_at', tableName: '$tableName');");
+          "  static const PhormColumn<DateTime> createdAt = PhormColumn<DateTime>('created_at', tableName: '$tableName');",
+        );
       }
       if (!existsUpdatedAt) {
         buffer.writeln(
-            "  static const PhormColumn<DateTime> updatedAt = PhormColumn<DateTime>('updated_at', tableName: '$tableName');");
+          "  static const PhormColumn<DateTime> updatedAt = PhormColumn<DateTime>('updated_at', tableName: '$tableName');",
+        );
       }
     }
     if (paranoid && !existsDeletedAt) {
       buffer.writeln(
-          "  static const PhormColumn<DateTime> deletedAt = PhormColumn<DateTime>('deleted_at', tableName: '$tableName');");
+        "  static const PhormColumn<DateTime> deletedAt = PhormColumn<DateTime>('deleted_at', tableName: '$tableName');",
+      );
     }
 
     // Synthesized FKs
@@ -601,7 +653,8 @@ class ModelMixinGenerator extends GeneratorForAnnotation<Schema> {
         final existsFk = fields.any((f) => f.name == fkName);
         if (!existsFk) {
           buffer.writeln(
-              "  static const PhormColumn<dynamic> $fkName = PhormColumn<dynamic>('$fkSqlName', tableName: '$tableName');");
+            "  static const PhormColumn<dynamic> $fkName = PhormColumn<dynamic>('$fkSqlName', tableName: '$tableName');",
+          );
         }
       }
     }
@@ -609,86 +662,116 @@ class ModelMixinGenerator extends GeneratorForAnnotation<Schema> {
     buffer
       ..writeln()
       ..writeln(
-          '  static PhormCore<$classType> get _service => PhormCore<$classType>(dbManager: appDb, table: ${tableName}Table);')
+        '  static PhormCore<$classType> get _service => PhormCore<$classType>(dbManager: appDb, table: ${tableName}Table);',
+      )
       ..writeln()
       ..writeln(
-          '  static PhormQuery<$classType> where(PhormCondition condition) => _service.where(condition);')
+        '  static PhormQuery<$classType> where(PhormCondition condition) => _service.where(condition);',
+      )
       ..writeln('  static PhormQuery<$classType> get query => _service.query;')
       ..writeln()
       ..writeln(
-          '  static Future<int> insert($classType item, {DatabaseExecutor? executor}) => _service.insert(item, executor: executor);')
+        '  static Future<int> insert($classType item, {DatabaseExecutor? executor}) => _service.insert(item, executor: executor);',
+      )
       ..writeln(
-          '  static Future<int> update($classType item, {DatabaseExecutor? executor}) => _service.update(item, executor: executor);')
+        '  static Future<int> update($classType item, {DatabaseExecutor? executor}) => _service.update(item, executor: executor);',
+      )
       ..writeln(
-          '  static Future<void> upsert($classType item, {DatabaseExecutor? executor}) => _service.upsert(item, executor: executor);')
+        '  static Future<void> upsert($classType item, {DatabaseExecutor? executor}) => _service.upsert(item, executor: executor);',
+      )
       ..writeln(
-          '  static Future<int> delete(Object id, {bool force = false, DatabaseExecutor? executor}) => _service.delete(id, force: force, executor: executor);')
+        '  static Future<int> delete(Object id, {bool force = false, DatabaseExecutor? executor}) => _service.delete(id, force: force, executor: executor);',
+      )
       ..writeln(
-          '  static Future<int> restore(Object id, {DatabaseExecutor? executor}) => _service.restore(id, executor: executor);')
+        '  static Future<int> restore(Object id, {DatabaseExecutor? executor}) => _service.restore(id, executor: executor);',
+      )
       ..writeln()
       ..writeln(
-          '  static Future<int> insertBatch(List<$classType> items, {DatabaseExecutor? executor}) => _service.insertBatch(items, executor: executor);')
+        '  static Future<int> insertBatch(List<$classType> items, {DatabaseExecutor? executor}) => _service.insertBatch(items, executor: executor);',
+      )
       ..writeln(
-          '  static Future<int> updateBatch(List<$classType> items, {DatabaseExecutor? executor}) => _service.updateBatch(items, executor: executor);')
+        '  static Future<int> updateBatch(List<$classType> items, {DatabaseExecutor? executor}) => _service.updateBatch(items, executor: executor);',
+      )
       ..writeln(
-          '  static Future<int> upsertBatch(List<$classType> items, {DatabaseExecutor? executor}) => _service.upsertBatch(items, executor: executor);')
+        '  static Future<int> upsertBatch(List<$classType> items, {DatabaseExecutor? executor}) => _service.upsertBatch(items, executor: executor);',
+      )
       ..writeln(
-          '  static Future<int> deleteBatch(List<Object> ids, {bool force = false, DatabaseExecutor? executor}) => _service.deleteBatch(ids, force: force, executor: executor);');
+        '  static Future<int> deleteBatch(List<Object> ids, {bool force = false, DatabaseExecutor? executor}) => _service.deleteBatch(ids, force: force, executor: executor);',
+      );
 
     if (paranoid) {
       buffer.writeln(
-          '  static Future<int> restoreBatch(List<Object> ids, {DatabaseExecutor? executor}) => _service.restoreBatch(ids, executor: executor);');
+        '  static Future<int> restoreBatch(List<Object> ids, {DatabaseExecutor? executor}) => _service.restoreBatch(ids, executor: executor);',
+      );
     }
 
     buffer
       ..writeln()
       ..writeln(
-          '  static Future<bool> exists(Object id, {bool withDeleted = false, DatabaseExecutor? executor}) => _service.exists(id, withDeleted: withDeleted, executor: executor);')
+        '  static Future<bool> exists(Object id, {bool withDeleted = false, DatabaseExecutor? executor}) => _service.exists(id, withDeleted: withDeleted, executor: executor);',
+      )
       ..writeln()
       ..writeln(
-          '  static Future<$classType?> readOne(Object id, {List<String>? columns, Attributes? attributes, bool withDeleted = false, List<Includable>? include, DatabaseExecutor? executor}) => ')
+        '  static Future<$classType?> readOne(Object id, {List<String>? columns, Attributes? attributes, bool withDeleted = false, List<Includable>? include, DatabaseExecutor? executor}) => ',
+      )
       ..writeln(
-          '    _service.readOne(id, columns: columns, attributes: attributes, withDeleted: withDeleted, include: include, executor: executor);')
+        '    _service.readOne(id, columns: columns, attributes: attributes, withDeleted: withDeleted, include: include, executor: executor);',
+      )
       ..writeln()
       ..writeln(
-          '  static Future<Result<$classType>> readAll({int limit = 20, int offset = 0, WhereBuilder? where, SortBuilder? sort, List<String>? columns, Attributes? attributes, bool withDeleted = false, bool onlyDeleted = false, List<Includable>? include, DatabaseExecutor? executor}) => ')
+        '  static Future<Result<$classType>> readAll({int limit = 20, int offset = 0, WhereBuilder? where, SortBuilder? sort, List<String>? columns, Attributes? attributes, bool withDeleted = false, bool onlyDeleted = false, List<Includable>? include, DatabaseExecutor? executor}) => ',
+      )
       ..writeln(
-          '    _service.readAll(limit: limit, offset: offset, where: where, sort: sort, columns: columns, attributes: attributes, withDeleted: withDeleted, onlyDeleted: onlyDeleted, include: include, executor: executor);')
+        '    _service.readAll(limit: limit, offset: offset, where: where, sort: sort, columns: columns, attributes: attributes, withDeleted: withDeleted, onlyDeleted: onlyDeleted, include: include, executor: executor);',
+      )
       ..writeln()
       ..writeln(
-          '  static Future<ResultWithCount<$classType>> readAllWithCount({int limit = 20, int offset = 0, WhereBuilder? where, SortBuilder? sort, List<String>? columns, Attributes? attributes, bool withDeleted = false, bool onlyDeleted = false, List<Includable>? include, DatabaseExecutor? executor}) => ')
+        '  static Future<ResultWithCount<$classType>> readAllWithCount({int limit = 20, int offset = 0, WhereBuilder? where, SortBuilder? sort, List<String>? columns, Attributes? attributes, bool withDeleted = false, bool onlyDeleted = false, List<Includable>? include, DatabaseExecutor? executor}) => ',
+      )
       ..writeln(
-          '    _service.readAllWithCount(limit: limit, offset: offset, where: where, sort: sort, columns: columns, attributes: attributes, withDeleted: withDeleted, onlyDeleted: onlyDeleted, include: include, executor: executor);')
+        '    _service.readAllWithCount(limit: limit, offset: offset, where: where, sort: sort, columns: columns, attributes: attributes, withDeleted: withDeleted, onlyDeleted: onlyDeleted, include: include, executor: executor);',
+      )
       ..writeln()
       ..writeln(
-          '  static Future<int> count({Object? column, WhereBuilder? where, DatabaseExecutor? executor}) => _service.count(column: column, where: where, executor: executor);')
+        '  static Future<int> count({Object? column, WhereBuilder? where, DatabaseExecutor? executor}) => _service.count(column: column, where: where, executor: executor);',
+      )
       ..writeln(
-          '  static Future<num> sum(Object column, {WhereBuilder? where, DatabaseExecutor? executor}) => _service.sum(column, where: where, executor: executor);')
+        '  static Future<num> sum(Object column, {WhereBuilder? where, DatabaseExecutor? executor}) => _service.sum(column, where: where, executor: executor);',
+      )
       ..writeln(
-          '  static Future<num> avg(Object column, {WhereBuilder? where, DatabaseExecutor? executor}) => _service.avg(column, where: where, executor: executor);')
+        '  static Future<num> avg(Object column, {WhereBuilder? where, DatabaseExecutor? executor}) => _service.avg(column, where: where, executor: executor);',
+      )
       ..writeln(
-          '  static Future<num> min(Object column, {WhereBuilder? where, DatabaseExecutor? executor}) => _service.min(column, where: where, executor: executor);')
+        '  static Future<num> min(Object column, {WhereBuilder? where, DatabaseExecutor? executor}) => _service.min(column, where: where, executor: executor);',
+      )
       ..writeln(
-          '  static Future<num> max(Object column, {WhereBuilder? where, DatabaseExecutor? executor}) => _service.max(column, where: where, executor: executor);')
+        '  static Future<num> max(Object column, {WhereBuilder? where, DatabaseExecutor? executor}) => _service.max(column, where: where, executor: executor);',
+      )
       ..writeln()
       ..writeln(
-          '  static Future<T> transaction<T>(Future<T> Function(DatabaseExecutor txn) action) => _service.transaction(action);')
+        '  static Future<T> transaction<T>(Future<T> Function(DatabaseExecutor txn) action) => _service.transaction(action);',
+      )
       ..writeln()
       ..writeln(
-          '  static Stream<String> get changeStream => _service.dbManager.changeStream;')
+        '  static Stream<String> get changeStream => _service.dbManager.changeStream;',
+      )
       ..writeln(
-          '  static Stream<$classType?> watchOne(Object id, {List<Includable>? include}) => _service.watchOne(id, include: include);')
+        '  static Stream<$classType?> watchOne(Object id, {List<Includable>? include}) => _service.watchOne(id, include: include);',
+      )
       ..writeln(
-          '  static Stream<List<$classType>> watchAll({WhereBuilder? where, List<Includable>? include, SortBuilder? sort, int? limit}) => ')
+        '  static Stream<List<$classType>> watchAll({WhereBuilder? where, List<Includable>? include, SortBuilder? sort, int? limit}) => ',
+      )
       ..writeln(
-          '    _service.watchAll(where: where, include: include, sort: sort, limit: limit);')
+        '    _service.watchAll(where: where, include: include, sort: sort, limit: limit);',
+      )
       ..writeln('}');
 
     if (relationships.isNotEmpty) {
       buffer
         ..writeln()
         ..writeln(
-            'extension ${className}QueryRelations on PhormQuery<$classType> {');
+          'extension ${className}QueryRelations on PhormQuery<$classType> {',
+        );
       for (final rel in relationships) {
         final fieldName = rel['fieldName'] as String;
         final modelClass = rel['modelClass'] as String;
@@ -925,8 +1008,9 @@ class ModelMixinGenerator extends GeneratorForAnnotation<Schema> {
         typeName != 'Object' &&
         typeName != 'dynamic') {
       final classElement = type.element as ClassElement;
-      final hasFromJson =
-          classElement.constructors.any((c) => c.name == 'fromJson');
+      final hasFromJson = classElement.constructors.any(
+        (c) => c.name == 'fromJson',
+      );
       if (hasFromJson) {
         if (isNullable) {
           return "$jsonAccess != null ? $rawType.fromJson($jsonAccess as Map<String, dynamic>) : null";
@@ -948,15 +1032,16 @@ class ModelMixinGenerator extends GeneratorForAnnotation<Schema> {
 
   String _reviveToCheckCode(Revivable revived) {
     final typeName = revived.source.fragment;
-    final posArgs =
-        revived.positionalArguments.map((a) => _formatConstant(a)).join(', ');
+    final posArgs = revived.positionalArguments
+        .map((a) => _formatConstant(a))
+        .join(', ');
     final namedArgs = revived.namedArguments.entries
         .map((e) => "${e.key}: ${_formatConstant(e.value)}")
         .join(', ');
 
     final allArgs = [
       if (posArgs.isNotEmpty) posArgs,
-      if (namedArgs.isNotEmpty) namedArgs
+      if (namedArgs.isNotEmpty) namedArgs,
     ].join(', ');
     return "$typeName($allArgs)";
   }

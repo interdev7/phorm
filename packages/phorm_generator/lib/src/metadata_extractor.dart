@@ -12,17 +12,23 @@ class ConverterInfo {
 
 class MetadataExtractor {
   static const columnChecker = TypeChecker.fromUrl(
-      'package:phorm_annotations/src/annotations.dart#Column');
-  static const idChecker =
-      TypeChecker.fromUrl('package:phorm_annotations/src/annotations.dart#ID');
+    'package:phorm_annotations/src/annotations.dart#Column',
+  );
+  static const idChecker = TypeChecker.fromUrl(
+    'package:phorm_annotations/src/annotations.dart#ID',
+  );
   static const foreignKeyChecker = TypeChecker.fromUrl(
-      'package:phorm_annotations/src/annotations.dart#ForeignKey');
+    'package:phorm_annotations/src/annotations.dart#ForeignKey',
+  );
   static const belongsToChecker = TypeChecker.fromUrl(
-      'package:phorm_annotations/src/annotations.dart#BelongsTo');
+    'package:phorm_annotations/src/annotations.dart#BelongsTo',
+  );
   static const manyToManyChecker = TypeChecker.fromUrl(
-      'package:phorm_annotations/src/annotations.dart#ManyToMany');
+    'package:phorm_annotations/src/annotations.dart#ManyToMany',
+  );
   static const valueConverterChecker = TypeChecker.fromUrl(
-      'package:phorm_annotations/src/value_converter.dart#ValueConverter');
+    'package:phorm_annotations/src/value_converter.dart#ValueConverter',
+  );
 
   static String resolveModelName(ConstantReader modelReader) {
     if (modelReader.isString) {
@@ -33,13 +39,15 @@ class MetadataExtractor {
       final type = modelReader.typeValue;
       final element = type.element;
       if (element is ClassElement) {
-        final schemaMeta = element.metadata
-            .where((m) => m.element?.enclosingElement3?.name == 'Schema')
-            .firstOrNull;
+        final schemaMeta =
+            element.metadata
+                .where((m) => m.element?.enclosingElement3?.name == 'Schema')
+                .firstOrNull;
 
         if (schemaMeta != null) {
-          final schemaReader =
-              ConstantReader(schemaMeta.computeConstantValue());
+          final schemaReader = ConstantReader(
+            schemaMeta.computeConstantValue(),
+          );
           final tableName = schemaReader.peek('tableName')?.stringValue;
           if (tableName != null) return tableName;
         }
@@ -104,8 +112,10 @@ class MetadataExtractor {
       final type = modelReader.typeValue;
       final element = type.element;
       if (element is ClassElement) {
-        final idField = element.fields.firstWhere((f) =>
-            f.metadata.any((m) => m.element?.enclosingElement3?.name == 'ID'));
+        final idField = element.fields.firstWhere(
+          (f) =>
+              f.metadata.any((m) => m.element?.enclosingElement3?.name == 'ID'),
+        );
 
         return resolveSqlType(idField);
       }
@@ -114,7 +124,8 @@ class MetadataExtractor {
   }
 
   static String resolveSqlType(FieldElement field) {
-    final annotation = columnChecker.firstAnnotationOf(field) ??
+    final annotation =
+        columnChecker.firstAnnotationOf(field) ??
         idChecker.firstAnnotationOf(field);
 
     if (annotation != null) {
@@ -168,7 +179,8 @@ class MetadataExtractor {
   }
 
   static String? resolveCollation(FieldElement field) {
-    final annotation = columnChecker.firstAnnotationOf(field) ??
+    final annotation =
+        columnChecker.firstAnnotationOf(field) ??
         idChecker.firstAnnotationOf(field);
 
     if (annotation != null) {
@@ -179,7 +191,8 @@ class MetadataExtractor {
   }
 
   static ConverterInfo? getConverterInfo(FieldElement field) {
-    final annotation = columnChecker.firstAnnotationOf(field) ??
+    final annotation =
+        columnChecker.firstAnnotationOf(field) ??
         idChecker.firstAnnotationOf(field);
 
     if (annotation == null) return null;
@@ -192,11 +205,16 @@ class MetadataExtractor {
     if (converterType is! InterfaceType) return null;
 
     // Find ValueConverter in the hierarchy to get type arguments
-    final valueConverterType =
-        [converterType, ...converterType.allSupertypes].firstWhere(
+    final valueConverterType = [
+      converterType,
+      ...converterType.allSupertypes,
+    ].firstWhere(
       (t) => valueConverterChecker.isExactly(t.element),
-      orElse: () => throw Exception(
-          'Converter ${converterType.element.name} must inherit from ValueConverter'),
+      orElse:
+          () =>
+              throw Exception(
+                'Converter ${converterType.element.name} must inherit from ValueConverter',
+              ),
     );
 
     final typeArguments = valueConverterType.typeArguments;
@@ -227,8 +245,11 @@ class MetadataExtractor {
   }
 
   static String getSqlColumnName(
-      FieldElement field, ColumnNamingStrategy strategy) {
-    final annotation = columnChecker.firstAnnotationOf(field) ??
+    FieldElement field,
+    ColumnNamingStrategy strategy,
+  ) {
+    final annotation =
+        columnChecker.firstAnnotationOf(field) ??
         idChecker.firstAnnotationOf(field);
 
     if (annotation == null) return camelToSnake(field.name);

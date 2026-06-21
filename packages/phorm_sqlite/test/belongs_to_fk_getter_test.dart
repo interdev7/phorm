@@ -52,10 +52,10 @@ class Article extends Model {
 
   @override
   Map<String, dynamic> toJson() => {
-        'id': id,
-        'title': title,
-        'author_id': authorId,
-      };
+    'id': id,
+    'title': title,
+    'author_id': authorId,
+  };
 }
 
 // ---------------------------------------------------------------------------
@@ -73,9 +73,9 @@ class CustomPkUser extends Model {
 
   @override
   Map<String, dynamic> toJson() => {
-        'user_uid': uid, // SQL name is 'user_uid'
-        'email': email,
-      };
+    'user_uid': uid, // SQL name is 'user_uid'
+    'email': email,
+  };
 }
 
 // --- Comment (BelongsTo CustomPkUser via 'user_uid' FK) ---
@@ -98,10 +98,10 @@ class Comment extends Model {
 
   @override
   Map<String, dynamic> toJson() => {
-        'id': id,
-        'body': body,
-        'user_uid': customPkUserId,
-      };
+    'id': id,
+    'body': body,
+    'user_uid': customPkUserId,
+  };
 }
 
 // ---------------------------------------------------------------------------
@@ -113,7 +113,6 @@ void main() {
     test('returns FK from related object toJson() when object is loaded', () {
       final author = Author(id: 'author-42', name: 'Tolstoy');
       final article = Article(id: 1, title: 'War and Peace')
-
         // Simulate eager loading (what fromJson cascade does)
         .._$author = author;
 
@@ -123,7 +122,6 @@ void main() {
 
     test('falls back to raw stored value when related object is null', () {
       final article = Article(id: 2, title: 'Anna Karenina')
-
         // No eager-loaded object — FK was set from raw JSON
         ..authorId = 'author-99';
 
@@ -132,16 +130,18 @@ void main() {
 
     test('loaded object takes priority over raw stored value', () {
       final author = Author(id: 'author-10', name: 'Chekhov');
-      final article = Article(id: 3, title: 'The Cherry Orchard')
+      final article =
+          Article(id: 3, title: 'The Cherry Orchard')
+            // First set raw value
+            ..authorId = 'author-OLD'
+            // Then load the related object — getter should prefer toJson()
+            .._$author = author;
 
-        // First set raw value
-        ..authorId = 'author-OLD'
-        // Then load the related object — getter should prefer toJson()
-        .._$author = author;
-
-      expect(article.authorId, equals('author-10'),
-          reason:
-              r'loaded object toJson() must take priority over raw _$field');
+      expect(
+        article.authorId,
+        equals('author-10'),
+        reason: r'loaded object toJson() must take priority over raw _$field',
+      );
     });
 
     test('toJson() on owning model includes correct FK value', () {
@@ -198,15 +198,18 @@ void main() {
 
     test('set FK does not affect loaded related object reference', () {
       final author = Author(id: 'original', name: 'Original');
-      final article = Article(id: 11, title: 'Test')
-        .._$author = author
-
-        // Setting raw FK does not clear the object — getter still prefers object
-        ..authorId = 'overridden';
+      final article =
+          Article(id: 11, title: 'Test')
+            .._$author = author
+            // Setting raw FK does not clear the object — getter still prefers object
+            ..authorId = 'overridden';
 
       // Because _$author is still set, getter returns from toJson()
-      expect(article.authorId, equals('original'),
-          reason: 'toJson() from loaded object must still win over raw setter');
+      expect(
+        article.authorId,
+        equals('original'),
+        reason: 'toJson() from loaded object must still win over raw setter',
+      );
     });
   });
 }

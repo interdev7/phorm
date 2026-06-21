@@ -14,7 +14,8 @@ class SqlFunctionGenerator extends Generator {
     final functions = <_SqlFuncData>[];
 
     const sqlFuncChecker = TypeChecker.fromUrl(
-        'package:phorm_annotations/src/annotations.dart#SqlFunc');
+      'package:phorm_annotations/src/annotations.dart#SqlFunc',
+    );
 
     // Find all top-level functions in the library
     for (final element in library.allElements) {
@@ -26,10 +27,7 @@ class SqlFunctionGenerator extends Generator {
         final explicitName = reader.read('name').literalValue as String?;
         final sqlName = explicitName ?? element.name.toUpperCase();
 
-        functions.add(_SqlFuncData(
-          element: element,
-          sqlName: sqlName,
-        ));
+        functions.add(_SqlFuncData(element: element, sqlName: sqlName));
       }
     }
 
@@ -41,9 +39,7 @@ class SqlFunctionGenerator extends Generator {
     final fileName = p.basename(buildStep.inputId.path);
     buffer
       ..writeln("part of '$fileName';\n")
-
       // 1. Generate Custom SQL functions list registration
-
       ..writeln('// Custom SQL function registrations')
       ..writeln('final customSqlFunctions = [');
     for (final fn in functions) {
@@ -71,7 +67,6 @@ class SqlFunctionGenerator extends Generator {
     }
     buffer
       ..writeln('];\n')
-
       // 2. Generate Type-safe Extensions on PhormColumn
       ..writeln('// Type-safe column extensions for custom SQL functions');
     for (final fn in functions) {
@@ -92,9 +87,11 @@ class SqlFunctionGenerator extends Generator {
           "${fn.element.name[0].toUpperCase()}${fn.element.name.substring(1)}";
       buffer
         ..writeln(
-            'extension ${functionName}PhormColumnExtension on PhormColumn<$targetTypeStr> {')
+          'extension ${functionName}PhormColumnExtension on PhormColumn<$targetTypeStr> {',
+        )
         ..writeln(
-            '  /// Applies the custom SQL function `$sqlName` to this column.')
+          '  /// Applies the custom SQL function `$sqlName` to this column.',
+        )
         ..writeln('  PhormColumn<$returnTypeStr> $dartMethodName() {')
         ..writeln("    return sqlFunction<$returnTypeStr>('$sqlName');")
         ..writeln('  }')
@@ -106,9 +103,10 @@ class SqlFunctionGenerator extends Generator {
 
   String _getTypeNameWithNullability(DartType type) {
     final baseName = type.getDisplayString();
-    final cleanBase = baseName.endsWith('?')
-        ? baseName.substring(0, baseName.length - 1)
-        : baseName;
+    final cleanBase =
+        baseName.endsWith('?')
+            ? baseName.substring(0, baseName.length - 1)
+            : baseName;
     if (type.nullabilitySuffix == NullabilitySuffix.question) {
       return '$cleanBase?';
     }
@@ -117,9 +115,10 @@ class SqlFunctionGenerator extends Generator {
 
   String _getNonNullableTypeName(DartType type) {
     final baseName = type.getDisplayString();
-    final cleanBase = baseName.endsWith('?')
-        ? baseName.substring(0, baseName.length - 1)
-        : baseName;
+    final cleanBase =
+        baseName.endsWith('?')
+            ? baseName.substring(0, baseName.length - 1)
+            : baseName;
     if (cleanBase == 'void') return 'dynamic';
     return cleanBase;
   }
@@ -129,8 +128,5 @@ class _SqlFuncData {
   final FunctionElement element;
   final String sqlName;
 
-  _SqlFuncData({
-    required this.element,
-    required this.sqlName,
-  });
+  _SqlFuncData({required this.element, required this.sqlName});
 }

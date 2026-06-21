@@ -14,51 +14,56 @@ void main() {
         singleInstance: false,
       );
       appDb = db;
-      service =
-          PhormCore<CollationTest>(dbManager: db, table: collation_testsTable);
+      service = PhormCore<CollationTest>(
+        dbManager: db,
+        table: collation_testsTable,
+      );
 
-      await service.insert(CollationTest(
-        id: '1',
-        nameNoCase: 'Alice',
-        nameBinary: 'Alice',
-      ));
+      await service.insert(
+        CollationTest(id: '1', nameNoCase: 'Alice', nameBinary: 'Alice'),
+      );
     });
 
     test('NOCASE should be case-insensitive', () async {
       final results =
-          await CollationTests.where(CollationTests.nameNoCase.eq('alice'))
-              .get();
+          await CollationTests.where(
+            CollationTests.nameNoCase.eq('alice'),
+          ).get();
 
-      expect(results.length, 1,
-          reason: 'NOCASE should match "Alice" with "alice"');
+      expect(
+        results.length,
+        1,
+        reason: 'NOCASE should match "Alice" with "alice"',
+      );
       expect(results.first.nameNoCase, 'Alice');
     });
 
     test('BINARY should be case-sensitive', () async {
       final results =
-          await CollationTests.where(CollationTests.nameBinary.eq('alice'))
-              .get();
+          await CollationTests.where(
+            CollationTests.nameBinary.eq('alice'),
+          ).get();
 
-      expect(results.length, 0,
-          reason: 'BINARY should NOT match "Alice" with "alice"');
+      expect(
+        results.length,
+        0,
+        reason: 'BINARY should NOT match "Alice" with "alice"',
+      );
 
       final exactMatch =
-          await CollationTests.where(CollationTests.nameBinary.eq('Alice'))
-              .get();
+          await CollationTests.where(
+            CollationTests.nameBinary.eq('Alice'),
+          ).get();
       expect(exactMatch.length, 1);
     });
 
     test('Sorting with NOCASE', () async {
-      await service.insert(CollationTest(
-        id: '2',
-        nameNoCase: 'bob',
-        nameBinary: 'bob',
-      ));
-      await service.insert(CollationTest(
-        id: '3',
-        nameNoCase: 'Charlie',
-        nameBinary: 'Charlie',
-      ));
+      await service.insert(
+        CollationTest(id: '2', nameNoCase: 'bob', nameBinary: 'bob'),
+      );
+      await service.insert(
+        CollationTest(id: '3', nameNoCase: 'Charlie', nameBinary: 'Charlie'),
+      );
 
       // Sorting nameNoCase (Alice, bob, Charlie)
       // If NOCASE works, it should be Alice, bob, Charlie (or Alice, Charlie, bob depending on order, but case won't mess it up)

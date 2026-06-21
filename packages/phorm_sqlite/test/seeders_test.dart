@@ -9,10 +9,7 @@ class MigrationUserFactory extends Factory<MigrationUser> {
   @override
   MigrationUser create() {
     _counter++;
-    return MigrationUser(
-      id: 'user_$_counter',
-      name: 'User $_counter',
-    );
+    return MigrationUser(id: 'user_$_counter', name: 'User $_counter');
   }
 }
 
@@ -20,8 +17,10 @@ class MigrationUserFactory extends Factory<MigrationUser> {
 class MigrationUserSeeder extends Seeder {
   @override
   Future<void> run(PhormDatabase db) async {
-    final userService =
-        PhormCore<MigrationUser>(dbManager: db, table: migration_usersTable);
+    final userService = PhormCore<MigrationUser>(
+      dbManager: db,
+      table: migration_usersTable,
+    );
     final userFactory = MigrationUserFactory();
 
     // Seed 5 users
@@ -40,8 +39,10 @@ void main() {
       tables: [migration_usersTable],
       singleInstance: false,
     );
-    userService =
-        PhormCore<MigrationUser>(dbManager: db, table: migration_usersTable);
+    userService = PhormCore<MigrationUser>(
+      dbManager: db,
+      table: migration_usersTable,
+    );
   });
 
   tearDown(() async {
@@ -92,9 +93,12 @@ void main() {
 class _SpecialSeeder extends Seeder {
   @override
   Future<void> run(PhormDatabase db) async {
-    final userService =
-        PhormCore<MigrationUser>(dbManager: db, table: migration_usersTable);
-    await userService
-        .insert(MigrationUser(id: 'special_id', name: 'Special User'));
+    final userService = PhormCore<MigrationUser>(
+      dbManager: db,
+      table: migration_usersTable,
+    );
+    await userService.insert(
+      MigrationUser(id: 'special_id', name: 'Special User'),
+    );
   }
 }

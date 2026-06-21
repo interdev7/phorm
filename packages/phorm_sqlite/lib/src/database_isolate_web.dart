@@ -45,8 +45,10 @@ class WebDatabaseIsolate implements DatabaseIsolate {
   @override
   Future<void> open(String path, {String? password}) async {
     if (password != null) {
-      log('Warning: phorm password/encryption is not supported on Web (WasmSqlite3 ignores password).',
-          name: "Phorm - SQLite Isolate Web");
+      log(
+        'Warning: phorm password/encryption is not supported on Web (WasmSqlite3 ignores password).',
+        name: "Phorm - SQLite Isolate Web",
+      );
     }
 
     // Load the WASM binary from the app's origin
@@ -107,8 +109,10 @@ class WebDatabaseIsolate implements DatabaseIsolate {
   }
 
   @override
-  Future<List<Map<String, Object?>>> query(String sql,
-      [List<Object?>? args]) async {
+  Future<List<Map<String, Object?>>> query(
+    String sql, [
+    List<Object?>? args,
+  ]) async {
     final db = _openDb;
     final na = normalizeArgs(args);
     final ResultSet rs;
@@ -137,8 +141,9 @@ class WebDatabaseIsolate implements DatabaseIsolate {
     final nv = normalizeMap(values);
     final cols = nv.keys.toList();
     final ph = List.filled(cols.length, '?').join(', ');
-    final stmt =
-        db.prepare('INSERT INTO $table (${cols.join(', ')}) VALUES ($ph)');
+    final stmt = db.prepare(
+      'INSERT INTO $table (${cols.join(', ')}) VALUES ($ph)',
+    );
     try {
       stmt.execute(cols.map((c) => nv[c]).toList());
     } finally {
@@ -158,7 +163,8 @@ class WebDatabaseIsolate implements DatabaseIsolate {
     final nv = normalizeMap(values);
     final nw = normalizeArgs(whereArgs);
     final set = nv.keys.map((k) => '$k = ?').join(', ');
-    final sql = 'UPDATE $table SET $set'
+    final sql =
+        'UPDATE $table SET $set'
         '${where != null ? ' WHERE $where' : ''}';
     final stmt = db.prepare(sql);
     try {
@@ -170,11 +176,15 @@ class WebDatabaseIsolate implements DatabaseIsolate {
   }
 
   @override
-  Future<int> delete(String table,
-      {String? where, List<Object?>? whereArgs}) async {
+  Future<int> delete(
+    String table, {
+    String? where,
+    List<Object?>? whereArgs,
+  }) async {
     final db = _openDb;
     final nw = normalizeArgs(whereArgs);
-    final sql = 'DELETE FROM $table'
+    final sql =
+        'DELETE FROM $table'
         '${where != null ? ' WHERE $where' : ''}';
     final stmt = db.prepare(sql);
     try {
@@ -249,17 +259,18 @@ class WebDatabaseIsolate implements DatabaseIsolate {
       case InsertCommand(:final table, :final values):
         return insert(table, values);
       case UpdateCommand(
-          :final table,
-          :final values,
-          :final where,
-          :final whereArgs
-        ):
+        :final table,
+        :final values,
+        :final where,
+        :final whereArgs,
+      ):
         return update(table, values, where: where, whereArgs: whereArgs);
       case DeleteCommand(:final table, :final where, :final whereArgs):
         return delete(table, where: where, whereArgs: whereArgs);
       default:
         throw UnsupportedError(
-            'Unsupported command inside transaction: $command');
+          'Unsupported command inside transaction: $command',
+        );
     }
   }
 
@@ -276,8 +287,9 @@ void _handleBatch(CommonDatabase db, BatchOperation op) {
       final cols = nv.keys.toList();
       final ph = List.filled(cols.length, '?').join(', ');
       final verb = replace ? 'INSERT OR REPLACE' : 'INSERT';
-      final stmt =
-          db.prepare('$verb INTO $table (${cols.join(', ')}) VALUES ($ph)');
+      final stmt = db.prepare(
+        '$verb INTO $table (${cols.join(', ')}) VALUES ($ph)',
+      );
       try {
         stmt.execute(cols.map((c) => nv[c]).toList());
       } finally {
@@ -285,15 +297,16 @@ void _handleBatch(CommonDatabase db, BatchOperation op) {
       }
 
     case BatchUpdate(
-        :final table,
-        :final values,
-        :final where,
-        :final whereArgs
-      ):
+      :final table,
+      :final values,
+      :final where,
+      :final whereArgs,
+    ):
       final nv = normalizeMap(values);
       final nw = normalizeArgs(whereArgs);
       final set = nv.keys.map((k) => '$k = ?').join(', ');
-      final sql = 'UPDATE $table SET $set'
+      final sql =
+          'UPDATE $table SET $set'
           '${where != null ? ' WHERE $where' : ''}';
       final stmt = db.prepare(sql);
       try {
@@ -304,7 +317,8 @@ void _handleBatch(CommonDatabase db, BatchOperation op) {
 
     case BatchDelete(:final table, :final where, :final whereArgs):
       final nw = normalizeArgs(whereArgs);
-      final sql = 'DELETE FROM $table'
+      final sql =
+          'DELETE FROM $table'
           '${where != null ? ' WHERE $where' : ''}';
       final stmt = db.prepare(sql);
       try {

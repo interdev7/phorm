@@ -21,23 +21,24 @@ void main() {
   });
 
   test(
-      'Should insert and ignore non-column fields, but error on read due to missing fields',
-      () async {
-    final user = UserWithLocation(
-      id: 1,
-      name: 'Dart',
-      location: Location(lat: 10.0, lng: 20.0),
-      age: 30,
-    );
+    'Should insert and ignore non-column fields, but error on read due to missing fields',
+    () async {
+      final user = UserWithLocation(
+        id: 1,
+        name: 'Dart',
+        location: Location(lat: 10.0, lng: 20.0),
+        age: 30,
+      );
 
-    // Insert should work, ignoring location and age
-    await UsersWithLocation.insert(user);
+      // Insert should work, ignoring location and age
+      await UsersWithLocation.insert(user);
 
-    // Read should succeed, but location and age will be null because they are not in DB
-    final loadedUser = await UsersWithLocation.readOne(1);
-    expect(loadedUser, isNotNull);
-    expect(loadedUser!.name, 'Dart');
-    expect(loadedUser.location, isNull);
-    expect(loadedUser.age, isNull);
-  });
+      // Read should succeed, but location and age will be null because they are not in DB
+      final loadedUser = await UsersWithLocation.readOne(1);
+      expect(loadedUser, isNotNull);
+      expect(loadedUser!.name, 'Dart');
+      expect(loadedUser.location, isNull);
+      expect(loadedUser.age, isNull);
+    },
+  );
 }

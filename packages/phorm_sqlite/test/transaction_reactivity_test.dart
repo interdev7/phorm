@@ -10,10 +10,7 @@ void main() {
   setUpAll(() async {});
 
   setUp(() async {
-    dbManager = DB.autoVersion(
-      databaseName: ':memory:',
-      tables: [usersTable],
-    );
+    dbManager = DB.autoVersion(databaseName: ':memory:', tables: [usersTable]);
     userService = PhormCore<User>(dbManager: dbManager, table: usersTable);
   });
 
@@ -21,19 +18,20 @@ void main() {
     await dbManager.close();
   });
 
-  test('notifications are buffered and emitted only after transaction commit',
-      () async {
-    // Initial emission (empty)
-    expect(await userService.watchAll().first, isEmpty);
+  test(
+    'notifications are buffered and emitted only after transaction commit',
+    () async {
+      // Initial emission (empty)
+      expect(await userService.watchAll().first, isEmpty);
 
-    final stream = userService.watchAll();
-    final futureValue = stream.skip(1).first;
+      final stream = userService.watchAll();
+      final futureValue = stream.skip(1).first;
 
-    // Give the stream a moment to set up its listener after the first yield
-    await Future.delayed(const Duration(milliseconds: 50));
+      // Give the stream a moment to set up its listener after the first yield
+      await Future.delayed(const Duration(milliseconds: 50));
 
-    await dbManager.transaction((txn) async {
-      await userService.insert(
+      await dbManager.transaction((txn) async {
+        await userService.insert(
           User(
             id: 'u1',
             firstName: 'John',
@@ -44,14 +42,16 @@ void main() {
             city: 'Sofia',
             country: 'Bulgaria',
           ),
-          executor: txn);
-    });
+          executor: txn,
+        );
+      });
 
-    // Now it should emit
-    final result = await futureValue;
-    expect(result.length, 1);
-    expect(result.first.firstName, 'John');
-  });
+      // Now it should emit
+      final result = await futureValue;
+      expect(result.length, 1);
+      expect(result.first.firstName, 'John');
+    },
+  );
 
   // NOTE: This test case is currently disabled due to potential deadlocks/timeouts
   // in the test environment involving async* streams and transactions in :memory: DB.

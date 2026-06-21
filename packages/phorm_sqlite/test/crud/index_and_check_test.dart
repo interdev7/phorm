@@ -12,8 +12,9 @@ void main() {
       expect(indexNames, contains('users_email_idx'));
       expect(indexNames, contains('users_first_name_last_name_idx'));
 
-      final info = await db
-          .rawQuery("PRAGMA index_info('users_first_name_last_name_idx')");
+      final info = await db.rawQuery(
+        "PRAGMA index_info('users_first_name_last_name_idx')",
+      );
       final cols = info.map((r) => r['name'] as String).toList();
       expect(cols, equals(['first_name', 'last_name']));
     });
@@ -38,10 +39,12 @@ void main() {
           'created_at': DateTime.now().toIso8601String(),
           'updated_at': DateTime.now().toIso8601String(),
         }),
-        throwsA(isA<PhormCHECKValidatorException>()
-            .having((e) => e.table, 'table', 'users')
-            .having((e) => e.column, 'column', 'gender')
-            .having((e) => e.constraint, 'constraint', 'gender_check')),
+        throwsA(
+          isA<PhormCHECKValidatorException>()
+              .having((e) => e.table, 'table', 'users')
+              .having((e) => e.column, 'column', 'gender')
+              .having((e) => e.constraint, 'constraint', 'gender_check'),
+        ),
       );
     });
   });

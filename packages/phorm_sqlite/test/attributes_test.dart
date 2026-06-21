@@ -66,45 +66,44 @@ void main() {
     expect(results.first.containsKey('phone'), isFalse);
   });
 
-  test('Include should support Attribute filtering for relationships',
-      () async {
-    final where = WhereBuilder().eq('id', 'u1');
-    final sql = userService.getBuildJoinQuery(
-      attributes: Attributes.include(['id', 'first_name']),
-      include: [
-        Includable.model<Order>(attributes: Attributes.include(['total']))
-      ],
-      where: where,
-    );
+  test(
+    'Include should support Attribute filtering for relationships',
+    () async {
+      final where = WhereBuilder().eq('id', 'u1');
+      final sql = userService.getBuildJoinQuery(
+        attributes: Attributes.include(['id', 'first_name']),
+        include: [
+          Includable.model<Order>(attributes: Attributes.include(['total'])),
+        ],
+        where: where,
+      );
 
-    // The SQL should contain a subquery for orders with only 'total'
-    expect(sql, contains("'total', \"orders\".\"total\""));
-    expect(sql, isNot(contains("'id', \"orders\".\"id\"")));
+      // The SQL should contain a subquery for orders with only 'total'
+      expect(sql, contains("'total', \"orders\".\"total\""));
+      expect(sql, isNot(contains("'id', \"orders\".\"id\"")));
 
-    final database = await db.database;
-    final now = DateTime.now().toIso8601String();
-    await database.insert('orders', {
-      'id': 1,
-      'total': 100,
-      'user_id': 'u1',
-      'created_at': now,
-      'updated_at': now
-    });
+      final database = await db.database;
+      final now = DateTime.now().toIso8601String();
+      await database.insert('orders', {
+        'id': 1,
+        'total': 100,
+        'user_id': 'u1',
+        'created_at': now,
+        'updated_at': now,
+      });
 
-    final results = await database.rawQuery(sql, where.args);
-    expect(results, hasLength(1));
+      final results = await database.rawQuery(sql, where.args);
+      expect(results, hasLength(1));
 
-    final ordersJson = results.first['orders'] as String;
-    expect(ordersJson, contains('"total":100'));
-    expect(ordersJson, isNot(contains('"id":1')));
-  });
+      final ordersJson = results.first['orders'] as String;
+      expect(ordersJson, contains('"total":100'));
+      expect(ordersJson, isNot(contains('"id":1')));
+    },
+  );
 
   test('DB.service() should throw StateError if model is not registered', () {
     // Attempt to resolve unregistered model
-    expect(
-      () => db.service<_UnregisteredModel>(),
-      throwsA(isA<StateError>()),
-    );
+    expect(() => db.service<_UnregisteredModel>(), throwsA(isA<StateError>()));
   });
 }
 

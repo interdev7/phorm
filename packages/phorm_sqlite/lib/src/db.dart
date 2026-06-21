@@ -230,9 +230,10 @@ class DB implements PhormDatabase {
       for (final migration in table.migrations) {
         if (migration.targetVersion > version) {
           throw ArgumentError(
-              'Table "${table.name}" has migration "${migration.description}" '
-              'for version ${migration.targetVersion}, but database version is $version. '
-              'Either increase database version or remove the migration.');
+            'Table "${table.name}" has migration "${migration.description}" '
+            'for version ${migration.targetVersion}, but database version is $version. '
+            'Either increase database version or remove the migration.',
+          );
         }
       }
     }
@@ -438,8 +439,9 @@ class DB implements PhormDatabase {
 
     // Sort by version and priority
     pendingMigrations.sort((a, b) {
-      final versionCompare =
-          a.migration.targetVersion.compareTo(b.migration.targetVersion);
+      final versionCompare = a.migration.targetVersion.compareTo(
+        b.migration.targetVersion,
+      );
       if (versionCompare != 0) return versionCompare;
       return a.migration.priority.compareTo(b.migration.priority);
     });
@@ -471,7 +473,8 @@ class DB implements PhormDatabase {
     }
 
     logger?.info(
-        'Applying: ${migration.description} (v${migration.targetVersion})');
+      'Applying: ${migration.description} (v${migration.targetVersion})',
+    );
 
     try {
       // Execute migration
@@ -489,7 +492,10 @@ class DB implements PhormDatabase {
       logger?.info('Migration Success');
     } catch (e, stackTrace) {
       logger?.error(
-          'Migration Failed: ${migration.description}', e, stackTrace);
+        'Migration Failed: ${migration.description}',
+        e,
+        stackTrace,
+      );
       rethrow;
     }
   }
@@ -537,10 +543,7 @@ class DB implements PhormDatabase {
   /// Gets a list of all applied migrations
   Future<List<Map<String, dynamic>>> getAppliedMigrations() async {
     final db = await database;
-    return await db.query(
-      _migrationsTable,
-      orderBy: 'applied_at DESC',
-    );
+    return await db.query(_migrationsTable, orderBy: 'applied_at DESC');
   }
 
   /// Gets the current database version from the file
@@ -620,7 +623,10 @@ class DB implements PhormDatabase {
   /// Helper to execute an action and log its performance
   @override
   Future<T> logAction<T>(
-      String sql, List<Object?>? arguments, Future<T> Function() action) async {
+    String sql,
+    List<Object?>? arguments,
+    Future<T> Function() action,
+  ) async {
     if (!logQueries) return action();
     final stopwatch = Stopwatch()..start();
     try {
@@ -642,7 +648,8 @@ class DB implements PhormDatabase {
   /// Executes a transaction with the provided action.
   @override
   Future<R> transaction<R>(
-      Future<R> Function(DatabaseExecutor txn) action) async {
+    Future<R> Function(DatabaseExecutor txn) action,
+  ) async {
     final dbInstance = await database;
 
     final isTopLevel = _activeTransactionBuffer == null;
@@ -692,44 +699,58 @@ class PhormDatabaseExecutorWrapper implements PhormDatabaseExecutor {
       _executor.execute(sql, arguments);
 
   @override
-  Future<List<Map<String, Object?>>> query(String table,
-          {bool? distinct,
-          List<String>? columns,
-          String? where,
-          List<Object?>? whereArgs,
-          String? groupBy,
-          String? having,
-          String? orderBy,
-          int? limit,
-          int? offset}) =>
-      _executor.query(table,
-          distinct: distinct,
-          columns: columns,
-          where: where,
-          whereArgs: whereArgs,
-          groupBy: groupBy,
-          having: having,
-          orderBy: orderBy,
-          limit: limit,
-          offset: offset);
+  Future<List<Map<String, Object?>>> query(
+    String table, {
+    bool? distinct,
+    List<String>? columns,
+    String? where,
+    List<Object?>? whereArgs,
+    String? groupBy,
+    String? having,
+    String? orderBy,
+    int? limit,
+    int? offset,
+  }) => _executor.query(
+    table,
+    distinct: distinct,
+    columns: columns,
+    where: where,
+    whereArgs: whereArgs,
+    groupBy: groupBy,
+    having: having,
+    orderBy: orderBy,
+    limit: limit,
+    offset: offset,
+  );
 
   @override
   Future<int> delete(String table, {String? where, List<Object?>? whereArgs}) =>
       _executor.delete(table, where: where, whereArgs: whereArgs);
 
   @override
-  Future<int> update(String table, Map<String, Object?> values,
-          {String? where, List<Object?>? whereArgs}) =>
-      _executor.update(table, values, where: where, whereArgs: whereArgs);
+  Future<int> update(
+    String table,
+    Map<String, Object?> values, {
+    String? where,
+    List<Object?>? whereArgs,
+  }) => _executor.update(table, values, where: where, whereArgs: whereArgs);
 
   @override
-  Future<int> insert(String table, Map<String, Object?> values,
-          {String? nullColumnHack, String? conflictAlgorithm}) =>
-      _executor.insert(table, values,
-          nullColumnHack: nullColumnHack,
-          conflictAlgorithm: conflictAlgorithm != null
-              ? ConflictAlgorithm.values.firstWhere(
-                  (e) => e.name == conflictAlgorithm,
-                  orElse: () => ConflictAlgorithm.abort)
-              : null);
+  Future<int> insert(
+    String table,
+    Map<String, Object?> values, {
+    String? nullColumnHack,
+    String? conflictAlgorithm,
+  }) => _executor.insert(
+    table,
+    values,
+    nullColumnHack: nullColumnHack,
+    conflictAlgorithm:
+        conflictAlgorithm != null
+            ? ConflictAlgorithm.values.firstWhere(
+              (e) => e.name == conflictAlgorithm,
+              orElse: () => ConflictAlgorithm.abort,
+            )
+            : null,
+  );
 }

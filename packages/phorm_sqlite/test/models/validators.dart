@@ -13,15 +13,16 @@ class LengthValidator implements ISqlValidator, IJsonValidator {
   final String sql;
 
   const LengthValidator({int? min, int? max, this.constraint})
-      : min = min,
-        max = max,
-        sql = (min != null && max != null)
-            ? 'LENGTH({column}) BETWEEN $min AND $max'
-            : (min != null)
-                ? 'LENGTH({column}) >= $min'
-                : (max != null)
-                    ? 'LENGTH({column}) <= $max'
-                    : '';
+    : min = min,
+      max = max,
+      sql =
+          (min != null && max != null)
+              ? 'LENGTH({column}) BETWEEN $min AND $max'
+              : (min != null)
+              ? 'LENGTH({column}) >= $min'
+              : (max != null)
+              ? 'LENGTH({column}) <= $max'
+              : '';
 
   @override
   bool isValid(dynamic value) {
@@ -58,8 +59,8 @@ class EmailValidator implements IJsonValidator {
   bool isValid(dynamic value) {
     if (value == null) return true;
     return RegExp(
-            r"^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$")
-        .hasMatch(value.toString());
+      r"^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$",
+    ).hasMatch(value.toString());
   }
 }
 
@@ -75,8 +76,9 @@ class ContainsValidator implements ISqlValidator, IJsonValidator {
   // fallback that reads the `values` field directly from the DartObject.
   @override
   String get sql {
-    final formatted =
-        values.map((v) => v is String ? "'$v'" : v.toString()).join(', ');
+    final formatted = values
+        .map((v) => v is String ? "'$v'" : v.toString())
+        .join(', ');
     return '{column} IN ($formatted)';
   }
 

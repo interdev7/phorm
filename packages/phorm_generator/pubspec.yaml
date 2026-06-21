@@ -1,5 +1,5 @@
 name: phorm_generator
-version: 1.0.1
+version: 1.0.2
 description: SQL Table Schema Generator for Flutter
 repository: https://github.com/interdev7/phorm
 homepage: https://github.com/interdev7/phorm/tree/main/phorm_generator
@@ -7,10 +7,10 @@ issue_tracker: https://github.com/interdev7/phorm/issues
 license: MIT
 
 environment:
-  sdk: ">=3.5.0 <4.0.0"
+  sdk: ">=3.7.0 <4.0.0"
 
 dependencies:
-  analyzer: ^6.4.1
+  analyzer: ^6.11.0
   build: ^2.4.0
   dart_style: ^2.2.0
   path: ^1.9.1
