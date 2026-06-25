@@ -295,7 +295,8 @@ void main() {
         const JSONB(),
         const BLOB(),
       ];
-      expect(types.every((t) => t is SqlType), isTrue);
+      expect(types, everyElement(isA<SqlType>()));
+      expect(types, hasLength(12));
     });
 
     test('legacy SqlTypes and Collate constants', () {
@@ -599,22 +600,22 @@ void main() {
 
   group('PhormConsoleLogger', () {
     test('logs all levels without throwing (colors enabled)', () {
-      const logger = PhormConsoleLogger();
-      logger.info('hello');
-      logger.query('SELECT 1', ['a'], const Duration(milliseconds: 2));
-      logger.query('SELECT 1', null, const Duration(milliseconds: 2));
-      logger.slowQuery('SELECT 1', ['a'], const Duration(seconds: 1));
-      logger.slowQuery('SELECT 1', [], const Duration(seconds: 1));
-      logger.error('boom', Exception('x'), StackTrace.current);
-      logger.error('boom');
+      const PhormConsoleLogger()
+        ..info('hello')
+        ..query('SELECT 1', ['a'], const Duration(milliseconds: 2))
+        ..query('SELECT 1', null, const Duration(milliseconds: 2))
+        ..slowQuery('SELECT 1', ['a'], const Duration(seconds: 1))
+        ..slowQuery('SELECT 1', [], const Duration(seconds: 1))
+        ..error('boom', Exception('x'), StackTrace.current)
+        ..error('boom');
     });
 
     test('logs all levels without throwing (colors disabled)', () {
-      const logger = PhormConsoleLogger(enableColors: false);
-      logger.info('hello');
-      logger.query('SELECT 1', ['a'], const Duration(milliseconds: 2));
-      logger.slowQuery('SELECT 1', ['a'], const Duration(seconds: 1));
-      logger.error('boom', 'details');
+      const PhormConsoleLogger(enableColors: false)
+        ..info('hello')
+        ..query('SELECT 1', ['a'], const Duration(milliseconds: 2))
+        ..slowQuery('SELECT 1', ['a'], const Duration(seconds: 1))
+        ..error('boom', 'details');
     });
   });
 }
