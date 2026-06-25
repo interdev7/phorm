@@ -1,6 +1,6 @@
 name: phorm_sqlite
 description: The SQLite driver and connection manager implementation for the PHORM.
-version: 1.0.2
+version: 1.0.3
 repository: https://github.com/interdev7/phorm
 homepage: https://github.com/interdev7/phorm/tree/main/phorm_sqlite
 issue_tracker: https://github.com/interdev7/phorm/issues
@@ -25,7 +25,7 @@ dev_dependencies:
   flutter_lints: ^3.0.0
   flutter_test:
     sdk: flutter
-  phorm_generator: ^1.0.2
+  phorm_generator: ^1.0.3
   very_good_analysis: ^8.0.0
 
 dependency_overrides:

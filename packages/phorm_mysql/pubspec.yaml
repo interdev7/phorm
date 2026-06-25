@@ -3,7 +3,7 @@ description: >
   MySQL driver for the PHORM.
   Provides a PhormDatabase implementation backed by MySQL,
   including connection management, dialect support, and async query execution.
-version: 0.0.3
+version: 1.0.3
 repository: https://github.com/interdev7/phorm
 homepage: https://github.com/interdev7/phorm/tree/main/packages/phorm_mysql
 issue_tracker: https://github.com/interdev7/phorm/issues

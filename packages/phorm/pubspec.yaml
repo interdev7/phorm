@@ -1,6 +1,6 @@
 name: phorm
 description: PHORM — a lightweight, type-safe, driver-agnostic ORM for Dart and Flutter.
-version: 1.0.2
+version: 1.0.3
 repository: https://github.com/interdev7/phorm
 homepage: https://github.com/interdev7/phorm/tree/main/phorm
 issue_tracker: https://github.com/interdev7/phorm/issues
