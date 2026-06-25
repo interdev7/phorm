@@ -102,7 +102,7 @@ class SqlFunctionGenerator extends Generator {
   }
 
   String _getTypeNameWithNullability(DartType type) {
-    final baseName = type.getDisplayString();
+    final baseName = type.getDisplayString(withNullability: true);
     final cleanBase =
         baseName.endsWith('?')
             ? baseName.substring(0, baseName.length - 1)
@@ -114,7 +114,7 @@ class SqlFunctionGenerator extends Generator {
   }
 
   String _getNonNullableTypeName(DartType type) {
-    final baseName = type.getDisplayString();
+    final baseName = type.getDisplayString(withNullability: true);
     final cleanBase =
         baseName.endsWith('?')
             ? baseName.substring(0, baseName.length - 1)
