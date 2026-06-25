@@ -15,11 +15,11 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          # Dart-only package without tests
+          # Dart-only package with tests
           - package-name: phorm_annotations
             package-path: packages/phorm_annotations
             sdk: dart
-            run-tests: false
+            run-tests: true
 
           # Flutter package with tests
           - package-name: phorm
@@ -33,17 +33,17 @@ jobs:
             sdk: dart
             run-tests: true
 
-          # Dart-only database driver without tests
+          # Dart-only database driver with tests
           - package-name: phorm_mysql
             package-path: packages/phorm_mysql
             sdk: dart
-            run-tests: false
+            run-tests: true
 
-          # Dart-only database driver without tests
+          # Dart-only database driver with tests
           - package-name: phorm_postgres
             package-path: packages/phorm_postgres
             sdk: dart
-            run-tests: false
+            run-tests: true
 
           # Flutter database driver with tests
           - package-name: phorm_sqlite
