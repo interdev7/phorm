@@ -1,5 +1,9 @@
 # Changelog
 
+## [1.0.3]
+
+- Version bump to keep all PHORM packages in sync.
+
 ## [1.0.2]
 
 - Updated SDK environment constraint to >=3.7.0 <4.0.0

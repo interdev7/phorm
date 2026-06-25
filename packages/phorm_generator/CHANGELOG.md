@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.0.3
+
+- Lowered `analyzer` constraint to `>=6.4.1 <6.9.0` for compatibility with Dart 3.7 SDKs (avoids the unavailable `_macros` package).
+- Updated element accessors to the matching analyzer API (`enclosingElement`, `getDisplayString(withNullability: true)`).
+
 ## 1.0.2
 
 - Updated SDK environment constraint to >=3.7.0 <4.0.0
