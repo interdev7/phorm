@@ -1,7 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:phorm_sqlite/phorm_sqlite.dart';
-import 'package:phorm_sqlite/src/database_isolate_io.dart';
 import 'package:phorm_sqlite/src/database_isolate_common.dart';
+import 'package:phorm_sqlite/src/database_isolate_io.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
@@ -21,21 +21,24 @@ void main() {
 
     tearDown(() => db.close());
 
-    test('exercises distinct/where/groupBy/having/orderBy/limit/offset', () async {
-      final rows = await db.query(
-        'items',
-        distinct: true,
-        columns: ['name', 'COUNT(*) as c'],
-        where: 'qty > ?',
-        whereArgs: [0],
-        groupBy: 'name',
-        having: 'COUNT(*) >= 1',
-        orderBy: 'name DESC',
-        limit: 5,
-        offset: 0,
-      );
-      expect(rows, isNotEmpty);
-    });
+    test(
+      'exercises distinct/where/groupBy/having/orderBy/limit/offset',
+      () async {
+        final rows = await db.query(
+          'items',
+          distinct: true,
+          columns: ['name', 'COUNT(*) as c'],
+          where: 'qty > ?',
+          whereArgs: [0],
+          groupBy: 'name',
+          having: 'COUNT(*) >= 1',
+          orderBy: 'name DESC',
+          limit: 5,
+          offset: 0,
+        );
+        expect(rows, isNotEmpty);
+      },
+    );
 
     test('rawQuery returns rows', () async {
       final rows = await db.rawQuery('SELECT * FROM items WHERE qty = ?', [3]);
@@ -43,11 +46,10 @@ void main() {
     });
 
     test('insert with conflictAlgorithm + update + delete', () async {
-      final id = await db.insert(
-        'items',
-        {'name': 'c', 'qty': 4},
-        conflictAlgorithm: ConflictAlgorithm.replace,
-      );
+      final id = await db.insert('items', {
+        'name': 'c',
+        'qty': 4,
+      }, conflictAlgorithm: ConflictAlgorithm.replace);
       expect(id, greaterThan(0));
 
       final updated = await db.update(
@@ -58,7 +60,11 @@ void main() {
       );
       expect(updated, 1);
 
-      final deleted = await db.delete('items', where: 'name = ?', whereArgs: ['c']);
+      final deleted = await db.delete(
+        'items',
+        where: 'name = ?',
+        whereArgs: ['c'],
+      );
       expect(deleted, 1);
     });
 
@@ -132,16 +138,19 @@ void main() {
     tearDown(() => db.close());
 
     test('insert/update/delete/execute/raw* operations commit', () async {
-      final batch = db.batch();
-      batch.insert('b', {'name': 'one', 'qty': 1});
-      batch.insert('b', {'name': 'two', 'qty': 2},
-          conflictAlgorithm: ConflictAlgorithm.replace);
-      batch.rawInsert("INSERT INTO b (name, qty) VALUES ('three', 3)");
-      batch.update('b', {'qty': 10}, where: 'name = ?', whereArgs: ['one']);
-      batch.rawUpdate("UPDATE b SET qty = 20 WHERE name = 'two'");
-      batch.execute("UPDATE b SET qty = qty + 1 WHERE name = 'three'");
-      batch.delete('b', where: 'name = ?', whereArgs: ['nope']);
-      batch.rawDelete("DELETE FROM b WHERE name = 'missing'");
+      final batch =
+          db.batch()
+            ..insert('b', {'name': 'one', 'qty': 1})
+            ..insert('b', {
+              'name': 'two',
+              'qty': 2,
+            }, conflictAlgorithm: ConflictAlgorithm.replace)
+            ..rawInsert("INSERT INTO b (name, qty) VALUES ('three', 3)")
+            ..update('b', {'qty': 10}, where: 'name = ?', whereArgs: ['one'])
+            ..rawUpdate("UPDATE b SET qty = 20 WHERE name = 'two'")
+            ..execute("UPDATE b SET qty = qty + 1 WHERE name = 'three'")
+            ..delete('b', where: 'name = ?', whereArgs: ['nope'])
+            ..rawDelete("DELETE FROM b WHERE name = 'missing'");
       final results = await batch.commit();
       expect(results, isNotEmpty);
 
@@ -150,33 +159,37 @@ void main() {
     });
 
     test('commit with noResult returns empty list', () async {
-      final batch = db.batch();
-      batch.insert('b', {'name': 'nr', 'qty': 1});
+      final batch = db.batch()..insert('b', {'name': 'nr', 'qty': 1});
       final results = await batch.commit(noResult: true);
       expect(results, isEmpty);
     });
 
     test('commit rolls back when continueOnError is false', () async {
       await db.execute("INSERT INTO b (name, qty) VALUES ('dup', 1)");
-      final batch = db.batch();
-      batch.insert('b', {'name': 'fresh', 'qty': 2});
-      batch.insert('b', {'name': 'dup', 'qty': 3}); // UNIQUE violation
+      final batch =
+          db.batch()
+            ..insert('b', {'name': 'fresh', 'qty': 2})
+            ..insert('b', {'name': 'dup', 'qty': 3}); // UNIQUE violation
       await expectLater(batch.commit(), throwsA(isA<Object>()));
       // Rolled back: 'fresh' must not be present.
       final rows = await db.query('b', where: 'name = ?', whereArgs: ['fresh']);
       expect(rows, isEmpty);
     });
 
-    test('commit with continueOnError collects errors and commits rest', () async {
-      await db.execute("INSERT INTO b (name, qty) VALUES ('dup', 1)");
-      final batch = db.batch();
-      batch.insert('b', {'name': 'ok', 'qty': 2});
-      batch.insert('b', {'name': 'dup', 'qty': 3}); // fails
-      final results = await batch.commit(continueOnError: true);
-      expect(results.any((r) => r is Object && r is! int), isTrue);
-      final rows = await db.query('b', where: 'name = ?', whereArgs: ['ok']);
-      expect(rows, isNotEmpty);
-    });
+    test(
+      'commit with continueOnError collects errors and commits rest',
+      () async {
+        await db.execute("INSERT INTO b (name, qty) VALUES ('dup', 1)");
+        final batch =
+            db.batch()
+              ..insert('b', {'name': 'ok', 'qty': 2})
+              ..insert('b', {'name': 'dup', 'qty': 3}); // fails
+        final results = await batch.commit(continueOnError: true);
+        expect(results.any((r) => r is Object && r is! int), isTrue);
+        final rows = await db.query('b', where: 'name = ?', whereArgs: ['ok']);
+        expect(rows, isNotEmpty);
+      },
+    );
   });
 
   group('Database adapter — CHECK constraint exception mapping', () {
@@ -191,8 +204,13 @@ void main() {
       );
       await expectLater(
         db.insert('c', {'age': -1}),
-        throwsA(isA<PhormCHECKValidatorException>()
-            .having((e) => e.column, 'column', 'age')),
+        throwsA(
+          isA<PhormCHECKValidatorException>().having(
+            (e) => e.column,
+            'column',
+            'age',
+          ),
+        ),
       );
     });
 
@@ -256,7 +274,11 @@ void main() {
       await isolate.setVersion(3);
       expect(await isolate.getVersion(), 3);
 
-      final deleted = await isolate.delete('n', where: 'name = ?', whereArgs: ['a']);
+      final deleted = await isolate.delete(
+        'n',
+        where: 'name = ?',
+        whereArgs: ['a'],
+      );
       expect(deleted, 1);
     });
 
@@ -270,11 +292,12 @@ void main() {
     });
 
     test('createBatch builds and commits operations', () async {
-      final batch = isolate.createBatch();
-      batch.insert('n', {'name': 'i1', 'qty': 1});
-      batch.insert('n', {'name': 'i2', 'qty': 2}, replace: true);
-      batch.update('n', {'qty': 9}, where: 'name = ?', whereArgs: ['i1']);
-      batch.delete('n', where: 'name = ?', whereArgs: ['i2']);
+      final batch =
+          isolate.createBatch()
+            ..insert('n', {'name': 'i1', 'qty': 1})
+            ..insert('n', {'name': 'i2', 'qty': 2}, replace: true)
+            ..update('n', {'qty': 9}, where: 'name = ?', whereArgs: ['i1'])
+            ..delete('n', where: 'name = ?', whereArgs: ['i2']);
       final result = await batch.commit();
       expect(result, isNotEmpty);
 
@@ -283,8 +306,7 @@ void main() {
     });
 
     test('createBatch commit with noResult returns empty', () async {
-      final batch = isolate.createBatch();
-      batch.insert('n', {'name': 'x', 'qty': 1});
+      final batch = isolate.createBatch()..insert('n', {'name': 'x', 'qty': 1});
       final result = await batch.commit(noResult: true);
       expect(result, isEmpty);
     });
@@ -325,7 +347,9 @@ void main() {
       await expectLater(iso.getVersion(), throwsStateError);
       await expectLater(iso.setVersion(1), throwsStateError);
       await expectLater(
-        iso.sendBatchCommand(const [BatchInsert('t', {'a': 1}, false)]),
+        iso.sendBatchCommand(const [
+          BatchInsert('t', {'a': 1}, false),
+        ]),
         throwsStateError,
       );
       await expectLater(
