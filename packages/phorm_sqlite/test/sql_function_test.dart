@@ -1,5 +1,5 @@
+import 'package:flutter_test/flutter_test.dart';
 import 'package:phorm_sqlite/phorm_sqlite.dart';
-import 'package:test/test.dart';
 
 import 'models/user.dart';
 import 'src/custom_functions.dart';
