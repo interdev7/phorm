@@ -3,6 +3,9 @@ analyzer:
   errors:
     always_use_package_imports: ignore
     avoid_catches_without_on_clauses: ignore
+    avoid_escaping_inner_quotes: ignore
+    avoid_print: ignore
+    comment_references: ignore
     avoid_positional_boolean_parameters: ignore
     avoid_returning_this: ignore
     avoid_void_async: ignore
@@ -24,4 +27,5 @@ analyzer:
     unnecessary_lambdas: ignore
     unnecessary_library_directive: ignore
     unnecessary_library_name: ignore
+    unintended_html_in_doc_comment: ignore
     use_to_and_as_if_applicable: ignore

@@ -41,7 +41,7 @@ class MetadataExtractor {
       if (element is ClassElement) {
         final schemaMeta =
             element.metadata
-                .where((m) => m.element?.enclosingElement3?.name == 'Schema')
+                .where((m) => m.element?.enclosingElement?.name == 'Schema')
                 .firstOrNull;
 
         if (schemaMeta != null) {
@@ -96,7 +96,7 @@ class MetadataExtractor {
       if (element is ClassElement) {
         final idField = element.fields.firstWhere(
           (f) =>
-              f.metadata.any((m) => m.element?.enclosingElement3?.name == 'ID'),
+              f.metadata.any((m) => m.element?.enclosingElement?.name == 'ID'),
         );
         final dartName = idField.name;
         final sqlName = getSqlColumnName(idField, strategy);
@@ -114,7 +114,7 @@ class MetadataExtractor {
       if (element is ClassElement) {
         final idField = element.fields.firstWhere(
           (f) =>
-              f.metadata.any((m) => m.element?.enclosingElement3?.name == 'ID'),
+              f.metadata.any((m) => m.element?.enclosingElement?.name == 'ID'),
         );
 
         return resolveSqlType(idField);

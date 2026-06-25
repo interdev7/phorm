@@ -70,12 +70,12 @@ class SqliteSchemaGenerator extends GeneratorForAnnotation<Schema> {
 
       final annotationMeta =
           field.metadata.where((m) {
-            final name = m.element?.enclosingElement3?.name;
+            final name = m.element?.enclosingElement?.name;
             return name == 'Column' || name == 'ID';
           }).firstOrNull;
 
       if (annotationMeta != null &&
-          annotationMeta.element?.enclosingElement3?.name == 'ID') {
+          annotationMeta.element?.enclosingElement?.name == 'ID') {
         primaryKey = sqlName;
       }
 
@@ -127,7 +127,7 @@ class SqliteSchemaGenerator extends GeneratorForAnnotation<Schema> {
     for (final field in fields) {
       final fieldMeta =
           field.metadata.where((m) {
-            final name = m.element?.enclosingElement3?.name;
+            final name = m.element?.enclosingElement?.name;
             return name == 'BelongsTo' ||
                 name == 'HasMany' ||
                 name == 'HasOne' ||
@@ -218,7 +218,7 @@ class SqliteSchemaGenerator extends GeneratorForAnnotation<Schema> {
 
   Map<String, dynamic> _parseRelationship(ElementAnnotation meta) {
     final reader = ConstantReader(meta.computeConstantValue());
-    final type = meta.element!.enclosingElement3!.name!;
+    final type = meta.element!.enclosingElement!.name!;
     final modelReader = reader.read('model');
     final res = {
       'type': type,
@@ -250,7 +250,7 @@ class SqliteSchemaGenerator extends GeneratorForAnnotation<Schema> {
         // Try to find @Schema annotation on the class
         final schemaMeta =
             element.metadata
-                .where((m) => m.element?.enclosingElement3?.name == 'Schema')
+                .where((m) => m.element?.enclosingElement?.name == 'Schema')
                 .firstOrNull;
 
         if (schemaMeta != null) {
@@ -332,7 +332,7 @@ END;''';
     ColumnNamingStrategy strategy,
   ) {
     final reader = ConstantReader(meta.computeConstantValue());
-    final annotationName = meta.element!.enclosingElement3!.name;
+    final annotationName = meta.element!.enclosingElement!.name;
 
     final explicitName = reader.peek('columnName')?.stringValue;
 
