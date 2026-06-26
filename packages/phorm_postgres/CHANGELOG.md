@@ -1,5 +1,10 @@
 # Changelog
 
+## [1.1.0]
+
+- Bumped `phorm` dependency to `^1.1.0`.
+- Version bump to align with the unified PHORM package versioning.
+
 ## [1.0.3]
 
 - Version bump to align with the unified PHORM package versioning.

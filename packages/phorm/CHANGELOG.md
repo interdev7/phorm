@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.1.0]
+
+- Bumped `phorm_annotations` dependency to `^1.1.0` (adds `SqlDialectKind` and the
+  `@Schema(dialect: ...)` option).
+- Version bump to keep all PHORM packages in sync.
+
 ## [1.0.3]
 
 - Version bump to keep all PHORM packages in sync.

@@ -1,17 +1,25 @@
 import 'package:analyzer/dart/element/element.dart';
-import 'package:analyzer/dart/element/nullability_suffix.dart';
-import 'package:analyzer/dart/element/type.dart';
 import 'package:build/build.dart';
 import 'package:path/path.dart' as p;
 import 'package:phorm_annotations/phorm_annotations.dart';
 import 'package:source_gen/source_gen.dart';
 
+import 'generators/function_generator.dart';
+
 /// Generator for custom SQL functions annotated with [SqlFunc].
-class SqlFunctionGenerator extends Generator {
+///
+/// Parses the annotated top-level functions and delegates dialect-specific
+/// emission to a [FunctionGenerator]. Custom functions are declared at library
+/// level (no `@Schema` to read a dialect from), so the dialect currently
+/// defaults to SQLite.
+class PhormFunctionGenerator extends Generator {
+  // TODO(dialect): allow selecting the function dialect (build option or a
+  // `dialect` field on `@SqlFunc`) instead of always defaulting to SQLite.
+  static const _dialectKind = SqlDialectKind.sqlite;
+
   @override
   Future<String> generate(LibraryReader library, BuildStep buildStep) async {
-    final buffer = StringBuffer();
-    final functions = <_SqlFuncData>[];
+    final functions = <SqlFuncData>[];
 
     const sqlFuncChecker = TypeChecker.fromUrl(
       'package:phorm_annotations/src/annotations.dart#SqlFunc',
@@ -27,7 +35,7 @@ class SqlFunctionGenerator extends Generator {
         final explicitName = reader.read('name').literalValue as String?;
         final sqlName = explicitName ?? element.name.toUpperCase();
 
-        functions.add(_SqlFuncData(element: element, sqlName: sqlName));
+        functions.add(SqlFuncData(element: element, sqlName: sqlName));
       }
     }
 
@@ -35,98 +43,16 @@ class SqlFunctionGenerator extends Generator {
       return '';
     }
 
-    // Write the part of header to bind the generated file with the source file
+    final dialect = FunctionGenerator.fromKind(_dialectKind);
+    final body = dialect.generate(functions);
+    if (body.isEmpty) return '';
+
+    // Write the part-of header to bind the generated file with the source file
     final fileName = p.basename(buildStep.inputId.path);
-    buffer
+    final buffer = StringBuffer()
       ..writeln("part of '$fileName';\n")
-      // 1. Generate Custom SQL functions list registration
-      ..writeln('// Custom SQL function registrations')
-      ..writeln('final customSqlFunctions = [');
-    for (final fn in functions) {
-      final name = fn.sqlName;
-      final dartName = fn.element.name;
-      final argCount = fn.element.parameters.length;
-
-      buffer
-        ..writeln('  SqlFunction.custom(')
-        ..writeln("    name: '$name',")
-        ..writeln('    argumentCount: $argCount,')
-        ..writeln('    function: (args) {');
-
-      final argsInvocation = <String>[];
-      for (var i = 0; i < argCount; i++) {
-        final param = fn.element.parameters[i];
-        final paramType = _getTypeNameWithNullability(param.type);
-        argsInvocation.add('args[$i] as $paramType');
-      }
-
-      buffer
-        ..writeln('      return $dartName(${argsInvocation.join(', ')});')
-        ..writeln('    },')
-        ..writeln('  ),');
-    }
-    buffer
-      ..writeln('];\n')
-      // 2. Generate Type-safe Extensions on PhormColumn
-      ..writeln('// Type-safe column extensions for custom SQL functions');
-    for (final fn in functions) {
-      final sqlName = fn.sqlName;
-      final dartMethodName = fn.element.name;
-      final returnType = fn.element.returnType;
-
-      // Determine target column type from the first parameter of the Dart function
-      String targetTypeStr = 'dynamic';
-      if (fn.element.parameters.isNotEmpty) {
-        final firstParamType = fn.element.parameters.first.type;
-        targetTypeStr = _getNonNullableTypeName(firstParamType);
-      }
-
-      final returnTypeStr = _getNonNullableTypeName(returnType);
-      // Function name to capitalize first letter
-      final functionName =
-          "${fn.element.name[0].toUpperCase()}${fn.element.name.substring(1)}";
-      buffer
-        ..writeln(
-          'extension ${functionName}PhormColumnExtension on PhormColumn<$targetTypeStr> {',
-        )
-        ..writeln(
-          '  /// Applies the custom SQL function `$sqlName` to this column.',
-        )
-        ..writeln('  PhormColumn<$returnTypeStr> $dartMethodName() {')
-        ..writeln("    return sqlFunction<$returnTypeStr>('$sqlName');")
-        ..writeln('  }')
-        ..writeln('}\n');
-    }
+      ..write(body);
 
     return buffer.toString();
   }
-
-  String _getTypeNameWithNullability(DartType type) {
-    final baseName = type.getDisplayString(withNullability: true);
-    final cleanBase =
-        baseName.endsWith('?')
-            ? baseName.substring(0, baseName.length - 1)
-            : baseName;
-    if (type.nullabilitySuffix == NullabilitySuffix.question) {
-      return '$cleanBase?';
-    }
-    return cleanBase;
-  }
-
-  String _getNonNullableTypeName(DartType type) {
-    final baseName = type.getDisplayString(withNullability: true);
-    final cleanBase =
-        baseName.endsWith('?')
-            ? baseName.substring(0, baseName.length - 1)
-            : baseName;
-    if (cleanBase == 'void') return 'dynamic';
-    return cleanBase;
-  }
-}
-
-class _SqlFuncData {
-  final FunctionElement element;
-  final String sqlName;
-
-  _SqlFuncData({required this.element, required this.sqlName});
 }

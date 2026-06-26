@@ -3,7 +3,7 @@ description: >
   PostgreSQL driver for the PHORM.
   Provides a PhormDatabase implementation backed by PostgreSQL,
   including connection pooling, dialect support, and async query execution.
-version: 1.0.3
+version: 1.1.0
 repository: https://github.com/interdev7/phorm
 homepage: https://github.com/interdev7/phorm/tree/main/packages/phorm_postgres
 issue_tracker: https://github.com/interdev7/phorm/issues
@@ -14,7 +14,7 @@ environment:
 
 dependencies:
   meta: ^1.16.0
-  phorm: ^1.0.0
+  phorm: ^1.1.0
 
 dev_dependencies:
   lints: ^3.0.0

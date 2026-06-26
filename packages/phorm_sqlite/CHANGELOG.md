@@ -1,5 +1,10 @@
 # Changelog
 
+## [1.1.0]
+
+- Bumped `phorm` dependency to `^1.1.0` and `phorm_generator` (dev) to `^1.1.0`.
+- Version bump to keep all PHORM packages in sync.
+
 ## [1.0.3]
 
 - Version bump to keep all PHORM packages in sync.

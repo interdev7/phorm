@@ -1,5 +1,15 @@
 # Changelog
 
+## [1.1.0]
+
+- Added `SqlDialectKind` enum (`sqlite`, `postgres`, `mysql`) and a `dialect` field
+  on `@Schema` so the generator knows which database flavour to emit DDL for
+  (defaults to `SqlDialectKind.sqlite`, fully backward compatible).
+- Reorganised SQL types by dialect under `src/sql_types/` (`common_types`,
+  `sqlite_types`, `postgres_types`, `mysql_types`). `src/sql_types.dart` is now a
+  barrel re-exporting them, so existing type names (`VARCHAR`, `JSONB`, `Collate`,
+  `SqlTypes`, …) are unchanged.
+
 ## [1.0.3]
 
 - Version bump to keep all PHORM packages in sync.

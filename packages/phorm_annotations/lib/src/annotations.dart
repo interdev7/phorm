@@ -12,6 +12,21 @@ enum ColumnNamingStrategy {
   pascalCase,
 }
 
+/// Target SQL dialect for schema (DDL) generation.
+///
+/// Tells the generator which database flavour to emit DDL for
+/// (types, auto-increment, timestamp handling, etc.).
+enum SqlDialectKind {
+  /// SQLite. The default dialect.
+  sqlite,
+
+  /// PostgreSQL.
+  postgres,
+
+  /// MySQL / MariaDB.
+  mysql,
+}
+
 /// Base class for all column definitions.
 ///
 /// Contains properties common to any table column,
@@ -142,11 +157,17 @@ class Schema {
   /// Whether to generate the toString method helper.
   final bool useToString;
 
+  /// Target SQL dialect the generator emits DDL for.
+  ///
+  /// Defaults to [SqlDialectKind.sqlite].
+  final SqlDialectKind dialect;
+
   const Schema({
     this.tableName,
     this.indexes = const [],
     this.paranoid = false,
     this.columnNaming = ColumnNamingStrategy.snakeCase,
+    this.dialect = SqlDialectKind.sqlite,
     this.relationships = const [],
     this.useToJson = true,
     this.useFromJson = true,
