@@ -95,6 +95,7 @@ Defines table-level configuration.
 | `indexes`       | `List<Index>`          | List of table indexes.                                                      |
 | `paranoid`      | `bool`                 | Enables soft deletes (requires `deletedAt` column).                         |
 | `columnNaming`  | `ColumnNamingStrategy` | Strategy for mapping field names to SQL (snakeCase, camelCase, pascalCase). |
+| `dialect`       | `SqlDialectKind`       | Target SQL dialect for DDL generation (`sqlite` (default), `postgres`, `mysql`). |
 | `relationships` | `List<Relationship>`   | Define `HasMany`, `HasOne`, or `BelongsTo`.                                 |
 
 ### `@Column`
@@ -109,11 +110,16 @@ final String status;
 | Property       | Type                | Description                                                    |
 | :------------- | :------------------ | :------------------------------------------------------------- |
 | `columnName`   | `String?`           | Override column name.                                          |
+| `sqlType`      | `String?`           | Explicit SQL type override as a raw string (e.g. `'VARCHAR(255)'`). |
+| `type`         | `SqlType?`          | Explicit SQL type as a typed object (e.g. `VARCHAR(255)`, `DECIMAL(10, 2)`, `JSONB()`). |
 | `unique`       | `bool`              | Enforce `UNIQUE` constraint.                                   |
 | `nullable`     | `bool`              | Mark column as `NULL` or `NOT NULL`.                           |
 | `defaultValue` | `dynamic`           | SQL `DEFAULT` value.                                           |
 | `validators`   | `List<IValidator>?` | List of validators (triggers SQL `CHECK` and Dart validation). |
+| `converter`    | `ValueConverter?`   | Custom Dart ↔ SQL value transformer.                          |
 | `collate`      | `String?`           | Specify string collation (e.g. `Collate.noCase`).              |
+
+`SqlType` objects are organised by dialect: `common_types` (`VARCHAR`, `TEXT`, `INTEGER`, `BIGINT`, `BOOLEAN`, `REAL`, `DOUBLE`, `DECIMAL`, `DATE`, `TIME`, `TIMESTAMP`, `BLOB`, `JSON`), `sqlite_types` (`NUMERIC`, `Collate`), `postgres_types` (`JSONB`), `mysql_types` (scaffolded). Resolution precedence: `sqlType` → `type` → `converter` → inferred Dart type.
 
 ---
 

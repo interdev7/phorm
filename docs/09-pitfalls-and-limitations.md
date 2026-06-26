@@ -281,11 +281,13 @@ SQLite does not have a native `BOOLEAN` type. PHORM stores them as `1` (true) an
 
 ### Schema & Generator Limitations
 
-#### Schema Generator is SQLite-Specific
+#### Schema Generator: SQLite Fully Implemented, Postgres/MySQL Scaffolded
 
-While PHORM's core runtime (Query Builder, Where Builder, Eager Loading) is fully database-agnostic and dynamically adapts to the active `SqlDialect` (handling identifier escaping and dynamic placeholders programmatically), the **code generator (`phorm_generator`) is currently SQLite-specific**.
+While PHORM's core runtime (Query Builder, Where Builder, Eager Loading) is fully database-agnostic and dynamically adapts to the active `SqlDialect` (handling identifier escaping and dynamic placeholders programmatically), the **code generator (`phorm_generator`) currently produces complete DDL only for SQLite**.
 
-By default, the schema generator (`SqliteSchemaGenerator`):
+The entry point `PhormSchemaGenerator` reads `@Schema(dialect: ...)` and dispatches to a per-dialect generator (`SqliteSchemaGenerator`, `PostgresSchemaGenerator`, `MysqlSchemaGenerator`). The default dialect is `SqlDialectKind.sqlite`. Postgres and MySQL have type mapping in place but their remaining DDL specifics (auto-increment/identity, `updated_at` mechanism, identifier quoting) are still scaffolded with TODOs.
+
+For the default SQLite dialect, the generator:
 - Maps Dart data types directly to SQLite types (e.g., `DateTime` is mapped to `TEXT`).
 - Generates automatic update triggers for the `updated_at` column using the SQLite-specific `datetime('now')` syntax:
   ```sql
