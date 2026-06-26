@@ -3,6 +3,8 @@ import 'package:analyzer/dart/element/type.dart';
 import 'package:phorm_annotations/phorm_annotations.dart';
 import 'package:source_gen/source_gen.dart';
 
+import 'generators/schema_generator.dart';
+
 class ConverterInfo {
   final String code;
   final DartType sqlType;
@@ -107,7 +109,10 @@ class MetadataExtractor {
     return (dartName: 'id', sqlName: 'id');
   }
 
-  static String? resolveIdSqlType(ConstantReader modelReader) {
+  static String? resolveIdSqlType(
+    ConstantReader modelReader,
+    SchemaGenerator dialect,
+  ) {
     try {
       final type = modelReader.typeValue;
       final element = type.element;
@@ -117,13 +122,13 @@ class MetadataExtractor {
               f.metadata.any((m) => m.element?.enclosingElement?.name == 'ID'),
         );
 
-        return resolveSqlType(idField);
+        return resolveSqlType(idField, dialect);
       }
     } catch (_) {}
     return null;
   }
 
-  static String resolveSqlType(FieldElement field) {
+  static String resolveSqlType(FieldElement field, SchemaGenerator dialect) {
     final annotation =
         columnChecker.firstAnnotationOf(field) ??
         idChecker.firstAnnotationOf(field);
@@ -146,36 +151,42 @@ class MetadataExtractor {
       final info = getConverterInfo(field);
       if (info != null) {
         final sqlType = info.sqlType;
-        if (sqlType.isDartCoreInt) return 'INTEGER';
-        if (sqlType.isDartCoreDouble) return 'REAL';
-        if (sqlType.isDartCoreBool) return 'INTEGER';
-        if (sqlType.isDartCoreString) return 'TEXT';
-        if (sqlType.element?.name == 'num') return 'NUMERIC';
-        if (sqlType.element?.name == 'Uint8List') return 'BLOB';
+        if (sqlType.isDartCoreInt) return dialect.mapCoreType('int', isEnum: false);
+        if (sqlType.isDartCoreDouble) {
+          return dialect.mapCoreType('double', isEnum: false);
+        }
+        if (sqlType.isDartCoreBool) {
+          return dialect.mapCoreType('bool', isEnum: false);
+        }
+        if (sqlType.isDartCoreString) {
+          return dialect.mapCoreType('String', isEnum: false);
+        }
+        final convName = sqlType.element?.name;
+        if (convName == 'num' || convName == 'Uint8List') {
+          return dialect.mapCoreType(convName, isEnum: false);
+        }
       }
     }
 
     final type = field.type;
-    if (type.isDartCoreInt) return 'INTEGER';
-    if (type.isDartCoreDouble) return 'REAL';
-    if (type.isDartCoreBool) return 'INTEGER';
-    if (type.isDartCoreString) return 'TEXT';
+    if (type.isDartCoreInt) return dialect.mapCoreType('int', isEnum: false);
+    if (type.isDartCoreDouble) {
+      return dialect.mapCoreType('double', isEnum: false);
+    }
+    if (type.isDartCoreBool) return dialect.mapCoreType('bool', isEnum: false);
+    if (type.isDartCoreString) {
+      return dialect.mapCoreType('String', isEnum: false);
+    }
 
     final element = type.element;
     if (element != null) {
-      if (element is EnumElement) return 'TEXT';
-      if (element.kind.name == 'ENUM') return 'TEXT';
+      if (element is EnumElement) return dialect.mapCoreType(null, isEnum: true);
+      if (element.kind.name == 'ENUM') {
+        return dialect.mapCoreType(null, isEnum: true);
+      }
     }
 
-    final typeName = type.element?.name;
-    if (typeName == 'num') return 'NUMERIC';
-    if (typeName == 'DateTime') return 'TEXT';
-    if (typeName == 'Uint8List') return 'BLOB';
-    if (typeName == 'Duration') return 'INTEGER';
-    if (typeName == 'BigInt') return 'TEXT';
-    if (typeName == 'Uri') return 'TEXT';
-
-    return 'TEXT';
+    return dialect.mapCoreType(type.element?.name, isEnum: false);
   }
 
   static String? resolveCollation(FieldElement field) {

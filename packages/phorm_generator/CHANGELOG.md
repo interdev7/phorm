@@ -1,5 +1,16 @@
 # Changelog
 
+## 1.1.0
+
+- Added per-dialect schema generation driven by `@Schema(dialect: ...)`. DDL rules
+  are now split into per-dialect strategies under `src/generators/<dialect>/`
+  (`sqlite`, `postgres`, `mysql`); the entry point `PhormSchemaGenerator` dispatches
+  by dialect. SQLite output is unchanged; Postgres/MySQL are scaffolds.
+- Split custom SQL function generation by dialect (`<dialect>_function_generator`);
+  `SqlFunctionGenerator` is renamed to `PhormFunctionGenerator` and delegates to a
+  `FunctionGenerator` strategy (defaults to SQLite).
+- Requires `phorm_annotations: ^1.1.0` (for `SqlDialectKind`).
+
 ## 1.0.3
 
 - Lowered `analyzer` constraint to `>=6.4.1 <6.9.0` for compatibility with Dart 3.7 SDKs (avoids the unavailable `_macros` package).

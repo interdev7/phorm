@@ -7,13 +7,14 @@ import 'package:path/path.dart' as p;
 import 'package:phorm_annotations/phorm_annotations.dart';
 import 'package:source_gen/source_gen.dart';
 
+import 'generators/schema_generator.dart';
 import 'metadata_extractor.dart';
 import 'string_schema_builder.dart';
 
 // Generator works with any ISqlValidator via its `sql` field.
 // No concrete checker classes needed — users define their own validators.
 
-class SqliteSchemaGenerator extends GeneratorForAnnotation<Schema> {
+class PhormSchemaGenerator extends GeneratorForAnnotation<Schema> {
   @override
   FutureOr<String> generateForAnnotatedElement(
     Element element,
@@ -45,6 +46,16 @@ class SqliteSchemaGenerator extends GeneratorForAnnotation<Schema> {
                         element: element,
                       ),
             );
+
+    final dialectReader = schemaReader.peek('dialect');
+    final dialectKind =
+        dialectReader == null || dialectReader.isNull
+            ? SqlDialectKind.sqlite
+            : SqlDialectKind.values.firstWhere(
+              (e) => e.name == dialectReader.revive().accessor.split('.').last,
+              orElse: () => SqlDialectKind.sqlite,
+            );
+    final dialect = SchemaGenerator.fromKind(dialectKind);
 
     final timestamps = schemaReader.peek('timestamps')?.boolValue ?? true;
     final paranoid = schemaReader.peek('paranoid')?.boolValue ?? false;
@@ -81,24 +92,25 @@ class SqliteSchemaGenerator extends GeneratorForAnnotation<Schema> {
 
       if (annotationMeta == null) continue;
 
-      final result = _generateColumn(field, annotationMeta, strategy);
+      final result = _generateColumn(field, annotationMeta, strategy, dialect);
       columnSql.add(result.columnSql);
       columnNames.add(result.columnName);
     }
 
+    final tsType = dialect.timestampColumnType();
     if (timestamps) {
       if (!hasCreatedAt) {
-        columnSql.add('  created_at TEXT NOT NULL');
+        columnSql.add('  created_at $tsType NOT NULL');
         columnNames.add('created_at');
       }
       if (!hasUpdatedAt) {
-        columnSql.add('  updated_at TEXT NOT NULL');
+        columnSql.add('  updated_at $tsType NOT NULL');
         columnNames.add('updated_at');
       }
     }
 
     if (paranoid && !hasDeletedAt) {
-      columnSql.add('  deleted_at TEXT');
+      columnSql.add('  deleted_at $tsType');
       columnNames.add('deleted_at');
     }
     if (columnSql.isEmpty) {
@@ -111,16 +123,18 @@ class SqliteSchemaGenerator extends GeneratorForAnnotation<Schema> {
     String indexSql = _generateIndexes(schemaReader, tableName);
 
     if (timestamps || hasUpdatedAt) {
-      final triggerSql = _generateTrigger(tableName);
-      if (indexSql.isNotEmpty) {
-        indexSql += '\n$triggerSql';
-      } else {
-        indexSql = triggerSql;
+      final triggerSql = dialect.updatedAtTimestampDdl(tableName);
+      if (triggerSql != null && triggerSql.isNotEmpty) {
+        if (indexSql.isNotEmpty) {
+          indexSql += '\n$triggerSql';
+        } else {
+          indexSql = triggerSql;
+        }
       }
     }
 
     final List<Map<String, dynamic>> relationships = [
-      ..._extractRelationships(schemaReader),
+      ..._extractRelationships(schemaReader, dialect),
     ];
 
     // Also scan fields for @BelongsTo, @HasMany, @HasOne, @Join
@@ -135,7 +149,7 @@ class SqliteSchemaGenerator extends GeneratorForAnnotation<Schema> {
           }).firstOrNull;
 
       if (fieldMeta != null) {
-        relationships.add(_parseRelationship(fieldMeta));
+        relationships.add(_parseRelationship(fieldMeta, dialect));
       }
     }
 
@@ -189,7 +203,10 @@ class SqliteSchemaGenerator extends GeneratorForAnnotation<Schema> {
     );
   }
 
-  List<Map<String, dynamic>> _extractRelationships(ConstantReader reader) {
+  List<Map<String, dynamic>> _extractRelationships(
+    ConstantReader reader,
+    SchemaGenerator dialect,
+  ) {
     final list = reader.peek('relationships');
     if (list == null || list.isNull) return [];
 
@@ -200,7 +217,7 @@ class SqliteSchemaGenerator extends GeneratorForAnnotation<Schema> {
       final res = {
         'type': type,
         'model': _resolveModelName(modelReader),
-        'idType': MetadataExtractor.resolveIdSqlType(modelReader),
+        'idType': MetadataExtractor.resolveIdSqlType(modelReader, dialect),
         'foreignKey': r.read('foreignKey').stringValue,
         'localKey': r.read('localKey').stringValue,
         'onDelete': r.peek('onDelete')?.stringValue,
@@ -216,14 +233,17 @@ class SqliteSchemaGenerator extends GeneratorForAnnotation<Schema> {
     }).toList();
   }
 
-  Map<String, dynamic> _parseRelationship(ElementAnnotation meta) {
+  Map<String, dynamic> _parseRelationship(
+    ElementAnnotation meta,
+    SchemaGenerator dialect,
+  ) {
     final reader = ConstantReader(meta.computeConstantValue());
     final type = meta.element!.enclosingElement!.name!;
     final modelReader = reader.read('model');
     final res = {
       'type': type,
       'model': _resolveModelName(modelReader),
-      'idType': MetadataExtractor.resolveIdSqlType(modelReader),
+      'idType': MetadataExtractor.resolveIdSqlType(modelReader, dialect),
       'foreignKey': reader.read('foreignKey').stringValue,
       'localKey': reader.read('localKey').stringValue,
       'onDelete': reader.peek('onDelete')?.stringValue,
@@ -274,25 +294,6 @@ class SqliteSchemaGenerator extends GeneratorForAnnotation<Schema> {
     );
   }
 
-  // Generate TRigger
-  // CREATE TRIGGER update_posts_timestamp
-  // AFTER UPDATE ON posts
-  // FOR EACH ROW
-  // BEGIN
-  //     UPDATE posts SET updated_at = datetime('now') WHERE id = OLD.id;
-  // END;
-  // НУжно чтобы красиво выглядело и структурированно
-  String _generateTrigger(String tableName) {
-    return '''
-
-CREATE TRIGGER update_${tableName}_timestamp
-AFTER UPDATE ON $tableName
-FOR EACH ROW
-BEGIN
-    UPDATE $tableName SET updated_at = datetime('now') WHERE id = OLD.id;
-END;''';
-  }
-
   // ──────────────────────────────────────────────────────────────
   // Indexes
   // ──────────────────────────────────────────────────────────────
@@ -330,6 +331,7 @@ END;''';
     FieldElement field,
     ElementAnnotation meta,
     ColumnNamingStrategy strategy,
+    SchemaGenerator dialect,
   ) {
     final reader = ConstantReader(meta.computeConstantValue());
     final annotationName = meta.element!.enclosingElement!.name;
@@ -358,7 +360,7 @@ END;''';
     final unique = reader.peek('unique')?.boolValue ?? false;
     final defaultValue = reader.peek('defaultValue');
 
-    final sqlType = MetadataExtractor.resolveSqlType(field);
+    final sqlType = MetadataExtractor.resolveSqlType(field, dialect);
     final collation = MetadataExtractor.resolveCollation(field);
 
     final buffer = StringBuffer()..write('  $columnName $sqlType');
@@ -368,22 +370,22 @@ END;''';
     }
 
     final isId = annotationName == 'ID';
-    final isInteger = sqlType == 'INTEGER';
+    final isAutoPk = dialect.isAutoPkInline(sqlType);
 
     if (isId) {
       buffer.write(' PRIMARY KEY');
       if (reader.peek('autoIncrement')?.boolValue ?? false) {
-        buffer.write(' AUTOINCREMENT');
+        buffer.write(dialect.autoIncrementClause());
       }
     }
 
-    final skipConstraints = isId && isInteger;
+    final skipConstraints = isId && isAutoPk;
 
     if (!nullable && !skipConstraints) buffer.write(' NOT NULL');
     if (unique && !skipConstraints) buffer.write(' UNIQUE');
 
     if (defaultValue != null && !defaultValue.isNull) {
-      buffer.write(' DEFAULT ${_formatDefaultValue(defaultValue)}');
+      buffer.write(' DEFAULT ${_formatDefaultValue(defaultValue, dialect)}');
     }
 
     final validatorsReader = reader.peek('validators');
@@ -434,8 +436,8 @@ END;''';
   // Helpers
   // ─────────────────────────────────────────────────────────────
 
-  String _formatDefaultValue(ConstantReader value) {
-    if (value.isBool) return value.boolValue ? '1' : '0';
+  String _formatDefaultValue(ConstantReader value, SchemaGenerator dialect) {
+    if (value.isBool) return dialect.formatBoolDefault(value.boolValue);
     if (value.isInt) return value.intValue.toString();
     if (value.isDouble) return value.doubleValue.toString();
     if (value.isString) return "'${value.stringValue}'";
