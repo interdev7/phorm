@@ -14,6 +14,7 @@ Defines table-level configuration for a class.
   paranoid: true,             // Enable soft deletes (requires deleted_at column)
   timestamps: true,           // Auto-inject created_at / updated_at (default: true)
   columnNaming: ColumnNamingStrategy.snakeCase, // default
+  dialect: SqlDialectKind.sqlite, // Target DDL dialect (default: sqlite)
   indexes: [
     Index(columns: ['email'], unique: true),
     Index(columns: ['first_name', 'last_name']),
@@ -37,6 +38,7 @@ class User extends Model with _$PhormUserMixin { ... }
 | `paranoid`      | `bool`                 | `false`     | Soft delete support                                   |
 | `timestamps`    | `bool`                 | `true`      | Auto `created_at`/`updated_at`                        |
 | `columnNaming`  | `ColumnNamingStrategy` | `snakeCase` | Field → column mapping strategy                       |
+| `dialect`       | `SqlDialectKind`       | `sqlite`    | Target SQL dialect for DDL generation (`sqlite`, `postgres`, `mysql`) |
 | `indexes`       | `List<Index>`          | `[]`        | Table indexes                                         |
 | `relationships` | `List<Relationship>`   | `[]`        | `HasMany`, `HasOne`, `BelongsTo`/`Join`, `ManyToMany` |
 | `useToJson`     | `bool`                 | `true`      | Generate toJson mixin                                 |
@@ -44,6 +46,18 @@ class User extends Model with _$PhormUserMixin { ... }
 | `useCopyWith`   | `bool`                 | `true`      | Generate copyWith method                              |
 | `useValidator`  | `bool`                 | `true`      | Generate validate() method                            |
 | `useToString`   | `bool`                 | `true`      | Generate toString() helper                            |
+
+### Target SQL Dialect
+
+`dialect` tells the generator which database flavour to emit DDL for. It defaults
+to `SqlDialectKind.sqlite`, so existing schemas are unaffected. SQLite is fully
+implemented; `postgres` and `mysql` are scaffolded (their type mapping is in
+place, with remaining DDL specifics tracked as TODOs in `phorm_generator`).
+
+```dart
+@Schema(dialect: SqlDialectKind.postgres)
+class User extends Model with _$PhormUserMixin { ... }
+```
 
 ### Column Naming Strategies
 
@@ -130,14 +144,19 @@ final String gender;
 @Column(columnName: 'user_city')
 final String city;
 
-// Explicit SQL type override
+// Explicit SQL type override (raw string)
 @Column(sqlType: 'VARCHAR(255)')
 final String bio;
+
+// Typed SQL type override (SqlType object)
+@Column(type: VARCHAR(255))
+final String title;
 ```
 
 | Parameter      | Type                | Default  | Description                          |
 | :------------- | :------------------ | :------- | :----------------------------------- |
-| `sqlType`      | `String?`           | inferred | Explicit SQLite type override        |
+| `sqlType`      | `String?`           | inferred | Explicit SQL type override as a raw string |
+| `type`         | `SqlType?`          | inferred | Explicit SQL type as a typed object (e.g. `VARCHAR(255)`, `DECIMAL(10, 2)`, `JSONB()`) |
 | `columnName`   | `String?`           | `null`   | Override column name                 |
 | `unique`       | `bool`              | `false`  | `UNIQUE` constraint                  |
 | `defaultValue` | `dynamic`           | `null`   | SQL `DEFAULT` value                  |
@@ -178,6 +197,38 @@ final String username;
 
 > [!TIP]
 > You can use the **`SqlTypes`** class for standard type names instead of hardcoding strings.
+
+### Typed Column Definitions (`type:`)
+
+Instead of a raw `sqlType` string, you can pass a typed **`SqlType`** object via
+`type:`. This is checked at compile time and reads more clearly for
+parameterized types:
+
+```dart
+@Column(type: VARCHAR(255))
+final String title;
+
+@Column(type: DECIMAL(10, 2))
+final double price;
+
+@Column(type: JSONB()) // Postgres
+final Map<String, dynamic> metadata;
+```
+
+`SqlType` classes are organised by dialect (all exported from
+`phorm_annotations`):
+
+| File                       | Types                                                                                       |
+| :------------------------- | :------------------------------------------------------------------------------------------ |
+| `sql_types/common_types`   | `VARCHAR(length)`, `TEXT`, `INTEGER`, `BIGINT`, `BOOLEAN`, `REAL`, `DOUBLE`, `DECIMAL(p, s)`, `DATE`, `TIME`, `TIMESTAMP`, `BLOB`, `JSON` |
+| `sql_types/sqlite_types`   | `NUMERIC`, `Collate`                                                                         |
+| `sql_types/postgres_types` | `JSONB`                                                                                      |
+| `sql_types/mysql_types`    | _(MySQL-only types — scaffolded)_                                                            |
+
+> [!NOTE]
+> Type resolution precedence in the generator: `sqlType` (raw string) →
+> `type` (`SqlType` object) → `converter`'s SQL type → inferred from the Dart
+> field type. The first one provided wins.
 
 > [!NOTE]
 > For booleans and dates, the generator handles conversion between Dart types and SQLite representations automatically.

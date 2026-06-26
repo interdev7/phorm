@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.1.1]
+
+- Documentation only: documented the `@Schema(dialect: ...)` option, the
+  `@Column(type: ...)` typed SQL types, and the dialect-organised `SqlType`
+  hierarchy in the README. No API changes.
+
 ## [1.1.0]
 
 - Added `SqlDialectKind` enum (`sqlite`, `postgres`, `mysql`) and a `dialect` field

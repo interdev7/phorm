@@ -1,21 +1,21 @@
 name: Release
 
-# Create a GitHub Release when a version tag is pushed.
+# Per-package releases. Each package is released independently with a tag of
+# the form `<package>-v<version>`, so a change to one package never forces a
+# version bump on the others.
 #
-# Versions across PHORM packages are kept in sync, so a single tag like
-# `v1.1.0` produces one Release whose notes are assembled from each package's
-# CHANGELOG.md section for that version.
+#   # release only phorm_annotations 1.1.1
+#   git tag phorm_annotations-v1.1.1
+#   git push origin phorm_annotations-v1.1.1
 #
-#   git tag v1.1.0
-#   git push origin v1.1.0
-#
-# Pre-release tags (containing a hyphen, e.g. `v1.2.0-rc.1`) are marked as
+# The tag must match the package's `version:` in its pubspec.yaml. Pre-release
+# versions (containing a hyphen, e.g. `phorm-v1.2.0-rc.1`) are flagged as
 # pre-releases automatically.
 
 on:
   push:
     tags:
-      - "v*"
+      - "*-v*"
 
 permissions:
   contents: write
@@ -28,24 +28,43 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Assemble release notes from CHANGELOGs
-        id: notes
+      - name: Parse tag and validate
+        id: meta
         run: |
           set -euo pipefail
-          VERSION="${GITHUB_REF_NAME#v}"
+          TAG="${GITHUB_REF_NAME}"
+          PACKAGE="${TAG%-v*}"   # strip trailing -v<version>
+          VERSION="${TAG##*-v}"  # keep <version>
+
+          dir="packages/$PACKAGE"
+          if [ ! -f "$dir/pubspec.yaml" ]; then
+            echo "::error::Unknown package '$PACKAGE' (no $dir/pubspec.yaml). Tag must be <package>-v<version>."
+            exit 1
+          fi
+
+          pubver="$(awk '/^version:/{print $2; exit}' "$dir/pubspec.yaml")"
+          if [ "$pubver" != "$VERSION" ]; then
+            echo "::error::Tag version $VERSION does not match $PACKAGE pubspec version $pubver."
+            exit 1
+          fi
+
+          echo "package=$PACKAGE" >> "$GITHUB_OUTPUT"
           echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+
+      - name: Extract release notes from CHANGELOG
+        run: |
+          set -euo pipefail
+          PACKAGE="${{ steps.meta.outputs.package }}"
+          VERSION="${{ steps.meta.outputs.version }}"
+          changelog="packages/$PACKAGE/CHANGELOG.md"
 
           NOTES_FILE="release_notes.md"
           : > "$NOTES_FILE"
 
-          for dir in packages/*/; do
-            pkg="$(basename "$dir")"
-            changelog="${dir}CHANGELOG.md"
-            [ -f "$changelog" ] || continue
-
-            # Extract the section for VERSION. Handles both `## [1.1.0]`
-            # and `## 1.1.0` heading styles; stops at the next `## ` heading.
-            section="$(awk -v ver="$VERSION" '
+          if [ -f "$changelog" ]; then
+            # Extract the section for VERSION. Handles both `## [1.1.1]`
+            # and `## 1.1.1` heading styles; stops at the next `## ` heading.
+            awk -v ver="$VERSION" '
               /^## / {
                 hdr = $0
                 sub(/^##[[:space:]]+/, "", hdr)
@@ -56,23 +75,15 @@ jobs:
                 next
               }
               cap { print }
-            ' "$changelog")"
+            ' "$changelog" > "$NOTES_FILE"
+          fi
 
-            # Trim leading/trailing blank lines.
-            section="$(printf '%s\n' "$section" | sed -e '/./,$!d' | tac | sed -e '/./,$!d' | tac)"
-
-            if [ -n "$section" ]; then
-              {
-                echo "## $pkg $VERSION"
-                echo
-                echo "$section"
-                echo
-              } >> "$NOTES_FILE"
-            fi
-          done
-
-          if [ ! -s "$NOTES_FILE" ]; then
-            echo "Release $VERSION" > "$NOTES_FILE"
+          # Trim leading/trailing blank lines; fall back to a minimal note.
+          if [ -s "$NOTES_FILE" ]; then
+            trimmed="$(sed -e '/./,$!d' "$NOTES_FILE" | tac | sed -e '/./,$!d' | tac)"
+            printf '%s\n' "$trimmed" > "$NOTES_FILE"
+          else
+            echo "Release $PACKAGE $VERSION" > "$NOTES_FILE"
           fi
 
           echo "----- release notes -----"
@@ -81,7 +92,7 @@ jobs:
       - name: Detect pre-release
         id: prerelease
         run: |
-          if [[ "${GITHUB_REF_NAME}" == *-* ]]; then
+          if [[ "${{ steps.meta.outputs.version }}" == *-* ]]; then
             echo "flag=--prerelease" >> "$GITHUB_OUTPUT"
           else
             echo "flag=" >> "$GITHUB_OUTPUT"
@@ -92,7 +103,7 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           gh release create "${GITHUB_REF_NAME}" \
-            --title "${GITHUB_REF_NAME}" \
+            --title "${{ steps.meta.outputs.package }} ${{ steps.meta.outputs.version }}" \
             --notes-file release_notes.md \
             ${{ steps.prerelease.outputs.flag }}
 
@@ -100,7 +111,8 @@ jobs:
   #
   # One-time setup required on pub.dev (per package): Admin -> "Automated
   # publishing" -> enable GitHub Actions, repository `interdev7/phorm`, and an
-  # allowed tag pattern of `v{{version}}`. The `id-token: write` permission lets
+  # allowed tag pattern of `{{package}}-v{{version}}` (e.g.
+  # `phorm_annotations-v{{version}}`). The `id-token: write` permission lets
   # `pub` exchange a GitHub OIDC token for a short-lived pub.dev credential — no
   # secrets to store.
   publish:
@@ -122,56 +134,40 @@ jobs:
           channel: stable
           version: 3.29.2
 
-      - name: Publish packages (dependency order)
+      - name: Publish package to pub.dev
         run: |
           set -uo pipefail
-          VERSION="${GITHUB_REF_NAME#v}"
+          TAG="${GITHUB_REF_NAME}"
+          PACKAGE="${TAG%-v*}"
+          VERSION="${TAG##*-v}"
+          dir="packages/$PACKAGE"
 
-          # Skip a package whose pubspec version doesn't match the tag, or that
-          # is already on pub.dev (makes re-runs idempotent).
           already_published() {
-            local pkg="$1"
-            curl -sf "https://pub.dev/api/packages/$pkg" 2>/dev/null \
+            curl -sf "https://pub.dev/api/packages/$PACKAGE" 2>/dev/null \
               | tr ',' '\n' | grep -q "\"version\":\"$VERSION\""
           }
 
-          publish_pkg() {
-            local pkg="$1"
-            local dir="packages/$pkg"
-            local pubver
-            pubver="$(awk '/^version:/{print $2; exit}' "$dir/pubspec.yaml")"
+          if already_published; then
+            echo "::notice::$PACKAGE $VERSION already on pub.dev — skipping."
+            exit 0
+          fi
 
-            if [ "$pubver" != "$VERSION" ]; then
-              echo "::notice::Skipping $pkg (pubspec $pubver != tag $VERSION)"
-              return 0
+          # Retry to tolerate pub.dev indexing delay of just-published deps.
+          tries=12 n=1
+          while true; do
+            if (cd "$dir" && flutter pub publish --force); then
+              echo "Published $PACKAGE $VERSION"
+              exit 0
             fi
-            if already_published "$pkg"; then
-              echo "::notice::Skipping $pkg ($VERSION already on pub.dev)"
-              return 0
+            if already_published; then
+              echo "::notice::$PACKAGE $VERSION appeared on pub.dev after retry."
+              exit 0
             fi
-
-            # Retry to tolerate pub.dev indexing delay of just-published deps.
-            local tries=12 n=1
-            while true; do
-              if (cd "$dir" && flutter pub publish --force); then
-                echo "Published $pkg $VERSION"
-                return 0
-              fi
-              if already_published "$pkg"; then
-                echo "::notice::$pkg $VERSION appeared on pub.dev after retry"
-                return 0
-              fi
-              if [ "$n" -ge "$tries" ]; then
-                echo "::error::Failed to publish $pkg after $tries attempts"
-                return 1
-              fi
-              echo "Retry $pkg in 30s ($n/$tries)…"
-              sleep 30
-              n=$((n + 1))
-            done
-          }
-
-          for pkg in phorm_annotations phorm_generator phorm \
-                     phorm_sqlite phorm_mysql phorm_postgres; do
-            publish_pkg "$pkg" || exit 1
+            if [ "$n" -ge "$tries" ]; then
+              echo "::error::Failed to publish $PACKAGE after $tries attempts."
+              exit 1
+            fi
+            echo "Retry in 30s ($n/$tries)…"
+            sleep 30
+            n=$((n + 1))
           done
