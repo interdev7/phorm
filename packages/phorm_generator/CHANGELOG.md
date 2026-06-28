@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.1.1
+
+- Bumped `phorm_annotations` dependency to `^1.1.2`, which fixes
+  `MigrationBuilder.build()` dropping the table's `columns`, `timestamps`, and
+  `autoIncrement` fields (previously broke relationship serialization and
+  timestamp handling for tables rebuilt via the fluent migration API).
+
 ## 1.1.0
 
 - Added per-dialect schema generation driven by `@Schema(dialect: ...)`. DDL rules
