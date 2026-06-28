@@ -596,6 +596,31 @@ void main() {
         throwsA(isA<UnsupportedError>()),
       );
     });
+
+    test('build preserves columns, timestamps and autoIncrement', () {
+      final source = Table<_User>(
+        schema: 'CREATE TABLE users (id INTEGER PRIMARY KEY AUTOINCREMENT)',
+        name: 'users',
+        type: _User,
+        fromJson: (m) => _User(m['id'] as int),
+        columns: const ['id', 'name', 'email'],
+        timestamps: false,
+        paranoid: true,
+      );
+
+      final rebuilt =
+          source.migrate().addColumn(name: 'age', type: 'INTEGER', version: 2).build();
+
+      // These fields used to be dropped by build(), causing broken
+      // relationship serialization and unwanted timestamp injection.
+      expect(rebuilt.columns, source.columns);
+      expect(rebuilt.timestamps, isFalse);
+      expect(rebuilt.autoIncrement, isTrue);
+      // Other carried-over fields stay intact too.
+      expect(rebuilt.paranoid, isTrue);
+      expect(rebuilt.primaryKey, 'id');
+      expect(rebuilt.schema, source.schema);
+    });
   });
 
   group('PhormConsoleLogger', () {

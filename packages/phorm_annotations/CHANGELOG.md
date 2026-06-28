@@ -1,5 +1,14 @@
 # Changelog
 
+## [1.1.2]
+
+- Fixed `MigrationBuilder.build()` dropping the `columns`, `timestamps`, and
+  `autoIncrement` fields when rebuilding the `Table`. The lost `columns`
+  produced empty relationship JSON aggregation (broken serialization of
+  eager-loaded relations), and a reset `timestamps` flag caused `created_at`/
+  `updated_at` to be injected for tables that disabled timestamps. These
+  fields are now carried over from the source table.
+
 ## [1.1.1]
 
 - Documentation only: documented the `@Schema(dialect: ...)` option, the
