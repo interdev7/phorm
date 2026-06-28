@@ -324,6 +324,9 @@ class MigrationBuilder<T extends Model> {
       migrations: List.unmodifiable(_migrations.cast<TableMigration<T>>()),
       paranoid: _table.paranoid,
       relationships: _table.relationships,
+      columns: _table.columns,
+      timestamps: _table.timestamps,
+      autoIncrement: _table.autoIncrement,
     );
   }
 }
