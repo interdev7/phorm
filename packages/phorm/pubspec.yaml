@@ -13,7 +13,7 @@ dependencies:
   flutter:
     sdk: flutter
   meta: ^1.16.0
-  phorm_annotations: ^1.1.0
+  phorm_annotations: ^1.1.2
 
 dev_dependencies:
   flutter_lints: ^3.0.0
