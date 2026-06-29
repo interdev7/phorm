@@ -157,6 +157,15 @@ class Schema {
   /// Whether to generate the toString method helper.
   final bool useToString;
 
+  /// Whether to generate the pluralized static service class
+  /// (e.g. `Users`) that exposes the full CRUD/query API
+  /// (`insert`, `readAll`, `where`, `watchAll`, column constants, …).
+  ///
+  /// Set to `false` to keep only the lightweight artefacts (schema, table,
+  /// `fromJson`/`toJson`, `copyWith`) and skip the large generated service.
+  /// Defaults to `true`.
+  final bool generateFullService;
+
   /// Target SQL dialect the generator emits DDL for.
   ///
   /// Defaults to [SqlDialectKind.sqlite].
@@ -175,6 +184,7 @@ class Schema {
     this.useToString = true,
     this.timestamps = true,
     this.useValidator = true,
+    this.generateFullService = true,
   });
 }
 

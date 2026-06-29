@@ -1,5 +1,10 @@
 # Changelog
 
+## [1.2.0]
+
+- Bumped `phorm` dependency to `^1.2.0`, exposing the new
+  `@Schema(generateFullService: ...)` option.
+
 ## [1.1.0]
 
 - Bumped `phorm` dependency to `^1.1.0`.

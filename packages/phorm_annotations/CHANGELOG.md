@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.2.0]
+
+- Added `generateFullService` to `@Schema` (defaults to `true`). When set to
+  `false`, the generator skips the large pluralized static service class
+  (e.g. `Users`, with the full CRUD/query API and column constants) and emits
+  only the lightweight artefacts (schema, table, `fromJson`/`toJson`,
+  `copyWith`). Fully backward compatible — existing models are unaffected.
+
 ## [1.1.2]
 
 - Fixed `MigrationBuilder.build()` dropping the `columns`, `timestamps`, and

@@ -1,11 +1,12 @@
 # Changelog
 
-## [1.1.1]
+## [1.2.0]
 
-- Bumped `phorm_annotations` dependency to `^1.1.2`, which fixes
-  `MigrationBuilder.build()` dropping the table's `columns`, `timestamps`, and
-  `autoIncrement` fields (previously broke relationship serialization and
-  timestamp handling for tables rebuilt via the fluent migration API).
+- Bumped `phorm_annotations` dependency to `^1.2.0`, which adds the
+  `@Schema(generateFullService: ...)` option (re-exported by `phorm`) and
+  carries the `MigrationBuilder.build()` fix (previously dropped `columns`,
+  `timestamps`, and `autoIncrement` when rebuilding a table via the fluent
+  migration API).
 
 ## [1.1.0]
 

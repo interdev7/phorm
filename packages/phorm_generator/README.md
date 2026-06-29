@@ -62,6 +62,24 @@ dart run build_runner build
 dart run build_runner watch --delete-conflicting-outputs
 ```
 
+### 3. Control what gets generated
+
+By default the generator emits a pluralized service class (e.g. `Users`) that
+exposes the full CRUD/query API (`insert`, `readAll`, `where`, `watchAll`,
+column constants, …). For large schemas, or when you only need the lightweight
+artefacts, set `generateFullService: false` on the `@Schema` annotation:
+
+```dart
+@Schema(tableName: 'users', generateFullService: false)
+class User extends Model with _$PhormUserMixin {
+  // ...
+}
+```
+
+With `generateFullService: false`, only the schema, table metadata,
+`fromJson`/`toJson`, and `copyWith` are generated — the large service class is
+skipped. Defaults to `true`.
+
 ---
 
 ## Learn More
