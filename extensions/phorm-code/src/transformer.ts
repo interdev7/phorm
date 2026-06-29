@@ -1,12 +1,30 @@
-// Transforms a parsed Dart file into a SQFlow model file
+// Transforms a parsed Dart file into a PHORM model file
 
-import { ParsedFile, DartClass, DartField, camelToSnake, pluralize } from './parser';
+import { ParsedFile, DartClass, camelToSnake, pluralize } from './parser';
+
+/** User-configurable transformation options (mirrors @Schema flags). */
+export interface TransformOptions {
+  generateFullService: boolean;
+  timestamps: boolean;
+  paranoid: boolean;
+  addFromJson: boolean;
+}
+
+const DEFAULT_OPTIONS: TransformOptions = {
+  generateFullService: true,
+  timestamps: true,
+  paranoid: false,
+  addFromJson: true,
+};
 
 /**
  * Main entry point.
  * Returns the fully transformed source code.
  */
-export function transformFile(parsed: ParsedFile): string {
+export function transformFile(
+  parsed: ParsedFile,
+  options: TransformOptions = DEFAULT_OPTIONS
+): string {
   let source = parsed.source;
 
   // Process each class separately, working from the END backwards
@@ -21,7 +39,7 @@ export function transformFile(parsed: ParsedFile): string {
   const sorted = [...classesToConvert].sort((a, b) => b.startIndex - a.startIndex);
 
   for (const cls of sorted) {
-    const newClassText = transformClass(cls);
+    const newClassText = transformClass(cls, options);
     source =
       source.substring(0, cls.startIndex) +
       newClassText +
@@ -78,17 +96,36 @@ function buildHeader(parsed: ParsedFile, source: string): string {
 // Single class transformation
 // ---------------------------------------------------------------------------
 
-function transformClass(cls: DartClass): string {
+/**
+ * Re-indents a preserved member to a 2-space class-body base indentation.
+ * Dart's formatter will normalize the rest after the edit is applied.
+ */
+function indentMember(member: string): string {
+  const lines = member.split('\n');
+  const indents = lines
+    .filter(l => l.trim() !== '')
+    .map(l => l.match(/^\s*/)?.[0].length ?? 0);
+  const base = indents.length ? Math.min(...indents) : 0;
+  return lines
+    .map(l => (l.trim() === '' ? '' : '  ' + l.slice(base)))
+    .join('\n');
+}
+
+function transformClass(cls: DartClass, options: TransformOptions): string {
   const { name, fields } = cls;
   const tableName = pluralize(camelToSnake(name));
 
   const buf: string[] = [];
 
-  // @Schema annotation
-  buf.push(`@Schema(tableName: '${tableName}')`);
+  // @Schema annotation — only emit non-default options to keep output clean.
+  const schemaArgs = [`tableName: '${tableName}'`];
+  if (!options.timestamps) { schemaArgs.push('timestamps: false'); }
+  if (options.paranoid) { schemaArgs.push('paranoid: true'); }
+  if (!options.generateFullService) { schemaArgs.push('generateFullService: false'); }
+  buf.push(`@Schema(${schemaArgs.join(', ')})`);
 
   // Class declaration line
-  buf.push(`class ${name} extends Model with _\$Phorm${name}Mixin {`);
+  buf.push(`class ${name} extends Model with _$Phorm${name}Mixin {`);
 
   // --- Fields ---
 
@@ -153,9 +190,17 @@ function transformClass(cls: DartClass): string {
   buf.push('  });');
   buf.push('');
 
-  // --- factory fromJson ---
-  buf.push(`  factory ${name}.fromJson(Map<String, dynamic> json) =>`);
-  buf.push(`      _\$Phorm${name}FromJson(json);`);
+  // --- factory fromJson (only if enabled and not already declared) ---
+  if (options.addFromJson && !cls.hasFromJson) {
+    buf.push(`  factory ${name}.fromJson(Map<String, dynamic> json) =>`);
+    buf.push(`      _$Phorm${name}FromJson(json);`);
+  }
+
+  // --- preserve any other members verbatim (methods, getters, factories) ---
+  for (const member of cls.otherMembers) {
+    buf.push('');
+    buf.push(indentMember(member));
+  }
 
   buf.push('}');
 

@@ -16,6 +16,7 @@ on:
   push:
     tags:
       - "*-v*"
+      - "!phorm-code-v*" # handled by extension.yml, not a pub.dev package
 
 permissions:
   contents: write

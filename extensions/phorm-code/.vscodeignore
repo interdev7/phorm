@@ -2,6 +2,11 @@
 .vscode-test/**
 node_modules/**
 src/**
+test/**
 .gitignore
+.eslintrc.json
 tsconfig.json
+vitest.config.*
+test_transform.js
 **/*.map
+**/*.ts
