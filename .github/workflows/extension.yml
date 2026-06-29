@@ -1,0 +1,118 @@
+name: Extension CI
+
+# Build, lint and test the phorm-code VS Code extension. On pushes to main that
+# bump the version in package.json, it also tags the commit, packages the
+# .vsix, creates a GitHub release and (if a marketplace token is configured)
+# publishes to the VS Code Marketplace.
+on:
+  push:
+    branches: [main]
+    paths:
+      - "extensions/phorm-code/**"
+      - ".github/workflows/extension.yml"
+  pull_request:
+    paths:
+      - "extensions/phorm-code/**"
+      - ".github/workflows/extension.yml"
+
+defaults:
+  run:
+    working-directory: extensions/phorm-code
+
+jobs:
+  build:
+    name: Compile, lint & test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+          cache-dependency-path: extensions/phorm-code/package-lock.json
+
+      - run: npm ci
+      - run: npm run compile
+      - run: npm run lint
+      - run: npm test
+
+  release:
+    name: Tag, package & release
+    # Only on direct pushes to main (not PRs).
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write # create tags and releases
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # need full history/tags to detect existing tags
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+          cache-dependency-path: extensions/phorm-code/package-lock.json
+
+      - run: npm ci
+
+      - name: Resolve version and tag
+        id: meta
+        run: |
+          set -euo pipefail
+          VERSION="$(node -p "require('./package.json').version")"
+          TAG="phorm-code-v${VERSION}"
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          echo "tag=$TAG" >> "$GITHUB_OUTPUT"
+          if git rev-parse -q --verify "refs/tags/$TAG" >/dev/null; then
+            echo "exists=true" >> "$GITHUB_OUTPUT"
+            echo "::notice::Tag $TAG already exists — skipping release."
+          else
+            echo "exists=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Package VSIX
+        if: steps.meta.outputs.exists == 'false'
+        run: |
+          npm run compile
+          npx vsce package --no-dependencies -o "phorm-code-${{ steps.meta.outputs.version }}.vsix"
+
+      - name: Create tag
+        if: steps.meta.outputs.exists == 'false'
+        run: |
+          git tag "${{ steps.meta.outputs.tag }}"
+          git push origin "${{ steps.meta.outputs.tag }}"
+
+      - name: Extract release notes from CHANGELOG
+        if: steps.meta.outputs.exists == 'false'
+        run: |
+          set -euo pipefail
+          VERSION="${{ steps.meta.outputs.version }}"
+          awk -v ver="$VERSION" '
+            /^## / {
+              hdr = $0; sub(/^##[[:space:]]+/, "", hdr)
+              if (hdr == ver) { cap = 1; next }
+              else if (cap) { exit }
+              next
+            }
+            cap { print }
+          ' CHANGELOG.md > release_notes.md
+          [ -s release_notes.md ] || echo "phorm-code ${VERSION}" > release_notes.md
+
+      - name: Create GitHub release
+        if: steps.meta.outputs.exists == 'false'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release create "${{ steps.meta.outputs.tag }}" \
+            --title "phorm-code ${{ steps.meta.outputs.version }}" \
+            --notes-file release_notes.md \
+            "phorm-code-${{ steps.meta.outputs.version }}.vsix"
+
+      - name: Publish to VS Code Marketplace
+        if: steps.meta.outputs.exists == 'false' && env.VSCE_PAT != ''
+        env:
+          VSCE_PAT: ${{ secrets.VSCE_PAT }}
+        run: npx vsce publish --no-dependencies -p "$VSCE_PAT" --packagePath "phorm-code-${{ steps.meta.outputs.version }}.vsix"

@@ -17,9 +17,18 @@ export interface DartClass {
   hasIdField: boolean;
   idField?: DartField;
   alreadyConverted: boolean;  // already has "extends Model"
+  hasFromJson: boolean;       // already declares a fromJson factory/constructor
+  otherMembers: string[];     // members to preserve verbatim (methods, getters, …)
   startIndex: number;         // char index in source where class starts
-  endIndex: number;           // char index in source where class ends
+  endIndex: number;           // char index in source where class ends (after closing brace)
   fullText: string;           // original class text
+}
+
+/** A top-level member of a class body (with its leading annotations). */
+interface ClassMember {
+  annotations: string[];   // trimmed annotation lines preceding the declaration
+  text: string;            // verbatim declaration text (may span lines)
+  firstLine: string;       // trimmed first declaration line
 }
 
 export interface ParsedFile {
@@ -32,7 +41,8 @@ export interface ParsedFile {
 
 /**
  * Parses all Dart classes from source text.
- * Uses regex-based approach — covers 90%+ of real-world classes.
+ * Uses a regex to locate declarations and brace-counting to find their exact
+ * bounds, so top-level code between/after classes is never captured.
  */
 export function parseFile(source: string, fileName: string): ParsedFile {
   const hasImport = source.includes("package:phorm/phorm.dart") ||
@@ -48,39 +58,100 @@ export function parseFile(source: string, fileName: string): ParsedFile {
 
 /**
  * Finds all top-level class declarations in source and parses each one.
+ * The end of a class is determined by matching braces (respecting strings and
+ * comments) rather than the start of the next class, so intervening top-level
+ * declarations are preserved.
  */
 function extractClasses(source: string): DartClass[] {
   const result: DartClass[] = [];
 
-  // Match class declarations (including those with extends/with)
   // Captures: class Name [extends X] [with Y] [implements Z] {
-  const classPattern = /^(class\s+(\w+)(?:\s+extends\s+[\w<>, ]+)?(?:\s+with\s+[\w<>, ]+)?(?:\s+implements\s+[\w<>, ]+)?\s*\{)/gm;
+  const classPattern =
+    /^(class\s+(\w+)(?:<[\w$<>, ]+>)?(?:\s+extends\s+[\w$<>, ]+)?(?:\s+with\s+[\w$<>, ]+)?(?:\s+implements\s+[\w$<>, ]+)?\s*)\{/gm;
 
   let match: RegExpExecArray | null;
-  const classStarts: Array<{ index: number; name: string; header: string }> = [];
-
   while ((match = classPattern.exec(source)) !== null) {
-    classStarts.push({
-      index: match.index,
-      name: match[2],
-      header: match[1],
-    });
-  }
+    const name = match[2];
+    // Index of the opening brace that starts the class body.
+    const braceIndex = match.index + match[1].length;
+    const bodyEnd = findMatchingBrace(source, braceIndex);
+    if (bodyEnd === -1) {
+      continue; // unbalanced — skip rather than corrupt the file
+    }
 
-  for (let i = 0; i < classStarts.length; i++) {
-    const start = classStarts[i].index;
-    const end = i + 1 < classStarts.length
-      ? classStarts[i + 1].index
-      : source.length;
-
-    const classText = source.substring(start, end).trimEnd();
-    const parsed = parseClass(classStarts[i].name, classText, start, start + classText.length);
+    const endIndex = bodyEnd + 1; // include the closing brace
+    const classText = source.substring(match.index, endIndex);
+    const parsed = parseClass(name, classText, match.index, endIndex);
     if (parsed) {
       result.push(parsed);
     }
+
+    // Continue scanning after this class body.
+    classPattern.lastIndex = endIndex;
   }
 
   return result;
+}
+
+/**
+ * Given the index of an opening brace, returns the index of the matching
+ * closing brace, skipping over strings, chars and comments. Returns -1 if
+ * the braces are unbalanced.
+ */
+function findMatchingBrace(source: string, openIndex: number): number {
+  let depth = 0;
+  for (let i = openIndex; i < source.length; i++) {
+    const ch = source[i];
+    const next = source[i + 1];
+
+    // Line comment
+    if (ch === '/' && next === '/') {
+      const nl = source.indexOf('\n', i);
+      if (nl === -1) { return -1; }
+      i = nl;
+      continue;
+    }
+    // Block comment
+    if (ch === '/' && next === '*') {
+      const close = source.indexOf('*/', i + 2);
+      if (close === -1) { return -1; }
+      i = close + 1;
+      continue;
+    }
+    // String literals (single/double, incl. raw)
+    if (ch === '"' || ch === "'") {
+      i = skipString(source, i);
+      continue;
+    }
+
+    if (ch === '{') { depth++; }
+    else if (ch === '}') {
+      depth--;
+      if (depth === 0) { return i; }
+    }
+  }
+  return -1;
+}
+
+/**
+ * Skips a Dart string literal starting at `start` (the opening quote).
+ * Handles escapes and triple-quoted strings. Returns the index of the closing
+ * quote (so the caller's loop increments past it).
+ */
+function skipString(source: string, start: number): number {
+  const quote = source[start];
+  const triple = source.substr(start, 3) === quote.repeat(3);
+  const delim = triple ? quote.repeat(3) : quote;
+
+  let i = start + delim.length;
+  while (i < source.length) {
+    if (source[i] === '\\') { i += 2; continue; }
+    if (source.substr(i, delim.length) === delim) {
+      return i + delim.length - 1;
+    }
+    i++;
+  }
+  return source.length - 1;
 }
 
 /**
@@ -93,20 +164,39 @@ function parseClass(
   endIndex: number
 ): DartClass | null {
   // Skip abstract classes and mixins
-  if (/^\s*(abstract|mixin)\s+class/.test(classText)) {
+  if (/^\s*(abstract|mixin)\s+class/.test(classText) || /^\s*mixin\s+/.test(classText)) {
     return null;
   }
 
-  const alreadyConverted = /extends\s+Model/.test(classText);
+  const alreadyConverted = /extends\s+Model\b/.test(classText);
 
-  // Extract fields: lines with "final Type name;" pattern
-  const fields = extractFields(classText);
+  // Work only inside the class body, split into top-level members.
+  const body = classBody(classText);
+  const members = splitMembers(body);
+
+  const fields: DartField[] = [];
+  const otherMembers: string[] = [];
+  let hasFromJson = false;
+
+  for (const m of members) {
+    const field = asField(m);
+    if (field) {
+      fields.push(field);
+      continue;
+    }
+    // The default constructor is regenerated, so it is not preserved here.
+    if (isDefaultConstructor(name, m.firstLine)) {
+      continue;
+    }
+    if (new RegExp(`${name}\\.fromJson\\s*\\(`).test(m.firstLine)) {
+      hasFromJson = true;
+    }
+    otherMembers.push(m.text.trimEnd());
+  }
 
   const hasIdField = fields.some(f => f.name === 'id');
   const idField = fields.find(f => f.name === 'id');
-
-  // Extract constructor param names (to detect which fields are in constructor)
-  const constructorParams = extractConstructorParams(name, classText);
+  const constructorParams = extractConstructorParams(name, body);
 
   return {
     name,
@@ -115,6 +205,8 @@ function parseClass(
     hasIdField,
     idField,
     alreadyConverted,
+    hasFromJson,
+    otherMembers,
     startIndex,
     endIndex,
     fullText: classText,
@@ -122,89 +214,143 @@ function parseClass(
 }
 
 /**
- * Extracts field declarations from a class body.
- * Handles:
- *   @Annotation()
- *   @Annotation()
- *   final Type fieldName;
+ * Returns the text between the outermost braces of a class declaration.
  */
-function extractFields(classText: string): DartField[] {
-  const fields: DartField[] = [];
+function classBody(classText: string): string {
+  const open = classText.indexOf('{');
+  const close = classText.lastIndexOf('}');
+  if (open === -1 || close === -1 || close <= open) { return classText; }
+  return classText.substring(open + 1, close);
+}
 
-  // Split into lines and process annotation + field pairs
-  const lines = classText.split('\n');
+/** Net brace depth contributed by a line, ignoring strings and comments. */
+function netBraces(line: string): number {
+  let depth = 0;
+  for (let i = 0; i < line.length; i++) {
+    const ch = line[i];
+    const next = line[i + 1];
+    if (ch === '/' && next === '/') { break; }
+    if (ch === '"' || ch === "'") {
+      // skip to closing quote on this line (best-effort, single line)
+      i++;
+      while (i < line.length && line[i] !== ch) {
+        if (line[i] === '\\') { i++; }
+        i++;
+      }
+      continue;
+    }
+    if (ch === '{') { depth++; }
+    else if (ch === '}') { depth--; }
+  }
+  return depth;
+}
 
-  let pendingAnnotations: string[] = [];
+/**
+ * Splits a class body into top-level members, grouping leading annotations
+ * with their declaration. Only members at brace-depth 0 are considered, so
+ * statements inside method bodies are never mistaken for class members.
+ */
+function splitMembers(body: string): ClassMember[] {
+  const members: ClassMember[] = [];
+  const lines = body.split('\n');
+
+  let depth = 0;
+  let pending: string[] = [];
+  let current: string[] = [];
 
   for (const line of lines) {
     const trimmed = line.trim();
 
-    // Collect annotations (lines starting with @)
-    if (trimmed.startsWith('@')) {
-      pendingAnnotations.push(trimmed);
-      continue;
-    }
-
-    // Match field declaration: [late] [final/var] Type? name;
-    const fieldMatch = trimmed.match(
-      /^(?:late\s+)?(?:final\s+|var\s+)?([\w<>?, ]+?)\s+(\w+)\s*;/
-    );
-
-    if (fieldMatch) {
-      const rawType = fieldMatch[1].trim();
-      const fieldName = fieldMatch[2];
-
-      // Skip common non-field patterns
-      if (fieldName === 'class' || rawType.includes('(') || rawType.includes(')')) {
-        pendingAnnotations = [];
+    // At the member level, collect leading annotations.
+    if (depth === 0 && current.length === 0) {
+      if (trimmed === '' || trimmed.startsWith('//') || trimmed.startsWith('*') || trimmed.startsWith('/*')) {
         continue;
       }
-
-      const isNullable = rawType.endsWith('?');
-      const type = isNullable ? rawType.slice(0, -1) : rawType;
-
-      const annotations = [...pendingAnnotations];
-      const hasColumnAnnotation = annotations.some(a => a.startsWith('@Column'));
-      const hasIdAnnotation = annotations.some(a => a.startsWith('@ID'));
-
-      fields.push({
-        name: fieldName,
-        type,
-        isNullable,
-        rawLine: trimmed,
-        annotations,
-        hasColumnAnnotation,
-        hasIdAnnotation,
-      });
-
-      pendingAnnotations = [];
-      continue;
+      if (trimmed.startsWith('@')) {
+        pending.push(trimmed);
+        continue;
+      }
     }
 
-    // Non-field, non-annotation line — reset pending annotations
-    if (
-      trimmed !== '' &&
-      !trimmed.startsWith('//') &&
-      !trimmed.startsWith('*') &&
-      !trimmed.startsWith('@override')
-    ) {
-      pendingAnnotations = [];
+    current.push(line);
+    depth += netBraces(line);
+
+    // A member ends when we are back to depth 0 and the line terminates a
+    // declaration (`;`) or closes a block (`}`).
+    if (depth <= 0 && (trimmed.endsWith(';') || trimmed.endsWith('}'))) {
+      members.push({
+        annotations: pending,
+        text: current.join('\n'),
+        firstLine: current.map(l => l.trim()).find(l => l !== '' && !l.startsWith('@')) ?? '',
+      });
+      pending = [];
+      current = [];
+      depth = 0;
     }
   }
 
-  return fields;
+  return members;
+}
+
+/** Returns true if the member's first line is the default (generative) constructor. */
+function isDefaultConstructor(className: string, firstLine: string): boolean {
+  // e.g. "User({" or "User(this.x)" — but not "User.fromJson(" or "factory User("
+  return new RegExp(`^${className}\\s*\\(`).test(firstLine);
+}
+
+/** Interprets a member as a data field, or returns null if it is not one. */
+function asField(m: ClassMember): DartField | null {
+  const decl = m.firstLine;
+
+  // Reject getters/setters, methods, expression bodies, statics, multi-line bodies.
+  if (
+    /\bget\s+\w+/.test(decl) ||
+    /\bset\s+\w+/.test(decl) ||
+    /\bstatic\b/.test(decl) ||
+    decl.includes('=>') ||
+    decl.includes('(') ||
+    m.text.includes('{')
+  ) {
+    return null;
+  }
+
+  // [late] [final/var/const] Type? name; (no initializer)
+  const fieldMatch = decl.match(
+    /^(?:late\s+)?(?:final\s+|var\s+|const\s+)?([\w<>?, ]+?)\s+(\w+)\s*;$/
+  );
+  if (!fieldMatch) { return null; }
+
+  const rawType = fieldMatch[1].trim();
+  const fieldName = fieldMatch[2];
+  if (!rawType || rawType === 'final' || rawType === 'var' || rawType === 'const') {
+    return null;
+  }
+
+  const isNullable = rawType.endsWith('?');
+  const type = isNullable ? rawType.slice(0, -1).trim() : rawType;
+  const annotations = [...m.annotations];
+
+  return {
+    name: fieldName,
+    type,
+    isNullable,
+    rawLine: decl,
+    annotations,
+    hasColumnAnnotation: annotations.some(a => a.startsWith('@Column')),
+    hasIdAnnotation: annotations.some(a => a.startsWith('@ID')),
+  };
 }
 
 /**
  * Extracts parameter names from the default constructor.
  */
-function extractConstructorParams(className: string, classText: string): string[] {
+function extractConstructorParams(className: string, body: string): string[] {
   // Match: ClassName({...}) or ClassName(...) possibly multiline
   const ctorPattern = new RegExp(
-    `${className}\\s*\\(([\\s\\S]*?)\\)\\s*(?::|;|\\{)`,
+    `(?<!\\.)\\b${className}\\s*\\(([\\s\\S]*?)\\)\\s*(?::|;|\\{|=>)`,
     'm'
   );
-  const match = ctorPattern.exec(classText);
+  const match = ctorPattern.exec(body);
   if (!match) { return []; }
 
   const paramsText = match[1];
@@ -225,7 +371,7 @@ function extractConstructorParams(className: string, classText: string): string[
  */
 export function camelToSnake(str: string): string {
   return str
-    .replace(/([a-z])([A-Z])/g, '$1_$2')
+    .replace(/([a-z0-9])([A-Z])/g, '$1_$2')
     .toLowerCase();
 }
 
@@ -233,7 +379,7 @@ export function camelToSnake(str: string): string {
  * Pluralizes a snake_case table name  (e.g. "user" → "users", "category" → "categories")
  */
 export function pluralize(word: string): string {
-  if (word.endsWith('y')) {
+  if (word.endsWith('y') && !/[aeiou]y$/.test(word)) {
     return word.slice(0, -1) + 'ies';
   }
   if (

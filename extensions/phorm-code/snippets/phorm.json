@@ -1,0 +1,47 @@
+{
+  "Phorm model": {
+    "prefix": "phormmodel",
+    "body": [
+      "@Schema(tableName: '${1:table_name}')",
+      "class ${2:Name} extends Model with _\\$Phorm${2:Name}Mixin {",
+      "  @ID(autoIncrement: true)",
+      "  final int id;",
+      "",
+      "  @Column()",
+      "  final ${3:String} ${4:field};",
+      "",
+      "  ${2:Name}({",
+      "    required this.id,",
+      "    required this.${4:field},",
+      "  });",
+      "",
+      "  factory ${2:Name}.fromJson(Map<String, dynamic> json) =>",
+      "      _\\$Phorm${2:Name}FromJson(json);",
+      "}"
+    ],
+    "description": "Create a Phorm model class"
+  },
+  "Phorm @Schema": {
+    "prefix": "phormschema",
+    "body": [
+      "@Schema(tableName: '${1:table_name}'${2:, generateFullService: ${3|true,false|}})"
+    ],
+    "description": "Phorm @Schema annotation"
+  },
+  "Phorm @Column": {
+    "prefix": "phormcolumn",
+    "body": [
+      "@Column(${1:unique: false})",
+      "final ${2:String} ${3:field};"
+    ],
+    "description": "Phorm @Column field"
+  },
+  "Phorm @ID": {
+    "prefix": "phormid",
+    "body": [
+      "@ID(autoIncrement: ${1|true,false|})",
+      "final ${2:int} id;"
+    ],
+    "description": "Phorm primary key field"
+  }
+}

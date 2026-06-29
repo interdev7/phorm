@@ -1,18 +1,33 @@
 {
   "name": "phorm-code",
-  "displayName": "Phorm",
+  "displayName": "PHORM Code Generator",
   "description": "Convert plain Dart classes to Phorm ORM models",
-  "version": "0.0.1",
+  "version": "0.1.0",
+  "license": "MIT",
   "repository": {
     "type": "git",
     "url": "https://github.com/interdev7/phorm.git"
+  },
+  "homepage": "https://github.com/interdev7/phorm/tree/main/extensions/phorm-code#readme",
+  "bugs": {
+    "url": "https://github.com/interdev7/phorm/issues"
   },
   "publisher": "interdev7",
   "engines": {
     "vscode": "^1.85.0"
   },
   "categories": [
+    "Programming Languages",
+    "Snippets",
     "Other"
+  ],
+  "keywords": [
+    "phorm",
+    "dart",
+    "flutter",
+    "orm",
+    "sqlite",
+    "code generation"
   ],
   "icon": "images/icon.png",
   "activationEvents": [
@@ -25,9 +40,25 @@
         "command": "phorm.convertToModel",
         "title": "To Phorm Model",
         "category": "Phorm"
+      },
+      {
+        "command": "phorm.convertClass",
+        "title": "Convert class to Phorm Model",
+        "category": "Phorm"
+      },
+      {
+        "command": "phorm.runBuildRunner",
+        "title": "Run build_runner build",
+        "category": "Phorm"
       }
     ],
     "menus": {
+      "commandPalette": [
+        {
+          "command": "phorm.convertClass",
+          "when": "false"
+        }
+      ],
       "explorer/context": [
         {
           "command": "phorm.convertToModel",
@@ -42,18 +73,60 @@
           "group": "1_modification@99"
         }
       ]
+    },
+    "snippets": [
+      {
+        "language": "dart",
+        "path": "./snippets/phorm.json"
+      }
+    ],
+    "configuration": {
+      "title": "Phorm",
+      "properties": {
+        "phorm.generateFullService": {
+          "type": "boolean",
+          "default": true,
+          "markdownDescription": "Emit `@Schema(generateFullService: false)` when converting, so the generator skips the large pluralized static service class."
+        },
+        "phorm.timestamps": {
+          "type": "boolean",
+          "default": true,
+          "markdownDescription": "When `false`, emit `@Schema(timestamps: false)` to disable automatic `createdAt`/`updatedAt` management."
+        },
+        "phorm.paranoid": {
+          "type": "boolean",
+          "default": false,
+          "markdownDescription": "When `true`, emit `@Schema(paranoid: true)` to enable soft deletes."
+        },
+        "phorm.addFromJson": {
+          "type": "boolean",
+          "default": true,
+          "markdownDescription": "Generate a `fromJson` factory in the converted model (skipped if the class already declares one)."
+        },
+        "phorm.enableCodeLens": {
+          "type": "boolean",
+          "default": true,
+          "description": "Show a \"To PHORM Model\" CodeLens above plain Dart classes."
+        }
+      }
     }
   },
   "scripts": {
     "vscode:prepublish": "npm run compile",
     "compile": "tsc -p ./",
     "watch": "tsc -watch -p ./",
+    "lint": "eslint src --ext ts",
+    "test": "vitest run",
     "package": "vsce package"
   },
   "devDependencies": {
     "@types/node": "^20.0.0",
     "@types/vscode": "^1.85.0",
+    "@typescript-eslint/eslint-plugin": "^7.0.0",
+    "@typescript-eslint/parser": "^7.0.0",
     "@vscode/vsce": "^2.22.0",
-    "typescript": "^5.3.0"
+    "eslint": "^8.57.0",
+    "typescript": "^5.3.0",
+    "vitest": "^1.6.0"
   }
 }
