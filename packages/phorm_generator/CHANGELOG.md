@@ -1,11 +1,14 @@
 # Changelog
 
-## 1.1.1
+## 1.2.0
 
-- Bumped `phorm_annotations` dependency to `^1.1.2`, which fixes
-  `MigrationBuilder.build()` dropping the table's `columns`, `timestamps`, and
-  `autoIncrement` fields (previously broke relationship serialization and
-  timestamp handling for tables rebuilt via the fluent migration API).
+- Added support for the new `@Schema(generateFullService: ...)` option. When
+  set to `false`, the generator no longer emits the large pluralized static
+  service class (e.g. `Users`); only the lightweight schema, table, mappers and
+  `copyWith` are generated. Defaults to `true`, so existing output is unchanged.
+- Bumped `phorm_annotations` dependency to `^1.2.0`, which also carries the
+  `MigrationBuilder.build()` fix (previously dropped `columns`, `timestamps`,
+  and `autoIncrement` when rebuilding a table via the fluent migration API).
 
 ## 1.1.0
 

@@ -97,6 +97,13 @@ Defines table-level configuration.
 | `columnNaming`  | `ColumnNamingStrategy` | Strategy for mapping field names to SQL (snakeCase, camelCase, pascalCase). |
 | `dialect`       | `SqlDialectKind`       | Target SQL dialect for DDL generation (`sqlite` (default), `postgres`, `mysql`). |
 | `relationships` | `List<Relationship>`   | Define `HasMany`, `HasOne`, or `BelongsTo`.                                 |
+| `timestamps`    | `bool`                 | Auto-manage `createdAt` / `updatedAt` (default `true`).                     |
+| `useToJson`     | `bool`                 | Generate the `toJson()` mapper (default `true`).                            |
+| `useFromJson`   | `bool`                 | Generate the `fromJson()` factory (default `true`).                         |
+| `useCopyWith`   | `bool`                 | Generate the `copyWith()` helper (default `true`).                          |
+| `useToString`   | `bool`                 | Generate the `toString()` helper (default `true`).                          |
+| `useValidator`  | `bool`                 | Generate the `validate()` method from column `CHECK` constraints (default `true`). |
+| `generateFullService` | `bool`           | Generate the pluralized static service class (e.g. `Users`) exposing the full CRUD/query API and column constants. Set `false` to emit only the lightweight schema/table/mappers and skip the large service (default `true`). |
 
 ### `@Column`
 

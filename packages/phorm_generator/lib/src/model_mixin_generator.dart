@@ -38,6 +38,8 @@ class ModelMixinGenerator extends GeneratorForAnnotation<Schema> {
     final useToString = annotation.peek('useToString')?.boolValue ?? true;
     final timestamps = annotation.peek('timestamps')?.boolValue ?? true;
     final paranoid = annotation.peek('paranoid')?.boolValue ?? false;
+    final generateFullService =
+        annotation.peek('generateFullService')?.boolValue ?? true;
 
     final tableName =
         annotation.peek('tableName')?.stringValue ??
@@ -607,164 +609,168 @@ class ModelMixinGenerator extends GeneratorForAnnotation<Schema> {
     }
 
     // 5. Pluralized service object (e.g. Posts)
-    final serviceName =
-        tableName
-            .split('_')
-            .map((s) => s[0].toUpperCase() + s.substring(1))
-            .join();
-    buffer
-      ..writeln()
-      ..writeln('/// Pluralized service for $className')
-      ..writeln('class $serviceName {');
+    if (generateFullService) {
+      final serviceName =
+          tableName
+              .split('_')
+              .map((s) => s[0].toUpperCase() + s.substring(1))
+              .join();
+      buffer
+        ..writeln()
+        ..writeln('/// Pluralized service for $className')
+        ..writeln('class $serviceName {');
 
-    // Add Columns to Service Class
-    for (final field in fields.where((f) => _isColumn(f))) {
-      final sqlName = MetadataExtractor.getSqlColumnName(field, strategy);
-      var type = field.type.getDisplayString(withNullability: true);
-      if (type.endsWith('?')) type = type.substring(0, type.length - 1);
-      buffer.writeln(
-        "  static const PhormColumn<$type> ${field.name} = PhormColumn<$type>('$sqlName', tableName: '$tableName');",
-      );
-    }
-
-    if (timestamps) {
-      if (!existsCreatedAt) {
+      // Add Columns to Service Class
+      for (final field in fields.where((f) => _isColumn(f))) {
+        final sqlName = MetadataExtractor.getSqlColumnName(field, strategy);
+        var type = field.type.getDisplayString(withNullability: true);
+        if (type.endsWith('?')) type = type.substring(0, type.length - 1);
         buffer.writeln(
-          "  static const PhormColumn<DateTime> createdAt = PhormColumn<DateTime>('created_at', tableName: '$tableName');",
+          "  static const PhormColumn<$type> ${field.name} = PhormColumn<$type>('$sqlName', tableName: '$tableName');",
         );
       }
-      if (!existsUpdatedAt) {
-        buffer.writeln(
-          "  static const PhormColumn<DateTime> updatedAt = PhormColumn<DateTime>('updated_at', tableName: '$tableName');",
-        );
-      }
-    }
-    if (paranoid && !existsDeletedAt) {
-      buffer.writeln(
-        "  static const PhormColumn<DateTime> deletedAt = PhormColumn<DateTime>('deleted_at', tableName: '$tableName');",
-      );
-    }
 
-    // Synthesized FKs
-    for (final rel in relationships) {
-      if (rel['type'] == 'BelongsTo') {
-        final fkName = rel['foreignKeyName'] as String;
-        final fkSqlName = rel['foreignKey'] as String;
-        final existsFk = fields.any((f) => f.name == fkName);
-        if (!existsFk) {
+      if (timestamps) {
+        if (!existsCreatedAt) {
           buffer.writeln(
-            "  static const PhormColumn<dynamic> $fkName = PhormColumn<dynamic>('$fkSqlName', tableName: '$tableName');",
+            "  static const PhormColumn<DateTime> createdAt = PhormColumn<DateTime>('created_at', tableName: '$tableName');",
+          );
+        }
+        if (!existsUpdatedAt) {
+          buffer.writeln(
+            "  static const PhormColumn<DateTime> updatedAt = PhormColumn<DateTime>('updated_at', tableName: '$tableName');",
           );
         }
       }
+      if (paranoid && !existsDeletedAt) {
+        buffer.writeln(
+          "  static const PhormColumn<DateTime> deletedAt = PhormColumn<DateTime>('deleted_at', tableName: '$tableName');",
+        );
+      }
+
+      // Synthesized FKs
+      for (final rel in relationships) {
+        if (rel['type'] == 'BelongsTo') {
+          final fkName = rel['foreignKeyName'] as String;
+          final fkSqlName = rel['foreignKey'] as String;
+          final existsFk = fields.any((f) => f.name == fkName);
+          if (!existsFk) {
+            buffer.writeln(
+              "  static const PhormColumn<dynamic> $fkName = PhormColumn<dynamic>('$fkSqlName', tableName: '$tableName');",
+            );
+          }
+        }
+      }
+
+      buffer
+        ..writeln()
+        ..writeln(
+          '  static PhormCore<$classType> get _service => PhormCore<$classType>(dbManager: appDb, table: ${tableName}Table);',
+        )
+        ..writeln()
+        ..writeln(
+          '  static PhormQuery<$classType> where(PhormCondition condition) => _service.where(condition);',
+        )
+        ..writeln(
+          '  static PhormQuery<$classType> get query => _service.query;',
+        )
+        ..writeln()
+        ..writeln(
+          '  static Future<int> insert($classType item, {DatabaseExecutor? executor}) => _service.insert(item, executor: executor);',
+        )
+        ..writeln(
+          '  static Future<int> update($classType item, {DatabaseExecutor? executor}) => _service.update(item, executor: executor);',
+        )
+        ..writeln(
+          '  static Future<void> upsert($classType item, {DatabaseExecutor? executor}) => _service.upsert(item, executor: executor);',
+        )
+        ..writeln(
+          '  static Future<int> delete(Object id, {bool force = false, DatabaseExecutor? executor}) => _service.delete(id, force: force, executor: executor);',
+        )
+        ..writeln(
+          '  static Future<int> restore(Object id, {DatabaseExecutor? executor}) => _service.restore(id, executor: executor);',
+        )
+        ..writeln()
+        ..writeln(
+          '  static Future<int> insertBatch(List<$classType> items, {DatabaseExecutor? executor}) => _service.insertBatch(items, executor: executor);',
+        )
+        ..writeln(
+          '  static Future<int> updateBatch(List<$classType> items, {DatabaseExecutor? executor}) => _service.updateBatch(items, executor: executor);',
+        )
+        ..writeln(
+          '  static Future<int> upsertBatch(List<$classType> items, {DatabaseExecutor? executor}) => _service.upsertBatch(items, executor: executor);',
+        )
+        ..writeln(
+          '  static Future<int> deleteBatch(List<Object> ids, {bool force = false, DatabaseExecutor? executor}) => _service.deleteBatch(ids, force: force, executor: executor);',
+        );
+
+      if (paranoid) {
+        buffer.writeln(
+          '  static Future<int> restoreBatch(List<Object> ids, {DatabaseExecutor? executor}) => _service.restoreBatch(ids, executor: executor);',
+        );
+      }
+
+      buffer
+        ..writeln()
+        ..writeln(
+          '  static Future<bool> exists(Object id, {bool withDeleted = false, DatabaseExecutor? executor}) => _service.exists(id, withDeleted: withDeleted, executor: executor);',
+        )
+        ..writeln()
+        ..writeln(
+          '  static Future<$classType?> readOne(Object id, {List<String>? columns, Attributes? attributes, bool withDeleted = false, List<Includable>? include, DatabaseExecutor? executor}) => ',
+        )
+        ..writeln(
+          '    _service.readOne(id, columns: columns, attributes: attributes, withDeleted: withDeleted, include: include, executor: executor);',
+        )
+        ..writeln()
+        ..writeln(
+          '  static Future<Result<$classType>> readAll({int limit = 20, int offset = 0, WhereBuilder? where, SortBuilder? sort, List<String>? columns, Attributes? attributes, bool withDeleted = false, bool onlyDeleted = false, List<Includable>? include, DatabaseExecutor? executor}) => ',
+        )
+        ..writeln(
+          '    _service.readAll(limit: limit, offset: offset, where: where, sort: sort, columns: columns, attributes: attributes, withDeleted: withDeleted, onlyDeleted: onlyDeleted, include: include, executor: executor);',
+        )
+        ..writeln()
+        ..writeln(
+          '  static Future<ResultWithCount<$classType>> readAllWithCount({int limit = 20, int offset = 0, WhereBuilder? where, SortBuilder? sort, List<String>? columns, Attributes? attributes, bool withDeleted = false, bool onlyDeleted = false, List<Includable>? include, DatabaseExecutor? executor}) => ',
+        )
+        ..writeln(
+          '    _service.readAllWithCount(limit: limit, offset: offset, where: where, sort: sort, columns: columns, attributes: attributes, withDeleted: withDeleted, onlyDeleted: onlyDeleted, include: include, executor: executor);',
+        )
+        ..writeln()
+        ..writeln(
+          '  static Future<int> count({Object? column, WhereBuilder? where, DatabaseExecutor? executor}) => _service.count(column: column, where: where, executor: executor);',
+        )
+        ..writeln(
+          '  static Future<num> sum(Object column, {WhereBuilder? where, DatabaseExecutor? executor}) => _service.sum(column, where: where, executor: executor);',
+        )
+        ..writeln(
+          '  static Future<num> avg(Object column, {WhereBuilder? where, DatabaseExecutor? executor}) => _service.avg(column, where: where, executor: executor);',
+        )
+        ..writeln(
+          '  static Future<num> min(Object column, {WhereBuilder? where, DatabaseExecutor? executor}) => _service.min(column, where: where, executor: executor);',
+        )
+        ..writeln(
+          '  static Future<num> max(Object column, {WhereBuilder? where, DatabaseExecutor? executor}) => _service.max(column, where: where, executor: executor);',
+        )
+        ..writeln()
+        ..writeln(
+          '  static Future<T> transaction<T>(Future<T> Function(DatabaseExecutor txn) action) => _service.transaction(action);',
+        )
+        ..writeln()
+        ..writeln(
+          '  static Stream<String> get changeStream => _service.dbManager.changeStream;',
+        )
+        ..writeln(
+          '  static Stream<$classType?> watchOne(Object id, {List<Includable>? include}) => _service.watchOne(id, include: include);',
+        )
+        ..writeln(
+          '  static Stream<List<$classType>> watchAll({WhereBuilder? where, List<Includable>? include, SortBuilder? sort, int? limit}) => ',
+        )
+        ..writeln(
+          '    _service.watchAll(where: where, include: include, sort: sort, limit: limit);',
+        )
+        ..writeln('}');
     }
-
-    buffer
-      ..writeln()
-      ..writeln(
-        '  static PhormCore<$classType> get _service => PhormCore<$classType>(dbManager: appDb, table: ${tableName}Table);',
-      )
-      ..writeln()
-      ..writeln(
-        '  static PhormQuery<$classType> where(PhormCondition condition) => _service.where(condition);',
-      )
-      ..writeln('  static PhormQuery<$classType> get query => _service.query;')
-      ..writeln()
-      ..writeln(
-        '  static Future<int> insert($classType item, {DatabaseExecutor? executor}) => _service.insert(item, executor: executor);',
-      )
-      ..writeln(
-        '  static Future<int> update($classType item, {DatabaseExecutor? executor}) => _service.update(item, executor: executor);',
-      )
-      ..writeln(
-        '  static Future<void> upsert($classType item, {DatabaseExecutor? executor}) => _service.upsert(item, executor: executor);',
-      )
-      ..writeln(
-        '  static Future<int> delete(Object id, {bool force = false, DatabaseExecutor? executor}) => _service.delete(id, force: force, executor: executor);',
-      )
-      ..writeln(
-        '  static Future<int> restore(Object id, {DatabaseExecutor? executor}) => _service.restore(id, executor: executor);',
-      )
-      ..writeln()
-      ..writeln(
-        '  static Future<int> insertBatch(List<$classType> items, {DatabaseExecutor? executor}) => _service.insertBatch(items, executor: executor);',
-      )
-      ..writeln(
-        '  static Future<int> updateBatch(List<$classType> items, {DatabaseExecutor? executor}) => _service.updateBatch(items, executor: executor);',
-      )
-      ..writeln(
-        '  static Future<int> upsertBatch(List<$classType> items, {DatabaseExecutor? executor}) => _service.upsertBatch(items, executor: executor);',
-      )
-      ..writeln(
-        '  static Future<int> deleteBatch(List<Object> ids, {bool force = false, DatabaseExecutor? executor}) => _service.deleteBatch(ids, force: force, executor: executor);',
-      );
-
-    if (paranoid) {
-      buffer.writeln(
-        '  static Future<int> restoreBatch(List<Object> ids, {DatabaseExecutor? executor}) => _service.restoreBatch(ids, executor: executor);',
-      );
-    }
-
-    buffer
-      ..writeln()
-      ..writeln(
-        '  static Future<bool> exists(Object id, {bool withDeleted = false, DatabaseExecutor? executor}) => _service.exists(id, withDeleted: withDeleted, executor: executor);',
-      )
-      ..writeln()
-      ..writeln(
-        '  static Future<$classType?> readOne(Object id, {List<String>? columns, Attributes? attributes, bool withDeleted = false, List<Includable>? include, DatabaseExecutor? executor}) => ',
-      )
-      ..writeln(
-        '    _service.readOne(id, columns: columns, attributes: attributes, withDeleted: withDeleted, include: include, executor: executor);',
-      )
-      ..writeln()
-      ..writeln(
-        '  static Future<Result<$classType>> readAll({int limit = 20, int offset = 0, WhereBuilder? where, SortBuilder? sort, List<String>? columns, Attributes? attributes, bool withDeleted = false, bool onlyDeleted = false, List<Includable>? include, DatabaseExecutor? executor}) => ',
-      )
-      ..writeln(
-        '    _service.readAll(limit: limit, offset: offset, where: where, sort: sort, columns: columns, attributes: attributes, withDeleted: withDeleted, onlyDeleted: onlyDeleted, include: include, executor: executor);',
-      )
-      ..writeln()
-      ..writeln(
-        '  static Future<ResultWithCount<$classType>> readAllWithCount({int limit = 20, int offset = 0, WhereBuilder? where, SortBuilder? sort, List<String>? columns, Attributes? attributes, bool withDeleted = false, bool onlyDeleted = false, List<Includable>? include, DatabaseExecutor? executor}) => ',
-      )
-      ..writeln(
-        '    _service.readAllWithCount(limit: limit, offset: offset, where: where, sort: sort, columns: columns, attributes: attributes, withDeleted: withDeleted, onlyDeleted: onlyDeleted, include: include, executor: executor);',
-      )
-      ..writeln()
-      ..writeln(
-        '  static Future<int> count({Object? column, WhereBuilder? where, DatabaseExecutor? executor}) => _service.count(column: column, where: where, executor: executor);',
-      )
-      ..writeln(
-        '  static Future<num> sum(Object column, {WhereBuilder? where, DatabaseExecutor? executor}) => _service.sum(column, where: where, executor: executor);',
-      )
-      ..writeln(
-        '  static Future<num> avg(Object column, {WhereBuilder? where, DatabaseExecutor? executor}) => _service.avg(column, where: where, executor: executor);',
-      )
-      ..writeln(
-        '  static Future<num> min(Object column, {WhereBuilder? where, DatabaseExecutor? executor}) => _service.min(column, where: where, executor: executor);',
-      )
-      ..writeln(
-        '  static Future<num> max(Object column, {WhereBuilder? where, DatabaseExecutor? executor}) => _service.max(column, where: where, executor: executor);',
-      )
-      ..writeln()
-      ..writeln(
-        '  static Future<T> transaction<T>(Future<T> Function(DatabaseExecutor txn) action) => _service.transaction(action);',
-      )
-      ..writeln()
-      ..writeln(
-        '  static Stream<String> get changeStream => _service.dbManager.changeStream;',
-      )
-      ..writeln(
-        '  static Stream<$classType?> watchOne(Object id, {List<Includable>? include}) => _service.watchOne(id, include: include);',
-      )
-      ..writeln(
-        '  static Stream<List<$classType>> watchAll({WhereBuilder? where, List<Includable>? include, SortBuilder? sort, int? limit}) => ',
-      )
-      ..writeln(
-        '    _service.watchAll(where: where, include: include, sort: sort, limit: limit);',
-      )
-      ..writeln('}');
 
     if (relationships.isNotEmpty) {
       buffer

@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.2.0]
+
+- Bumped `phorm` dependency to `^1.2.0` (and `phorm_generator` dev dependency to
+  `^1.2.0`), exposing the new `@Schema(generateFullService: ...)` option.
+- Bumped `sqlite3_web` to `^0.4.1`.
+
 ## [1.1.0]
 
 - Bumped `phorm` dependency to `^1.1.0` and `phorm_generator` (dev) to `^1.1.0`.
