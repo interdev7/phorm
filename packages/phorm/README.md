@@ -13,6 +13,8 @@
 
 **`phorm`** is the core runtime engine of **PHORM** (Predictable Harmonious ORM) — a lightweight, type-safe, and driver-agnostic ORM for Dart and Flutter.
 
+> 💡 **Tip:** the [PHORM Code Generator](https://marketplace.visualstudio.com/items?itemName=interlibdev.phorm-code) VS Code extension turns a plain Dart class into a fully annotated PHORM model in one click.
+
 It defines the unified interface for queries, transactions, soft deletes, and complex parent-child relationships, delegating the low-level database execution to specific driver packages (such as `phorm_sqlite`).
 
 ---

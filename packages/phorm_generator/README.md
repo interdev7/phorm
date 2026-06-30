@@ -9,6 +9,8 @@
 
 The magic behind PHORM. This package uses `build_runner` to turn your Dart models into optimized SQL schemas and type-safe CRUD mixins.
 
+> 💡 **Tip:** the [PHORM Code Generator](https://marketplace.visualstudio.com/items?itemName=interlibdev.phorm-code) VS Code extension converts a plain Dart class into a fully annotated PHORM model in one click, so you only need to run `build_runner` afterwards.
+
 ---
 
 ## What it does
