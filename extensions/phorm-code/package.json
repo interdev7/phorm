@@ -12,7 +12,7 @@
   "bugs": {
     "url": "https://github.com/interdev7/phorm/issues"
   },
-  "publisher": "interdev7",
+  "publisher": "interlibdev",
   "engines": {
     "vscode": "^1.85.0"
   },
