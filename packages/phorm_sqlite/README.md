@@ -10,6 +10,8 @@ SQLite driver for PHORM.
 
 `phorm_sqlite` is the official SQLite driver and connection manager implementation for the **PHORM ORM**.
 
+> 💡 **Tip:** the [PHORM Code Generator](https://marketplace.visualstudio.com/items?itemName=interlibdev.phorm-code) VS Code extension turns a plain Dart class into a fully annotated PHORM model in one click.
+
 It implements the database interfaces from `phorm` (`PhormDatabase`, `DatabaseExecutor`) and handles connection lifecycles, background isolate execution, custom SQL functions, and smart schema migrations.
 
 ---
