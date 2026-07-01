@@ -1,4 +1,3 @@
-import 'package:phorm/phorm.dart'; // forced rebuild
 import 'package:phorm_sqlite/phorm_sqlite.dart';
 import 'package:phorm_example/db.dart';
 

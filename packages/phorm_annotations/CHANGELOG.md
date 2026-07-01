@@ -1,5 +1,16 @@
 # Changelog
 
+## [1.3.0]
+
+- Added `createPivot` to `@ManyToMany` (defaults to `false`). When `true`, the
+  code generator emits a `CREATE TABLE IF NOT EXISTS` for the pivot table
+  automatically (two foreign-key columns plus a composite primary key), so it no
+  longer has to be created manually.
+- Added `pivotForeignKeys` to `@ManyToMany` (defaults to `false`). When used
+  together with `createPivot`, the generated pivot table also includes
+  `FOREIGN KEY (...) REFERENCES ... ON DELETE CASCADE` constraints for both
+  columns.
+
 ## [1.2.0]
 
 - Added `generateFullService` to `@Schema` (defaults to `true`). When set to

@@ -295,6 +295,10 @@ class DB implements PhormDatabase {
       if (tableCheck.isEmpty) {
         logger?.info('New table detected: ${table.name}. Creating...');
         await _createTable(db, table);
+      } else {
+        // Table already exists — still ensure any IF NOT EXISTS-guarded
+        // objects (e.g. auto-generated pivot tables) are present.
+        await _ensureIdempotentSchemaObjects(db, table);
       }
     }
 
@@ -348,41 +352,90 @@ class DB implements PhormDatabase {
     ''');
   }
 
+  /// Splits a schema string into individual SQL statements.
+  ///
+  /// Uses smart splitting so trigger bodies (BEGIN...END blocks) are not broken
+  /// apart on their internal semicolons.
+  List<String> _splitSchemaStatements(String schema) {
+    final statements = <String>[];
+    final rawParts = schema.split(';');
+    String currentStatement = '';
+
+    for (final part in rawParts) {
+      currentStatement += part;
+      final normalized = currentStatement.toUpperCase();
+
+      // Count BEGIN and END blocks to handle triggers
+      final beginCount = RegExp(r'\bBEGIN\b').allMatches(normalized).length;
+      final endCount = RegExp(r'\bEND\b').allMatches(normalized).length;
+
+      if (beginCount == endCount) {
+        final trimmed = currentStatement.trim();
+        if (trimmed.isNotEmpty) {
+          statements.add(trimmed);
+        }
+        currentStatement = '';
+      } else {
+        currentStatement += ';';
+      }
+    }
+
+    return statements;
+  }
+
+  /// Extracts the table name from a `CREATE TABLE [IF NOT EXISTS] <name>`
+  /// statement, or `null` if the statement is not a CREATE TABLE.
+  String? _createTableTargetName(String statement) {
+    final match = RegExp(
+      r'CREATE\s+TABLE\s+(?:IF\s+NOT\s+EXISTS\s+)?["`\[]?(\w+)',
+      caseSensitive: false,
+    ).firstMatch(statement);
+    return match?.group(1);
+  }
+
   /// Creates a single table with its schema
   Future<void> _createTable(Database db, Table table) async {
     try {
       logger?.info('Creating table: ${table.name}');
 
-      // Smart splitting to avoid breaking triggers (BEGIN...END blocks)
-      final statements = <String>[];
-      final rawParts = table.schema.split(';');
-      String currentStatement = '';
-
-      for (final part in rawParts) {
-        currentStatement += part;
-        final normalized = currentStatement.toUpperCase();
-
-        // Count BEGIN and END blocks to handle triggers
-        final beginCount = RegExp(r'\bBEGIN\b').allMatches(normalized).length;
-        final endCount = RegExp(r'\bEND\b').allMatches(normalized).length;
-
-        if (beginCount == endCount) {
-          final trimmed = currentStatement.trim();
-          if (trimmed.isNotEmpty) {
-            statements.add(trimmed);
-          }
-          currentStatement = '';
-        } else {
-          currentStatement += ';';
+      for (final statement in _splitSchemaStatements(table.schema)) {
+        // A schema may carry extra CREATE TABLE statements (e.g. an
+        // auto-generated pivot table from @ManyToMany(createPivot: true)).
+        // Surface those so the developer knows a pivot was created too.
+        final target = _createTableTargetName(statement);
+        if (target != null && target != table.name) {
+          logger?.info(
+            'Also creating pivot table: $target (from ${table.name} relationships)',
+          );
         }
-      }
-
-      for (final statement in statements) {
         await db.execute(statement);
       }
     } catch (e, stackTrace) {
       logger?.error('Failed to create table ${table.name}', e, stackTrace);
       rethrow;
+    }
+  }
+
+  /// Executes the idempotent (`IF NOT EXISTS`) statements from a table's schema.
+  ///
+  /// Used on upgrade to ensure auto-generated pivot tables (and any other
+  /// `IF NOT EXISTS`-guarded objects) are created even when the owning model
+  /// table already exists — e.g. when a `@ManyToMany(createPivot: true)`
+  /// relationship is added to an existing model in a later version.
+  Future<void> _ensureIdempotentSchemaObjects(
+    Database db,
+    Table table,
+  ) async {
+    for (final statement in _splitSchemaStatements(table.schema)) {
+      if (statement.toUpperCase().contains('IF NOT EXISTS')) {
+        final target = _createTableTargetName(statement);
+        if (target != null && target != table.name) {
+          logger?.info(
+            'Also creating pivot table: $target (from ${table.name} relationships)',
+          );
+        }
+        await db.execute(statement);
+      }
     }
   }
 
