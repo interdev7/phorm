@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.3.0]
+
+- Bumped `phorm_annotations` dependency to `^1.3.0`, which adds the
+  `@ManyToMany(createPivot: ...)` and `@ManyToMany(pivotForeignKeys: ...)`
+  options (re-exported by `phorm`) for automatically generating the pivot
+  (join) table of a many-to-many relationship.
+
 ## [1.2.0]
 
 - Bumped `phorm_annotations` dependency to `^1.2.0`, which adds the
