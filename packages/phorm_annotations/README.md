@@ -197,11 +197,19 @@ Relationships define how models connect. They are used by `phorm` for automatic 
       pivotTable: 'user_roles',
       foreignKey: 'user_id',
       relatedKey: 'role_id',
+      createPivot: true,      // auto-create the pivot table (default: false)
+      pivotForeignKeys: true, // add FK ... ON DELETE CASCADE (needs createPivot)
     ),
   ],
 )
 class User extends Model with _$PhormUserMixin { ... }
 ```
+
+> **Pivot tables**: by default the pivot (join) table for a `ManyToMany` must be
+> created manually. Set `createPivot: true` to let `phorm_generator` emit a
+> `CREATE TABLE IF NOT EXISTS <pivot>` automatically, and `pivotForeignKeys: true`
+> to also generate `FOREIGN KEY ... ON DELETE CASCADE` constraints for both
+> columns. Both default to `false`, so existing schemas are unaffected.
 
 ---
 
