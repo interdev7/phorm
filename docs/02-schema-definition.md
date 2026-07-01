@@ -40,12 +40,22 @@ class User extends Model with _$PhormUserMixin { ... }
 | `columnNaming`  | `ColumnNamingStrategy` | `snakeCase` | Field → column mapping strategy                       |
 | `dialect`       | `SqlDialectKind`       | `sqlite`    | Target SQL dialect for DDL generation (`sqlite`, `postgres`, `mysql`) |
 | `indexes`       | `List<Index>`          | `[]`        | Table indexes                                         |
-| `relationships` | `List<Relationship>`   | `[]`        | `HasMany`, `HasOne`, `BelongsTo`/`Join`, `ManyToMany` |
+| `relationships` | `List<Relationship>`   | `[]`        | `HasMany`, `HasOne`, `BelongsTo`/`Join`, `ManyToMany` (see note below) |
 | `useToJson`     | `bool`                 | `true`      | Generate toJson mixin                                 |
 | `useFromJson`   | `bool`                 | `true`      | Generate fromJson helper                              |
 | `useCopyWith`   | `bool`                 | `true`      | Generate copyWith method                              |
 | `useValidator`  | `bool`                 | `true`      | Generate validate() method                            |
 | `useToString`   | `bool`                 | `true`      | Generate toString() helper                            |
+
+> [!NOTE]
+> Relationships are declarations used for querying and eager loading — the
+> generator does **not** create the related tables. The one exception is
+> `ManyToMany(createPivot: true)`, which appends a
+> `CREATE TABLE IF NOT EXISTS <pivot>` to the generated schema so the join table
+> is created automatically (optionally with `ON DELETE CASCADE` foreign keys via
+> `pivotForeignKeys: true`). See the
+> [Many-to-Many](file:///Users/interdev7/Documents/phorm/docs/11-many-to-many.md)
+> guide for details.
 
 ### Target SQL Dialect
 
