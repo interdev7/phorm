@@ -273,6 +273,29 @@ class ManyToMany extends Relationship {
   /// The column in the related model that is referenced by [relatedKey].
   final String relatedLocalKey;
 
+  /// Whether the code generator should emit a `CREATE TABLE IF NOT EXISTS`
+  /// statement for the [pivotTable] automatically.
+  ///
+  /// When `true`, the generated schema includes a minimal pivot table with the
+  /// [foreignKey] and [relatedKey] columns and a composite primary key over
+  /// both. When `false` (the default) the pivot table must be created manually
+  /// (e.g. via a migration), preserving backwards-compatible behaviour.
+  final bool createPivot;
+
+  /// Whether the auto-generated pivot table (see [createPivot]) should also
+  /// include `FOREIGN KEY (...) REFERENCES ... ON DELETE CASCADE` constraints
+  /// for both pivot columns.
+  ///
+  /// Only takes effect together with `createPivot: true`. When enabled, the
+  /// [foreignKey] column references the owning model's [localKey] and the
+  /// [relatedKey] column references the related model's [relatedLocalKey], both
+  /// with `ON DELETE CASCADE` so pivot rows are cleaned up automatically.
+  ///
+  /// Note: SQLite cannot add foreign keys to an existing table, so enabling
+  /// this on a pivot that was already created without constraints requires a
+  /// manual table-recreation migration.
+  final bool pivotForeignKeys;
+
   const ManyToMany({
     required super.model,
     required this.pivotTable,
@@ -280,6 +303,8 @@ class ManyToMany extends Relationship {
     required this.relatedKey,
     super.localKey = 'id',
     this.relatedLocalKey = 'id',
+    this.createPivot = false,
+    this.pivotForeignKeys = false,
     super.onDelete,
     super.onUpdate,
   });

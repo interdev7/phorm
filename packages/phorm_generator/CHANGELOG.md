@@ -1,5 +1,18 @@
 # Changelog
 
+## 1.3.0
+
+- Auto-generate the pivot table for `@ManyToMany(createPivot: true)`. The pivot
+  `CREATE TABLE IF NOT EXISTS` (two foreign-key columns + composite primary key)
+  is appended to the model's schema, so it is created automatically at
+  build_runner time and applied through migrations — no manual pivot setup.
+- When `@ManyToMany(pivotForeignKeys: true)` is also set, the generated pivot
+  table includes `FOREIGN KEY (...) REFERENCES ... ON DELETE CASCADE`
+  constraints for both columns. Column types are inferred from each model's
+  primary key.
+- Bumped `phorm_annotations` dependency to `^1.3.0` (required for the new
+  `createPivot` / `pivotForeignKeys` options).
+
 ## 1.2.0
 
 - Added support for the new `@Schema(generateFullService: ...)` option. When

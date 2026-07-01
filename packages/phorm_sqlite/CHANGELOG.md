@@ -1,5 +1,14 @@
 # Changelog
 
+## [1.3.0]
+
+- Auto-generated pivot tables (from `@ManyToMany(createPivot: true)`) are now
+  created on database upgrade as well, not only on first creation: any
+  `IF NOT EXISTS`-guarded statement in a table's schema is re-applied when the
+  owning table already exists.
+- Added an informational log line when a pivot table is created alongside its
+  model table (e.g. `Also creating pivot table: user_roles`).
+
 ## [1.2.0]
 
 - Bumped `phorm` dependency to `^1.2.0` (and `phorm_generator` dev dependency to

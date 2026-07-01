@@ -72,6 +72,9 @@ class PhormSchemaGenerator extends GeneratorForAnnotation<Schema> {
     bool hasUpdatedAt = false;
     bool hasDeletedAt = false;
     String primaryKey = 'id';
+    // SQL type of the owning model's primary key. Used when synthesizing the
+    // foreign-key column of an auto-generated pivot table.
+    String primaryKeySqlType = 'TEXT';
 
     for (final field in fields) {
       final sqlName = MetadataExtractor.getSqlColumnName(field, strategy);
@@ -88,6 +91,7 @@ class PhormSchemaGenerator extends GeneratorForAnnotation<Schema> {
       if (annotationMeta != null &&
           annotationMeta.element?.enclosingElement?.name == 'ID') {
         primaryKey = sqlName;
+        primaryKeySqlType = MetadataExtractor.resolveSqlType(field, dialect);
       }
 
       if (annotationMeta == null) continue;
@@ -187,6 +191,19 @@ class PhormSchemaGenerator extends GeneratorForAnnotation<Schema> {
       }
     }
 
+    // Emit CREATE TABLE statements for pivot tables of ManyToMany relations
+    // that opted in via `createPivot: true`. Appended to the schema string so
+    // they are created alongside the model table (and re-run through migrations).
+    final pivotSql = _generatePivotTables(
+      relationships,
+      primaryKeySqlType,
+      tableName,
+      primaryKey,
+    );
+    if (pivotSql.isNotEmpty) {
+      indexSql = indexSql.isEmpty ? pivotSql : '$indexSql\n$pivotSql';
+    }
+
     return stringSchemaBuilder(
       columns: columnSql,
       foreignKeys: foreignKeys,
@@ -214,7 +231,7 @@ class PhormSchemaGenerator extends GeneratorForAnnotation<Schema> {
       final r = ConstantReader(item);
       final type = item.type!.element!.name;
       final modelReader = r.read('model');
-      final res = {
+      final res = <String, dynamic>{
         'type': type,
         'model': _resolveModelName(modelReader),
         'idType': MetadataExtractor.resolveIdSqlType(modelReader, dialect),
@@ -228,6 +245,9 @@ class PhormSchemaGenerator extends GeneratorForAnnotation<Schema> {
         res['pivotTable'] = r.read('pivotTable').stringValue;
         res['relatedKey'] = r.read('relatedKey').stringValue;
         res['relatedLocalKey'] = r.read('relatedLocalKey').stringValue;
+        res['createPivot'] = r.peek('createPivot')?.boolValue ?? false;
+        res['pivotForeignKeys'] =
+            r.peek('pivotForeignKeys')?.boolValue ?? false;
       }
       return res;
     }).toList();
@@ -240,7 +260,7 @@ class PhormSchemaGenerator extends GeneratorForAnnotation<Schema> {
     final reader = ConstantReader(meta.computeConstantValue());
     final type = meta.element!.enclosingElement!.name!;
     final modelReader = reader.read('model');
-    final res = {
+    final res = <String, dynamic>{
       'type': type,
       'model': _resolveModelName(modelReader),
       'idType': MetadataExtractor.resolveIdSqlType(modelReader, dialect),
@@ -254,6 +274,9 @@ class PhormSchemaGenerator extends GeneratorForAnnotation<Schema> {
       res['pivotTable'] = reader.read('pivotTable').stringValue;
       res['relatedKey'] = reader.read('relatedKey').stringValue;
       res['relatedLocalKey'] = reader.read('relatedLocalKey').stringValue;
+      res['createPivot'] = reader.peek('createPivot')?.boolValue ?? false;
+      res['pivotForeignKeys'] =
+          reader.peek('pivotForeignKeys')?.boolValue ?? false;
     }
     return res;
   }
@@ -292,6 +315,71 @@ class PhormSchemaGenerator extends GeneratorForAnnotation<Schema> {
       'Relationship model must be a String (table name) or a Model class Type.',
       element: modelReader.objectValue.type?.element,
     );
+  }
+
+  // ──────────────────────────────────────────────────────────────
+  // Pivot tables
+  // ──────────────────────────────────────────────────────────────
+
+  /// Builds `CREATE TABLE IF NOT EXISTS` statements for every ManyToMany
+  /// relationship that opted in with `createPivot: true`.
+  ///
+  /// The generated pivot table contains the two foreign-key columns and a
+  /// composite primary key over both. [ownerPkSqlType] is the SQL type of the
+  /// owning model's primary key (used for the [ManyToMany.foreignKey] column);
+  /// the related side uses the resolved `idType` of the related model.
+  ///
+  /// When a relationship sets `pivotForeignKeys: true`, `FOREIGN KEY (...)
+  /// REFERENCES ... ON DELETE CASCADE` constraints are emitted for both columns:
+  /// [ManyToMany.foreignKey] references [ownerTable]([ownerPrimaryKey]) and
+  /// [ManyToMany.relatedKey] references the related model's table/local key.
+  String _generatePivotTables(
+    List<Map<String, dynamic>> relationships,
+    String ownerPkSqlType,
+    String ownerTable,
+    String ownerPrimaryKey,
+  ) {
+    final buffer = StringBuffer();
+    final seen = <String>{};
+
+    for (final rel in relationships) {
+      if (rel['type'] != 'ManyToMany') continue;
+      if (rel['createPivot'] != true) continue;
+
+      final pivotTable = rel['pivotTable'] as String;
+      if (!seen.add(pivotTable)) continue; // de-dupe identical pivot tables
+
+      final foreignKey = rel['foreignKey'] as String;
+      final relatedKey = rel['relatedKey'] as String;
+      final relatedType = rel['idType'] as String? ?? 'TEXT';
+      final withForeignKeys = rel['pivotForeignKeys'] == true;
+
+      buffer
+        ..writeln('CREATE TABLE IF NOT EXISTS $pivotTable (')
+        ..writeln('  $foreignKey $ownerPkSqlType NOT NULL,')
+        ..writeln('  $relatedKey $relatedType NOT NULL,');
+
+      if (withForeignKeys) {
+        final ownerLocalKey = rel['localKey'] as String? ?? ownerPrimaryKey;
+        final relatedTable = rel['model'] as String;
+        final relatedLocalKey = rel['relatedLocalKey'] as String? ?? 'id';
+
+        buffer
+          ..writeln('  PRIMARY KEY ($foreignKey, $relatedKey),')
+          ..writeln(
+            '  FOREIGN KEY ($foreignKey) REFERENCES $ownerTable($ownerLocalKey) ON DELETE CASCADE,',
+          )
+          ..writeln(
+            '  FOREIGN KEY ($relatedKey) REFERENCES $relatedTable($relatedLocalKey) ON DELETE CASCADE',
+          );
+      } else {
+        buffer.writeln('  PRIMARY KEY ($foreignKey, $relatedKey)');
+      }
+
+      buffer.writeln(');');
+    }
+
+    return buffer.toString().trim();
   }
 
   // ──────────────────────────────────────────────────────────────
