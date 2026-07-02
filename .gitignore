@@ -57,3 +57,6 @@ app.*.map.json
 *.g.dart
 *.sql.g.dart
 *.fn.g.dart
+
+# fvm
+.fvm/
