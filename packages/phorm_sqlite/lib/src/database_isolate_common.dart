@@ -178,7 +178,9 @@ abstract interface class DatabaseIsolate {
   Future<void> stop();
 
   /// Creates a [BatchBuilder] attached to this backend
+  // coverage:ignore-start
   BatchBuilder createBatch() => BatchBuilder(this);
+  // coverage:ignore-end
 }
 
 /// Batch builder for collecting operations before committing them

@@ -25,5 +25,7 @@ class Collate {
   /// Comparison ignoring trailing whitespace.
   static const String rtrim = 'RTRIM';
 
+  // coverage:ignore-start
   Collate._();
+  // coverage:ignore-end
 }

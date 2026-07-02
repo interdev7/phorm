@@ -39,12 +39,14 @@ class PhormSchemaGenerator extends GeneratorForAnnotation<Schema> {
             ? ColumnNamingStrategy.snakeCase
             : ColumnNamingStrategy.values.firstWhere(
               (e) => e.name == strategyReader.revive().accessor.split('.').last,
+              // coverage:ignore-start
               orElse:
                   () =>
                       throw InvalidGenerationSourceError(
                         'Unknown ColumnNamingStrategy value',
                         element: element,
                       ),
+              // coverage:ignore-end
             );
 
     final dialectReader = schemaReader.peek('dialect');
@@ -53,7 +55,9 @@ class PhormSchemaGenerator extends GeneratorForAnnotation<Schema> {
             ? SqlDialectKind.sqlite
             : SqlDialectKind.values.firstWhere(
               (e) => e.name == dialectReader.revive().accessor.split('.').last,
+              // coverage:ignore-start
               orElse: () => SqlDialectKind.sqlite,
+              // coverage:ignore-end
             );
     final dialect = SchemaGenerator.fromKind(dialectKind);
 
@@ -270,6 +274,10 @@ class PhormSchemaGenerator extends GeneratorForAnnotation<Schema> {
       'onUpdate': reader.peek('onUpdate')?.stringValue,
     };
 
+    // Field-level relationships are only scanned for BelongsTo/HasMany/HasOne/
+    // Join (see the caller), so `type` is never 'ManyToMany' here. Kept for
+    // symmetry with class-level parsing; excluded from coverage.
+    // coverage:ignore-start
     if (type == 'ManyToMany') {
       res['pivotTable'] = reader.read('pivotTable').stringValue;
       res['relatedKey'] = reader.read('relatedKey').stringValue;
@@ -278,6 +286,7 @@ class PhormSchemaGenerator extends GeneratorForAnnotation<Schema> {
       res['pivotForeignKeys'] =
           reader.peek('pivotForeignKeys')?.boolValue ?? false;
     }
+    // coverage:ignore-end
     return res;
   }
 

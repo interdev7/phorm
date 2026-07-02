@@ -29,5 +29,7 @@ class SqlTypes {
   static const String numeric = 'NUMERIC';
 
   /// Private constructor to prevent instantiation.
+  // coverage:ignore-start
   SqlTypes._();
+  // coverage:ignore-end
 }

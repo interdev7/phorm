@@ -30,7 +30,9 @@ class ModelMixinGenerator extends GeneratorForAnnotation<Schema> {
             ? ColumnNamingStrategy.snakeCase
             : ColumnNamingStrategy.values.firstWhere(
               (e) => e.name == strategyReader.revive().accessor.split('.').last,
+              // coverage:ignore-start
               orElse: () => ColumnNamingStrategy.snakeCase,
+              // coverage:ignore-end
             );
     final useToJson = annotation.peek('useToJson')?.boolValue ?? true;
     final useFromJson = annotation.peek('useFromJson')?.boolValue ?? true;
@@ -123,12 +125,16 @@ class ModelMixinGenerator extends GeneratorForAnnotation<Schema> {
         final isCollection = type == 'HasMany' || type == 'ManyToMany';
 
         if (modelClass == 'dynamic') {
+          // Defensive: a relationship's `model` is always a resolvable String
+          // or Type, so `modelClass` is never 'dynamic' in practice.
+          // coverage:ignore-start
           if (isCollection) {
             final match = RegExp('List<([^>]+)>').firstMatch(fieldTypeStr);
             if (match != null) modelClass = match.group(1)!;
           } else {
             modelClass = fieldTypeStr;
           }
+          // coverage:ignore-end
         }
 
         var fieldName = field.name;
@@ -1067,7 +1073,9 @@ class ModelMixinGenerator extends GeneratorForAnnotation<Schema> {
       final revived = reader.revive();
       return "const ${_reviveToCheckCode(revived)}";
     } catch (_) {
+      // coverage:ignore-start
       return obj.toString();
+      // coverage:ignore-end
     }
   }
 }

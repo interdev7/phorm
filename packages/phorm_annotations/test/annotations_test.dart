@@ -91,6 +91,27 @@ Table<_User> _table({String schema = 'CREATE TABLE users (id INTEGER)'}) =>
       columns: const ['id'],
     );
 
+/// Concrete subclasses that `extends` the abstract validator interfaces so
+/// their (const) super constructors are executed at runtime.
+class _Validator extends IValidator {
+  @override
+  String? get constraint => null;
+}
+
+class _JsonValidator extends IJsonValidator {
+  @override
+  String? get constraint => null;
+  @override
+  bool isValid(dynamic value) => true;
+}
+
+class _SqlValidator extends ISqlValidator {
+  @override
+  String? get constraint => null;
+  @override
+  String get sql => '{column} IS NOT NULL';
+}
+
 void main() {
   group('PhormColumn', () {
     test('toString without table name returns plain name', () {
@@ -641,6 +662,24 @@ void main() {
         ..query('SELECT 1', ['a'], const Duration(milliseconds: 2))
         ..slowQuery('SELECT 1', ['a'], const Duration(seconds: 1))
         ..error('boom', 'details');
+    });
+  });
+
+  group('validator interface constructors', () {
+    test('concrete subclasses run the abstract super constructors', () {
+      // Runtime (non-const) invocation executes each super constructor.
+      expect(_Validator().constraint, isNull);
+      expect(_JsonValidator().isValid('x'), isTrue);
+      expect(_SqlValidator().sql, contains('{column}'));
+    });
+  });
+
+  group('SQLite affinity types', () {
+    test('NUMERIC affinity type is constructible', () {
+      // Runtime (non-const) construction so the constructor is covered.
+      // ignore: prefer_const_constructors
+      final SqlType t = NUMERIC();
+      expect(t, isA<NUMERIC>());
     });
   });
 }
