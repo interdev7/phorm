@@ -43,7 +43,10 @@ class _PhormCombinedGenerator extends Generator {
     var annotated = library.annotatedWith(schemaChecker);
 
     if (annotated.isEmpty) {
-      // Fallback: manually check classes
+      // Fallback: manually check classes. Defensive — `annotatedWith` already
+      // finds every @Schema class in practice, so this path is unreachable in
+      // normal builds and excluded from coverage.
+      // coverage:ignore-start
       final allAnnotated = <AnnotatedElement>[];
       for (final c in library.allElements.whereType<ClassElement>()) {
         final annotation = schemaChecker.firstAnnotationOf(c);
@@ -52,6 +55,7 @@ class _PhormCombinedGenerator extends Generator {
         }
       }
       annotated = allAnnotated;
+      // coverage:ignore-end
     }
 
     if (annotated.isEmpty) {

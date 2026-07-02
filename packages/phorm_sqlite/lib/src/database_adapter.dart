@@ -384,8 +384,10 @@ class _BatchOp {
       case 'execute':
         await db.execute(sql!, arguments);
         return null;
+      // coverage:ignore-start
       default:
         throw StateError('Unknown batch operation type: $type');
+      // coverage:ignore-end
     }
   }
 }

@@ -151,7 +151,9 @@ class MetadataExtractor {
       final info = getConverterInfo(field);
       if (info != null) {
         final sqlType = info.sqlType;
-        if (sqlType.isDartCoreInt) return dialect.mapCoreType('int', isEnum: false);
+        if (sqlType.isDartCoreInt) {
+          return dialect.mapCoreType('int', isEnum: false);
+        }
         if (sqlType.isDartCoreDouble) {
           return dialect.mapCoreType('double', isEnum: false);
         }
@@ -180,10 +182,15 @@ class MetadataExtractor {
 
     final element = type.element;
     if (element != null) {
-      if (element is EnumElement) return dialect.mapCoreType(null, isEnum: true);
+      if (element is EnumElement) {
+        return dialect.mapCoreType(null, isEnum: true);
+      }
+      // Defensive: enums always resolve to EnumElement above.
+      // coverage:ignore-start
       if (element.kind.name == 'ENUM') {
         return dialect.mapCoreType(null, isEnum: true);
       }
+      // coverage:ignore-end
     }
 
     return dialect.mapCoreType(type.element?.name, isEnum: false);
@@ -221,11 +228,15 @@ class MetadataExtractor {
       ...converterType.allSupertypes,
     ].firstWhere(
       (t) => valueConverterChecker.isExactly(t.element),
+      // Defensive: the `converter` argument is statically typed as
+      // ValueConverter, so a match always exists.
+      // coverage:ignore-start
       orElse:
           () =>
               throw Exception(
                 'Converter ${converterType.element.name} must inherit from ValueConverter',
               ),
+      // coverage:ignore-end
     );
 
     final typeArguments = valueConverterType.typeArguments;

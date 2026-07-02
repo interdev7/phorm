@@ -22,5 +22,7 @@ class ReferentialAction {
   static const String noAction = 'NO ACTION';
 
   /// Private constructor to prevent instantiation.
+  // coverage:ignore-start
   ReferentialAction._();
+  // coverage:ignore-end
 }

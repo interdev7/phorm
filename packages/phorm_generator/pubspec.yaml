@@ -8,6 +8,12 @@ repository: https://github.com/interdev7/phorm
 homepage: https://github.com/interdev7/phorm/tree/main/packages/phorm_generator
 issue_tracker: https://github.com/interdev7/phorm/issues
 license: MIT
+topics:
+  - orm
+  - code-generation
+  - build-runner
+  - database
+  - sql
 
 environment:
   sdk: ">=3.7.0 <4.0.0"

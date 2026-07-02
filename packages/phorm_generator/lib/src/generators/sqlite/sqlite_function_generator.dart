@@ -19,10 +19,11 @@ class SqliteFunctionGenerator extends FunctionGenerator {
   String generate(List<SqlFuncData> functions) {
     if (functions.isEmpty) return '';
 
-    final buffer = StringBuffer()
-      // 1. Generate Custom SQL functions list registration
-      ..writeln('// Custom SQL function registrations')
-      ..writeln('final customSqlFunctions = [');
+    final buffer =
+        StringBuffer()
+          // 1. Generate Custom SQL functions list registration
+          ..writeln('// Custom SQL function registrations')
+          ..writeln('final customSqlFunctions = [');
     for (final fn in functions) {
       final name = fn.sqlName;
       final dartName = fn.element.name;
