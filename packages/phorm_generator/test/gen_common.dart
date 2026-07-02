@@ -1,33 +1,60 @@
 import 'package:build/build.dart';
 import 'package:build_test/build_test.dart';
 import 'package:phorm_generator/builder.dart';
+import 'package:phorm_generator/src/phorm_function_generator.dart';
+import 'package:source_gen/source_gen.dart';
 
-/// Runs the combined schema + mixin builder over [source] and returns the
-/// generated `.sql.g.dart` content for `pkg|lib/model.dart`.
-Future<String> generateSchema(String source) async {
-  final builder = standaloneSqlSchemaBuilder(BuilderOptions.empty);
-  final writer = InMemoryAssetWriter();
-  await testBuilder(
-    builder,
-    {'pkg|lib/model.dart': source},
-    writer: writer,
-    reader: await PackageAssetReader.currentIsolate(),
-  );
-  final output = writer.assets[AssetId('pkg', 'lib/model.sql.g.dart')];
-  return output == null ? '' : String.fromCharCodes(output);
+/// A minimal [BuildStep] exposing only [inputId] — the only member the PHORM
+/// generators read. Everything else throws via [noSuchMethod].
+class _FakeBuildStep implements BuildStep {
+  @override
+  AssetId get inputId => AssetId('phorm_generator', 'lib/model.dart');
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
-/// Runs the SQL-function builder over [source] and returns the generated
-/// `.fn.g.dart` content.
-Future<String> generateFunctions(String source) async {
-  final builder = standaloneSqlFunctionBuilder(BuilderOptions.empty);
-  final writer = InMemoryAssetWriter();
-  await testBuilder(
-    builder,
-    {'pkg|lib/model.dart': source},
-    writer: writer,
-    reader: await PackageAssetReader.currentIsolate(),
+/// Runs the real combined schema + mixin generator over [source] and returns
+/// the generated Dart source.
+///
+/// Uses `resolveSource` with all package sources available so that
+/// `package:phorm_annotations` annotations resolve under analyzer 13 /
+/// build_test 3.x, then drives [PhormCombinedGenerator] directly (the same
+/// generator [standaloneSqlSchemaBuilder] wraps).
+Future<String> generateSchema(String source) async {
+  var output = '';
+  await resolveSource(
+    source,
+    (resolver) async {
+      final lib = await resolver.libraries.firstWhere(
+        (l) => l.uri.toString().contains('_resolve_source'),
+      );
+      output = await PhormCombinedGenerator().generate(
+        LibraryReader(lib),
+        _FakeBuildStep(),
+      );
+    },
+    readAllSourcesFromFilesystem: true,
   );
-  final output = writer.assets[AssetId('pkg', 'lib/model.fn.g.dart')];
-  return output == null ? '' : String.fromCharCodes(output);
+  return output;
+}
+
+/// Runs the SQL-function generator over [source] and returns the generated
+/// Dart source (empty when there are no `@SqlFunc` functions).
+Future<String> generateFunctions(String source) async {
+  var output = '';
+  await resolveSource(
+    source,
+    (resolver) async {
+      final lib = await resolver.libraries.firstWhere(
+        (l) => l.uri.toString().contains('_resolve_source'),
+      );
+      output = await PhormFunctionGenerator().generate(
+        LibraryReader(lib),
+        _FakeBuildStep(),
+      );
+    },
+    readAllSourcesFromFilesystem: true,
+  );
+  return output;
 }

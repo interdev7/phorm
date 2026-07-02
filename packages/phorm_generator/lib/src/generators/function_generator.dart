@@ -8,7 +8,7 @@ import 'sqlite/sqlite_function_generator.dart';
 /// Parsed representation of a Dart function annotated with [SqlFunc].
 class SqlFuncData {
   /// The annotated Dart function element.
-  final FunctionElement element;
+  final TopLevelFunctionElement element;
 
   /// The resolved SQL-native name of the function.
   final String sqlName;

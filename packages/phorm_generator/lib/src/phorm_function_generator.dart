@@ -27,13 +27,13 @@ class PhormFunctionGenerator extends Generator {
 
     // Find all top-level functions in the library
     for (final element in library.allElements) {
-      if (element is FunctionElement) {
+      if (element is TopLevelFunctionElement) {
         final annotation = sqlFuncChecker.firstAnnotationOf(element);
         if (annotation == null) continue;
 
         final reader = ConstantReader(annotation);
         final explicitName = reader.read('name').literalValue as String?;
-        final sqlName = explicitName ?? element.name.toUpperCase();
+        final sqlName = explicitName ?? (element.name ?? '').toUpperCase();
 
         functions.add(SqlFuncData(element: element, sqlName: sqlName));
       }

@@ -273,8 +273,9 @@ class DynRel {
     });
   });
 
-  test('sqlSchemaBuilder factory builds a SharedPartBuilder', () {
-    final builder = sqlSchemaBuilder(BuilderOptions.empty);
-    expect(builder, isNotNull);
+  test('builder factories construct builders', () {
+    expect(sqlSchemaBuilder(BuilderOptions.empty), isNotNull);
+    expect(standaloneSqlSchemaBuilder(BuilderOptions.empty), isNotNull);
+    expect(standaloneSqlFunctionBuilder(BuilderOptions.empty), isNotNull);
   });
 }

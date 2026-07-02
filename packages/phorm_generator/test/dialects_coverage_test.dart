@@ -1,4 +1,3 @@
-import 'package:analyzer/dart/element/element.dart';
 import 'package:build_test/build_test.dart';
 import 'package:phorm_annotations/phorm_annotations.dart';
 import 'package:phorm_generator/src/generators/function_generator.dart';
@@ -66,7 +65,10 @@ void main() {
   group('dialect strategy factories and names', () {
     test('SchemaGenerator.fromKind returns each dialect', () {
       expect(SchemaGenerator.fromKind(SqlDialectKind.sqlite).name, 'sqlite');
-      expect(SchemaGenerator.fromKind(SqlDialectKind.postgres).name, 'postgres');
+      expect(
+        SchemaGenerator.fromKind(SqlDialectKind.postgres).name,
+        'postgres',
+      );
       expect(SchemaGenerator.fromKind(SqlDialectKind.mysql).name, 'mysql');
     });
 
@@ -108,9 +110,7 @@ void foo() {}
 ''',
     (resolver) async {
       final lib = await resolver.findLibraryByName('t');
-      final fn = lib!.topLevelElements.whereType<FunctionElement>().firstWhere(
-            (e) => e.name == 'foo',
-          );
+      final fn = lib!.topLevelFunctions.firstWhere((e) => e.name == 'foo');
       data = SqlFuncData(element: fn, sqlName: 'FOO');
     },
   );
