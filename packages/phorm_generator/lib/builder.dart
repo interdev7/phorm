@@ -17,7 +17,7 @@ Builder sqlSchemaBuilder(BuilderOptions options) {
 
 Builder standaloneSqlSchemaBuilder(BuilderOptions options) {
   return LibraryBuilder(
-    _PhormCombinedGenerator(),
+    PhormCombinedGenerator(),
     generatedExtension: '.sql.g.dart',
   );
 }
@@ -29,7 +29,9 @@ Builder standaloneSqlFunctionBuilder(BuilderOptions options) {
   );
 }
 
-class _PhormCombinedGenerator extends Generator {
+/// Combines [PhormSchemaGenerator] and [ModelMixinGenerator] into the single
+/// `.sql.g.dart` library emitted by [standaloneSqlSchemaBuilder].
+class PhormCombinedGenerator extends Generator {
   final _schemaGen = PhormSchemaGenerator();
   final _mixinGen = ModelMixinGenerator();
 

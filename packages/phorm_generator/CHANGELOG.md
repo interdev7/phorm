@@ -1,5 +1,14 @@
 # Changelog
 
+## 1.4.0
+
+- Migrate to the latest analyzer element model: `analyzer` ^13.3.0, `build`
+  ^4.0.6, `source_gen` ^4.2.3 and `dart_style` ^3.1.9. Requires Dart SDK
+  ^3.9.0 (bundled with Flutter 3.35+).
+- Internal only: no changes to generated output. Existing `@Schema`-annotated
+  models regenerate identically.
+- Add `topics` to `pubspec.yaml` for pub.dev discoverability.
+
 ## 1.3.0
 
 - Auto-generate the pivot table for `@ManyToMany(createPivot: true)`. The pivot

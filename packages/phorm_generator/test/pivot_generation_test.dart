@@ -5,27 +5,13 @@
 // and assert that the generated .sql.g.dart actually contains the pivot table.
 // This proves the pivot is materialized at build_runner time, inside .g.dart.
 
-import 'package:build/build.dart';
-import 'package:build_test/build_test.dart';
-import 'package:phorm_generator/builder.dart';
 import 'package:test/test.dart';
+
+import 'gen_common.dart';
 
 /// Runs the standalone schema builder over [source] and returns the generated
 /// `.sql.g.dart` content for `pkg|lib/model.dart`.
-Future<String> generate(String source) async {
-  final builder = standaloneSqlSchemaBuilder(BuilderOptions.empty);
-  final writer = InMemoryAssetWriter();
-
-  await testBuilder(
-    builder,
-    {'pkg|lib/model.dart': source},
-    writer: writer,
-    reader: await PackageAssetReader.currentIsolate(),
-  );
-
-  final output = writer.assets[AssetId('pkg', 'lib/model.sql.g.dart')];
-  return output == null ? '' : String.fromCharCodes(output);
-}
+Future<String> generate(String source) => generateSchema(source);
 
 void main() {
   test('createPivot: true emits a minimal pivot CREATE TABLE', () async {

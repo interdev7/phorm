@@ -42,7 +42,7 @@ class MetadataExtractor {
       final element = type.element;
       if (element is ClassElement) {
         final schemaMeta =
-            element.metadata
+            element.metadata.annotations
                 .where((m) => m.element?.enclosingElement?.name == 'Schema')
                 .firstOrNull;
 
@@ -53,7 +53,7 @@ class MetadataExtractor {
           final tableName = schemaReader.peek('tableName')?.stringValue;
           if (tableName != null) return tableName;
         }
-        return camelToSnake(element.name);
+        return camelToSnake(element.name ?? '');
       }
     } catch (_) {}
 
@@ -97,10 +97,11 @@ class MetadataExtractor {
       final element = type.element;
       if (element is ClassElement) {
         final idField = element.fields.firstWhere(
-          (f) =>
-              f.metadata.any((m) => m.element?.enclosingElement?.name == 'ID'),
+          (f) => f.metadata.annotations.any(
+            (m) => m.element?.enclosingElement?.name == 'ID',
+          ),
         );
-        final dartName = idField.name;
+        final dartName = idField.name ?? 'id';
         final sqlName = getSqlColumnName(idField, strategy);
         return (dartName: dartName, sqlName: sqlName);
       }
@@ -118,8 +119,9 @@ class MetadataExtractor {
       final element = type.element;
       if (element is ClassElement) {
         final idField = element.fields.firstWhere(
-          (f) =>
-              f.metadata.any((m) => m.element?.enclosingElement?.name == 'ID'),
+          (f) => f.metadata.annotations.any(
+            (m) => m.element?.enclosingElement?.name == 'ID',
+          ),
         );
 
         return resolveSqlType(idField, dialect);
@@ -270,11 +272,12 @@ class MetadataExtractor {
     FieldElement field,
     ColumnNamingStrategy strategy,
   ) {
+    final fieldName = field.name ?? '';
     final annotation =
         columnChecker.firstAnnotationOf(field) ??
         idChecker.firstAnnotationOf(field);
 
-    if (annotation == null) return camelToSnake(field.name);
+    if (annotation == null) return camelToSnake(fieldName);
 
     final reader = ConstantReader(annotation);
     final explicitName = reader.peek('columnName')?.stringValue;
@@ -282,11 +285,11 @@ class MetadataExtractor {
 
     switch (strategy) {
       case ColumnNamingStrategy.snakeCase:
-        return camelToSnake(field.name);
+        return camelToSnake(fieldName);
       case ColumnNamingStrategy.pascalCase:
-        return field.name[0].toUpperCase() + field.name.substring(1);
+        return fieldName[0].toUpperCase() + fieldName.substring(1);
       default:
-        return field.name;
+        return fieldName;
     }
   }
 
