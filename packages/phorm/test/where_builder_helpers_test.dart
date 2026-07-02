@@ -2,8 +2,6 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:phorm/phorm.dart';
 
 void main() {
-  const dialect = NoEscapeDialect();
-
   group('WhereBuilder conditional helpers', () {
     test('addIf runs the builder only when the flag is true', () {
       final included = WhereBuilder().addIf(true, (w) => w.eq('age', 1));
@@ -13,10 +11,14 @@ void main() {
     });
 
     test('addNotNull runs the builder only for non-null values', () {
-      final included =
-          WhereBuilder().addNotNull<int>(5, (w, v) => w.eq('age', v));
-      final excluded =
-          WhereBuilder().addNotNull<int>(null, (w, v) => w.eq('age', v));
+      final included = WhereBuilder().addNotNull<int>(
+        5,
+        (w, v) => w.eq('age', v),
+      );
+      final excluded = WhereBuilder().addNotNull<int>(
+        null,
+        (w, v) => w.eq('age', v),
+      );
       expect(included.isNotEmpty, isTrue);
       expect(excluded.isEmpty, isTrue);
     });
@@ -29,17 +31,13 @@ void main() {
 
   group('WhereBuilders factory patterns', () {
     test('softDelete builds the right filter per flag combination', () {
+      expect(WhereBuilders.softDelete(paranoid: false).isEmpty, isTrue);
       expect(
-        WhereBuilders.softDelete(paranoid: false).isEmpty,
-        isTrue,
-      );
-      expect(
-        WhereBuilders.softDelete(paranoid: true).build(dialect),
+        WhereBuilders.softDelete(paranoid: true).build(),
         contains('deleted_at'),
       );
       expect(
-        WhereBuilders.softDelete(paranoid: true, onlyDeleted: true)
-            .build(dialect),
+        WhereBuilders.softDelete(paranoid: true, onlyDeleted: true).build(),
         contains('IS NOT NULL'),
       );
       expect(
@@ -48,23 +46,27 @@ void main() {
       );
     });
 
-    test('multiColumnSearch builds an OR group of case-insensitive matches', () {
-      final where = WhereBuilders.multiColumnSearch(
-        'john',
-        const ['first_name', 'last_name'],
-      );
-      expect(where.args, ['%john%', '%john%']);
+    test(
+      'multiColumnSearch builds an OR group of case-insensitive matches',
+      () {
+        final where = WhereBuilders.multiColumnSearch('john', const [
+          'first_name',
+          'last_name',
+        ]);
+        expect(where.args, ['%john%', '%john%']);
 
-      final cs = WhereBuilders.multiColumnSearch(
-        'john',
-        const ['first_name'],
-        caseSensitive: true,
-      );
-      expect(cs.args, ['%john%']);
+        final cs = WhereBuilders.multiColumnSearch('john', const [
+          'first_name',
+        ], caseSensitive: true);
+        expect(cs.args, ['%john%']);
 
-      // Empty query or columns produce an empty builder.
-      expect(WhereBuilders.multiColumnSearch('', const ['a']).isEmpty, isTrue);
-      expect(WhereBuilders.multiColumnSearch('x', const []).isEmpty, isTrue);
-    });
+        // Empty query or columns produce an empty builder.
+        expect(
+          WhereBuilders.multiColumnSearch('', const ['a']).isEmpty,
+          isTrue,
+        );
+        expect(WhereBuilders.multiColumnSearch('x', const []).isEmpty, isTrue);
+      },
+    );
   });
 }

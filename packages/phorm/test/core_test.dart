@@ -16,19 +16,19 @@ class _User extends Model {
 
   @override
   Map<String, dynamic> toJson() => {
-        'id': id,
-        if (name != null) 'name': name,
-        if (age != null) 'age': age,
-        if (createdAt != null) 'created_at': createdAt,
-      };
+    'id': id,
+    if (name != null) 'name': name,
+    if (age != null) 'age': age,
+    if (createdAt != null) 'created_at': createdAt,
+  };
 }
 
 // Top-level factory so it can be sent to an isolate.
 _User _userFromJson(Map<String, dynamic> m) => _User(
-      id: m['id'] as int,
-      name: m['name'] as String?,
-      age: m['age'] as int?,
-    );
+  id: m['id'] as int,
+  name: m['name'] as String?,
+  age: m['age'] as int?,
+);
 
 class _Post extends Model {
   _Post(this.id);
@@ -57,8 +57,7 @@ class _RecordingBatch implements Batch {
     Map<String, Object?> values, {
     String? nullColumnHack,
     ConflictAlgorithm? conflictAlgorithm,
-  }) =>
-      ops.add('insert');
+  }) => ops.add('insert');
 
   @override
   void update(
@@ -67,8 +66,7 @@ class _RecordingBatch implements Batch {
     String? where,
     List<Object?>? whereArgs,
     ConflictAlgorithm? conflictAlgorithm,
-  }) =>
-      ops.add('update');
+  }) => ops.add('update');
 
   @override
   void delete(String table, {String? where, List<Object?>? whereArgs}) =>
@@ -77,11 +75,14 @@ class _RecordingBatch implements Batch {
   @override
   void execute(String sql, [List<Object?>? arguments]) => ops.add('execute');
   @override
-  void rawInsert(String sql, [List<Object?>? arguments]) => ops.add('rawInsert');
+  void rawInsert(String sql, [List<Object?>? arguments]) =>
+      ops.add('rawInsert');
   @override
-  void rawUpdate(String sql, [List<Object?>? arguments]) => ops.add('rawUpdate');
+  void rawUpdate(String sql, [List<Object?>? arguments]) =>
+      ops.add('rawUpdate');
   @override
-  void rawDelete(String sql, [List<Object?>? arguments]) => ops.add('rawDelete');
+  void rawDelete(String sql, [List<Object?>? arguments]) =>
+      ops.add('rawDelete');
 
   @override
   Future<List<Object?>> commit({bool? noResult, bool? continueOnError}) async =>
@@ -215,14 +216,11 @@ class _FakeDb implements PhormDatabase {
     String label,
     List<Object?>? arguments,
     Future<T> Function() action,
-  ) =>
-      action();
+  ) => action();
   @override
   Future<DatabaseExecutor> get executor async => executorImpl;
   @override
-  Future<T> transaction<T>(
-    Future<T> Function(DatabaseExecutor txn) action,
-  ) =>
+  Future<T> transaction<T>(Future<T> Function(DatabaseExecutor txn) action) =>
       action(executorImpl);
   @override
   Future<void> close() async {
@@ -238,41 +236,39 @@ Table<_User> _usersTable({
   bool paranoid = false,
   bool timestamps = true,
   List<Relationship> relationships = const [],
-}) =>
-    Table<_User>(
-      schema:
-          'CREATE TABLE users (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT, age INTEGER)',
-      name: 'users',
-      type: _User,
-      fromJson: _userFromJson,
-      paranoid: paranoid,
-      timestamps: timestamps,
-      relationships: relationships,
-      columns: const ['id', 'name', 'age'],
-    );
+}) => Table<_User>(
+  schema:
+      'CREATE TABLE users (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT, age INTEGER)',
+  name: 'users',
+  type: _User,
+  fromJson: _userFromJson,
+  paranoid: paranoid,
+  timestamps: timestamps,
+  relationships: relationships,
+  columns: const ['id', 'name', 'age'],
+);
 
 Table<_Post> _postsTable({
   bool paranoid = false,
   List<Relationship> relationships = const [],
-}) =>
-    Table<_Post>(
-      schema: 'CREATE TABLE posts (id INTEGER, user_id INTEGER)',
-      name: 'posts',
-      type: _Post,
-      fromJson: (m) => _Post(m['id'] as int),
-      paranoid: paranoid,
-      relationships: relationships,
-      columns: const ['id', 'user_id'],
-    );
+}) => Table<_Post>(
+  schema: 'CREATE TABLE posts (id INTEGER, user_id INTEGER)',
+  name: 'posts',
+  type: _Post,
+  fromJson: (m) => _Post(m['id'] as int),
+  paranoid: paranoid,
+  relationships: relationships,
+  columns: const ['id', 'user_id'],
+);
 
 Table<_Comment> _commentsTable({bool paranoid = false}) => Table<_Comment>(
-      schema: 'CREATE TABLE comments (id INTEGER, post_id INTEGER)',
-      name: 'comments',
-      type: _Comment,
-      fromJson: (m) => _Comment(m['id'] as int),
-      paranoid: paranoid,
-      columns: const ['id', 'post_id'],
-    );
+  schema: 'CREATE TABLE comments (id INTEGER, post_id INTEGER)',
+  name: 'comments',
+  type: _Comment,
+  fromJson: (m) => _Comment(m['id'] as int),
+  paranoid: paranoid,
+  columns: const ['id', 'post_id'],
+);
 
 void main() {
   late _RecordingExecutor exec;
@@ -300,14 +296,17 @@ void main() {
   setUp(() => exec = _RecordingExecutor());
 
   group('insert', () {
-    test('strips autoincrement PK when 0 and sets created_at/updated_at', () async {
-      final core = makeCore();
-      final id = await core.insert(_User(id: 0, name: 'Jo'));
-      expect(id, 1);
-      expect(exec.lastInsertValues!.containsKey('id'), isFalse);
-      expect(exec.lastInsertValues!['created_at'], isNotNull);
-      expect(exec.lastInsertValues!['updated_at'], isNotNull);
-    });
+    test(
+      'strips autoincrement PK when 0 and sets created_at/updated_at',
+      () async {
+        final core = makeCore();
+        final id = await core.insert(_User(id: 0, name: 'Jo'));
+        expect(id, 1);
+        expect(exec.lastInsertValues!.containsKey('id'), isFalse);
+        expect(exec.lastInsertValues!['created_at'], isNotNull);
+        expect(exec.lastInsertValues!['updated_at'], isNotNull);
+      },
+    );
 
     test('keeps provided created_at and non-zero PK', () async {
       final core = makeCore();
@@ -496,10 +495,7 @@ void main() {
     });
 
     test('large result sets are parsed via an isolate', () async {
-      exec.rawQueryResult = List.generate(
-        3,
-        (i) => {'id': i, 'name': 'n$i'},
-      );
+      exec.rawQueryResult = List.generate(3, (i) => {'id': i, 'name': 'n$i'});
       final core = makeCore(isolateThreshold: 1);
       final res = await core.readAll(limit: 100);
       expect(res.data.length, 3);
@@ -560,9 +556,7 @@ void main() {
         {'val': 1},
       ];
       final core = makeCore(
-        relationships: const [
-          HasMany(model: 'posts', foreignKey: 'user_id'),
-        ],
+        relationships: const [HasMany(model: 'posts', foreignKey: 'user_id')],
         extraTables: [_postsTable()],
       );
       await core.count(where: WhereBuilder().eq('posts.id', 1));
@@ -591,14 +585,10 @@ void main() {
 
     test('HasMany include produces a json array subquery', () {
       final core = makeCore(
-        relationships: const [
-          HasMany(model: 'posts', foreignKey: 'user_id'),
-        ],
+        relationships: const [HasMany(model: 'posts', foreignKey: 'user_id')],
         extraTables: [_postsTable(paranoid: true)],
       );
-      final sql = core.getBuildJoinQuery(
-        include: [Includable.table('posts')],
-      );
+      final sql = core.getBuildJoinQuery(include: [Includable.table('posts')]);
       expect(sql, contains('posts'));
     });
 
@@ -614,30 +604,22 @@ void main() {
         ],
         extraTables: [_postsTable()],
       );
-      final sql = core.getBuildJoinQuery(
-        include: [Includable.table('posts')],
-      );
+      final sql = core.getBuildJoinQuery(include: [Includable.table('posts')]);
       expect(sql, contains('user_posts'));
     });
 
     test('BelongsTo include produces a scalar subquery', () {
       final core = makeCore(
-        relationships: const [
-          BelongsTo(model: 'posts', foreignKey: 'post_id'),
-        ],
+        relationships: const [BelongsTo(model: 'posts', foreignKey: 'post_id')],
         extraTables: [_postsTable()],
       );
-      final sql = core.getBuildJoinQuery(
-        include: [Includable.table('posts')],
-      );
+      final sql = core.getBuildJoinQuery(include: [Includable.table('posts')]);
       expect(sql, contains('posts'));
     });
 
     test('where on a related column injects a LEFT JOIN and GROUP BY', () {
       final core = makeCore(
-        relationships: const [
-          HasMany(model: 'posts', foreignKey: 'user_id'),
-        ],
+        relationships: const [HasMany(model: 'posts', foreignKey: 'user_id')],
         extraTables: [_postsTable()],
       );
       final sql = core.getBuildJoinQuery(
@@ -669,26 +651,28 @@ void main() {
   });
 
   group('watchers', () {
-    test('watchOne emits initial value then re-reads on matching change',
-        () async {
-      exec.rawQueryResult = [
-        {'id': 1, 'name': 'A'},
-      ];
-      final users = _usersTable();
-      final db = _FakeDb([users], exec);
-      final core = PhormCore<_User>(dbManager: db, table: users);
+    test(
+      'watchOne emits initial value then re-reads on matching change',
+      () async {
+        exec.rawQueryResult = [
+          {'id': 1, 'name': 'A'},
+        ];
+        final users = _usersTable();
+        final db = _FakeDb([users], exec);
+        final core = PhormCore<_User>(dbManager: db, table: users);
 
-      final future = core.watchOne(1).take(2).toList();
-      await pumpEventQueue();
-      db.changes
-        ..add('other') // ignored, no re-read
-        ..add('users'); // matching, triggers second emit
-      final emitted = await future;
-      await db.close();
+        final future = core.watchOne(1).take(2).toList();
+        await pumpEventQueue();
+        db.changes
+          ..add('other') // ignored, no re-read
+          ..add('users'); // matching, triggers second emit
+        final emitted = await future;
+        await db.close();
 
-      expect(emitted.length, 2);
-      expect(emitted.first!.id, 1);
-    });
+        expect(emitted.length, 2);
+        expect(emitted.first!.id, 1);
+      },
+    );
 
     test('watchAll emits the initial page then re-reads on change', () async {
       exec.rawQueryResult = [
@@ -715,7 +699,8 @@ void main() {
         {'id': 1, 'name': 'A', 'total_count': 1},
       ];
       final core = makeCore();
-      final list = await core.query.where(const PhormColumn<int>('age').gt(1)).get();
+      final list =
+          await core.query.where(const PhormColumn<int>('age').gt(1)).get();
       expect(list.single.id, 1);
 
       final one = await core.query.first();
@@ -741,9 +726,7 @@ void main() {
   group('relationship permutations', () {
     test('nested includes build sub-json for paranoid related tables', () {
       final core = makeCore(
-        relationships: const [
-          HasMany(model: 'posts', foreignKey: 'user_id'),
-        ],
+        relationships: const [HasMany(model: 'posts', foreignKey: 'user_id')],
         extraTables: [
           _postsTable(
             relationships: const [
@@ -767,9 +750,7 @@ void main() {
 
     test('nested BelongsTo and ManyToMany within an include', () {
       final core = makeCore(
-        relationships: const [
-          HasMany(model: 'posts', foreignKey: 'user_id'),
-        ],
+        relationships: const [HasMany(model: 'posts', foreignKey: 'user_id')],
         extraTables: [
           _postsTable(
             relationships: const [
@@ -789,10 +770,7 @@ void main() {
         include: [
           Includable.table(
             'posts',
-            include: [
-              Includable.table('comments'),
-              Includable.table('users'),
-            ],
+            include: [Includable.table('comments'), Includable.table('users')],
           ),
         ],
       );
@@ -801,9 +779,7 @@ void main() {
 
     test('BelongsTo include produces a paranoid-filtered scalar subquery', () {
       final core = makeCore(
-        relationships: const [
-          BelongsTo(model: 'posts', foreignKey: 'post_id'),
-        ],
+        relationships: const [BelongsTo(model: 'posts', foreignKey: 'post_id')],
         extraTables: [_postsTable(paranoid: true)],
       );
       final sql = core.getBuildJoinQuery(include: [Includable.table('posts')]);
@@ -828,9 +804,7 @@ void main() {
 
     test('where on a BelongsTo column injects the reverse LEFT JOIN', () {
       final core = makeCore(
-        relationships: const [
-          BelongsTo(model: 'posts', foreignKey: 'post_id'),
-        ],
+        relationships: const [BelongsTo(model: 'posts', foreignKey: 'post_id')],
         extraTables: [_postsTable()],
       );
       final sql = core.getBuildJoinQuery(
@@ -859,14 +833,10 @@ void main() {
 
     test('Type-based relationships resolve the related table', () {
       final core = makeCore(
-        relationships: const [
-          HasMany(model: _Post, foreignKey: 'user_id'),
-        ],
+        relationships: const [HasMany(model: _Post, foreignKey: 'user_id')],
         extraTables: [_postsTable()],
       );
-      final sql = core.getBuildJoinQuery(
-        include: [Includable.model<_Post>()],
-      );
+      final sql = core.getBuildJoinQuery(include: [Includable.model<_Post>()]);
       expect(sql, contains('posts'));
     });
 
@@ -875,9 +845,7 @@ void main() {
         {'val': 1},
       ];
       final core = makeCore(
-        relationships: const [
-          BelongsTo(model: 'posts', foreignKey: 'post_id'),
-        ],
+        relationships: const [BelongsTo(model: 'posts', foreignKey: 'post_id')],
         extraTables: [_postsTable()],
       );
       await core.count(where: WhereBuilder().eq('posts.id', 1));
@@ -886,21 +854,25 @@ void main() {
   });
 
   group('read edge cases', () {
-    test('default readAll on a paranoid table filters soft-deleted rows',
-        () async {
-      exec.rawQueryResult = const [];
-      final core = makeCore(paranoid: true);
-      await core.readAll();
-      expect(exec.lastSql, contains('deleted_at'));
-    });
+    test(
+      'default readAll on a paranoid table filters soft-deleted rows',
+      () async {
+        exec.rawQueryResult = const [];
+        final core = makeCore(paranoid: true);
+        await core.readAll();
+        expect(exec.lastSql, contains('deleted_at'));
+      },
+    );
 
-    test('withDeleted on a paranoid table omits the deleted_at filter',
-        () async {
-      exec.rawQueryResult = const [];
-      final core = makeCore(paranoid: true);
-      await core.readAll(withDeleted: true);
-      expect(exec.lastSql, isNot(contains('deleted_at')));
-    });
+    test(
+      'withDeleted on a paranoid table omits the deleted_at filter',
+      () async {
+        exec.rawQueryResult = const [];
+        final core = makeCore(paranoid: true);
+        await core.readAll(withDeleted: true);
+        expect(exec.lastSql, isNot(contains('deleted_at')));
+      },
+    );
 
     test('parse failure is logged and rethrown', () async {
       exec.rawQueryResult = [
@@ -914,7 +886,7 @@ void main() {
         fromJson: (m) => _User(id: m['id'] as int),
         columns: const ['id'],
       );
-      final db = _FakeDb([users], exec, loggerImpl: PhormConsoleLogger());
+      final db = _FakeDb([users], exec, loggerImpl: const PhormConsoleLogger());
       final core = PhormCore<_User>(dbManager: db, table: users);
       await expectLater(core.readAll(), throwsA(isA<TypeError>()));
     });
@@ -940,31 +912,29 @@ void main() {
       expect(exec.lastInsertValues!['created_at'], '2020-01-01');
     });
 
-    test('Type-based relationship resolves in where-join and aggregate',
-        () async {
-      exec.rawQueryResult = [
-        {'val': 1},
-      ];
-      final core = makeCore(
-        relationships: const [
-          HasMany(model: _Post, foreignKey: 'user_id'),
-        ],
-        extraTables: [_postsTable()],
-      );
-      final sql = core.getBuildJoinQuery(
-        where: WhereBuilder().eq('posts.id', 1),
-      );
-      expect(sql, contains('LEFT JOIN posts'));
+    test(
+      'Type-based relationship resolves in where-join and aggregate',
+      () async {
+        exec.rawQueryResult = [
+          {'val': 1},
+        ];
+        final core = makeCore(
+          relationships: const [HasMany(model: _Post, foreignKey: 'user_id')],
+          extraTables: [_postsTable()],
+        );
+        final sql = core.getBuildJoinQuery(
+          where: WhereBuilder().eq('posts.id', 1),
+        );
+        expect(sql, contains('LEFT JOIN posts'));
 
-      await core.count(where: WhereBuilder().eq('posts.id', 1));
-      expect(exec.lastSql, contains('LEFT JOIN posts'));
-    });
+        await core.count(where: WhereBuilder().eq('posts.id', 1));
+        expect(exec.lastSql, contains('LEFT JOIN posts'));
+      },
+    );
 
     test('nested include with a Type relationship and empty attributes', () {
       final core = makeCore(
-        relationships: const [
-          HasMany(model: 'posts', foreignKey: 'user_id'),
-        ],
+        relationships: const [HasMany(model: 'posts', foreignKey: 'user_id')],
         extraTables: [
           _postsTable(
             relationships: const [
@@ -992,9 +962,7 @@ void main() {
 
     test('nested ManyToMany include is paranoid-filtered', () {
       final core = makeCore(
-        relationships: const [
-          HasMany(model: 'posts', foreignKey: 'user_id'),
-        ],
+        relationships: const [HasMany(model: 'posts', foreignKey: 'user_id')],
         extraTables: [
           _postsTable(
             relationships: const [
@@ -1027,21 +995,27 @@ void main() {
         relationships: const [HasMany(model: 'posts', foreignKey: 'user_id')],
       );
       final posts = _postsTable(
-        relationships: const [HasMany(model: 'comments', foreignKey: 'post_id')],
+        relationships: const [
+          HasMany(model: 'comments', foreignKey: 'post_id'),
+        ],
       );
       final db = _FakeDb([users, posts, _commentsTable()], exec);
       final core = PhormCore<_User>(dbManager: db, table: users);
 
-      final future = core
-          .watchOne(
-            1,
-            include: [
-              Includable.table('posts', include: [Includable.table('comments')]),
-            ],
-            dependencies: const ['audit'],
-          )
-          .take(2)
-          .toList();
+      final future =
+          core
+              .watchOne(
+                1,
+                include: [
+                  Includable.table(
+                    'posts',
+                    include: [Includable.table('comments')],
+                  ),
+                ],
+                dependencies: const ['audit'],
+              )
+              .take(2)
+              .toList();
       await pumpEventQueue();
       db.changes.add('audit'); // dependency triggers a re-read
       final emitted = await future;
@@ -1059,13 +1033,14 @@ void main() {
       final db = _FakeDb([users, _postsTable()], exec);
       final core = PhormCore<_User>(dbManager: db, table: users);
 
-      final future = core
-          .watchAll(
-            include: [Includable.table('posts')],
-            dependencies: const ['audit'],
-          )
-          .take(2)
-          .toList();
+      final future =
+          core
+              .watchAll(
+                include: [Includable.table('posts')],
+                dependencies: const ['audit'],
+              )
+              .take(2)
+              .toList();
       await pumpEventQueue();
       db.changes.add('posts'); // included table triggers a re-read
       final emitted = await future;
