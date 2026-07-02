@@ -10,7 +10,7 @@ import 'package:source_gen/source_gen.dart';
 
 import 'metadata_extractor.dart';
 
-const _jsonValidatorChecker = TypeChecker.fromRuntime(IJsonValidator);
+const _jsonValidatorChecker = TypeChecker.typeNamed(IJsonValidator);
 
 class ModelMixinGenerator extends GeneratorForAnnotation<Schema> {
   @override
@@ -21,7 +21,7 @@ class ModelMixinGenerator extends GeneratorForAnnotation<Schema> {
   ) {
     if (element is! ClassElement) return '';
 
-    final className = element.name;
+    final className = element.name ?? '';
     final isGeneric = element.typeParameters.isNotEmpty;
     final classType = isGeneric ? '$className<dynamic>' : className;
     final strategyReader = annotation.peek('columnNaming');
@@ -50,7 +50,7 @@ class ModelMixinGenerator extends GeneratorForAnnotation<Schema> {
     final fields = element.fields.where((f) => !f.isStatic).toList();
     final hasValidators = fields.any((field) {
       final columnMeta =
-          field.metadata.where((m) {
+          field.metadata.annotations.where((m) {
             final name = m.element?.enclosingElement?.name;
             return name == 'Column' || name == 'ID';
           }).firstOrNull;
@@ -108,7 +108,7 @@ class ModelMixinGenerator extends GeneratorForAnnotation<Schema> {
     // Field level relationships
     for (final field in fields) {
       final relMeta =
-          field.metadata.where((m) {
+          field.metadata.annotations.where((m) {
             final name = m.element?.enclosingElement?.name;
             return name == 'BelongsTo' ||
                 name == 'HasMany' ||
@@ -121,7 +121,7 @@ class ModelMixinGenerator extends GeneratorForAnnotation<Schema> {
         final r = ConstantReader(relMeta.computeConstantValue());
         final type = relMeta.element!.enclosingElement!.name!;
         var modelClass = MetadataExtractor.resolveModelClass(r.read('model'));
-        final fieldTypeStr = field.type.getDisplayString(withNullability: true);
+        final fieldTypeStr = field.type.getDisplayString();
         final isCollection = type == 'HasMany' || type == 'ManyToMany';
 
         if (modelClass == 'dynamic') {
@@ -137,9 +137,9 @@ class ModelMixinGenerator extends GeneratorForAnnotation<Schema> {
           // coverage:ignore-end
         }
 
-        var fieldName = field.name;
+        var fieldName = field.name ?? '';
 
-        final fieldType = field.type.getDisplayString(withNullability: true);
+        final fieldType = field.type.getDisplayString();
         if (type == 'BelongsTo' &&
             (fieldType == 'String' ||
                 fieldType == 'int' ||
@@ -397,8 +397,8 @@ class ModelMixinGenerator extends GeneratorForAnnotation<Schema> {
           element.unnamedConstructor ?? element.constructors.first;
       buffer.writeln('  $className$typeParamsBrackets copyWith({');
 
-      for (final param in constructor.parameters) {
-        final type = param.type.getDisplayString(withNullability: true);
+      for (final param in constructor.formalParameters) {
+        final type = param.type.getDisplayString();
         final copyType = type.endsWith('?') ? type : '$type?';
         buffer.writeln('    $copyType ${param.name},');
       }
@@ -415,7 +415,7 @@ class ModelMixinGenerator extends GeneratorForAnnotation<Schema> {
         ..writeln('  }) {')
         ..writeln('    return $className(');
 
-      for (final param in constructor.parameters) {
+      for (final param in constructor.formalParameters) {
         buffer.writeln(
           '      ${param.name}: ${param.name} ?? this.${param.name},',
         );
@@ -448,7 +448,7 @@ class ModelMixinGenerator extends GeneratorForAnnotation<Schema> {
       );
       for (final field in fields) {
         final columnMeta =
-            field.metadata.where((m) {
+            field.metadata.annotations.where((m) {
               final name = m.element?.enclosingElement?.name;
               return name == 'Column' || name == 'ID';
             }).firstOrNull;
@@ -517,7 +517,7 @@ class ModelMixinGenerator extends GeneratorForAnnotation<Schema> {
 
       final constructor =
           element.unnamedConstructor ?? element.constructors.first;
-      for (final param in constructor.parameters) {
+      for (final param in constructor.formalParameters) {
         final FieldElement? field =
             fields.where((f) => f.name == param.name).firstOrNull;
 
@@ -584,7 +584,9 @@ class ModelMixinGenerator extends GeneratorForAnnotation<Schema> {
         final modelClass = rel['modelClass'];
 
         final existsRel = fields.any((f) => f.name == fieldName);
-        final paramRel = constructor.parameters.any((p) => p.name == fieldName);
+        final paramRel = constructor.formalParameters.any(
+          (p) => p.name == fieldName,
+        );
         if (!existsRel && !paramRel) {
           if (isCollection) {
             buffer.write(
@@ -601,7 +603,9 @@ class ModelMixinGenerator extends GeneratorForAnnotation<Schema> {
           final fkName = rel['foreignKeyName'];
           final fkSqlName = rel['foreignKey'];
           final existsFk = fields.any((f) => f.name == fkName);
-          final paramFk = constructor.parameters.any((p) => p.name == fkName);
+          final paramFk = constructor.formalParameters.any(
+            (p) => p.name == fkName,
+          );
           if (!existsFk && !paramFk) {
             buffer.write("\n    ..$fkName = json['$fkSqlName']");
           }
@@ -629,7 +633,7 @@ class ModelMixinGenerator extends GeneratorForAnnotation<Schema> {
       // Add Columns to Service Class
       for (final field in fields.where((f) => _isColumn(f))) {
         final sqlName = MetadataExtractor.getSqlColumnName(field, strategy);
-        var type = field.type.getDisplayString(withNullability: true);
+        var type = field.type.getDisplayString();
         if (type.endsWith('?')) type = type.substring(0, type.length - 1);
         buffer.writeln(
           "  static const PhormColumn<$type> ${field.name} = PhormColumn<$type>('$sqlName', tableName: '$tableName');",
@@ -899,12 +903,12 @@ class ModelMixinGenerator extends GeneratorForAnnotation<Schema> {
   }) {
     final isNullable = type.nullabilitySuffix == NullabilitySuffix.question;
     final typeName = type.element?.name;
-    final displayType = type.getDisplayString(withNullability: true);
+    final displayType = type.getDisplayString();
     final rawType = displayType.replaceAll('?', '');
 
     // Custom converter
     if (info != null) {
-      final sType = info.sqlType.getDisplayString(withNullability: true);
+      final sType = info.sqlType.getDisplayString();
       if (isNullable) {
         return "$jsonAccess != null ? ${info.code}.fromSql($jsonAccess as $sType) : null";
       }

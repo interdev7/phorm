@@ -18,9 +18,10 @@ class PhormSchemaGenerator extends GeneratorForAnnotation<Schema> {
   @override
   FutureOr<String> generateForAnnotatedElement(
     Element element,
-    ConstantReader schemaReader,
+    ConstantReader annotation,
     BuildStep buildStep,
   ) {
+    final schemaReader = annotation;
     if (element is! ClassElement) {
       throw InvalidGenerationSourceError(
         'Only classes can be annotated with @Schema',
@@ -28,7 +29,7 @@ class PhormSchemaGenerator extends GeneratorForAnnotation<Schema> {
       );
     }
 
-    final className = element.name;
+    final className = element.name ?? '';
     final tableName =
         schemaReader.peek('tableName')?.stringValue ?? _camelToSnake(className);
     final useFromJson = schemaReader.peek('useFromJson')?.boolValue ?? true;
@@ -87,7 +88,7 @@ class PhormSchemaGenerator extends GeneratorForAnnotation<Schema> {
       if (sqlName == 'deleted_at') hasDeletedAt = true;
 
       final annotationMeta =
-          field.metadata.where((m) {
+          field.metadata.annotations.where((m) {
             final name = m.element?.enclosingElement?.name;
             return name == 'Column' || name == 'ID';
           }).firstOrNull;
@@ -148,7 +149,7 @@ class PhormSchemaGenerator extends GeneratorForAnnotation<Schema> {
     // Also scan fields for @BelongsTo, @HasMany, @HasOne, @Join
     for (final field in fields) {
       final fieldMeta =
-          field.metadata.where((m) {
+          field.metadata.annotations.where((m) {
             final name = m.element?.enclosingElement?.name;
             return name == 'BelongsTo' ||
                 name == 'HasMany' ||
@@ -301,7 +302,7 @@ class PhormSchemaGenerator extends GeneratorForAnnotation<Schema> {
       if (element is ClassElement) {
         // Try to find @Schema annotation on the class
         final schemaMeta =
-            element.metadata
+            element.metadata.annotations
                 .where((m) => m.element?.enclosingElement?.name == 'Schema')
                 .firstOrNull;
 
@@ -314,7 +315,7 @@ class PhormSchemaGenerator extends GeneratorForAnnotation<Schema> {
         }
 
         // Fallback to class name (usually tables are snake_case of class name)
-        return element.name;
+        return element.name ?? '';
       }
     } catch (_) {
       // Not a type or could not resolve
@@ -437,16 +438,17 @@ class PhormSchemaGenerator extends GeneratorForAnnotation<Schema> {
 
     String columnName;
 
+    final fieldName = field.name ?? '';
     if (explicitName != null) {
       columnName = explicitName;
     } else {
       switch (strategy) {
         case ColumnNamingStrategy.snakeCase:
-          columnName = _camelToSnake(field.name);
+          columnName = _camelToSnake(fieldName);
         case ColumnNamingStrategy.pascalCase:
-          columnName = field.name[0].toUpperCase() + field.name.substring(1);
+          columnName = fieldName[0].toUpperCase() + fieldName.substring(1);
         default:
-          columnName = field.name;
+          columnName = fieldName;
       }
     }
 
@@ -495,7 +497,7 @@ class PhormSchemaGenerator extends GeneratorForAnnotation<Schema> {
       for (final validatorObj in validatorsReader.listValue) {
         final validatorReader = ConstantReader(validatorObj);
 
-        if (!const TypeChecker.fromRuntime(
+        if (!const TypeChecker.typeNamed(
           ISqlValidator,
         ).isAssignableFromType(validatorObj.type!)) {
           // Not an ISqlValidator — skip (IJsonValidator only, no SQL needed)
@@ -567,7 +569,7 @@ class PhormSchemaGenerator extends GeneratorForAnnotation<Schema> {
     if (type == null) return null;
 
     // Only process ISqlValidator implementors
-    if (!const TypeChecker.fromRuntime(
+    if (!const TypeChecker.typeNamed(
       ISqlValidator,
     ).isAssignableFromType(type)) {
       return null;
