@@ -103,3 +103,53 @@ jobs:
           flags: ${{ matrix.package-name }}
           name: ${{ matrix.package-name }}-coverage
           fail_ci_if_error: false
+
+  # Automatically tag packages whose pubspec version has no matching git tag.
+  # Runs only on pushes to main (after all tests pass).
+  # Created tags trigger release.yml → GitHub Release.
+  auto_tag:
+    name: Auto-tag packages
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    needs: analyze_and_test
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # need full history to check existing tags
+
+      - name: Create tags for new versions
+        run: |
+          set -euo pipefail
+
+          PACKAGES=(
+            phorm_annotations
+            phorm
+            phorm_generator
+            phorm_mysql
+            phorm_postgres
+            phorm_sqlite
+          )
+
+          for pkg in "${PACKAGES[@]}"; do
+            pubspec="packages/$pkg/pubspec.yaml"
+            if [ ! -f "$pubspec" ]; then
+              echo "⚠️  $pubspec not found — skipping"
+              continue
+            fi
+
+            version="$(awk '/^version:/{print $2; exit}' "$pubspec")"
+            tag="${pkg}-v${version}"
+
+            if git rev-parse -q --verify "refs/tags/$tag" >/dev/null 2>&1; then
+              echo "✅ $tag already exists — skipping"
+            elif git ls-remote --tags origin "$tag" 2>/dev/null | grep -q "$tag"; then
+              echo "✅ $tag exists on remote — skipping"
+            else
+              echo "🏷️  Creating tag $tag"
+              git tag "$tag"
+              git push origin "$tag"
+            fi
+          done
