@@ -66,12 +66,11 @@ void main() {
 
     test('Complex fluent query', () async {
       // Demonstrate chaining
-      final users =
-          await Users.query
-              .where(Users.age.gt(25))
-              .orderBy(Users.age, descending: true)
-              .limit(5)
-              .get();
+      final users = await Users.query
+          .where(Users.age.gt(25))
+          .orderBy(Users.age, descending: true)
+          .limit(5)
+          .get();
 
       expect(users.length, lessThanOrEqualTo(5));
       if (users.length > 1) {
@@ -84,16 +83,14 @@ void main() {
       'PhormQuery conditional query builders (whereIf and whereNotNull)',
       () async {
         // Test 1: whereIf true vs false
-        final femaleUsers =
-            await Users.query
-                .limit(100)
-                .whereIf(true, () => Users.gender.eq('F'))
-                .get();
-        final skippedUsers =
-            await Users.query
-                .limit(100)
-                .whereIf(false, () => Users.gender.eq('F'))
-                .get();
+        final femaleUsers = await Users.query
+            .limit(100)
+            .whereIf(true, () => Users.gender.eq('F'))
+            .get();
+        final skippedUsers = await Users.query
+            .limit(100)
+            .whereIf(false, () => Users.gender.eq('F'))
+            .get();
 
         expect(femaleUsers.length, greaterThan(0));
         expect(
@@ -105,16 +102,14 @@ void main() {
         final String? validCity = 'Sofia';
         final String? nullCity = null;
 
-        final sofiaUsers =
-            await Users.query
-                .limit(100)
-                .whereNotNull(validCity, (val) => Users.city.eq(val))
-                .get();
-        final allUsers =
-            await Users.query
-                .limit(100)
-                .whereNotNull(nullCity, (val) => Users.city.eq(val))
-                .get();
+        final sofiaUsers = await Users.query
+            .limit(100)
+            .whereNotNull(validCity, (val) => Users.city.eq(val))
+            .get();
+        final allUsers = await Users.query
+            .limit(100)
+            .whereNotNull(nullCity, (val) => Users.city.eq(val))
+            .get();
 
         for (final u in sofiaUsers) {
           expect(u.city, 'Sofia');
@@ -125,16 +120,16 @@ void main() {
 
     test('PhormQuery terminal aggregates and getWithCount', () async {
       // 1. count()
-      final totalSofia =
-          await Users.query.where(Users.city.eq('Sofia')).count();
+      final totalSofia = await Users.query
+          .where(Users.city.eq('Sofia'))
+          .count();
       expect(totalSofia, greaterThan(0));
 
       // 2. getWithCount()
-      final result =
-          await Users.query
-              .where(Users.city.eq('Sofia'))
-              .limit(2)
-              .getWithCount();
+      final result = await Users.query
+          .where(Users.city.eq('Sofia'))
+          .limit(2)
+          .getWithCount();
       expect(result.data.length, lessThanOrEqualTo(2));
       expect(result.count, totalSofia);
 

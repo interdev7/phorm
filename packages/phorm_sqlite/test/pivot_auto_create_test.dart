@@ -191,7 +191,11 @@ CREATE TABLE IF NOT EXISTS user_roles (
       // Deleting the user cascades to the pivot row.
       await database.delete('users', where: 'id = ?', whereArgs: ['u1']);
       final remaining = await database.rawQuery('SELECT * FROM user_roles');
-      expect(remaining, isEmpty, reason: 'ON DELETE CASCADE should clear pivot');
+      expect(
+        remaining,
+        isEmpty,
+        reason: 'ON DELETE CASCADE should clear pivot',
+      );
 
       await fkDb.close();
     },
@@ -209,12 +213,11 @@ class User extends Model {
     return User(
       id: json['id'] as String,
       name: json['name'] as String,
-      roles:
-          json['roles'] != null
-              ? (json['roles'] as List)
-                  .map((r) => Role.fromJson(r as Map<String, dynamic>))
-                  .toList()
-              : const [],
+      roles: json['roles'] != null
+          ? (json['roles'] as List)
+                .map((r) => Role.fromJson(r as Map<String, dynamic>))
+                .toList()
+          : const [],
     );
   }
 

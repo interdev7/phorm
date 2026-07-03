@@ -130,12 +130,11 @@ void main() {
 
     test('loaded object takes priority over raw stored value', () {
       final author = Author(id: 'author-10', name: 'Chekhov');
-      final article =
-          Article(id: 3, title: 'The Cherry Orchard')
-            // First set raw value
-            ..authorId = 'author-OLD'
-            // Then load the related object — getter should prefer toJson()
-            .._$author = author;
+      final article = Article(id: 3, title: 'The Cherry Orchard')
+        // First set raw value
+        ..authorId = 'author-OLD'
+        // Then load the related object — getter should prefer toJson()
+        .._$author = author;
 
       expect(
         article.authorId,
@@ -198,11 +197,10 @@ void main() {
 
     test('set FK does not affect loaded related object reference', () {
       final author = Author(id: 'original', name: 'Original');
-      final article =
-          Article(id: 11, title: 'Test')
-            .._$author = author
-            // Setting raw FK does not clear the object — getter still prefers object
-            ..authorId = 'overridden';
+      final article = Article(id: 11, title: 'Test')
+        .._$author = author
+        // Setting raw FK does not clear the object — getter still prefers object
+        ..authorId = 'overridden';
 
       // Because _$author is still set, getter returns from toJson()
       expect(

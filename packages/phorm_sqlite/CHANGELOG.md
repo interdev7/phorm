@@ -1,5 +1,16 @@
 # Changelog
 
+## [1.4.0]
+
+- Upgrade to `sqlite3` ^3.3.4, `sqlite3_flutter_libs` ^0.6.0 and `sqlite3_web`
+  ^0.9.2. Migrate the isolate backends off the deprecated `dispose()` in favor
+  of `close()`. Raises the Dart SDK floor to `>=3.10.0` (required by
+  `sqlite3_web` 0.9).
+- Add `topics` to `pubspec.yaml` for pub.dev discoverability.
+- Note: the `phorm_generator` dev-dependency is temporarily pinned to
+  `<1.4.0`, as generator 1.4.0 pulls analyzer 13 (`meta ^1.18.3`) which
+  conflicts with the `meta` version pinned by the current Flutter SDK.
+
 ## [1.3.0]
 
 - Auto-generated pivot tables (from `@ManyToMany(createPivot: true)`) are now

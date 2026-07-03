@@ -34,8 +34,9 @@ void main() {
     final orderIndexes = await database.rawQuery(
       "SELECT name FROM sqlite_master WHERE type='index' AND tbl_name='orders'",
     );
-    final orderIndexNames =
-        orderIndexes.map((i) => i['name'] as String).toList();
+    final orderIndexNames = orderIndexes
+        .map((i) => i['name'] as String)
+        .toList();
 
     expect(orderIndexNames, contains('orders_user_id_idx'));
   });
