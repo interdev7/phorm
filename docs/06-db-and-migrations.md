@@ -84,8 +84,8 @@ final usersTable = Table<User>(
   schema: 'CREATE TABLE users (id TEXT PRIMARY KEY, name TEXT NOT NULL)',
   fromJson: User.fromJson,
 ).migrate()
-  .addColumn(name: 'email', type: SqlTypes.text, version: 2)
-  .addColumn(name: 'age', type: SqlTypes.integer, version: 2)
+  .addColumn(name: 'email', type: 'TEXT', version: 2)
+  .addColumn(name: 'age', type: 'INTEGER', version: 2)
   .createIndex(name: 'idx_email', columns: ['email'], unique: true, version: 3)
   .build(); // Returns Table<User> with migrations attached
 ```
@@ -100,7 +100,8 @@ final usersTable = Table<User>(
 | `.custom(...)`      | Custom SQL                       | `description`, `version`, `migrate` callback            |
 
 > [!TIP]
-> Use the **`SqlTypes`** class for type safety when adding columns in migrations (e.g., `SqlTypes.text`, `SqlTypes.integer`, `SqlTypes.real`). This prevents typos in SQL type names.
+> `addColumn`'s `type` is a plain SQL type string — e.g. `'TEXT'`, `'INTEGER'`,
+> `'REAL'`, `'VARCHAR(255)'`. (The old `SqlTypes.*` constants are deprecated.)
 
 ```dart
 // Custom migration (arbitrary SQL)
@@ -241,7 +242,7 @@ final usersTable = Table<User>(
   timestamps: true,
   columns: ['id', 'first_name', 'email', 'created_at', 'updated_at', 'deleted_at'],
 ).migrate()
-  .addColumn(name: 'age', type: SqlTypes.integer, version: 2)
+  .addColumn(name: 'age', type: 'INTEGER', version: 2)
   .createIndex(name: 'idx_users_created', columns: ['created_at'], version: 3)
   .build();
 
