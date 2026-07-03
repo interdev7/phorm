@@ -14,15 +14,14 @@ void main() {
     test(
       'inserts a synced record when the migration is not yet tracked',
       () async {
-        final table =
-            usersTable
-                .migrate()
-                .custom(
-                  description: 'tracked later',
-                  version: 2,
-                  migrate: (db, table) async {},
-                )
-                .build();
+        final table = usersTable
+            .migrate()
+            .custom(
+              description: 'tracked later',
+              version: 2,
+              migrate: (db, table) async {},
+            )
+            .build();
         final db = DB(
           databaseName: ':memory:',
           version: 2,
@@ -104,7 +103,8 @@ void main() {
         Table<User> pivotTable(String pivotName) => Table<User>(
           type: User,
           name: 'users',
-          schema: '''
+          schema:
+              '''
               CREATE TABLE users (id TEXT PRIMARY KEY, name TEXT);
               CREATE TABLE IF NOT EXISTS $pivotName 
               (user_id TEXT NOT NULL, role_id TEXT NOT NULL, 
@@ -161,15 +161,14 @@ void main() {
       const name = 'skip_migration.db';
       await cleanup(name);
 
-      Table<User> withMigration() =>
-          usersTable
-              .migrate()
-              .custom(
-                description: 'v2 change',
-                version: 2,
-                migrate: (db, table) async {},
-              )
-              .build();
+      Table<User> withMigration() => usersTable
+          .migrate()
+          .custom(
+            description: 'v2 change',
+            version: 2,
+            migrate: (db, table) async {},
+          )
+          .build();
 
       // Create at v2 → _onCreate applies & records the v2 migration.
       final first = DB(

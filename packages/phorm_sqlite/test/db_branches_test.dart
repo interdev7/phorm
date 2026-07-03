@@ -134,15 +134,14 @@ void main() {
 
   group('DB migration-related branches', () {
     test('validateMigrations throws when migration target exceeds version', () {
-      final table =
-          usersTable
-              .migrate()
-              .custom(
-                description: 'future migration',
-                version: 5,
-                migrate: (db, table) async {},
-              )
-              .build();
+      final table = usersTable
+          .migrate()
+          .custom(
+            description: 'future migration',
+            version: 5,
+            migrate: (db, table) async {},
+          )
+          .build();
       expect(
         () => DB(
           databaseName: ':memory:',
@@ -155,20 +154,19 @@ void main() {
     });
 
     test('autoVersion picks the highest migration version', () {
-      final table =
-          usersTable
-              .migrate()
-              .custom(
-                description: 'v2',
-                version: 2,
-                migrate: (db, table) async {},
-              )
-              .custom(
-                description: 'v4',
-                version: 4,
-                migrate: (db, table) async {},
-              )
-              .build();
+      final table = usersTable
+          .migrate()
+          .custom(
+            description: 'v2',
+            version: 2,
+            migrate: (db, table) async {},
+          )
+          .custom(
+            description: 'v4',
+            version: 4,
+            migrate: (db, table) async {},
+          )
+          .build();
       final db = DB.autoVersion(
         databaseName: ':memory:',
         tables: [table],
@@ -178,15 +176,14 @@ void main() {
     });
 
     test('synchronizeHistory records pending migrations', () async {
-      final table =
-          usersTable
-              .migrate()
-              .custom(
-                description: 'sync me',
-                version: 2,
-                migrate: (db, table) async {},
-              )
-              .build();
+      final table = usersTable
+          .migrate()
+          .custom(
+            description: 'sync me',
+            version: 2,
+            migrate: (db, table) async {},
+          )
+          .build();
       final db = DB(
         databaseName: ':memory:',
         version: 2,

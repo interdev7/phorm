@@ -138,19 +138,18 @@ void main() {
     tearDown(() => db.close());
 
     test('insert/update/delete/execute/raw* operations commit', () async {
-      final batch =
-          db.batch()
-            ..insert('b', {'name': 'one', 'qty': 1})
-            ..insert('b', {
-              'name': 'two',
-              'qty': 2,
-            }, conflictAlgorithm: ConflictAlgorithm.replace)
-            ..rawInsert("INSERT INTO b (name, qty) VALUES ('three', 3)")
-            ..update('b', {'qty': 10}, where: 'name = ?', whereArgs: ['one'])
-            ..rawUpdate("UPDATE b SET qty = 20 WHERE name = 'two'")
-            ..execute("UPDATE b SET qty = qty + 1 WHERE name = 'three'")
-            ..delete('b', where: 'name = ?', whereArgs: ['nope'])
-            ..rawDelete("DELETE FROM b WHERE name = 'missing'");
+      final batch = db.batch()
+        ..insert('b', {'name': 'one', 'qty': 1})
+        ..insert('b', {
+          'name': 'two',
+          'qty': 2,
+        }, conflictAlgorithm: ConflictAlgorithm.replace)
+        ..rawInsert("INSERT INTO b (name, qty) VALUES ('three', 3)")
+        ..update('b', {'qty': 10}, where: 'name = ?', whereArgs: ['one'])
+        ..rawUpdate("UPDATE b SET qty = 20 WHERE name = 'two'")
+        ..execute("UPDATE b SET qty = qty + 1 WHERE name = 'three'")
+        ..delete('b', where: 'name = ?', whereArgs: ['nope'])
+        ..rawDelete("DELETE FROM b WHERE name = 'missing'");
       final results = await batch.commit();
       expect(results, isNotEmpty);
 
@@ -166,10 +165,9 @@ void main() {
 
     test('commit rolls back when continueOnError is false', () async {
       await db.execute("INSERT INTO b (name, qty) VALUES ('dup', 1)");
-      final batch =
-          db.batch()
-            ..insert('b', {'name': 'fresh', 'qty': 2})
-            ..insert('b', {'name': 'dup', 'qty': 3}); // UNIQUE violation
+      final batch = db.batch()
+        ..insert('b', {'name': 'fresh', 'qty': 2})
+        ..insert('b', {'name': 'dup', 'qty': 3}); // UNIQUE violation
       await expectLater(batch.commit(), throwsA(isA<Object>()));
       // Rolled back: 'fresh' must not be present.
       final rows = await db.query('b', where: 'name = ?', whereArgs: ['fresh']);
@@ -180,10 +178,9 @@ void main() {
       'commit with continueOnError collects errors and commits rest',
       () async {
         await db.execute("INSERT INTO b (name, qty) VALUES ('dup', 1)");
-        final batch =
-            db.batch()
-              ..insert('b', {'name': 'ok', 'qty': 2})
-              ..insert('b', {'name': 'dup', 'qty': 3}); // fails
+        final batch = db.batch()
+          ..insert('b', {'name': 'ok', 'qty': 2})
+          ..insert('b', {'name': 'dup', 'qty': 3}); // fails
         final results = await batch.commit(continueOnError: true);
         expect(results.any((r) => r is Object && r is! int), isTrue);
         final rows = await db.query('b', where: 'name = ?', whereArgs: ['ok']);
@@ -292,12 +289,11 @@ void main() {
     });
 
     test('createBatch builds and commits operations', () async {
-      final batch =
-          isolate.createBatch()
-            ..insert('n', {'name': 'i1', 'qty': 1})
-            ..insert('n', {'name': 'i2', 'qty': 2}, replace: true)
-            ..update('n', {'qty': 9}, where: 'name = ?', whereArgs: ['i1'])
-            ..delete('n', where: 'name = ?', whereArgs: ['i2']);
+      final batch = isolate.createBatch()
+        ..insert('n', {'name': 'i1', 'qty': 1})
+        ..insert('n', {'name': 'i2', 'qty': 2}, replace: true)
+        ..update('n', {'qty': 9}, where: 'name = ?', whereArgs: ['i1'])
+        ..delete('n', where: 'name = ?', whereArgs: ['i2']);
       final result = await batch.commit();
       expect(result, isNotEmpty);
 

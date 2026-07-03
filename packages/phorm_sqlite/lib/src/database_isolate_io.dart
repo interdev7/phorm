@@ -239,9 +239,9 @@ Object? _handle(
   switch (command) {
     case OpenCommand(:final path, :final password):
       if (db != null) {
-        updatesSub?.cancel();
+        unawaited(updatesSub?.cancel());
         setSub(null);
-        db.dispose();
+        db.close();
       }
       final newDb = sqlite3.open(path);
       if (password != null) {
@@ -253,9 +253,9 @@ Object? _handle(
       return null;
 
     case CloseCommand():
-      updatesSub?.cancel();
+      unawaited(updatesSub?.cancel());
       setSub(null);
-      db?.dispose();
+      db?.close();
       setDb(null);
       return null;
 
@@ -269,7 +269,7 @@ Object? _handle(
         try {
           stmt.execute(na);
         } finally {
-          stmt.dispose();
+          stmt.close();
         }
       }
       return null;
@@ -285,7 +285,7 @@ Object? _handle(
         try {
           rs = stmt.select(na);
         } finally {
-          stmt.dispose();
+          stmt.close();
         }
       }
       // Convert sqlite3 Row objects to plain maps before sending across isolate boundary
@@ -308,7 +308,7 @@ Object? _handle(
       try {
         stmt.execute(cols.map((c) => nv[c]).toList());
       } finally {
-        stmt.dispose();
+        stmt.close();
       }
       return db.lastInsertRowId;
 
@@ -329,7 +329,7 @@ Object? _handle(
       try {
         stmt.execute([...nv.values, ...?nw]);
       } finally {
-        stmt.dispose();
+        stmt.close();
       }
       return db.updatedRows;
 
@@ -343,7 +343,7 @@ Object? _handle(
       try {
         stmt.execute(nw ?? []);
       } finally {
-        stmt.dispose();
+        stmt.close();
       }
       return db.updatedRows;
 
@@ -400,7 +400,7 @@ void _handleBatch(Database db, BatchOperation op) {
       try {
         stmt.execute(cols.map((c) => nv[c]).toList());
       } finally {
-        stmt.dispose();
+        stmt.close();
       }
 
     case BatchUpdate(
@@ -419,7 +419,7 @@ void _handleBatch(Database db, BatchOperation op) {
       try {
         stmt.execute([...nv.values, ...?nw]);
       } finally {
-        stmt.dispose();
+        stmt.close();
       }
 
     case BatchDelete(:final table, :final where, :final whereArgs):
@@ -431,7 +431,7 @@ void _handleBatch(Database db, BatchOperation op) {
       try {
         stmt.execute(nw ?? []);
       } finally {
-        stmt.dispose();
+        stmt.close();
       }
   }
 }
