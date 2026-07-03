@@ -105,7 +105,7 @@ The `DB` constructor offers several tuning parameters:
 | `logQueries`         | `bool`              | `false`                | Enables print logging of executed SQL queries and arguments.                  |
 | `slowQueryThreshold` | `Duration`          | `200ms`                | Threshold duration after which a query is flagged as "slow" in logs.          |
 | `singleInstance`     | `bool`              | `true`                 | Caches and reuses connection instances for the same path.                     |
-| `isolateThreshold`   | `int`               | `50`                   | Row count threshold at which mapping is processed inside background isolates. |
+| `isolateThreshold`   | `int`               | `2000`                 | Result-set size above which row→model parsing is offloaded to a background isolate. See [Result-set parsing threshold](#result-set-parsing-threshold). |
 
 ### `DB.autoVersion`
 
@@ -132,6 +132,34 @@ In standard Flutter database setups, queries and subsequent data mapping (`fromJ
 
 1. **Native Platforms**: Spawns a background `Isolate` that owns the synchronous `sqlite3` connection. Commands are sent across ports, executing database writes/reads safely off the UI thread.
 2. **Flutter Web**: Relies on WebAssembly (`WasmSqlite3`) on the main thread. Since Dart isolates are simulated on Web, it utilizes direct async bindings to **IndexedDB** via `IndexedDbFileSystem` to persist files across reloads under the `phorm_` prefix.
+
+### Result-set parsing threshold
+
+After a read, the raw rows are mapped into your model objects (`fromJson`). For
+large result sets that mapping itself can block a frame, so it is offloaded to a
+short-lived isolate — but only when it is worth it:
+
+- **Result sets ≤ `isolateThreshold` (default `2000`) are parsed inline.**
+  Inline parsing of a couple thousand typical rows stays around ~1 ms
+  (well under a 60fps frame budget), and spawning an isolate + copying the rows
+  across the isolate boundary would only add latency.
+- **Larger result sets are parsed in a background isolate**, keeping the UI
+  thread free of jank on heavy reads.
+
+Tune it for your data via the `DB` constructor:
+
+```dart
+final db = DB(
+  databaseName: 'app.db',
+  version: 1,
+  tables: [usersTable],
+  // Rows are wide / fromJson is heavy → offload sooner:
+  isolateThreshold: 500,
+);
+```
+
+The default was chosen from measurements — see
+[`benchmark/parse_benchmark.dart`](https://github.com/interdev7/phorm/blob/main/packages/phorm/benchmark) in the `phorm` package.
 
 ---
 

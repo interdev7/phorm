@@ -70,8 +70,14 @@ class DB implements PhormDatabase {
   /// Set to false for in-memory databases in tests to ensure isolation.
   final bool singleInstance;
 
-  /// Row count threshold at which data mapping is moved to an isolate.
-  /// Default is 50 rows.
+  /// Row count threshold at which result-set parsing is moved to a background
+  /// isolate (to keep the UI thread free of jank).
+  ///
+  /// Default is 2000 rows. Spawning an isolate and copying rows across the
+  /// isolate boundary has a fixed cost, so for smaller result sets inline
+  /// parsing on the current thread is both faster and cheaper — inline parsing
+  /// of a few thousand typical rows stays well under a 60fps frame budget. See
+  /// `benchmark/parse_benchmark.dart` in the `phorm` package for the numbers.
   @override
   final int isolateThreshold;
 
@@ -111,7 +117,7 @@ class DB implements PhormDatabase {
     this.logQueries = false,
     this.slowQueryThreshold = const Duration(milliseconds: 200),
     this.singleInstance = true,
-    this.isolateThreshold = 50,
+    this.isolateThreshold = 2000,
   }) {
     _validateMigrations();
   }
@@ -126,7 +132,7 @@ class DB implements PhormDatabase {
     bool logQueries = false,
     Duration slowQueryThreshold = const Duration(milliseconds: 200),
     bool singleInstance = true,
-    int isolateThreshold = 50,
+    int isolateThreshold = 2000,
   }) {
     // Determine maximum version from all migrations
     final maxVersion = _calculateMaxVersion(tables);
