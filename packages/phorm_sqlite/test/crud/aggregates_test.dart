@@ -24,10 +24,9 @@ void main() {
         where: WhereBuilder().eq(Users.isActive, true),
       );
 
-      final expectedCount =
-          mockUsers
-              .where((u) => u.deletedAt == null && u.isActive == true)
-              .length;
+      final expectedCount = mockUsers
+          .where((u) => u.deletedAt == null && u.isActive)
+          .length;
       expect(activeCount, expectedCount);
     });
 
@@ -59,8 +58,9 @@ void main() {
     test('avg calculates correctly', () async {
       final avgAge = await userService.avg(Users.age);
 
-      final validUsers =
-          mockUsers.where((u) => u.deletedAt == null && u.age != null).toList();
+      final validUsers = mockUsers
+          .where((u) => u.deletedAt == null && u.age != null)
+          .toList();
       final expectedSum = validUsers
           .map((u) => u.age!)
           .fold<num>(0, (prev, curr) => prev + curr);

@@ -76,17 +76,16 @@ void main() {
 
     test('Migrations are applied on creation', () async {
       // Use the generated table as base, add a custom migration on top
-      final tableWithMigration =
-          migration_usersTable
-              .migrate()
-              .custom(
-                description: 'Test migration',
-                version: 1,
-                migrate: (db, table) async {
-                  migrationCallCount++;
-                },
-              )
-              .build();
+      final tableWithMigration = migration_usersTable
+          .migrate()
+          .custom(
+            description: 'Test migration',
+            version: 1,
+            migrate: (db, table) async {
+              migrationCallCount++;
+            },
+          )
+          .build();
 
       final dbPath = join(tempDir.path, 'test_migrations.db');
       db = DB(databaseName: dbPath, version: 1, tables: [tableWithMigration]);
@@ -146,17 +145,16 @@ void main() {
 
     test('Migration with same version from different tables', () async {
       // Use generated migration_usersTable as base, add a new column via migration
-      final usersTable =
-          migration_usersTable
-              .migrate()
-              .addColumn(
-                name: 'phone',
-                type: SqlTypes.text,
-                version: 2,
-                nullable: true,
-                description: 'Add phone to migration_users',
-              )
-              .build();
+      final usersTable = migration_usersTable
+          .migrate()
+          .addColumn(
+            name: 'phone',
+            type: SqlTypes.text,
+            version: 2,
+            nullable: true,
+            description: 'Add phone to migration_users',
+          )
+          .build();
 
       final postsTable =
           Table<MigrationPost>(
@@ -270,17 +268,16 @@ void main() {
 
     test('Simple table evolution', () async {
       // Start from the generated table, add new column at v2
-      final evolvedTable =
-          migration_usersTable
-              .migrate()
-              .addColumn(
-                name: 'phone',
-                type: SqlTypes.text,
-                version: 2,
-                nullable: true,
-                description: 'Add phone column',
-              )
-              .build();
+      final evolvedTable = migration_usersTable
+          .migrate()
+          .addColumn(
+            name: 'phone',
+            type: SqlTypes.text,
+            version: 2,
+            nullable: true,
+            description: 'Add phone column',
+          )
+          .build();
 
       final dbPath = join(tempDir.path, 'evolution_test.db');
       db = DB(databaseName: dbPath, version: 2, tables: [evolvedTable]);
@@ -363,17 +360,16 @@ void main() {
         await Future.delayed(const Duration(milliseconds: 200));
 
         // --- v2: add phone column via migration ---
-        final usersV2 =
-            migration_usersTable
-                .migrate()
-                .addColumn(
-                  name: 'phone',
-                  type: SqlTypes.text,
-                  version: 2,
-                  nullable: true,
-                  description: 'Add phone column',
-                )
-                .build();
+        final usersV2 = migration_usersTable
+            .migrate()
+            .addColumn(
+              name: 'phone',
+              type: SqlTypes.text,
+              version: 2,
+              nullable: true,
+              description: 'Add phone column',
+            )
+            .build();
 
         final dbV2 = DB(databaseName: dbPath, version: 2, tables: [usersV2]);
         final databaseV2 = await dbV2.database;
@@ -402,17 +398,16 @@ void main() {
       'Transaction rollback: If migration fails, version should NOT increase',
       () async {
         // Use the generated table as base, add a broken migration
-        final brokenTable =
-            migration_usersTable
-                .migrate()
-                .custom(
-                  description: 'Broken migration',
-                  version: 1,
-                  migrate: (db, table) async {
-                    throw Exception('Boom! Migration failed');
-                  },
-                )
-                .build();
+        final brokenTable = migration_usersTable
+            .migrate()
+            .custom(
+              description: 'Broken migration',
+              version: 1,
+              migrate: (db, table) async {
+                throw Exception('Boom! Migration failed');
+              },
+            )
+            .build();
 
         final dbPath = join(tempDir.path, dbFileName);
         final db = DB(databaseName: dbPath, version: 1, tables: [brokenTable]);

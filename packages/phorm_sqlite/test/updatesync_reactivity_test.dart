@@ -22,13 +22,12 @@ import 'models/user.dart';
 // Helper: build a fresh in-memory DB + services for each test
 // ---------------------------------------------------------------------------
 
-typedef _TestContext =
-    ({
-      DB dbManager,
-      PhormCore<User> userService,
-      PhormCore<Post> postService,
-      DatabaseExecutor db,
-    });
+typedef _TestContext = ({
+  DB dbManager,
+  PhormCore<User> userService,
+  PhormCore<Post> postService,
+  DatabaseExecutor db,
+});
 
 Future<_TestContext> _setup() async {
   final dbManager = DB.autoVersion(

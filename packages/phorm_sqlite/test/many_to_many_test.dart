@@ -111,10 +111,9 @@ void main() {
     final userService = PhormCore<User>(dbManager: db, table: usersTable);
 
     // This should trigger the LEFT JOIN logic in buildJoinQuery
-    final users =
-        await userService
-            .where(const PhormColumn<String>('roles.title').eq('Admin'))
-            .get();
+    final users = await userService
+        .where(const PhormColumn<String>('roles.title').eq('Admin'))
+        .get();
 
     expect(users, hasLength(1));
     expect(users[0].name, 'John');
@@ -133,12 +132,11 @@ class User extends Model {
     return User(
       id: json['id'] as String,
       name: json['name'] as String,
-      roles:
-          json['roles'] != null
-              ? (json['roles'] as List)
-                  .map((r) => Role.fromJson(r as Map<String, dynamic>))
-                  .toList()
-              : const [],
+      roles: json['roles'] != null
+          ? (json['roles'] as List)
+                .map((r) => Role.fromJson(r as Map<String, dynamic>))
+                .toList()
+          : const [],
     );
   }
 
@@ -157,12 +155,11 @@ class Role extends Model {
     return Role(
       id: json['id'] as String,
       title: json['title'] as String,
-      users:
-          json['users'] != null
-              ? (json['users'] as List)
-                  .map((u) => User.fromJson(u as Map<String, dynamic>))
-                  .toList()
-              : const [],
+      users: json['users'] != null
+          ? (json['users'] as List)
+                .map((u) => User.fromJson(u as Map<String, dynamic>))
+                .toList()
+          : const [],
     );
   }
 
