@@ -180,9 +180,24 @@ final String title;
 
 ## Data Types
 
-PHORM automatically infers the SQLite data type from your Dart field types. You generally do not need to specify `sqlType` manually.
+PHORM maps your Dart field types to SQL column types **automatically**. In the
+overwhelming majority of cases you write nothing — declare the field and let the
+generator infer the type. When you do need control, there is one decision to
+make:
 
-### Automatic Mapping
+| You want…                                                | Use                          | Example                              |
+| :------------------------------------------------------- | :--------------------------- | :----------------------------------- |
+| The default type for your Dart type                      | _(nothing — inferred)_       | `final int age;`                     |
+| A specific, **typed** SQL type                           | **`@Column(type: ...)`**     | `@Column(type: VARCHAR(255))`        |
+| Exotic DDL that has no `SqlType` class                   | **`@Column(sqlType: '...')`**| `@Column(sqlType: 'INTEGER CHECK (age >= 0)')` |
+| Store a complex object (`Map`, `List`, enum, domain type)| **`@Column(converter: ...)`**| see [Value Converters](#value-converters) |
+
+> [!TIP]
+> Prefer `type:` (a typed `SqlType` object) over `sqlType:` (a raw string)
+> whenever a matching `SqlType` exists — it is checked at compile time and reads
+> more clearly. Reach for `sqlType:` only for DDL that no `SqlType` covers.
+
+### 1. Inferred (the default)
 
 | Dart Type   | SQLite Type | Notes                              |
 | :---------- | :---------- | :--------------------------------- |
@@ -194,26 +209,12 @@ PHORM automatically infers the SQLite data type from your Dart field types. You 
 | `DateTime`  | `TEXT`      | Stored as ISO-8601 strings         |
 | `Uint8List` | `BLOB`      | Binary data                        |
 
-### Manual Override
+Booleans and dates are converted between their Dart and SQLite representations
+automatically — you never handle `1`/`0` or ISO strings yourself.
 
-Use `sqlType` if you need a specific SQLite type definition:
+### 2. Typed override — `type:` (recommended)
 
-```dart
-@Column(sqlType: SqlTypes.text)
-final String bio;
-
-// Or with extra SQLite modifiers
-@Column(sqlType: '${SqlTypes.text} COLLATE NOCASE')
-final String username;
-```
-
-> [!TIP]
-> You can use the **`SqlTypes`** class for standard type names instead of hardcoding strings.
-
-### Typed Column Definitions (`type:`)
-
-Instead of a raw `sqlType` string, you can pass a typed **`SqlType`** object via
-`type:`. This is checked at compile time and reads more clearly for
+Pass a typed **`SqlType`** object. Compile-time checked, and clearer for
 parameterized types:
 
 ```dart
@@ -238,12 +239,38 @@ final Map<String, dynamic> metadata;
 | `sql_types/mysql_types`    | _(MySQL-only types — scaffolded)_                                                            |
 
 > [!NOTE]
+> On SQLite, types like `BOOLEAN`, `DATE`, `TIME`, `TIMESTAMP` and `JSON` are
+> stored via SQLite's type _affinity_ (there are only 5 storage classes:
+> `TEXT`, `INTEGER`, `REAL`, `BLOB`, `NUMERIC`). They are most meaningful when
+> targeting `postgres`/`mysql`.
+
+### 3. Raw override — `sqlType:`
+
+An escape hatch for DDL that no `SqlType` class expresses. It is emitted into the
+`CREATE TABLE` verbatim:
+
+```dart
+@Column(sqlType: 'INTEGER CHECK (age >= 0)')
+final int age;
+```
+
+### 4. Complex objects — `converter:`
+
+To store a `Map`, `List`, enum, or a custom/third-party class, do **not** invent
+an `sqlType` — use a [Value Converter](#value-converters). The converter decides
+the storage type (usually `TEXT` via `jsonEncode`) and handles both directions.
+
+### `SqlType` vs `SqlTypes`
+
+- **`SqlType`** — the typed hierarchy you pass to `type:` (`TEXT()`,
+  `VARCHAR(255)`, `JSONB()`, …). **This is what you want.**
+- **`SqlTypes`** — an older class of plain string constants (`SqlTypes.text`).
+  It is **deprecated**; use `type:` (typed) or a raw `sqlType:` string instead.
+
+> [!NOTE]
 > Type resolution precedence in the generator: `sqlType` (raw string) →
 > `type` (`SqlType` object) → `converter`'s SQL type → inferred from the Dart
 > field type. The first one provided wins.
-
-> [!NOTE]
-> For booleans and dates, the generator handles conversion between Dart types and SQLite representations automatically.
 
 ### String Collations (NOCASE, BINARY)
 

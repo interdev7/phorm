@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.4.0]
+
+- Deprecate the `SqlTypes` string-constant class (`SqlTypes.text`, …). Use the
+  typed `SqlType` hierarchy via `@Column(type: ...)` (e.g. `TEXT()`,
+  `VARCHAR(255)`), or a raw `@Column(sqlType: '...')` string for exotic DDL.
+  `SqlTypes` will be removed in a future release.
+- Add `topics` to `pubspec.yaml` for pub.dev discoverability.
+
 ## [1.3.0]
 
 - Added `createPivot` to `@ManyToMany` (defaults to `false`). When `true`, the
