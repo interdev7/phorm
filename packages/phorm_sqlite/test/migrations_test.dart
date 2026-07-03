@@ -149,7 +149,7 @@ void main() {
           .migrate()
           .addColumn(
             name: 'phone',
-            type: SqlTypes.text,
+            type: 'TEXT',
             version: 2,
             nullable: true,
             description: 'Add phone to migration_users',
@@ -166,7 +166,7 @@ void main() {
               .migrate()
               .addColumn(
                 name: 'title',
-                type: SqlTypes.text,
+                type: 'TEXT',
                 version: 2,
                 description: 'Add title to posts',
               )
@@ -208,7 +208,7 @@ void main() {
                 fromJson: MigrationUser.fromJson,
               )
               .migrate()
-              .addColumn(name: 'email', type: SqlTypes.text, version: 1)
+              .addColumn(name: 'email', type: 'TEXT', version: 1)
               .build();
 
       db = DB(databaseName: ':memory:', version: 1, tables: [table]);
@@ -272,7 +272,7 @@ void main() {
           .migrate()
           .addColumn(
             name: 'phone',
-            type: SqlTypes.text,
+            type: 'TEXT',
             version: 2,
             nullable: true,
             description: 'Add phone column',
@@ -364,7 +364,7 @@ void main() {
             .migrate()
             .addColumn(
               name: 'phone',
-              type: SqlTypes.text,
+              type: 'TEXT',
               version: 2,
               nullable: true,
               description: 'Add phone column',
