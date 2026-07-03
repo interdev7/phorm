@@ -86,10 +86,9 @@ class Database implements DatabaseExecutor {
   }) async {
     final columns = values.keys.toList();
     final placeholders = List.filled(columns.length, '?').join(', ');
-    final conflictClause =
-        conflictAlgorithm != null
-            ? ' OR ${_conflictToString(conflictAlgorithm)}'
-            : '';
+    final conflictClause = conflictAlgorithm != null
+        ? ' OR ${_conflictToString(conflictAlgorithm)}'
+        : '';
     final sql =
         'INSERT$conflictClause INTO $table (${columns.join(', ')}) VALUES ($placeholders)';
     return _wrapException(
@@ -411,8 +410,8 @@ Future<T> _wrapException<T>(
 
       String? column;
       if (constraint != null && values != null) {
-        final sortedKeys =
-            values.keys.toList()..sort((a, b) => b.length.compareTo(a.length));
+        final sortedKeys = values.keys.toList()
+          ..sort((a, b) => b.length.compareTo(a.length));
         for (final key in sortedKeys) {
           if (constraint.contains(key)) {
             column = key;

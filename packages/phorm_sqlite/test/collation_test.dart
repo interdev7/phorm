@@ -25,10 +25,9 @@ void main() {
     });
 
     test('NOCASE should be case-insensitive', () async {
-      final results =
-          await CollationTests.where(
-            CollationTests.nameNoCase.eq('alice'),
-          ).get();
+      final results = await CollationTests.where(
+        CollationTests.nameNoCase.eq('alice'),
+      ).get();
 
       expect(
         results.length,
@@ -39,10 +38,9 @@ void main() {
     });
 
     test('BINARY should be case-sensitive', () async {
-      final results =
-          await CollationTests.where(
-            CollationTests.nameBinary.eq('alice'),
-          ).get();
+      final results = await CollationTests.where(
+        CollationTests.nameBinary.eq('alice'),
+      ).get();
 
       expect(
         results.length,
@@ -50,10 +48,9 @@ void main() {
         reason: 'BINARY should NOT match "Alice" with "alice"',
       );
 
-      final exactMatch =
-          await CollationTests.where(
-            CollationTests.nameBinary.eq('Alice'),
-          ).get();
+      final exactMatch = await CollationTests.where(
+        CollationTests.nameBinary.eq('Alice'),
+      ).get();
       expect(exactMatch.length, 1);
     });
 
@@ -69,8 +66,9 @@ void main() {
       // If NOCASE works, it should be Alice, bob, Charlie (or Alice, Charlie, bob depending on order, but case won't mess it up)
       // Actually SQLite NOCASE sort order: A, B, C, a, b, c -> wait, NOCASE treats them as same.
 
-      final sorted =
-          await CollationTests.query.orderBy(CollationTests.nameNoCase).get();
+      final sorted = await CollationTests.query
+          .orderBy(CollationTests.nameNoCase)
+          .get();
 
       final names = sorted.map((e) => e.nameNoCase).toList();
       expect(names, ['Alice', 'bob', 'Charlie']);

@@ -82,7 +82,7 @@ class WebDatabaseIsolate implements DatabaseIsolate {
 
   @override
   Future<void> close() async {
-    _db?.dispose();
+    _db?.close();
     _db = null;
   }
 
@@ -103,7 +103,7 @@ class WebDatabaseIsolate implements DatabaseIsolate {
       try {
         stmt.execute(na);
       } finally {
-        stmt.dispose();
+        stmt.close();
       }
     }
   }
@@ -123,7 +123,7 @@ class WebDatabaseIsolate implements DatabaseIsolate {
       try {
         rs = stmt.select(na);
       } finally {
-        stmt.dispose();
+        stmt.close();
       }
     }
     return rs.map((row) {
@@ -147,7 +147,7 @@ class WebDatabaseIsolate implements DatabaseIsolate {
     try {
       stmt.execute(cols.map((c) => nv[c]).toList());
     } finally {
-      stmt.dispose();
+      stmt.close();
     }
     return db.lastInsertRowId;
   }
@@ -170,7 +170,7 @@ class WebDatabaseIsolate implements DatabaseIsolate {
     try {
       stmt.execute([...nv.values, ...?nw]);
     } finally {
-      stmt.dispose();
+      stmt.close();
     }
     return db.updatedRows;
   }
@@ -190,7 +190,7 @@ class WebDatabaseIsolate implements DatabaseIsolate {
     try {
       stmt.execute(nw ?? []);
     } finally {
-      stmt.dispose();
+      stmt.close();
     }
     return db.updatedRows;
   }
@@ -293,7 +293,7 @@ void _handleBatch(CommonDatabase db, BatchOperation op) {
       try {
         stmt.execute(cols.map((c) => nv[c]).toList());
       } finally {
-        stmt.dispose();
+        stmt.close();
       }
 
     case BatchUpdate(
@@ -312,7 +312,7 @@ void _handleBatch(CommonDatabase db, BatchOperation op) {
       try {
         stmt.execute([...nv.values, ...?nw]);
       } finally {
-        stmt.dispose();
+        stmt.close();
       }
 
     case BatchDelete(:final table, :final where, :final whereArgs):
@@ -324,7 +324,7 @@ void _handleBatch(CommonDatabase db, BatchOperation op) {
       try {
         stmt.execute(nw ?? []);
       } finally {
-        stmt.dispose();
+        stmt.close();
       }
   }
 }

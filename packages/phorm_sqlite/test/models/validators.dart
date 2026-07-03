@@ -15,14 +15,13 @@ class LengthValidator implements ISqlValidator, IJsonValidator {
   const LengthValidator({int? min, int? max, this.constraint})
     : min = min,
       max = max,
-      sql =
-          (min != null && max != null)
-              ? 'LENGTH({column}) BETWEEN $min AND $max'
-              : (min != null)
-              ? 'LENGTH({column}) >= $min'
-              : (max != null)
-              ? 'LENGTH({column}) <= $max'
-              : '';
+      sql = (min != null && max != null)
+          ? 'LENGTH({column}) BETWEEN $min AND $max'
+          : (min != null)
+          ? 'LENGTH({column}) >= $min'
+          : (max != null)
+          ? 'LENGTH({column}) <= $max'
+          : '';
 
   @override
   bool isValid(dynamic value) {

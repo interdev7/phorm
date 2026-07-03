@@ -141,12 +141,11 @@ class User extends Model {
     return User(
       id: json['id'] as String,
       name: json['name'] as String,
-      posts:
-          json['posts'] != null
-              ? (json['posts'] as List)
-                  .map((p) => Post.fromJson(p as Map<String, dynamic>))
-                  .toList()
-              : const [],
+      posts: json['posts'] != null
+          ? (json['posts'] as List)
+                .map((p) => Post.fromJson(p as Map<String, dynamic>))
+                .toList()
+          : const [],
     );
   }
 
@@ -172,10 +171,9 @@ class Post extends Model {
       id: json['id'] as int,
       title: json['title'] as String,
       userId: json['user_id'] as String,
-      user:
-          json['users'] != null
-              ? User.fromJson(json['users'] as Map<String, dynamic>)
-              : null,
+      user: json['users'] != null
+          ? User.fromJson(json['users'] as Map<String, dynamic>)
+          : null,
     );
   }
 

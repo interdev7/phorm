@@ -725,9 +725,7 @@ class DB implements PhormDatabase {
         final buffered = _activeTransactionBuffer;
         _activeTransactionBuffer = null;
         if (buffered != null) {
-          for (final table in buffered) {
-            _changeController.add(table);
-          }
+          buffered.forEach(_changeController.add);
         }
       }
       return result;
@@ -804,12 +802,11 @@ class PhormDatabaseExecutorWrapper implements PhormDatabaseExecutor {
     table,
     values,
     nullColumnHack: nullColumnHack,
-    conflictAlgorithm:
-        conflictAlgorithm != null
-            ? ConflictAlgorithm.values.firstWhere(
-              (e) => e.name == conflictAlgorithm,
-              orElse: () => ConflictAlgorithm.abort,
-            )
-            : null,
+    conflictAlgorithm: conflictAlgorithm != null
+        ? ConflictAlgorithm.values.firstWhere(
+            (e) => e.name == conflictAlgorithm,
+            orElse: () => ConflictAlgorithm.abort,
+          )
+        : null,
   );
 }
