@@ -7,7 +7,8 @@
 [![pub.dev](https://img.shields.io/pub/v/phorm_sqlite.svg?label=phorm_sqlite&logo=dart)](https://pub.dev/packages/phorm_sqlite)
 [![pub.dev](https://img.shields.io/pub/v/phorm_generator.svg?label=phorm_generator&logo=dart)](https://pub.dev/packages/phorm_generator)
 [![pub.dev](https://img.shields.io/pub/v/phorm_annotations.svg?label=phorm_annotations&logo=dart)](https://pub.dev/packages/phorm_annotations)
-[![VS Code Extension](https://img.shields.io/visual-studio-marketplace/v/interlibdev.phorm-code?label=VS%20Code&logo=visualstudiocode)](https://marketplace.visualstudio.com/items?itemName=interlibdev.phorm-code)
+[![VS Code Extension](https://badgen.net/vs-marketplace/v/interlibdev.phorm-code?label=VS%20Code&icon=visualstudio&color=007acc)](https://marketplace.visualstudio.com/items?itemName=interlibdev.phorm-code)
+[![Open VSX](https://img.shields.io/open-vsx/v/interlibdev/phorm-code?label=Open%20VSX&logo=eclipse-ide)](https://open-vsx.org/extension/interlibdev/phorm-code)
 [![Build Status](https://github.com/interdev7/phorm/actions/workflows/main.yml/badge.svg)](https://github.com/interdev7/phorm/actions)
 [![codecov](https://codecov.io/gh/interdev7/phorm/branch/main/graph/badge.svg)](https://codecov.io/gh/interdev7/phorm)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
@@ -45,8 +46,8 @@ By leveraging **Single-Query JSON Aggregation**, PHORM aggregates complex parent
 
 ## Tooling
 
-| Tool                                                                                            | Description                                                                                  |
-| :---------------------------------------------------------------------------------------------- | :------------------------------------------------------------------------------------------- |
+| Tool                                                                                                                   | Description                                                                                                                                                                                                                                            |
+| :--------------------------------------------------------------------------------------------------------------------- | :----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | [PHORM Code Generator](https://marketplace.visualstudio.com/items?itemName=interlibdev.phorm-code) (VS Code extension) | Convert a plain Dart class into a PHORM model in one click — adds `@Schema`/`@Column`/`@ID`, the `id` field, constructor and `fromJson`. Also ships snippets and a `build_runner` command. Source: [`extensions/phorm-code`](./extensions/phorm-code). |
 
 Install it from the VS Code Marketplace (search **"PHORM Code Generator"**) or run:
