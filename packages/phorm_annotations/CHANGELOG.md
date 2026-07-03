@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.4.2]
+
+- Docs: show how to do CRUD with `generateFullService: false` — register
+  `usersTable` and resolve `db.service<User>()` (a `PhormCore<User>`).
+  No code changes.
+
 ## [1.4.1]
 
 - Docs: clarify how to choose a column's SQL type — `type:` (typed `SqlType`) →

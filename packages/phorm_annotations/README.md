@@ -106,6 +106,27 @@ Defines table-level configuration.
 | `useValidator`  | `bool`                 | Generate the `validate()` method from column `CHECK` constraints (default `true`). |
 | `generateFullService` | `bool`           | Generate the pluralized static service class (e.g. `Users`) exposing the full CRUD/query API and column constants. Set `false` to emit only the lightweight schema/table/mappers and skip the large service (default `true`). |
 
+#### Using a model with `generateFullService: false`
+
+Without the generated `Users` facade you still get `usersTable`,
+`fromJson`/`toJson` and `copyWith` — do CRUD via a `PhormCore<T>` from the DB:
+
+```dart
+@Schema(tableName: 'users', generateFullService: false)
+class User extends Model with _$PhormUserMixin { /* ... */ }
+
+// Register the generated table, then resolve a service for the model:
+final db = DB(databaseName: 'app.db', version: 1, tables: [usersTable]);
+final users = db.service<User>(); // PhormCore<User>
+
+await users.insert(User(id: 1, email: 'a@b.c'));
+final page = await users.readAll(limit: 20);
+
+// No column constants → use a typed PhormColumn or a WhereBuilder string:
+const email = PhormColumn<String>('email');
+final admins = await users.where(email.like('%@admin.com')).get();
+```
+
 ### `@Column`
 
 Standard column definition. PHORM automatically infers the SQLite type from the Dart field type.

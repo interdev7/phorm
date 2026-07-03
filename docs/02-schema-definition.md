@@ -59,6 +59,49 @@ class User extends Model with _$PhormUserMixin { ... }
 > [Many-to-Many](file:///Users/interdev7/Documents/phorm/docs/11-many-to-many.md)
 > guide for details.
 
+### Lightweight models (`generateFullService: false`)
+
+By default the generator emits a **pluralized static service** (e.g. `Users`)
+with the full CRUD/query API and typed column constants — that's what lets you
+write `Users.readAll()` or `Users.where(Users.email.eq(...))`.
+
+Set `generateFullService: false` when you don't want that facade — e.g. you wrap
+data access in your own repository, use dependency injection, or just want less
+generated code. You still get the schema, the `Table` instance (`usersTable`),
+`fromJson`/`toJson`, `copyWith` and the mixin; only the `Users` service class and
+its column constants are skipped.
+
+Do CRUD by resolving a `PhormCore<T>` from the database instead:
+
+```dart
+@Schema(tableName: 'users', generateFullService: false)
+class User extends Model with _$PhormUserMixin { /* ... */ }
+
+// 1. Register the generated table on the DB.
+final db = DB(databaseName: 'app.db', version: 1, tables: [usersTable]);
+
+// 2. Resolve a service for the model (or build PhormCore directly).
+final users = db.service<User>();
+// final users = PhormCore<User>(dbManager: db, table: usersTable);
+
+// 3. CRUD is identical to the generated facade.
+await users.insert(User(id: 1, email: 'a@b.c'));
+final one  = await users.readOne(1);
+final page = await users.readAll(limit: 20);
+
+// 4. Without generated column constants, reference columns via a typed
+//    PhormColumn, or a raw string in a WhereBuilder.
+const email = PhormColumn<String>('email');
+final admins = await users.where(email.like('%@admin.com')).get();
+// or: await users.readAll(where: WhereBuilder().eq('email', 'a@b.c'));
+```
+
+> [!NOTE]
+> `db.service<T>()` requires the model's `Table` to be registered in
+> `DB(tables: [...])` — otherwise it throws a `StateError`. Building
+> `PhormCore<T>(dbManager: db, table: usersTable)` yourself has no such
+> requirement.
+
 ### Target SQL Dialect
 
 `dialect` tells the generator which database flavour to emit DDL for. It defaults
