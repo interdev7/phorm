@@ -26,6 +26,7 @@ Defines table-level configuration for a class.
   useToJson: true,    // Generate _$PhormClassToJson() (default: true)
   useFromJson: true,  // Generate _$PhormClassFromJson() (default: true)
   useCopyWith: true,  // Generate copyWith() (default: true)
+  generateFullService: true, // Generate the pluralized service class, e.g. Users (default: true)
 )
 class User extends Model with _$PhormUserMixin { ... }
 ```
@@ -46,6 +47,7 @@ class User extends Model with _$PhormUserMixin { ... }
 | `useCopyWith`   | `bool`                 | `true`      | Generate copyWith method                              |
 | `useValidator`  | `bool`                 | `true`      | Generate validate() method                            |
 | `useToString`   | `bool`                 | `true`      | Generate toString() helper                            |
+| `generateFullService` | `bool`           | `true`      | Generate the pluralized static service class (e.g. `Users`) exposing the full CRUD/query API (`insert`, `readAll`, `where`, `watchAll`, column constants, …). Set `false` to keep only the lightweight artefacts (schema, table, `fromJson`/`toJson`, `copyWith`). |
 
 > [!NOTE]
 > Relationships are declarations used for querying and eager loading — the
