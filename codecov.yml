@@ -1,0 +1,42 @@
+# Monorepo coverage configuration.
+#
+# Each package is uploaded from CI with its own flag (see the `flags:` key in
+# .github/workflows/main.yml). That gives every package an independent coverage
+# figure and its own badge:
+#
+#   https://codecov.io/gh/interdev7/phorm/branch/main/graph/badge.svg?flag=<pkg>
+#
+# e.g. ?flag=phorm, ?flag=phorm_generator, ?flag=phorm_sqlite …
+
+codecov:
+  require_ci_to_pass: true
+  notify:
+    wait_for_ci: true
+
+coverage:
+  status:
+    project:
+      default:
+        target: auto
+        threshold: 1%
+    patch:
+      default:
+        target: auto
+        threshold: 1%
+
+comment:
+  layout: "reach, diff, flags, files"
+  behavior: default
+
+# Declare each package flag and carry its last coverage forward so a flag's
+# badge never goes stale when its upload is missing from a given commit.
+flag_management:
+  default_rules:
+    carryforward: true
+  individual_flags:
+    - name: phorm
+    - name: phorm_annotations
+    - name: phorm_generator
+    - name: phorm_mysql
+    - name: phorm_postgres
+    - name: phorm_sqlite

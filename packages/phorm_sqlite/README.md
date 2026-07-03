@@ -2,7 +2,7 @@
 
 [![Pub Version](https://img.shields.io/pub/v/phorm_sqlite.svg)](https://pub.dev/packages/phorm_sqlite)
 [![Build Status](https://github.com/interdev7/phorm/actions/workflows/main.yml/badge.svg)](https://github.com/interdev7/phorm/actions)
-[![codecov](https://codecov.io/gh/interdev7/phorm/branch/main/graph/badge.svg)](https://codecov.io/gh/interdev7/phorm)
+[![Coverage](https://codecov.io/gh/interdev7/phorm/branch/main/graph/badge.svg?flag=phorm_sqlite)](https://codecov.io/gh/interdev7/phorm?flags[0]=phorm_sqlite)
 [![GitHub Stars](https://img.shields.io/github/stars/interdev7/phorm.svg?style=flat&logo=github)](https://github.com/interdev7/phorm)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
 
