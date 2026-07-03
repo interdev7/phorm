@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.4.1]
+
+- Raise the default `DB.isolateThreshold` from `50` to `2000`. Result-set
+  parsing only moves to a background isolate once inline parsing would risk a
+  dropped frame; below that the isolate spawn + row copy was pure overhead. See
+  `benchmark/parse_benchmark.dart` in the `phorm` package for the measurements.
+- Document the `isolateThreshold` tuning knob in the README.
+
 ## [1.4.0]
 
 - Upgrade to `sqlite3` ^3.3.4, `sqlite3_flutter_libs` ^0.6.0 and `sqlite3_web`
