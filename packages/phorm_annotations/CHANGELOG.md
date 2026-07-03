@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.4.1]
+
+- Docs: clarify how to choose a column's SQL type — `type:` (typed `SqlType`) →
+  `sqlType:` (raw string) → `converter:` (complex objects) → inferred — and that
+  the deprecated `SqlTypes` constants should no longer be used (README + guides).
+  No code changes.
+
 ## [1.4.0]
 
 - Deprecate the `SqlTypes` string-constant class (`SqlTypes.text`, …). Use the

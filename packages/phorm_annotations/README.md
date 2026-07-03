@@ -147,20 +147,33 @@ PHORM maps Dart types to SQLite types automatically:
 
 ---
 
-## Standard SQL Types
+## SQL Types
 
-For manual overrides in `@Column(sqlType: ...)` or when adding columns in migrations, use the **`SqlTypes`** class to avoid hardcoding strings:
+A column's SQL type is resolved in this order of preference:
+
+1. **Inferred** from the Dart field type — the default (see [Automatic Type Mapping](#automatic-type-mapping)).
+2. **Typed override** — `@Column(type: ...)` with a `SqlType` object (`TEXT()`, `VARCHAR(255)`, `DECIMAL(10, 2)`, `JSONB()`). Compile-time checked; **preferred**.
+3. **Raw override** — `@Column(sqlType: '...')` for DDL that no `SqlType` class covers.
+4. **Converter** — `@Column(converter: ...)` to store complex Dart objects (`Map`, `List`, enums, domain types).
 
 ```dart
-// In a migration
-table.addColumn(name: 'age', type: SqlTypes.integer, version: 2);
+@Column(type: VARCHAR(255))
+final String title;
 
-// In a model
-@Column(collate: Collate.noCase)
-final String username;
+@Column(sqlType: 'INTEGER CHECK (age >= 0)')
+final int age;
 ```
 
-Available types: `SqlTypes.text`, `SqlTypes.integer`, `SqlTypes.real`, `SqlTypes.blob`, `SqlTypes.numeric`.
+In **migrations**, `addColumn` takes a plain type string:
+
+```dart
+table.migrate().addColumn(name: 'age', type: 'INTEGER', version: 2);
+```
+
+> [!NOTE]
+> The older `SqlTypes` string-constant class (`SqlTypes.text`, …) is
+> **deprecated** — use `type:` (typed `SqlType`), a raw `sqlType:` string, or a
+> plain type string in migrations instead.
 
 ---
 
