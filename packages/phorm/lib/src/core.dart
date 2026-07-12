@@ -3,6 +3,7 @@ import 'dart:isolate';
 
 import 'package:meta/meta.dart';
 import 'package:phorm/phorm.dart';
+import 'package:phorm/src/join_query_builder.dart';
 
 typedef ErrorCallback = void Function(Object, StackTrace);
 
@@ -223,7 +224,9 @@ class PhormCore<T extends Model> implements IPhormCore<T> {
       [id],
       () => db.update(
         table.name,
-        _prepareDataForDb({'deleted_at': DateTime.now().toUtc().toIso8601String()}),
+        _prepareDataForDb({
+          'deleted_at': DateTime.now().toUtc().toIso8601String(),
+        }),
         where: _pkWhereClause(),
         whereArgs: [id],
       ),
@@ -475,120 +478,9 @@ class PhormCore<T extends Model> implements IPhormCore<T> {
     return value;
   }
 
-  Map<String, String> _buildJsonObjectFields(
-    Table currentTable,
-    Attributes? attributes,
-    List<Includable>? include,
-  ) {
-    final d = dbManager.dialect;
-    final relCols =
-        attributes != null
-            ? attributes.apply(currentTable.columns)
-            : currentTable.columns;
-    final fields = <String, String>{};
-
-    if (relCols.isNotEmpty) {
-      for (final c in relCols) {
-        // Escape table.column for safe use in all dialects
-        fields[c] = d.escapeIdentifier('${currentTable.name}.$c');
-      }
-    } else {
-      fields['id'] = d.escapeIdentifier(
-        '${currentTable.name}.${currentTable.primaryKey}',
-      );
-    }
-
-    if (include == null || include.isEmpty) return fields;
-
-    for (final inc in include) {
-      final relName = inc.getTableName(dbManager.tables);
-      final rel =
-          currentTable.relationships.where((r) {
-            final model = r.model;
-            if (model is String) return model == relName;
-            if (model is Type) {
-              final relatedTable =
-                  dbManager.tables.where((t) => t.type == model).firstOrNull;
-              return relatedTable?.name == relName;
-            }
-            return false;
-          }).firstOrNull;
-
-      if (rel == null) continue;
-
-      final relatedTable = _findTable(rel.model);
-      if (relatedTable == null) continue;
-
-      final subFields = _buildJsonObjectFields(
-        relatedTable,
-        inc.attributes,
-        inc.include,
-      );
-      final subJsonObject = d.compileJsonObject(subFields);
-
-      if (rel is HasMany) {
-        final escRelated = d.escapeIdentifier(relatedTable.name);
-        final escForeign = d.escapeIdentifier(
-          '${relatedTable.name}.${rel.foreignKey}',
-        );
-        final escCurrent = d.escapeIdentifier(
-          '${currentTable.name}.${rel.localKey}',
-        );
-        final paranoidFilter =
-            relatedTable.paranoid
-                ? ' AND ${d.escapeIdentifier('${relatedTable.name}.deleted_at')} IS NULL'
-                : '';
-        fields[relName] = d.compileJsonArray(
-          subJsonObject,
-          'FROM $escRelated WHERE $escForeign = $escCurrent$paranoidFilter',
-        );
-      } else if (rel is ManyToMany) {
-        final escRelated = d.escapeIdentifier(relatedTable.name);
-        final escPivot = d.escapeIdentifier(rel.pivotTable);
-        final escPivotRelated = d.escapeIdentifier(
-          '${rel.pivotTable}.${rel.relatedKey}',
-        );
-        final escRelatedLocal = d.escapeIdentifier(
-          '${relatedTable.name}.${rel.relatedLocalKey}',
-        );
-        final escPivotForeign = d.escapeIdentifier(
-          '${rel.pivotTable}.${rel.foreignKey}',
-        );
-        final escCurrent = d.escapeIdentifier(
-          '${currentTable.name}.${rel.localKey}',
-        );
-        final paranoidFilter =
-            relatedTable.paranoid
-                ? ' AND ${d.escapeIdentifier('${relatedTable.name}.deleted_at')} IS NULL'
-                : '';
-        fields[relName] = d.compileJsonArray(
-          subJsonObject,
-          'FROM $escRelated INNER JOIN $escPivot ON $escPivotRelated = $escRelatedLocal WHERE $escPivotForeign = $escCurrent$paranoidFilter',
-        );
-      } else {
-        final escRelated = d.escapeIdentifier(relatedTable.name);
-        final escForeign = d.escapeIdentifier(
-          '${relatedTable.name}.${rel is BelongsTo ? rel.localKey : rel.foreignKey}',
-        );
-        final escCurrent = d.escapeIdentifier(
-          '${currentTable.name}.${rel is BelongsTo ? rel.foreignKey : rel.localKey}',
-        );
-        final paranoidFilter =
-            relatedTable.paranoid
-                ? ' AND ${d.escapeIdentifier('${relatedTable.name}.deleted_at')} IS NULL'
-                : '';
-        fields[relName] = '''
-          (SELECT $subJsonObject 
-           FROM $escRelated 
-           WHERE $escForeign = $escCurrent$paranoidFilter)
-        ''';
-      }
-    }
-
-    return fields;
-  }
-
   /// Builds a single SQL query for relationships using JOINs and JSON aggregation.
+  ///
+  /// Delegates to [JoinQueryBuilder]; kept here as the public entry point.
   @visibleForTesting
   String buildJoinQuery({
     List<String>? columns,
@@ -601,215 +493,17 @@ class PhormCore<T extends Model> implements IPhormCore<T> {
     bool includeTotalCount = false,
     bool explainQueryPlan = false,
   }) {
-    final selectFields = <String>[];
-    final joins = <String>{};
-
-    // Analyze WhereBuilder for automatic LEFT JOINs (for filtering)
-    if (where != null) {
-      final joinTableNames = <String>{};
-      for (final col in where.usedColumns) {
-        if (col.contains('.')) {
-          joinTableNames.add(col.split('.').first);
-        }
-      }
-
-      for (final relName in joinTableNames) {
-        final rel =
-            table.relationships.where((r) {
-              final model = r.model;
-              if (model is String) return model == relName;
-              if (model is Type) {
-                final relatedTable =
-                    dbManager.tables.where((t) => t.type == model).firstOrNull;
-                return relatedTable?.name == relName;
-              }
-              return false;
-            }).firstOrNull;
-
-        if (rel != null) {
-          final relatedTable = _findTable(rel.model);
-          if (relatedTable != null) {
-            final d = dbManager.dialect;
-            final escRelated = d.escapeIdentifier(relatedTable.name);
-            if (rel is HasMany || rel is HasOne) {
-              final escForeign = d.escapeIdentifier(
-                '${relatedTable.name}.${rel.foreignKey}',
-              );
-              final escLocal = d.escapeIdentifier(
-                '${table.name}.${rel.localKey}',
-              );
-              joins.add('LEFT JOIN $escRelated ON $escForeign = $escLocal');
-            } else if (rel is BelongsTo) {
-              final escRelatedLocal = d.escapeIdentifier(
-                '${relatedTable.name}.${rel.localKey}',
-              );
-              final escForeign = d.escapeIdentifier(
-                '${table.name}.${rel.foreignKey}',
-              );
-              joins.add(
-                'LEFT JOIN $escRelated ON $escRelatedLocal = $escForeign',
-              );
-            } else if (rel is ManyToMany) {
-              final escPivot = d.escapeIdentifier(rel.pivotTable);
-              final escPivotForeign = d.escapeIdentifier(
-                '${rel.pivotTable}.${rel.foreignKey}',
-              );
-              final escLocal = d.escapeIdentifier(
-                '${table.name}.${rel.localKey}',
-              );
-              final escRelatedLocal = d.escapeIdentifier(
-                '${relatedTable.name}.${rel.relatedLocalKey}',
-              );
-              final escPivotRelated = d.escapeIdentifier(
-                '${rel.pivotTable}.${rel.relatedKey}',
-              );
-              joins
-                ..add('LEFT JOIN $escPivot ON $escPivotForeign = $escLocal')
-                ..add(
-                  'LEFT JOIN $escRelated ON $escRelatedLocal = $escPivotRelated',
-                );
-            }
-          }
-        }
-      }
-    }
-
-    final d = dbManager.dialect;
-
-    // Main table fields
-    List<String> effectiveColumns;
-    if (attributes != null) {
-      effectiveColumns = attributes.apply(table.columns);
-    } else if (columns != null && columns.isNotEmpty) {
-      effectiveColumns = columns;
-    } else {
-      effectiveColumns = table.columns;
-    }
-
-    if (effectiveColumns.isEmpty) {
-      // Fallback: escape table name and use wildcard
-      selectFields.add('${d.escapeIdentifier(table.name)}.*');
-    } else {
-      // Escape every table.column reference
-      selectFields.addAll(
-        effectiveColumns.map((c) => d.escapeIdentifier('${table.name}.$c')),
-      );
-    }
-
-    if (includeTotalCount) {
-      selectFields.add('COUNT(*) OVER() AS total_count');
-    }
-
-    if (include != null) {
-      for (final inc in include) {
-        final relName = inc.getTableName(dbManager.tables);
-        final rel =
-            table.relationships.where((r) {
-              final model = r.model;
-              if (model is String) return model == relName;
-              if (model is Type) {
-                final relatedTable =
-                    dbManager.tables.where((t) => t.type == model).firstOrNull;
-                return relatedTable?.name == relName;
-              }
-              return false;
-            }).firstOrNull;
-
-        if (rel == null) continue;
-
-        final relatedTable = _findTable(rel.model);
-        if (relatedTable == null) continue;
-
-        final subFields = _buildJsonObjectFields(
-          relatedTable,
-          inc.attributes,
-          inc.include,
-        );
-        final subJsonObject = d.compileJsonObject(subFields);
-
-        if (rel is HasMany) {
-          final escRelated = d.escapeIdentifier(relatedTable.name);
-          final escForeign = d.escapeIdentifier(
-            '${relatedTable.name}.${rel.foreignKey}',
-          );
-          final escLocal = d.escapeIdentifier('${table.name}.${rel.localKey}');
-          final paranoidFilter =
-              relatedTable.paranoid
-                  ? ' AND ${d.escapeIdentifier('${relatedTable.name}.deleted_at')} IS NULL'
-                  : '';
-          selectFields.add('''
-            ${d.compileJsonArray(subJsonObject, 'FROM $escRelated WHERE $escForeign = $escLocal$paranoidFilter')} AS $relName
-          ''');
-        } else if (rel is ManyToMany) {
-          final escRelated = d.escapeIdentifier(relatedTable.name);
-          final escPivot = d.escapeIdentifier(rel.pivotTable);
-          final escPivotRelated = d.escapeIdentifier(
-            '${rel.pivotTable}.${rel.relatedKey}',
-          );
-          final escRelatedLocal = d.escapeIdentifier(
-            '${relatedTable.name}.${rel.relatedLocalKey}',
-          );
-          final escPivotForeign = d.escapeIdentifier(
-            '${rel.pivotTable}.${rel.foreignKey}',
-          );
-          final escLocal = d.escapeIdentifier('${table.name}.${rel.localKey}');
-          final paranoidFilter =
-              relatedTable.paranoid
-                  ? ' AND ${d.escapeIdentifier('${relatedTable.name}.deleted_at')} IS NULL'
-                  : '';
-          selectFields.add('''
-            ${d.compileJsonArray(subJsonObject, 'FROM $escRelated INNER JOIN $escPivot ON $escPivotRelated = $escRelatedLocal WHERE $escPivotForeign = $escLocal$paranoidFilter')} AS $relName
-          ''');
-        } else {
-          // BelongsTo or HasOne
-          final escRelated = d.escapeIdentifier(relatedTable.name);
-          final escForeign = d.escapeIdentifier(
-            '${relatedTable.name}.${rel is BelongsTo ? rel.localKey : rel.foreignKey}',
-          );
-          final escLocal = d.escapeIdentifier(
-            '${table.name}.${rel is BelongsTo ? rel.foreignKey : rel.localKey}',
-          );
-          final paranoidFilter =
-              relatedTable.paranoid
-                  ? ' AND ${d.escapeIdentifier('${relatedTable.name}.deleted_at')} IS NULL'
-                  : '';
-          selectFields.add('''
-            (SELECT $subJsonObject 
-             FROM $escRelated 
-             WHERE $escForeign = $escLocal$paranoidFilter
-            ) AS $relName
-          ''');
-        }
-      }
-    }
-
-    final escTable = d.escapeIdentifier(table.name);
-    var query = 'SELECT ${selectFields.join(', ')} FROM $escTable';
-    if (joins.isNotEmpty) {
-      query += ' ${joins.toList().join(' ')}';
-    }
-    if (where != null && where.isNotEmpty) {
-      query += ' WHERE ${where.build(d)}';
-    }
-
-    if (joins.isNotEmpty) {
-      query +=
-          ' GROUP BY ${d.escapeIdentifier('${table.name}.${table.primaryKey}')}';
-    }
-
-    if (sort != null) {
-      query += ' ORDER BY ${sort.build()}';
-    }
-    if (limit != null) {
-      query += ' LIMIT $limit';
-      if (offset != null) {
-        query += ' OFFSET $offset';
-      }
-    }
-    if (explainQueryPlan) {
-      query = 'EXPLAIN QUERY PLAN $query';
-    }
-    return query;
+    return JoinQueryBuilder(dbManager: dbManager, table: table).build(
+      columns: columns,
+      attributes: attributes,
+      include: include,
+      where: where,
+      sort: sort,
+      limit: limit,
+      offset: offset,
+      includeTotalCount: includeTotalCount,
+      explainQueryPlan: explainQueryPlan,
+    );
   }
 
   /// Checks existence by primary key.
