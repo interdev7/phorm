@@ -6,3 +6,4 @@ environment:
 
 dev_dependencies:
   melos: ^6.3.2
+  very_good_analysis: ^10.3.0
