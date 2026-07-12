@@ -6,47 +6,98 @@ import 'package:phorm/phorm.dart';
 // WHERE BUILDER 🔍
 // =======================================================
 
-/// Internal class to store a condition with its arguments
-class _Condition {
-  final dynamic condition; // String or WhereBuilder
-  final List<Object?> args;
-  final String? column;
+/// Marker inserted into condition templates where the (dialect-escaped)
+/// column expression belongs. The NUL bytes cannot appear in validated
+/// column names or SQL keywords, so no substring clash is possible.
+const String _colToken = '\u0000col\u0000';
 
-  _Condition(this.condition, this.args, this.column);
+/// Replaces positional `?` placeholders with dialect-specific ones,
+/// advancing [paramIndex] once per placeholder.
+String _compilePlaceholders(
+  String sql,
+  SqlDialect dialect,
+  ParamIndex paramIndex,
+) {
+  if (!sql.contains('?')) return sql;
 
-  String compile(SqlDialect dialect, ParamIndex paramIndex) {
-    if (condition is WhereBuilder) {
-      final builder = condition as WhereBuilder;
-      final built = builder._buildWithDialect(dialect, paramIndex);
-      if (built.isEmpty) return '';
-      return builder._conditions.length > 1 ? '($built)' : built;
-    }
-
-    String sql = condition as String;
-
-    // 1. Escape column if specified, using word boundaries to prevent substring clashes
-    if (column != null && column!.isNotEmpty) {
-      final escapedColumn = dialect.escapeIdentifier(column!);
-      final regExp = RegExp('\\b${RegExp.escape(column!)}\\b');
-      sql = sql.replaceAll(regExp, escapedColumn);
-    }
-
-    // 2. Replace positional placeholders ? with dialect-specific ones
-    if (sql.contains('?')) {
-      final testPlaceholder = dialect.compilePlaceholder(paramIndex.value);
-      if (testPlaceholder == '?') {
-        // SQLite/MySQL case: placeholder is '?'. Just count how many '?' are in the sql and advance paramIndex
-        final count = '?'.allMatches(sql).length;
-        paramIndex.value += count;
-      } else {
-        while (sql.contains('?')) {
-          final placeholder = dialect.compilePlaceholder(paramIndex.value++);
-          sql = sql.replaceFirst('?', placeholder);
-        }
-      }
-    }
-
+  final testPlaceholder = dialect.compilePlaceholder(paramIndex.value);
+  if (testPlaceholder == '?') {
+    // SQLite/MySQL case: placeholder is '?'. Just count how many '?' are in the sql and advance paramIndex
+    final count = '?'.allMatches(sql).length;
+    paramIndex.value += count;
     return sql;
+  }
+
+  var result = sql;
+  while (result.contains('?')) {
+    final placeholder = dialect.compilePlaceholder(paramIndex.value++);
+    result = result.replaceFirst('?', placeholder);
+  }
+  return result;
+}
+
+/// Internal representation of a single WHERE clause entry.
+sealed class _Condition {
+  List<Object?> get args;
+
+  String compile(SqlDialect dialect, ParamIndex paramIndex);
+}
+
+/// A condition built from a known column: the column is stored separately
+/// from the SQL [template] (which references it via [_colToken]) and is
+/// escaped structurally by the dialect — no string matching involved.
+class _ColumnCondition implements _Condition {
+  _ColumnCondition(this.column, this.template, this.args);
+
+  /// String column name, or a [SqlFunctionColumn] wrapping one.
+  final Object column;
+  final String template;
+  @override
+  final List<Object?> args;
+
+  static String _escapeColumn(Object column, SqlDialect dialect) {
+    if (column is SqlFunctionColumn) {
+      return '${column.functionName}'
+          '(${_escapeColumn(column.innerColumn, dialect)})';
+    }
+    return dialect.escapeIdentifier(column.toString());
+  }
+
+  @override
+  String compile(SqlDialect dialect, ParamIndex paramIndex) {
+    final sql = template.replaceAll(_colToken, _escapeColumn(column, dialect));
+    return _compilePlaceholders(sql, dialect, paramIndex);
+  }
+}
+
+/// A raw SQL condition (escape hatch) — emitted verbatim, no column escaping.
+class _RawCondition implements _Condition {
+  _RawCondition(this.sql, this.args);
+
+  final String sql;
+  @override
+  final List<Object?> args;
+
+  @override
+  String compile(SqlDialect dialect, ParamIndex paramIndex) {
+    return _compilePlaceholders(sql, dialect, paramIndex);
+  }
+}
+
+/// A nested AND/OR group.
+class _GroupCondition implements _Condition {
+  _GroupCondition(this.builder);
+
+  final WhereBuilder builder;
+
+  @override
+  List<Object?> get args => builder.args;
+
+  @override
+  String compile(SqlDialect dialect, ParamIndex paramIndex) {
+    final built = builder._buildWithDialect(dialect, paramIndex);
+    if (built.isEmpty) return '';
+    return builder._conditions.length > 1 ? '($built)' : built;
   }
 }
 
@@ -149,17 +200,21 @@ class WhereBuilder {
     }
   }
 
-  /// Adds a simple condition with arguments
-  void _addCondition(String condition, List<Object?> args, Object? column) {
-    _conditions.add(_Condition(condition, args, column?.toString()));
-    if (column != null) {
-      _usedColumns.add(column.toString());
-    }
+  /// Adds a column-based condition; [template] references the column
+  /// via [_colToken] so it can be escaped structurally at compile time.
+  void _addColumnCondition(Object column, String template, List<Object?> args) {
+    _conditions.add(_ColumnCondition(column, template, args));
+    _usedColumns.add(column.toString());
+  }
+
+  /// Adds a raw SQL condition (no column escaping).
+  void _addRawCondition(String sql, List<Object?> args) {
+    _conditions.add(_RawCondition(sql, args));
   }
 
   /// Adds a nested WhereBuilder as a condition
-  void _addBuilder(WhereBuilder builder, String? column) {
-    _conditions.add(_Condition(builder, [], column));
+  void _addBuilder(WhereBuilder builder) {
+    _conditions.add(_GroupCondition(builder));
     _usedColumns.addAll(builder._usedColumns);
   }
 
@@ -178,7 +233,7 @@ class WhereBuilder {
   WhereBuilder eq(Object column, Object? value) {
     _validate(column);
     if (value == null) return this;
-    _addCondition('$column = ?', [_prepareValue(value)], column);
+    _addColumnCondition(column, '$_colToken = ?', [_prepareValue(value)]);
     return this;
   }
 
@@ -193,7 +248,7 @@ class WhereBuilder {
   WhereBuilder ne(Object column, Object? value) {
     _validate(column);
     if (value == null) return this;
-    _addCondition('$column != ?', [_prepareValue(value)], column);
+    _addColumnCondition(column, '$_colToken != ?', [_prepareValue(value)]);
     return this;
   }
 
@@ -207,7 +262,7 @@ class WhereBuilder {
   /// ```
   WhereBuilder gt(Object column, Object value) {
     _validate(column);
-    _addCondition('$column > ?', [_prepareValue(value)], column);
+    _addColumnCondition(column, '$_colToken > ?', [_prepareValue(value)]);
     return this;
   }
 
@@ -221,7 +276,7 @@ class WhereBuilder {
   /// ```
   WhereBuilder gte(Object column, Object value) {
     _validate(column);
-    _addCondition('$column >= ?', [_prepareValue(value)], column);
+    _addColumnCondition(column, '$_colToken >= ?', [_prepareValue(value)]);
     return this;
   }
 
@@ -235,7 +290,7 @@ class WhereBuilder {
   /// ```
   WhereBuilder lt(Object column, Object value) {
     _validate(column);
-    _addCondition('$column < ?', [_prepareValue(value)], column);
+    _addColumnCondition(column, '$_colToken < ?', [_prepareValue(value)]);
     return this;
   }
 
@@ -249,7 +304,7 @@ class WhereBuilder {
   /// ```
   WhereBuilder lte(Object column, Object value) {
     _validate(column);
-    _addCondition('$column <= ?', [_prepareValue(value)], column);
+    _addColumnCondition(column, '$_colToken <= ?', [_prepareValue(value)]);
     return this;
   }
 
@@ -267,7 +322,7 @@ class WhereBuilder {
   /// ```
   WhereBuilder like(Object column, String pattern) {
     _validate(column);
-    _addCondition('$column LIKE ?', [pattern], column);
+    _addColumnCondition(column, '$_colToken LIKE ?', [pattern]);
     return this;
   }
 
@@ -281,7 +336,7 @@ class WhereBuilder {
   /// ```
   WhereBuilder notLike(Object column, String pattern) {
     _validate(column);
-    _addCondition('$column NOT LIKE ?', [pattern], column);
+    _addColumnCondition(column, '$_colToken NOT LIKE ?', [pattern]);
     return this;
   }
 
@@ -295,7 +350,7 @@ class WhereBuilder {
   /// ```
   WhereBuilder ilike(Object column, String pattern) {
     _validate(column);
-    _addCondition('LOWER($column) LIKE LOWER(?)', [pattern], column);
+    _addColumnCondition(column, 'LOWER($_colToken) LIKE LOWER(?)', [pattern]);
     return this;
   }
 
@@ -309,7 +364,9 @@ class WhereBuilder {
   /// ```
   WhereBuilder notIlike(Object column, String pattern) {
     _validate(column);
-    _addCondition('LOWER($column) NOT LIKE LOWER(?)', [pattern], column);
+    _addColumnCondition(column, 'LOWER($_colToken) NOT LIKE LOWER(?)', [
+      pattern,
+    ]);
     return this;
   }
 
@@ -323,7 +380,7 @@ class WhereBuilder {
   /// ```
   WhereBuilder regexp(Object column, String pattern) {
     _validate(column);
-    _addCondition('$column REGEXP ?', [pattern], column);
+    _addColumnCondition(column, '$_colToken REGEXP ?', [pattern]);
     return this;
   }
 
@@ -334,42 +391,54 @@ class WhereBuilder {
   /// Adds condition on the length of a column: `LENGTH(column) = ?`
   WhereBuilder lengthEq(Object column, int length) {
     _validate(column);
-    _addCondition('LENGTH($column) = ?', [_prepareValue(length)], column);
+    _addColumnCondition(column, 'LENGTH($_colToken) = ?', [
+      _prepareValue(length),
+    ]);
     return this;
   }
 
   /// Adds condition on the length of a column: `LENGTH(column) != ?`
   WhereBuilder lengthNe(Object column, int length) {
     _validate(column);
-    _addCondition('LENGTH($column) != ?', [_prepareValue(length)], column);
+    _addColumnCondition(column, 'LENGTH($_colToken) != ?', [
+      _prepareValue(length),
+    ]);
     return this;
   }
 
   /// Adds greater-than condition on the length: `LENGTH(column) > ?`
   WhereBuilder lengthGt(Object column, int length) {
     _validate(column);
-    _addCondition('LENGTH($column) > ?', [_prepareValue(length)], column);
+    _addColumnCondition(column, 'LENGTH($_colToken) > ?', [
+      _prepareValue(length),
+    ]);
     return this;
   }
 
   /// Adds greater-than-or-equal condition on the length: `LENGTH(column) >= ?`
   WhereBuilder lengthGte(Object column, int length) {
     _validate(column);
-    _addCondition('LENGTH($column) >= ?', [_prepareValue(length)], column);
+    _addColumnCondition(column, 'LENGTH($_colToken) >= ?', [
+      _prepareValue(length),
+    ]);
     return this;
   }
 
   /// Adds less-than condition on the length: `LENGTH(column) < ?`
   WhereBuilder lengthLt(Object column, int length) {
     _validate(column);
-    _addCondition('LENGTH($column) < ?', [_prepareValue(length)], column);
+    _addColumnCondition(column, 'LENGTH($_colToken) < ?', [
+      _prepareValue(length),
+    ]);
     return this;
   }
 
   /// Adds less-than-or-equal condition on the length: `LENGTH(column) <= ?`
   WhereBuilder lengthLte(Object column, int length) {
     _validate(column);
-    _addCondition('LENGTH($column) <= ?', [_prepareValue(length)], column);
+    _addColumnCondition(column, 'LENGTH($_colToken) <= ?', [
+      _prepareValue(length),
+    ]);
     return this;
   }
 
@@ -379,33 +448,33 @@ class WhereBuilder {
   /// and avoid embedding literals directly into SQL.
   WhereBuilder substrEq(Object column, int start, int len, String value) {
     _validate(column);
-    _addCondition('SUBSTR($column, ?, ?) = ?', [
+    _addColumnCondition(column, 'SUBSTR($_colToken, ?, ?) = ?', [
       _prepareValue(start),
       _prepareValue(len),
       _prepareValue(value),
-    ], column);
+    ]);
     return this;
   }
 
   /// Adds SUBSTR LIKE condition: `SUBSTR(column, start, len) LIKE ?`
   WhereBuilder substrLike(Object column, int start, int len, String pattern) {
     _validate(column);
-    _addCondition('SUBSTR($column, ?, ?) LIKE ?', [
+    _addColumnCondition(column, 'SUBSTR($_colToken, ?, ?) LIKE ?', [
       _prepareValue(start),
       _prepareValue(len),
       pattern,
-    ], column);
+    ]);
     return this;
   }
 
   /// Adds case-insensitive SUBSTR LIKE: `LOWER(SUBSTR(column, start, len)) LIKE LOWER(?)`
   WhereBuilder substrIlike(Object column, int start, int len, String pattern) {
     _validate(column);
-    _addCondition('LOWER(SUBSTR($column, ?, ?)) LIKE LOWER(?)', [
-      _prepareValue(start),
-      _prepareValue(len),
-      pattern,
-    ], column);
+    _addColumnCondition(
+      column,
+      'LOWER(SUBSTR($_colToken, ?, ?)) LIKE LOWER(?)',
+      [_prepareValue(start), _prepareValue(len), pattern],
+    );
     return this;
   }
 
@@ -423,34 +492,34 @@ class WhereBuilder {
   /// ```
   WhereBuilder between(Object column, Object from, Object to) {
     _validate(column);
-    _addCondition('$column BETWEEN ? AND ?', [
+    _addColumnCondition(column, '$_colToken BETWEEN ? AND ?', [
       _prepareValue(from),
       _prepareValue(to),
-    ], column);
+    ]);
     return this;
   }
 
   /// Adds NOT BETWEEN condition: `column NOT BETWEEN ? AND ?`
   WhereBuilder notBetween(Object column, Object from, Object to) {
     _validate(column);
-    _addCondition('$column NOT BETWEEN ? AND ?', [
+    _addColumnCondition(column, '$_colToken NOT BETWEEN ? AND ?', [
       _prepareValue(from),
       _prepareValue(to),
-    ], column);
+    ]);
     return this;
   }
 
   /// Adds STARTS WITH condition (LIKE 'pattern%')
   WhereBuilder startsWith(Object column, String pattern) {
     _validate(column);
-    _addCondition('$column LIKE ?', ['$pattern%'], column);
+    _addColumnCondition(column, '$_colToken LIKE ?', ['$pattern%']);
     return this;
   }
 
   /// Adds ENDS WITH condition (LIKE '%pattern')
   WhereBuilder endsWith(Object column, String pattern) {
     _validate(column);
-    _addCondition('$column LIKE ?', ['%$pattern'], column);
+    _addColumnCondition(column, '$_colToken LIKE ?', ['%$pattern']);
     return this;
   }
 
@@ -465,12 +534,16 @@ class WhereBuilder {
   WhereBuilder inList(Object column, List<Object?> values) {
     _validate(column);
     if (values.isEmpty) {
-      _addCondition('1 = 0', [], column); // Always false
+      _addColumnCondition(column, '1 = 0', []); // Always false
       return this;
     }
     final preparedValues = values.map(_prepareValue).toList();
     final placeholders = List.filled(preparedValues.length, '?').join(', ');
-    _addCondition('$column IN ($placeholders)', preparedValues, column);
+    _addColumnCondition(
+      column,
+      '$_colToken IN ($placeholders)',
+      preparedValues,
+    );
     return this;
   }
 
@@ -487,7 +560,11 @@ class WhereBuilder {
     if (values.isEmpty) return this; // No restriction
     final preparedValues = values.map(_prepareValue).toList();
     final placeholders = List.filled(preparedValues.length, '?').join(', ');
-    _addCondition('$column NOT IN ($placeholders)', preparedValues, column);
+    _addColumnCondition(
+      column,
+      '$_colToken NOT IN ($placeholders)',
+      preparedValues,
+    );
     return this;
   }
 
@@ -504,7 +581,7 @@ class WhereBuilder {
   /// ```
   WhereBuilder isNull(Object column) {
     _validate(column);
-    _addCondition('$column IS NULL', [], column);
+    _addColumnCondition(column, '$_colToken IS NULL', []);
     return this;
   }
 
@@ -517,7 +594,7 @@ class WhereBuilder {
   /// ```
   WhereBuilder isNotNull(Object column) {
     _validate(column);
-    _addCondition('$column IS NOT NULL', [], column);
+    _addColumnCondition(column, '$_colToken IS NOT NULL', []);
     return this;
   }
 
@@ -534,7 +611,7 @@ class WhereBuilder {
   /// ```
   WhereBuilder isTrue(Object column) {
     _validate(column);
-    _addCondition('$column = 1', [], column);
+    _addColumnCondition(column, '$_colToken = 1', []);
     return this;
   }
 
@@ -547,7 +624,7 @@ class WhereBuilder {
   /// ```
   WhereBuilder isFalse(Object column) {
     _validate(column);
-    _addCondition('$column = 0', [], column);
+    _addColumnCondition(column, '$_colToken = 0', []);
     return this;
   }
 
@@ -577,7 +654,7 @@ class WhereBuilder {
 
     if (group._conditions.isEmpty) return this;
 
-    _addBuilder(group, null);
+    _addBuilder(group);
     return this;
   }
 
@@ -600,7 +677,7 @@ class WhereBuilder {
 
     if (group._conditions.isEmpty) return this;
 
-    _addBuilder(group, null);
+    _addBuilder(group);
     return this;
   }
 
@@ -632,7 +709,7 @@ class WhereBuilder {
     }
 
     final preparedArgs = args?.map(_prepareValue).toList() ?? [];
-    _addCondition(condition, preparedArgs, null);
+    _addRawCondition(condition, preparedArgs);
     _extractColumnsFromRaw(condition);
 
     return this;
@@ -655,7 +732,7 @@ class WhereBuilder {
     final dateStr =
         '${date.year}-${date.month.toString().padLeft(2, '0')}-'
         '${date.day.toString().padLeft(2, '0')}';
-    _addCondition('DATE($column) = ?', [dateStr], column);
+    _addColumnCondition(column, 'DATE($_colToken) = ?', [dateStr]);
     return this;
   }
 
@@ -672,7 +749,7 @@ class WhereBuilder {
     final dateStr =
         '${date.year}-${date.month.toString().padLeft(2, '0')}-'
         '${date.day.toString().padLeft(2, '0')}';
-    _addCondition('DATE($column) > ?', [dateStr], column);
+    _addColumnCondition(column, 'DATE($_colToken) > ?', [dateStr]);
     return this;
   }
 
@@ -689,7 +766,7 @@ class WhereBuilder {
     final dateStr =
         '${date.year}-${date.month.toString().padLeft(2, '0')}-'
         '${date.day.toString().padLeft(2, '0')}';
-    _addCondition('DATE($column) < ?', [dateStr], column);
+    _addColumnCondition(column, 'DATE($_colToken) < ?', [dateStr]);
     return this;
   }
 
@@ -712,7 +789,10 @@ class WhereBuilder {
     final toStr =
         '${to.year}-${to.month.toString().padLeft(2, '0')}-'
         '${to.day.toString().padLeft(2, '0')}';
-    _addCondition('DATE($column) BETWEEN ? AND ?', [fromStr, toStr], column);
+    _addColumnCondition(column, 'DATE($_colToken) BETWEEN ? AND ?', [
+      fromStr,
+      toStr,
+    ]);
     return this;
   }
 
@@ -730,7 +810,7 @@ class WhereBuilder {
         '${time.hour.toString().padLeft(2, '0')}:'
         '${time.minute.toString().padLeft(2, '0')}:'
         '${time.second.toString().padLeft(2, '0')}';
-    _addCondition('TIME($column) = ?', [timeStr], column);
+    _addColumnCondition(column, 'TIME($_colToken) = ?', [timeStr]);
     return this;
   }
 
@@ -783,14 +863,8 @@ class WhereBuilder {
     final allArgs = <Object?>[];
 
     for (final condition in _conditions) {
-      if (condition.condition is String) {
-        // For string conditions, add their arguments
-        allArgs.addAll(condition.args);
-      } else if (condition.condition is WhereBuilder) {
-        // For nested builders, recursively collect arguments
-        final builder = condition.condition as WhereBuilder;
-        allArgs.addAll(builder.args);
-      }
+      // Nested groups recursively expose their builder's args
+      allArgs.addAll(condition.args);
     }
 
     return List.unmodifiable(allArgs);
@@ -811,17 +885,18 @@ class WhereBuilder {
     final copy = WhereBuilder(separator: _separator);
 
     for (final condition in _conditions) {
-      if (condition.condition is String) {
-        copy._addCondition(
-          condition.condition as String,
-          List.from(condition.args),
-          condition.column,
-        );
-      } else if (condition.condition is WhereBuilder) {
-        final builder = condition.condition as WhereBuilder;
-        copy._addBuilder(builder.copy(), condition.column);
+      switch (condition) {
+        case _ColumnCondition(:final column, :final template, :final args):
+          copy._conditions.add(
+            _ColumnCondition(column, template, List.of(args)),
+          );
+        case _RawCondition(:final sql, :final args):
+          copy._conditions.add(_RawCondition(sql, List.of(args)));
+        case _GroupCondition(:final builder):
+          copy._conditions.add(_GroupCondition(builder.copy()));
       }
     }
+    copy._usedColumns.addAll(_usedColumns);
 
     return copy;
   }
@@ -901,14 +976,21 @@ class WhereBuilder {
 
     for (var i = 0; i < _conditions.length; i++) {
       final condition = _conditions[i];
-      if (condition.condition is String) {
-        log('$indent  [$i] Condition: "${condition.condition}"', name: ">");
-        if (condition.args.isNotEmpty) {
-          log('$indent      Args: ${condition.args}', name: ">");
-        }
-      } else if (condition.condition is WhereBuilder) {
-        log('$indent  [$i] Nested Builder:', name: ">");
-        (condition.condition as WhereBuilder).debugPrint('$indent    ');
+      switch (condition) {
+        case _ColumnCondition(:final column, :final template):
+          final sql = template.replaceAll(_colToken, column.toString());
+          log('$indent  [$i] Condition: "$sql"', name: ">");
+          if (condition.args.isNotEmpty) {
+            log('$indent      Args: ${condition.args}', name: ">");
+          }
+        case _RawCondition(:final sql):
+          log('$indent  [$i] Raw condition: "$sql"', name: ">");
+          if (condition.args.isNotEmpty) {
+            log('$indent      Args: ${condition.args}', name: ">");
+          }
+        case _GroupCondition(:final builder):
+          log('$indent  [$i] Nested Builder:', name: ">");
+          builder.debugPrint('$indent    ');
       }
     }
   }
