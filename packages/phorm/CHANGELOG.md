@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.4.0]
+
+- **BREAKING**: automatic timestamps (`created_at`, `updated_at`, `deleted_at`)
+  are now written in UTC (`DateTime.now().toUtc()`) instead of local time.
+  New records sort consistently across devices/timezones; rows written by
+  earlier versions keep their local-time values.
+
 ## [1.3.0]
 
 - Bumped `phorm_annotations` dependency to `^1.3.0`, which adds the

@@ -1,0 +1,38 @@
+name: phorm
+
+# examples/ is excluded: with the current Flutter SDK, flutter_test pins
+# meta 1.18.0 while phorm_generator's analyzer ^13.3.0 needs meta ^1.18.3,
+# so the example app fails to resolve (with or without melos). Re-add it
+# once the SDK ships a newer meta.
+packages:
+  - packages/*
+
+command:
+  bootstrap:
+    runPubGetInParallel: true
+
+scripts:
+  analyze:
+    description: Run static analysis in every package.
+    exec: dart analyze --fatal-infos .
+
+  format:
+    description: Verify formatting in every package.
+    exec: dart format --set-exit-if-changed .
+
+  test:
+    description: Run tests in every package that has a test directory.
+    exec: |
+      if grep -q "sdk: flutter" pubspec.yaml; then
+        flutter test
+      else
+        dart test
+      fi
+    packageFilters:
+      dirExists: test
+
+  build_runner:
+    description: Run build_runner in packages that depend on it (phorm_sqlite tests, examples).
+    exec: dart run build_runner build --delete-conflicting-outputs
+    packageFilters:
+      dependsOn: build_runner
