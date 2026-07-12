@@ -97,7 +97,7 @@ class PhormCore<T extends Model> implements IPhormCore<T> {
 
     if (!table.timestamps) return result;
 
-    final now = DateTime.now().toIso8601String();
+    final now = DateTime.now().toUtc().toIso8601String();
     if (isInsert) {
       // Strip autoincrement PK when 0 or null — let SQLite assign it.
       if (table.autoIncrement) {
@@ -223,7 +223,7 @@ class PhormCore<T extends Model> implements IPhormCore<T> {
       [id],
       () => db.update(
         table.name,
-        _prepareDataForDb({'deleted_at': DateTime.now().toIso8601String()}),
+        _prepareDataForDb({'deleted_at': DateTime.now().toUtc().toIso8601String()}),
         where: _pkWhereClause(),
         whereArgs: [id],
       ),
@@ -344,7 +344,7 @@ class PhormCore<T extends Model> implements IPhormCore<T> {
             batch.update(
               table.name,
               _prepareDataForDb({
-                'deleted_at': DateTime.now().toIso8601String(),
+                'deleted_at': DateTime.now().toUtc().toIso8601String(),
               }),
               where: _pkWhereClause(),
               whereArgs: [id],

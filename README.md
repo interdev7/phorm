@@ -194,6 +194,20 @@ Full documentation is in the [`docs/`](./docs) folder:
 
 ---
 
+## Contributing
+
+This monorepo is managed with [Melos](https://melos.invertase.dev). To get started:
+
+```bash
+dart pub global activate melos
+melos bootstrap   # link local packages and fetch dependencies
+melos run test    # run tests in every package
+melos run analyze # static analysis in every package
+melos run format  # verify formatting
+```
+
+---
+
 ## License
 
 MIT © 2024–2026 PHORM Contributors

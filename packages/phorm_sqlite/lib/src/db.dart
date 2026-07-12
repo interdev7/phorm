@@ -472,7 +472,7 @@ class DB implements PhormDatabase {
             'migration_version': migration.targetVersion,
             'migration_hash': hash,
             'description': '${migration.description} (Synced)',
-            'applied_at': DateTime.now().toIso8601String(),
+            'applied_at': DateTime.now().toUtc().toIso8601String(),
           });
         }
       }
@@ -551,7 +551,7 @@ class DB implements PhormDatabase {
         'migration_version': migration.targetVersion,
         'migration_hash': hash,
         'description': migration.description,
-        'applied_at': DateTime.now().toIso8601String(),
+        'applied_at': DateTime.now().toUtc().toIso8601String(),
       });
 
       logger?.info('Migration Success');

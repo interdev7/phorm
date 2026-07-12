@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.5.0]
+
+- **BREAKING**: bundled `phorm` core bumped to `^1.4.0` — automatic timestamps
+  (`created_at`, `updated_at`, `deleted_at`) are now written in UTC instead of
+  local time. New records sort consistently across devices/timezones; rows
+  written by earlier versions keep their local-time values.
+- Migration `applied_at` timestamps are now written in UTC as well.
+
 ## [1.4.1]
 
 - Raise the default `DB.isolateThreshold` from `50` to `2000`. Result-set
