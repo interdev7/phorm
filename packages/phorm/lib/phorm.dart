@@ -12,3 +12,4 @@ export 'src/seeder.dart';
 export 'src/sort_builder.dart';
 export 'src/sql_function_column.dart';
 export 'src/where_builder.dart';
+export 'src/where_builder_helpers.dart';

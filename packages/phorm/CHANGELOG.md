@@ -1,5 +1,14 @@
 # Changelog
 
+## [1.4.2]
+
+- Internal refactor, no API changes: `core.dart` and `where_builder.dart`
+  split into focused files — JOIN/JSON-aggregation query building extracted
+  into `JoinQueryBuilder` (`PhormCore.buildJoinQuery` now delegates to it),
+  the sealed condition hierarchy moved to a `where_condition.dart` part, and
+  `WhereBuilderExtensions`/`WhereBuilders` moved to
+  `where_builder_helpers.dart` (still exported from `package:phorm/phorm.dart`).
+
 ## [1.4.1]
 
 - `WhereBuilder` now compiles conditions structurally: the column is stored
