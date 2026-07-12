@@ -1,5 +1,16 @@
 # Changelog
 
+## [1.4.1]
+
+- `WhereBuilder` now compiles conditions structurally: the column is stored
+  separately from the SQL template and escaped via `SqlDialect.escapeIdentifier`
+  directly, instead of regex word-boundary replacement over the generated SQL.
+  Fixes potential mis-escaping when a column name coincided with a word inside
+  the SQL template (e.g. a column named `LOWER` or `DATE`), and
+  `SqlFunctionColumn` inner columns are now properly escaped.
+  `raw()` conditions remain verbatim (no escaping), as before.
+- Internal condition storage is a sealed class hierarchy instead of `dynamic`.
+
 ## [1.4.0]
 
 - **BREAKING**: automatic timestamps (`created_at`, `updated_at`, `deleted_at`)

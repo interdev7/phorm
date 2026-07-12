@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.5.1]
+
+- Bundled `phorm` core bumped to `^1.4.1`: `WhereBuilder` now escapes columns
+  structurally via the dialect instead of regex replacement over the generated
+  SQL, fixing mis-escaping when a column name coincided with a word inside the
+  SQL template (e.g. a column named `LOWER` or `DATE`) and properly escaping
+  `SqlFunctionColumn` inner columns.
+
 ## [1.5.0]
 
 - **BREAKING**: bundled `phorm` core bumped to `^1.4.0` — automatic timestamps
