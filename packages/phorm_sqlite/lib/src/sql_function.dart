@@ -61,11 +61,10 @@ class SqlFunction {
         final text = args[1].toString();
         try {
           return RegExp(pattern).hasMatch(text) ? 1 : 0;
-        } catch (e) {
+        } on Object {
           return 0;
         }
       },
-      deterministic: true,
     );
   }
 

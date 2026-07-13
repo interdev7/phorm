@@ -631,7 +631,7 @@ class ModelMixinGenerator extends GeneratorForAnnotation<Schema> {
         ..writeln('class $serviceName {');
 
       // Add Columns to Service Class
-      for (final field in fields.where((f) => _isColumn(f))) {
+      for (final field in fields.where(_isColumn)) {
         final sqlName = MetadataExtractor.getSqlColumnName(field, strategy);
         var type = field.type.getDisplayString();
         if (type.endsWith('?')) type = type.substring(0, type.length - 1);
@@ -884,7 +884,7 @@ class ModelMixinGenerator extends GeneratorForAnnotation<Schema> {
     if (type.element is ClassElement &&
         typeName != 'Object' &&
         typeName != 'dynamic') {
-      final classElement = type.element as ClassElement;
+      final classElement = type.element! as ClassElement;
       final hasToJson = classElement.methods.any((m) => m.name == 'toJson');
       if (hasToJson) {
         return "$accessor$q.toJson()";
@@ -1023,7 +1023,7 @@ class ModelMixinGenerator extends GeneratorForAnnotation<Schema> {
     if (type.element is ClassElement &&
         typeName != 'Object' &&
         typeName != 'dynamic') {
-      final classElement = type.element as ClassElement;
+      final classElement = type.element! as ClassElement;
       final hasFromJson = classElement.constructors.any(
         (c) => c.name == 'fromJson',
       );
@@ -1049,7 +1049,7 @@ class ModelMixinGenerator extends GeneratorForAnnotation<Schema> {
   String _reviveToCheckCode(Revivable revived) {
     final typeName = revived.source.fragment;
     final posArgs = revived.positionalArguments
-        .map((a) => _formatConstant(a))
+        .map(_formatConstant)
         .join(', ');
     final namedArgs = revived.namedArguments.entries
         .map((e) => "${e.key}: ${_formatConstant(e.value)}")
@@ -1070,13 +1070,13 @@ class ModelMixinGenerator extends GeneratorForAnnotation<Schema> {
     if (reader.isInt) return reader.intValue.toString();
     if (reader.isDouble) return reader.doubleValue.toString();
     if (reader.isList) {
-      return "[${reader.listValue.map((v) => _formatConstant(v)).join(', ')}]";
+      return "[${reader.listValue.map(_formatConstant).join(', ')}]";
     }
     // Handle nested ICHECK (e.g. CheckNot)
     try {
       final revived = reader.revive();
       return "const ${_reviveToCheckCode(revived)}";
-    } catch (_) {
+    } on Object catch (_) {
       // coverage:ignore-start
       return obj.toString();
       // coverage:ignore-end

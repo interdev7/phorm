@@ -7,6 +7,7 @@ import 'where_builder.dart';
 /// A fluent query builder for PHORM models.
 /// Allows chaining conditions, sorting, and pagination.
 class PhormQuery<T extends Model> {
+  /// The service the query executes against.
   final PhormCore<T> service;
   final WhereBuilder _where = WhereBuilder();
   SortBuilder? _sort;
@@ -16,6 +17,7 @@ class PhormQuery<T extends Model> {
   Attributes? _attributes;
   bool _withDeleted = false;
 
+  /// Creates a query bound to [service].
   PhormQuery(this.service);
 
   /// Adds a condition to the query.

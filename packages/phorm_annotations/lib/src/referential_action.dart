@@ -1,5 +1,5 @@
 /// Standard SQLite referential actions for foreign keys.
-/// Used in [Relationship] for [onDelete] and [onUpdate].
+/// Used in `Relationship` for `onDelete` and `onUpdate`.
 class ReferentialAction {
   /// CASCADE: When the referenced row is deleted/updated,
   /// delete/update the rows that reference it.

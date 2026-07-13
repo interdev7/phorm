@@ -94,9 +94,9 @@ class Database implements DatabaseExecutor {
     return _wrapException(
       () async {
         await _isolate.execute(sql, columns.map((c) => values[c]).toList());
-        return await _isolate
+        return _isolate
             .query('SELECT last_insert_rowid() as id')
-            .then((r) => r.first['id'] as int);
+            .then((r) => r.first['id']! as int);
       },
       table: table,
       values: values,
@@ -365,13 +365,13 @@ class _BatchOp {
   Future<Object?> execute(Database db) async {
     switch (type) {
       case 'insert':
-        return await db.insert(
+        return db.insert(
           table!,
           values!,
           conflictAlgorithm: conflictAlgorithm,
         );
       case 'update':
-        return await db.update(
+        return db.update(
           table!,
           values!,
           where: where,
@@ -379,7 +379,7 @@ class _BatchOp {
           conflictAlgorithm: conflictAlgorithm,
         );
       case 'delete':
-        return await db.delete(table!, where: where, whereArgs: whereArgs);
+        return db.delete(table!, where: where, whereArgs: whereArgs);
       case 'execute':
         await db.execute(sql!, arguments);
         return null;

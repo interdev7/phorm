@@ -1,5 +1,5 @@
 name: phorm_generator
-version: 1.4.0
+version: 1.4.1
 description: >
   Code generator for PHORM that turns @Schema-annotated Dart models into SQL
   table schemas, migrations, JSON mappers and runtime metadata for SQLite,

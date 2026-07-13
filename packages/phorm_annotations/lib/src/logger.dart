@@ -18,8 +18,10 @@ abstract interface class PhormLogger {
 
 /// A default colored console logger for PHORM.
 class PhormConsoleLogger implements PhormLogger {
+  /// Whether ANSI colors are used in the output.
   final bool enableColors;
 
+  /// Creates a console logger.
   const PhormConsoleLogger({this.enableColors = true});
 
   static const String _reset = '\x1B[0m';

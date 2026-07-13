@@ -1,7 +1,7 @@
 /// MODELS 🏗️
 ///
 /// Base model interface for CRUD operations.
-/// All models must implement this to work with [PhormCore].
+/// All models must implement this to work with `PhormCore`.
 ///
 /// **Requirements:**
 /// - `toJson()`: Serializes to `Map<String, dynamic>` for database insertion.

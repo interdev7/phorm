@@ -25,7 +25,7 @@ void main() {
       final db = await service.dbManager.executor;
 
       expect(
-        () async => await db.insert('users', {
+        () => db.insert('users', {
           'id': 'bad_gender_001',
           'first_name': 'Bad',
           'last_name': 'Gender',

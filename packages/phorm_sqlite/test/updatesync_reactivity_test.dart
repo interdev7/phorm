@@ -13,6 +13,8 @@
 //   8. Transaction buffering: ONE notification after commit, not per-row
 //   9. Transaction rollback: NO notification emitted
 
+import 'dart:async';
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:phorm_sqlite/phorm_sqlite.dart';
 
@@ -214,7 +216,7 @@ void main() {
 
       expect(emitted, isFalse);
       print('Cancelling subscription');
-      sub.cancel(); // do not await
+      unawaited(sub.cancel());
       print('Finished test successfully');
     });
   });
@@ -421,7 +423,7 @@ void main() {
 
         expect(emitted, isFalse);
         print('Cancelling watchAll subscription');
-        sub.cancel(); // do not await
+        unawaited(sub.cancel());
         print('Finished watchAll test successfully');
       },
     );
@@ -505,7 +507,7 @@ void main() {
 
         // Wait for notifications to settle
         await Future.delayed(const Duration(milliseconds: 150));
-        sub.cancel(); // do not await
+        unawaited(sub.cancel());
 
         // After transaction: only ONE unique table name should be buffered & emitted
         expect(emitted.where((t) => t == 'users').length, 1);
@@ -536,7 +538,7 @@ void main() {
         });
 
         await Future.delayed(const Duration(milliseconds: 200));
-        sub.cancel(); // do not await
+        unawaited(sub.cancel());
 
         // Exactly 1 re-emission containing all 3 users (not 3 separate emissions)
         expect(emissions.length, 1);
@@ -558,7 +560,7 @@ void main() {
       } catch (_) {}
 
       await Future.delayed(const Duration(milliseconds: 200));
-      sub.cancel(); // do not await
+      unawaited(sub.cancel());
 
       expect(emitted, isEmpty);
     });

@@ -27,7 +27,7 @@ class _FunctionRegistry {
       db.createFunction(
         functionName: fn.name,
         argumentCount: AllowedArgumentCount(fn.argumentCount),
-        function: (args) => fn.function(args),
+        function: fn.function,
         deterministic: fn.deterministic,
       );
     }
@@ -218,7 +218,7 @@ void _isolateEntryPoint(Map<String, dynamic> args) {
         (s) => updatesSub = s,
       );
       message.responsePort.send(_DatabaseResponse(result: result));
-    } catch (e, st) {
+    } on Object catch (e, st) {
       message.responsePort.send(_DatabaseResponse(error: e, stackTrace: st));
     }
   });

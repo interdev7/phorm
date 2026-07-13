@@ -30,6 +30,7 @@ class MigrationBuilder<T extends Model> {
   final List<TableMigration> _migrations = [];
   int _currentPriority = 0;
 
+  /// Creates a migration builder for the given table.
   MigrationBuilder(this._table);
 
   /// Adds a raw SQL migration
@@ -55,7 +56,7 @@ class MigrationBuilder<T extends Model> {
             description.isNotEmpty
                 ? description
                 : 'Raw SQL: ${_truncate(sql, 50)}',
-        migrate: (db, _) async => await db.execute(sql),
+        migrate: (db, _) => db.execute(sql),
         priority: _currentPriority++,
       ),
     );
@@ -115,8 +116,7 @@ class MigrationBuilder<T extends Model> {
     return custom(
       description: description ?? 'Drop column $name',
       version: version,
-      migrate:
-          (db, table) async => await _dropColumnWorkaround(db, table, name),
+      migrate: (db, table) => _dropColumnWorkaround(db, table, name),
     );
   }
 
@@ -276,7 +276,7 @@ class MigrationBuilder<T extends Model> {
       version: version,
       migrate: (db, table) async {
         print(
-          '⚠️  SQLite doesn\'t support adding CHECK constraints to existing tables',
+          "⚠️  SQLite doesn't support adding CHECK constraints to existing tables",
         );
         print('    Constraint would be: $constraint');
         // In production, implement table recreation if needed

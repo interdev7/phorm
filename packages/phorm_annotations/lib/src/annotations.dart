@@ -68,6 +68,7 @@ abstract class ColumnBase {
   /// Use [Collate.noCase], [Collate.binary], or [Collate.rtrim].
   final String? collate;
 
+  /// Creates a column annotation with the shared column options.
   const ColumnBase({
     this.sqlType,
     this.type,
@@ -84,6 +85,7 @@ abstract class ColumnBase {
 ///
 /// Used for most non-key fields.
 class Column extends ColumnBase {
+  /// Creates a `@Column` annotation.
   const Column({
     super.sqlType,
     super.type,
@@ -105,6 +107,7 @@ class ID extends ColumnBase {
   /// For example, auto-incrementing integers.
   final bool autoIncrement;
 
+  /// Creates an `@ID` primary-key annotation.
   const ID({
     super.sqlType,
     super.type,
@@ -171,6 +174,7 @@ class Schema {
   /// Defaults to [SqlDialectKind.sqlite].
   final SqlDialectKind dialect;
 
+  /// Creates a `@Schema` table annotation.
   const Schema({
     this.tableName,
     this.indexes = const [],
@@ -188,11 +192,16 @@ class Schema {
   });
 }
 
+/// Base class for relationship annotations between two models.
 abstract class Relationship {
   /// The target model for the relationship.
   /// Can be a [String] (table name) or a [Type] (Model class).
   final dynamic model;
+
+  /// The foreign-key column of the relationship.
   final String foreignKey;
+
+  /// The local key column this relationship joins on.
   final String localKey;
 
   /// Action applied when the referenced record is deleted.
@@ -201,6 +210,7 @@ abstract class Relationship {
   /// Action applied when the referenced record is updated.
   final String? onUpdate;
 
+  /// Creates a relationship with the given model and key columns.
   const Relationship({
     required this.model,
     required this.foreignKey,
@@ -215,6 +225,7 @@ abstract class Relationship {
 
 /// Relationship definitions
 class HasMany extends Relationship {
+  /// Creates a one-to-many relationship.
   const HasMany({
     required super.model,
     required super.foreignKey,
@@ -227,7 +238,9 @@ class HasMany extends Relationship {
   bool get isCollection => true;
 }
 
+/// A one-to-one relationship where the related table holds the foreign key.
 class HasOne extends Relationship {
+  /// Creates a one-to-one relationship.
   const HasOne({
     required super.model,
     required super.foreignKey,
@@ -240,7 +253,9 @@ class HasOne extends Relationship {
   bool get isCollection => false;
 }
 
+/// The inverse side of a relationship: this table holds the foreign key.
 class BelongsTo extends Relationship {
+  /// Creates the inverse (owning-side) relationship.
   const BelongsTo({
     required super.model,
     required super.foreignKey,
@@ -253,7 +268,9 @@ class BelongsTo extends Relationship {
   bool get isCollection => false;
 }
 
+/// Alias of [BelongsTo] kept for query-join readability.
 class Join extends BelongsTo {
+  /// Creates a join (inverse) relationship.
   const Join({
     required super.model,
     required super.foreignKey,
@@ -263,6 +280,7 @@ class Join extends BelongsTo {
   });
 }
 
+/// A many-to-many relationship resolved through a pivot table.
 class ManyToMany extends Relationship {
   /// The name of the pivot (join) table.
   final String pivotTable;
@@ -296,6 +314,7 @@ class ManyToMany extends Relationship {
   /// manual table-recreation migration.
   final bool pivotForeignKeys;
 
+  /// Creates a many-to-many relationship via a pivot table.
   const ManyToMany({
     required super.model,
     required this.pivotTable,
@@ -321,6 +340,7 @@ class Index {
   /// Whether the index enforces uniqueness.
   final bool unique;
 
+  /// Creates an index over [columns]; set [unique] for a unique index.
   const Index({required this.columns, this.unique = false});
 }
 
@@ -433,5 +453,6 @@ class SqlFunc {
   /// If null, the generator defaults to the UPPERCASE version of the Dart function name.
   final String? name;
 
+  /// Creates a `@SqlFunc` annotation, optionally overriding the SQL [name].
   const SqlFunc({this.name});
 }

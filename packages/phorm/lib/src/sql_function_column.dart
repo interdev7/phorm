@@ -9,6 +9,7 @@ class SqlFunctionColumn<T> extends PhormColumn<T> {
   /// The column the function is applied to.
   final PhormColumn<dynamic> innerColumn;
 
+  /// Creates a typed `functionName(innerColumn)` expression.
   const SqlFunctionColumn(this.functionName, this.innerColumn)
     : super('$functionName($innerColumn)');
 }

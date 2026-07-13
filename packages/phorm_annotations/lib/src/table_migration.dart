@@ -15,13 +15,23 @@ import 'table.dart';
 /// - `migrate`: Async function that performs the migration
 /// - `priority`: Execution order within the same version (lower = earlier)
 class TableMigration<T extends Model> {
+  /// The table this migration applies to.
   final Table<T> table;
+
+  /// Schema version this migration upgrades to.
   final int targetVersion;
+
+  /// Human-readable description shown in logs.
   final String description;
+
+  /// Async function that performs the migration.
   final Future<void> Function(PhormDatabaseExecutor db, Table<Model> table)
   migrate;
+
+  /// Execution order within the same version (lower runs earlier).
   final int priority;
 
+  /// Creates a migration definition.
   TableMigration({
     required this.table,
     required this.targetVersion,

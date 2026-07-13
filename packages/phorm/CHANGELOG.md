@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.4.3]
+
+- Re-enabled most `very_good_analysis` lints (the ignore list shrank from 25
+  to 7 deliberate style rules): documented the remaining public members,
+  `on FormatException` instead of a bare catch in JSON parsing, removed an
+  unnecessary await. No API or behavior changes.
+
 ## [1.4.2]
 
 - Internal refactor, no API changes: `core.dart` and `where_builder.dart`

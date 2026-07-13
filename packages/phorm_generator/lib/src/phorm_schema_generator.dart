@@ -317,7 +317,7 @@ class PhormSchemaGenerator extends GeneratorForAnnotation<Schema> {
         // Fallback to class name (usually tables are snake_case of class name)
         return element.name ?? '';
       }
-    } catch (_) {
+    } on Object catch (_) {
       // Not a type or could not resolve
     }
 

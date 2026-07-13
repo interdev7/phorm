@@ -55,7 +55,7 @@ class MetadataExtractor {
         }
         return camelToSnake(element.name ?? '');
       }
-    } catch (_) {}
+    } on Object catch (_) {}
 
     return 'unknown';
   }
@@ -79,14 +79,14 @@ class MetadataExtractor {
             .join();
       }
       return 'dynamic';
-    } catch (_) {
+    } on Object catch (_) {
       return 'dynamic';
     }
   }
 
   /// Resolves the primary key field of a related model class.
   ///
-  /// Returns a record with [dartName] (Dart field name) and [sqlName] (SQL column name).
+  /// Returns a record with `dartName` (Dart field name) and `sqlName` (SQL column name).
   /// Falls back to ('id', 'id') if the @ID field cannot be resolved.
   static ({String dartName, String sqlName}) resolveRelatedIdInfo(
     ConstantReader modelReader,
@@ -105,7 +105,7 @@ class MetadataExtractor {
         final sqlName = getSqlColumnName(idField, strategy);
         return (dartName: dartName, sqlName: sqlName);
       }
-    } catch (_) {}
+    } on Object catch (_) {}
     // Fallback to convention
     return (dartName: 'id', sqlName: 'id');
   }
@@ -126,7 +126,7 @@ class MetadataExtractor {
 
         return resolveSqlType(idField, dialect);
       }
-    } catch (_) {}
+    } on Object catch (_) {}
     return null;
   }
 

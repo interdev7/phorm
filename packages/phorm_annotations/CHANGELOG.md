@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.4.3]
+
+- Documented the entire public API (`public_member_api_docs` is now enforced)
+  and cleaned up doc comment references.
+- Re-enabled most `very_good_analysis` lints (the ignore list shrank from 28
+  to 7 deliberate style rules); minor internal cleanups with no API changes
+  (`unnecessary_await_in_return`, string escaping).
+
 ## [1.4.2]
 
 - Docs: show how to do CRUD with `generateFullService: false` — register

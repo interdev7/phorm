@@ -4,11 +4,12 @@ import 'sql_type.dart';
 ///
 /// SQLite uses dynamic typing with five storage classes (NULL, INTEGER, REAL,
 /// TEXT, BLOB) and type affinity. The cross-dialect storage types (TEXT,
-/// INTEGER, REAL, BLOB) live in [common_types.dart]; this file holds what is
+/// INTEGER, REAL, BLOB) live in `common_types.dart`; this file holds what is
 /// only meaningful for SQLite.
 
 /// NUMERIC affinity type (SQLite).
 class NUMERIC extends SqlType {
+  /// Creates a NUMERIC type marker.
   const NUMERIC();
 }
 
