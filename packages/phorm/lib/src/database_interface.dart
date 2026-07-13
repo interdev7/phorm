@@ -3,10 +3,26 @@ import 'dart:async';
 import 'package:phorm_annotations/phorm_annotations.dart';
 
 /// Database engine conflict resolution algorithms.
-enum ConflictAlgorithm { rollback, abort, fail, ignore, replace }
+enum ConflictAlgorithm {
+  /// Rolls back the whole transaction on conflict.
+  rollback,
+
+  /// Aborts the current statement, keeping prior changes.
+  abort,
+
+  /// Fails the statement but keeps changes made by it so far.
+  fail,
+
+  /// Skips the conflicting row and continues.
+  ignore,
+
+  /// Replaces the existing row with the new one.
+  replace,
+}
 
 /// Abstract interface representing a batch of write operations.
 abstract interface class Batch {
+  /// Queues an INSERT into [table].
   void insert(
     String table,
     Map<String, Object?> values, {
@@ -14,6 +30,7 @@ abstract interface class Batch {
     ConflictAlgorithm? conflictAlgorithm,
   });
 
+  /// Queues an UPDATE of [table].
   void update(
     String table,
     Map<String, Object?> values, {
@@ -22,25 +39,37 @@ abstract interface class Batch {
     ConflictAlgorithm? conflictAlgorithm,
   });
 
+  /// Queues a DELETE from [table].
   void delete(String table, {String? where, List<Object?>? whereArgs});
 
+  /// Queues a raw SQL statement.
   void execute(String sql, [List<Object?>? arguments]);
+
+  /// Queues a raw INSERT statement.
   void rawInsert(String sql, [List<Object?>? arguments]);
+
+  /// Queues a raw UPDATE statement.
   void rawUpdate(String sql, [List<Object?>? arguments]);
+
+  /// Queues a raw DELETE statement.
   void rawDelete(String sql, [List<Object?>? arguments]);
 
+  /// Executes all queued operations, returning their results in order.
   Future<List<Object?>> commit({bool? noResult, bool? continueOnError});
 }
 
 /// Abstract interface representing a database executor (either database connection or transaction).
 abstract interface class DatabaseExecutor {
+  /// Executes a raw SQL statement without returning rows.
   Future<void> execute(String sql, [List<Object?>? arguments]);
 
+  /// Runs a raw SELECT and returns the resulting rows.
   Future<List<Map<String, Object?>>> rawQuery(
     String sql, [
     List<Object?>? arguments,
   ]);
 
+  /// Runs a structured SELECT against [table].
   Future<List<Map<String, Object?>>> query(
     String table, {
     bool? distinct,
@@ -54,6 +83,7 @@ abstract interface class DatabaseExecutor {
     int? offset,
   });
 
+  /// Inserts [values] into [table]; returns the new row id.
   Future<int> insert(
     String table,
     Map<String, Object?> values, {
@@ -61,6 +91,7 @@ abstract interface class DatabaseExecutor {
     ConflictAlgorithm? conflictAlgorithm,
   });
 
+  /// Updates [table] rows matching [where]; returns the affected count.
   Future<int> update(
     String table,
     Map<String, Object?> values, {
@@ -69,8 +100,10 @@ abstract interface class DatabaseExecutor {
     ConflictAlgorithm? conflictAlgorithm,
   });
 
+  /// Deletes [table] rows matching [where]; returns the affected count.
   Future<int> delete(String table, {String? where, List<Object?>? whereArgs});
 
+  /// Starts a new batch of write operations.
   Batch batch();
 }
 

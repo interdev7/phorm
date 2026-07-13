@@ -186,7 +186,7 @@ class DB implements PhormDatabase {
     final String path;
     if (databaseName == ':memory:') {
       path = ':memory:';
-    } else if (databaseName.startsWith('/') || databaseName.contains(':\\')) {
+    } else if (databaseName.startsWith('/') || databaseName.contains(r':\')) {
       // Absolute path provided
       path = databaseName;
     } else {
@@ -205,9 +205,7 @@ class DB implements PhormDatabase {
     try {
       // Cancel old subscription if any and subscribe to database changeStream
       await _dbChangeSubscription?.cancel();
-      _dbChangeSubscription = db.changeStream.listen((tableName) {
-        notifyTableChange(tableName);
-      });
+      _dbChangeSubscription = db.changeStream.listen(notifyTableChange);
 
       await _onConfigure(db);
 
@@ -254,7 +252,7 @@ class DB implements PhormDatabase {
 
   /// Calculates maximum version from all table migrations
   static int _calculateMaxVersion(List<Table> tables) {
-    int maxVersion = 1; // Minimum version
+    var maxVersion = 1; // Minimum version
 
     for (final table in tables) {
       for (final migration in table.migrations) {
@@ -374,9 +372,12 @@ class DB implements PhormDatabase {
   List<String> _splitSchemaStatements(String schema) {
     final statements = <String>[];
     final rawParts = schema.split(';');
-    String currentStatement = '';
+    var currentStatement = '';
 
     for (final part in rawParts) {
+      // The running statement is re-read every iteration (BEGIN/END
+      // counting), so a StringBuffer would not help here.
+      // ignore: use_string_buffers
       currentStatement += part;
       final normalized = currentStatement.toUpperCase();
 
@@ -608,7 +609,7 @@ class DB implements PhormDatabase {
   /// Gets a list of all applied migrations
   Future<List<Map<String, dynamic>>> getAppliedMigrations() async {
     final db = await database;
-    return await db.query(_migrationsTable, orderBy: 'applied_at DESC');
+    return db.query(_migrationsTable, orderBy: 'applied_at DESC');
   }
 
   /// Gets the current database version from the file
@@ -628,7 +629,7 @@ class DB implements PhormDatabase {
       final version = await db.getVersion();
       await db.close();
       return version;
-    } catch (_) {
+    } on Object catch (_) {
       return 0; // Database doesn't exist
     }
   }
@@ -647,7 +648,7 @@ class DB implements PhormDatabase {
 
     // Check if it's an absolute path
     final String path;
-    if (databaseName.startsWith('/') || databaseName.contains(':\\')) {
+    if (databaseName.startsWith('/') || databaseName.contains(r':\')) {
       path = databaseName;
     } else {
       path = join(await getDatabasesPath(), databaseName);
@@ -658,7 +659,7 @@ class DB implements PhormDatabase {
       if (await file.exists()) {
         await file.delete();
       }
-    } catch (_) {
+    } on Object catch (_) {
       // Ignore if file doesn't exist
     }
   }
@@ -724,7 +725,7 @@ class DB implements PhormDatabase {
 
     try {
       final result = await dbInstance.transaction((txn) async {
-        return await action(txn);
+        return action(txn);
       });
 
       if (isTopLevel) {

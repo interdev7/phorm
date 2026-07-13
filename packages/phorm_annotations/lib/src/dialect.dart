@@ -1,5 +1,6 @@
 /// Parameter index holder to track sequential placeholders during SQL compilation.
 class ParamIndex {
+  /// The next placeholder index (1-based).
   int value = 1;
 }
 
@@ -33,6 +34,7 @@ abstract class SqlDialect {
 
 /// Default dialect that does not escape identifiers and uses positional '?' placeholders.
 class NoEscapeDialect implements SqlDialect {
+  /// Creates the pass-through dialect.
   const NoEscapeDialect();
 
   @override

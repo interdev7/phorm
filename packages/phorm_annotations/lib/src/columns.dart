@@ -7,6 +7,7 @@ class PhormColumn<T> {
   /// The name of the table this column belongs to.
   final String? tableName;
 
+  /// Creates a typed column reference named [name].
   const PhormColumn(this.name, {this.tableName});
 
   @override
@@ -154,9 +155,15 @@ extension PhormColumnExtension<T> on PhormColumn<T> {
 
 /// Represents a single SQL condition built from a column and an operator.
 class PhormCondition {
+  /// The column the condition applies to.
   final PhormColumn<dynamic> column;
+
+  /// The SQL comparison operator.
   final String operator;
+
+  /// The bound value compared against.
   final dynamic value;
 
+  /// Creates a `column operator value` condition.
   PhormCondition(this.column, this.operator, this.value);
 }

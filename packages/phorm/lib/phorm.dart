@@ -1,5 +1,3 @@
-library phorm;
-
 export 'dart:convert' show jsonDecode, jsonEncode;
 
 export 'package:phorm_annotations/phorm_annotations.dart';

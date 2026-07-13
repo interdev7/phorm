@@ -47,7 +47,7 @@ class WebDatabaseIsolate implements DatabaseIsolate {
     if (password != null) {
       log(
         'Warning: phorm password/encryption is not supported on Web (WasmSqlite3 ignores password).',
-        name: "Phorm - SQLite Isolate Web",
+        name: 'Phorm - SQLite Isolate Web',
       );
     }
 
@@ -69,7 +69,7 @@ class WebDatabaseIsolate implements DatabaseIsolate {
       db.createFunction(
         functionName: fn.name,
         argumentCount: AllowedArgumentCount(fn.argumentCount),
-        function: (args) => fn.function(args),
+        function: fn.function,
         deterministic: fn.deterministic,
       );
     }

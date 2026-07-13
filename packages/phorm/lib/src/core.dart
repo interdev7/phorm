@@ -5,9 +5,13 @@ import 'package:meta/meta.dart';
 import 'package:phorm/phorm.dart';
 import 'package:phorm/src/join_query_builder.dart';
 
+/// Callback signature for reporting errors together with their stack trace.
 typedef ErrorCallback = void Function(Object, StackTrace);
 
+/// Contract implemented by [PhormCore]: query building and transactions.
 abstract interface class IPhormCore<T extends Model> {
+  /// Builds the single-query JSON-aggregation SELECT for [T] and its
+  /// relationships. See [PhormCore.buildJoinQuery].
   String getBuildJoinQuery({
     List<String>? columns,
     Attributes? attributes,
@@ -20,6 +24,7 @@ abstract interface class IPhormCore<T extends Model> {
     bool explainQueryPlan = false,
   });
 
+  /// Runs [action] inside a database transaction.
   Future<R> transaction<R>(Future<R> Function(DatabaseExecutor txn) action);
 }
 
@@ -471,7 +476,7 @@ class PhormCore<T extends Model> implements IPhormCore<T> {
     if (value is String && (value.startsWith('[') || value.startsWith('{'))) {
       try {
         return jsonDecode(value);
-      } catch (_) {
+      } on FormatException {
         return value;
       }
     }
@@ -764,7 +769,7 @@ class PhormCore<T extends Model> implements IPhormCore<T> {
     T Function(Map<String, dynamic>) fromJson,
     String tableName,
   ) async {
-    return await Isolate.run(() {
+    return Isolate.run(() {
       return rows.map((r) {
         final unflattened = _unflattenRow(Map<String, dynamic>.from(r));
         return fromJson(unflattened);

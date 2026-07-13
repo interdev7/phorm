@@ -1,4 +1,3 @@
-library phorm_generator;
 
 export 'src/generators/function_generator.dart';
 export 'src/generators/mysql/mysql_function_generator.dart';

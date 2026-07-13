@@ -1,5 +1,3 @@
-library phorm_sqlite;
-
 export 'package:phorm/phorm.dart';
 
 export 'src/database_adapter.dart';

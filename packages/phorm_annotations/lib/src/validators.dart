@@ -1,5 +1,6 @@
 /// Base interface for check conditions (CHECK constraints).
 abstract class IValidator {
+  /// Const base constructor.
   const IValidator();
 
   /// Optional constraint name (CONSTRAINT name for CHECK constraint or error name for JSON validation).
@@ -8,6 +9,7 @@ abstract class IValidator {
 
 /// JSON validation check (No SQL generation).
 abstract class IJsonValidator implements IValidator {
+  /// Const base constructor.
   const IJsonValidator();
 
   /// Validates the [value] in Dart.
@@ -54,6 +56,7 @@ abstract class IJsonValidator implements IValidator {
 /// generator will automatically fall back to reading the `values` field
 /// and constructing the IN clause.
 abstract class ISqlValidator implements IValidator {
+  /// Const base constructor.
   const ISqlValidator();
 
   /// The SQL template expression. Can contain `{column}` as a placeholder.
@@ -74,5 +77,6 @@ class CustomSqlValidator implements ISqlValidator {
   @override
   final String? constraint;
 
+  /// Creates a validator from a raw SQL [sql] expression.
   const CustomSqlValidator(this.sql, {this.constraint});
 }

@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.4.1]
+
+- Re-enabled most `very_good_analysis` lints (the ignore list shrank from 27
+  to 8). Internal cleanups with no behavior changes: catch clauses now use
+  `on Object`, tear-offs instead of lambdas, explicit types where required.
+
 ## 1.4.0
 
 - Migrate to the latest analyzer element model: `analyzer` ^13.3.0, `build`

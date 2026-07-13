@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.5.2]
+
+- Re-enabled most `very_good_analysis` lints for `lib/` (generated `*.g.dart`
+  files are excluded from analysis). Internal cleanups with no behavior
+  changes: `on Object` catch clauses, removed unnecessary awaits, single
+  `changeStream` tear-off subscription.
+
 ## [1.5.1]
 
 - Bundled `phorm` core bumped to `^1.4.1`: `WhereBuilder` now escapes columns

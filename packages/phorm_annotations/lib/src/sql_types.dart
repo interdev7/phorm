@@ -13,10 +13,10 @@ export 'sql_types/sqlite_types.dart';
 
 /// Standard SQLite type-name string constants.
 ///
-/// Prefer the typed [SqlType] hierarchy via `@Column(type: ...)` (e.g.
+/// Prefer the typed `SqlType` hierarchy via `@Column(type: ...)` (e.g.
 /// `TEXT()`, `INTEGER()`, `VARCHAR(255)`) — it is compile-time checked and
 /// works across dialects. Use a raw `@Column(sqlType: '...')` string only for
-/// DDL that has no [SqlType] class.
+/// DDL that has no `SqlType` class.
 @Deprecated(
   'Use the SqlType hierarchy via @Column(type: ...) '
   '(or a raw @Column(sqlType: "...") string). Will be removed in a future release.',

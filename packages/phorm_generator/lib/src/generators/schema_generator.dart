@@ -7,7 +7,7 @@ import 'sqlite/sqlite_schema_generator.dart';
 /// Strategy that encapsulates all DDL generation rules that differ between
 /// database dialects (SQLite, Postgres, MySQL).
 ///
-/// The top-level [PhormSchemaGenerator] delegates every dialect-specific
+/// The top-level `PhormSchemaGenerator` delegates every dialect-specific
 /// decision (type mapping, auto-increment keyword, timestamp handling, default
 /// formatting, identifier quoting) to one of these per-dialect generators so
 /// the core generation logic stays dialect-agnostic.

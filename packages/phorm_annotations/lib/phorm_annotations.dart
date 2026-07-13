@@ -1,5 +1,3 @@
-library phorm_annotations;
-
 export 'src/annotations.dart';
 export 'src/columns.dart';
 export 'src/dialect.dart';

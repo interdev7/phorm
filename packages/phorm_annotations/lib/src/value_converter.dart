@@ -11,6 +11,7 @@
 /// }
 /// ```
 abstract class ValueConverter<T, S> {
+  /// Const base constructor.
   const ValueConverter();
 
   /// Converts the database value [S] back to the Dart type [T].

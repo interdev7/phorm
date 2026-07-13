@@ -69,6 +69,7 @@ class Table<T extends Model> {
   /// If not provided explicitly, auto-detected from the schema SQL.
   final bool autoIncrement;
 
+  /// Creates a table configuration.
   Table({
     required this.schema,
     required this.name,

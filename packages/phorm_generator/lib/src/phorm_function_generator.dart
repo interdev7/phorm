@@ -15,7 +15,7 @@ import 'generators/function_generator.dart';
 class PhormFunctionGenerator extends Generator {
   // TODO(dialect): allow selecting the function dialect (build option or a
   // `dialect` field on `@SqlFunc`) instead of always defaulting to SQLite.
-  static const _dialectKind = SqlDialectKind.sqlite;
+  static const SqlDialectKind _dialectKind = SqlDialectKind.sqlite;
 
   @override
   Future<String> generate(LibraryReader library, BuildStep buildStep) async {
