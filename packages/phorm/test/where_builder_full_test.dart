@@ -103,10 +103,7 @@ void main() {
     });
 
     test('notInList builds placeholders, empty list is a no-op', () {
-      expect(
-        WhereBuilder().notInList('a', [1, 2]).build(),
-        'a NOT IN (?, ?)',
-      );
+      expect(WhereBuilder().notInList('a', [1, 2]).build(), 'a NOT IN (?, ?)');
       expect(WhereBuilder().notInList('a', const []).isEmpty, isTrue);
     });
   });
@@ -213,8 +210,14 @@ void main() {
         WhereBuilder().dateRangeIfProvided('c', a, b).build(),
         'c BETWEEN ? AND ?',
       );
-      expect(WhereBuilder().dateRangeIfProvided('c', a, null).build(), 'c >= ?');
-      expect(WhereBuilder().dateRangeIfProvided('c', null, b).build(), 'c <= ?');
+      expect(
+        WhereBuilder().dateRangeIfProvided('c', a, null).build(),
+        'c >= ?',
+      );
+      expect(
+        WhereBuilder().dateRangeIfProvided('c', null, b).build(),
+        'c <= ?',
+      );
       expect(
         WhereBuilder().dateRangeIfProvided('c', null, null).isEmpty,
         isTrue,
@@ -239,8 +242,9 @@ void main() {
     });
 
     test('copy / clone are independent deep copies', () {
-      final original =
-          WhereBuilder().eq('a', 1).andGroup((g) => g.gt('b', 2).lt('b', 9));
+      final original = WhereBuilder()
+          .eq('a', 1)
+          .andGroup((g) => g.gt('b', 2).lt('b', 9));
       final copy = original.copy().eq('c', 3);
       final clone = original.clone();
       expect(original.build(), 'a = ? AND (b > ? AND b < ?)');
@@ -248,8 +252,19 @@ void main() {
       expect(clone.build(), original.build());
     });
 
+    test('copy preserves raw conditions and their args', () {
+      final original = WhereBuilder().eq('a', 1).raw('LENGTH(name) > ?', [3]);
+      final copy = original.copy().eq('c', 5);
+      expect(original.build(), 'a = ? AND LENGTH(name) > ?');
+      expect(copy.build(), 'a = ? AND LENGTH(name) > ? AND c = ?');
+      expect(copy.args, [1, 3, 5]);
+    });
+
     test('debugPrint does not throw', () {
-      final w = WhereBuilder().eq('a', 1).andGroup((g) => g.gt('b', 2));
+      final w = WhereBuilder()
+          .eq('a', 1)
+          .raw('LENGTH(name) > ?', [3])
+          .andGroup((g) => g.gt('b', 2));
       expect(w.debugPrint, returnsNormally);
     });
   });
