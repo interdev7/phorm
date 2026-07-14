@@ -1,5 +1,14 @@
 # Changelog
 
+## [1.6.1]
+
+- Bumped bundled `phorm` core to `^1.5.0`, bringing typed condition
+  composition with the `&` / `|` operators
+  (`age.gt(18) & (city.eq('Sofia') | city.eq('Plovdiv'))`).
+- `phorm_generator` stays pinned `<1.4.0`: generator 1.4.x needs
+  `analyzer ^13` (`meta ^1.18.3`), which conflicts with the `meta` version
+  pinned by `flutter_test` on the current Flutter stable.
+
 ## [1.6.0]
 
 - **New: automatic additive migrations** — `DB(autoMigrate: true)` (also on
