@@ -31,6 +31,12 @@ scripts:
     packageFilters:
       dirExists: test
 
+  release-check:
+    description: >
+      Verify pubspec/CHANGELOG/pub.dev/tag consistency for every package and
+      print the publish plan for pending releases in dependency order.
+    run: dart run tool/release_check.dart
+
   build_runner:
     description: Run build_runner in packages that depend on it (phorm_sqlite tests, examples).
     exec: dart run build_runner build --delete-conflicting-outputs
