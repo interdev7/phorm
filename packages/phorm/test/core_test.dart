@@ -455,6 +455,16 @@ void main() {
       expect(user!.id, 1);
     });
 
+    test('keeps a malformed JSON-looking string value as-is', () async {
+      exec.rawQueryResult = [
+        {'id': 1, 'name': '{broken json', 'posts__id': '[not a list'},
+      ];
+      final core = makeCore();
+      final user = await core.readOne(1);
+      expect(user, isNotNull);
+      expect(user!.id, 1);
+    });
+
     test('paranoid table adds deleted_at IS NULL unless withDeleted', () async {
       exec.rawQueryResult = const [];
       final core = makeCore(paranoid: true);
