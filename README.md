@@ -206,6 +206,12 @@ melos run analyze # static analysis in every package
 melos run format  # verify formatting
 ```
 
+Releasing: run `melos run release-check` — it verifies that every package's
+pubspec version, CHANGELOG and pub.dev state are consistent, and prints the
+publish commands for pending releases in dependency order. Git tags and
+GitHub Releases are created automatically by CI (`auto_tag` in `main.yml`)
+once the version bump lands on `main` — never tag manually.
+
 ---
 
 ## License
