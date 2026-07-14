@@ -274,6 +274,9 @@ class JoinQueryBuilder {
     int? offset,
     bool includeTotalCount = false,
     bool explainQueryPlan = false,
+    bool distinct = false,
+    List<String>? groupBy,
+    WhereBuilder? having,
   }) {
     final d = dbManager.dialect;
     final selectFields = <String>[];
@@ -310,15 +313,28 @@ class JoinQueryBuilder {
     }
 
     final escTable = d.escapeIdentifier(table.name);
-    var query = 'SELECT ${selectFields.join(', ')} FROM $escTable';
+    final selectKeyword = distinct ? 'SELECT DISTINCT' : 'SELECT';
+    var query = '$selectKeyword ${selectFields.join(', ')} FROM $escTable';
     if (joins.isNotEmpty) {
       query += ' ${joins.toList().join(' ')}';
     }
+
+    // WHERE and HAVING share one placeholder counter so `$n` dialects
+    // number their parameters sequentially across both clauses.
+    final paramIndex = ParamIndex();
     if (where != null && where.isNotEmpty) {
-      query += ' WHERE ${where.build(d)}';
+      query += ' WHERE ${where.build(d, paramIndex)}';
     }
 
-    if (joins.isNotEmpty) {
+    if (groupBy != null && groupBy.isNotEmpty) {
+      // Explicit grouping requested by the caller wins over the automatic
+      // primary-key grouping used to deduplicate joined rows.
+      final escaped = groupBy.map(d.escapeIdentifier).join(', ');
+      query += ' GROUP BY $escaped';
+      if (having != null && having.isNotEmpty) {
+        query += ' HAVING ${having.build(d, paramIndex)}';
+      }
+    } else if (joins.isNotEmpty) {
       query +=
           ' GROUP BY ${d.escapeIdentifier('${table.name}.${table.primaryKey}')}';
     }

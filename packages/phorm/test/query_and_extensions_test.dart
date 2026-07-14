@@ -29,8 +29,7 @@ class _FakeDb implements PhormDatabase {
     String label,
     List<Object?>? arguments,
     Future<T> Function() action,
-  ) =>
-      action();
+  ) => action();
   @override
   Future<DatabaseExecutor> get executor => throw UnimplementedError();
   @override
@@ -41,12 +40,12 @@ class _FakeDb implements PhormDatabase {
 }
 
 Table<_User> _usersTable() => Table<_User>(
-      schema: 'CREATE TABLE users (id INTEGER, name TEXT, age INTEGER)',
-      name: 'users',
-      type: _User,
-      fromJson: (m) => _User(m['id'] as int),
-      columns: const ['id', 'name', 'age'],
-    );
+  schema: 'CREATE TABLE users (id INTEGER, name TEXT, age INTEGER)',
+  name: 'users',
+  type: _User,
+  fromJson: (m) => _User(m['id'] as int),
+  columns: const ['id', 'name', 'age'],
+);
 
 void main() {
   late PhormCore<_User> core;
@@ -62,14 +61,15 @@ void main() {
     const createdAt = PhormColumn<DateTime>('age'); // numeric col reused
 
     test('basic comparison operators compile into SQL', () {
-      final sql = PhormQuery(core)
-          .where(age.eq(1))
-          .where(age.ne(2))
-          .where(age.gt(3))
-          .where(age.gte(4))
-          .where(age.lt(5))
-          .where(age.lte(6))
-          .toSql();
+      final sql =
+          PhormQuery(core)
+              .where(age.eq(1))
+              .where(age.ne(2))
+              .where(age.gt(3))
+              .where(age.gte(4))
+              .where(age.lt(5))
+              .where(age.lte(6))
+              .toSql();
       expect(sql, contains('users'));
       expect(sql, contains('age'));
     });
@@ -156,11 +156,10 @@ void main() {
 
     test('orderBy and limit/offset are reflected in compiled SQL', () {
       const age = PhormColumn<int>('age');
-      final sql = PhormQuery(core)
-          .orderBy(age, descending: true)
-          .limit(10)
-          .offset(5)
-          .toSql();
+      final sql =
+          PhormQuery(
+            core,
+          ).orderBy(age, descending: true).limit(10).offset(5).toSql();
       expect(sql, contains('ORDER BY'));
       expect(sql, contains('age'));
     });
@@ -175,6 +174,50 @@ void main() {
     test('service<T>() throws StateError for an unregistered type', () {
       final db = _FakeDb([]);
       expect(() => db.service<_User>(), throwsStateError);
+    });
+  });
+
+  group('PhormQuery distinct / groupBy / having / select / noLimit', () {
+    const age = PhormColumn<int>('age');
+    const city = PhormColumn<String>('city');
+
+    test('distinct() emits SELECT DISTINCT', () {
+      final sql = PhormQuery(core).distinct().toSql();
+      expect(sql, startsWith('SELECT DISTINCT '));
+    });
+
+    test('select() narrows the column list', () {
+      final sql = PhormQuery(core).select([city, 'age']).toSql();
+      expect(sql, contains('users.city'));
+      expect(sql, contains('users.age'));
+      expect(sql, isNot(contains('users.name')));
+    });
+
+    test('groupBy() emits GROUP BY with the given columns', () {
+      final sql = PhormQuery(core).groupBy([city]).toSql();
+      expect(sql, contains('GROUP BY city'));
+    });
+
+    test('having() compiles after GROUP BY', () {
+      final sql = PhormQuery(core).groupBy([city]).having(age.gt(30)).toSql();
+      expect(sql, contains('GROUP BY city HAVING age > ?'));
+    });
+
+    test('having without groupBy is ignored in SQL', () {
+      final sql = PhormQuery(core).having(age.gt(30)).toSql();
+      expect(sql, isNot(contains('HAVING')));
+    });
+
+    test('default limit is 20 and noLimit() removes it', () {
+      expect(PhormQuery(core).toSql(), contains('LIMIT 20'));
+      expect(PhormQuery(core).noLimit().toSql(), isNot(contains('LIMIT')));
+    });
+
+    test('explicit groupBy replaces automatic pk grouping', () {
+      final sql =
+          PhormQuery(core).where(city.eq('Sofia')).groupBy([city]).toSql();
+      expect('GROUP BY'.allMatches(sql).length, 1);
+      expect(sql, contains('GROUP BY city'));
     });
   });
 }

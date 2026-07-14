@@ -735,8 +735,13 @@ class WhereBuilder {
   ///
   /// print(where.build()); // "status = ? AND age > ?"
   /// ```
-  String build([SqlDialect dialect = const NoEscapeDialect()]) {
-    return _buildWithDialect(dialect, ParamIndex());
+  /// [paramIndex] lets several builders share one placeholder counter
+  /// (e.g. a WHERE and a HAVING clause compiled for a `$n` dialect).
+  String build([
+    SqlDialect dialect = const NoEscapeDialect(),
+    ParamIndex? paramIndex,
+  ]) {
+    return _buildWithDialect(dialect, paramIndex ?? ParamIndex());
   }
 
   String _buildWithDialect(SqlDialect dialect, ParamIndex paramIndex) {
