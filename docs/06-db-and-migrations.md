@@ -129,6 +129,39 @@ DB version 2 → same version → no migrations applied (already tracked)
 
 ---
 
+## Automatic Additive Migrations (`autoMigrate`)
+
+For purely **additive** model changes you can skip writing migrations entirely:
+
+```dart
+final db = DB.autoVersion(
+  databaseName: 'app.db',
+  tables: [usersTable, postsTable],
+  autoMigrate: true, // off by default
+);
+```
+
+On every open PHORM compares each table's live schema (`PRAGMA table_info`,
+`sqlite_master`) with its generated `CREATE TABLE` schema and applies the safe
+difference — **no version bump required**:
+
+| Change in your model                | What happens                                    |
+| :---------------------------------- | :---------------------------------------------- |
+| New `@Schema` model registered      | Table is created                                |
+| New nullable / defaulted `@Column`  | `ALTER TABLE ... ADD COLUMN` is executed        |
+| New index / trigger in the schema   | Created if missing (checked by name)            |
+| Removed field                       | ⚠️ Column kept as-is, warning logged            |
+| `NOT NULL` column without `DEFAULT` | ⚠️ Skipped, warning logged                      |
+| `UNIQUE` / `PRIMARY KEY` column     | ⚠️ Skipped (SQLite `ADD COLUMN` limitation)     |
+| Type change / rename                | ⚠️ Not detected — write an explicit migration   |
+
+Everything marked ⚠️ requires an explicit `TableMigration` — auto-migration is
+strictly non-destructive and will never touch existing data. Explicit
+migrations keep working alongside `autoMigrate` and remain the right tool for
+data transforms (backfills, renames, type changes).
+
+---
+
 ## DB Utility Methods
 
 ```dart

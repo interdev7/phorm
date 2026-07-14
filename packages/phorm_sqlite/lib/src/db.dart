@@ -8,6 +8,7 @@ import 'package:path/path.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:phorm/phorm.dart';
 
+import 'auto_migrator.dart';
 import 'database_adapter.dart';
 import 'sql_function.dart';
 import 'sqlite_dialect.dart';
@@ -70,6 +71,16 @@ class DB implements PhormDatabase {
   /// Set to false for in-memory databases in tests to ensure isolation.
   final bool singleInstance;
 
+  /// When `true`, the schema of every registered table is synchronized with
+  /// the live database on each open: missing tables are created and safe,
+  /// additive changes (new columns, indexes, triggers) are applied
+  /// automatically via [AutoMigrator] — no version bump required.
+  ///
+  /// Destructive changes (dropped/renamed columns, type changes, NOT NULL
+  /// without a default) are never applied; they are logged with a suggestion
+  /// to write an explicit migration.
+  final bool autoMigrate;
+
   /// Row count threshold at which result-set parsing is moved to a background
   /// isolate (to keep the UI thread free of jank).
   ///
@@ -118,6 +129,7 @@ class DB implements PhormDatabase {
     this.slowQueryThreshold = const Duration(milliseconds: 200),
     this.singleInstance = true,
     this.isolateThreshold = 2000,
+    this.autoMigrate = false,
   }) {
     _validateMigrations();
   }
@@ -133,6 +145,7 @@ class DB implements PhormDatabase {
     Duration slowQueryThreshold = const Duration(milliseconds: 200),
     bool singleInstance = true,
     int isolateThreshold = 2000,
+    bool autoMigrate = false,
   }) {
     // Determine maximum version from all migrations
     final maxVersion = _calculateMaxVersion(tables);
@@ -148,6 +161,7 @@ class DB implements PhormDatabase {
       slowQueryThreshold: slowQueryThreshold,
       singleInstance: singleInstance,
       isolateThreshold: isolateThreshold,
+      autoMigrate: autoMigrate,
     );
   }
 
@@ -225,6 +239,10 @@ class DB implements PhormDatabase {
         await _onDowngrade(db, currentVersion, version);
         await db.setVersion(version);
         // coverage:ignore-end
+      }
+
+      if (autoMigrate) {
+        await _autoMigrateSchema(db);
       }
 
       return db;
@@ -343,6 +361,34 @@ class DB implements PhormDatabase {
     logger?.info('Database downgraded by recreation');
   }
   // coverage:ignore-end
+
+  /// Synchronizes every registered table's schema with the live database:
+  /// creates missing tables and applies safe additive changes (new columns,
+  /// indexes, triggers) via [AutoMigrator]. Runs on every open when
+  /// [autoMigrate] is enabled, so purely additive model changes need no
+  /// version bump.
+  Future<void> _autoMigrateSchema(Database db) async {
+    final migrator = AutoMigrator(logger: logger);
+
+    for (final table in tables) {
+      final tableCheck = await db.rawQuery(
+        "SELECT name FROM sqlite_master WHERE type='table' AND name=?",
+        [table.name],
+      );
+
+      if (tableCheck.isEmpty) {
+        logger?.info('autoMigrate: new table detected: ${table.name}');
+        await _createTable(db, table);
+        continue;
+      }
+
+      await migrator.syncTable(
+        db,
+        table,
+        _splitSchemaStatements(table.schema),
+      );
+    }
+  }
 
   /// Creates the migrations tracking table
   Future<void> _createMigrationsTable(Database db) async {

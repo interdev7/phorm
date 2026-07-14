@@ -1,7 +1,16 @@
 # Changelog
 
-## [1.5.2]
+## [1.6.0]
 
+- **New: automatic additive migrations** — `DB(autoMigrate: true)` (also on
+  `DB.autoVersion`). On every open, each registered table's live schema is
+  compared with its generated `CREATE TABLE` schema; missing tables, columns,
+  indexes and triggers are created automatically — no version bump needed for
+  additive model changes. Destructive or ambiguous changes (dropped/renamed
+  columns, type changes, `NOT NULL` without a `DEFAULT`, `UNIQUE`/
+  `PRIMARY KEY` additions) are never applied: they are logged with a
+  suggestion to write an explicit `TableMigration`. Off by default; explicit
+  migrations keep working alongside and remain the tool for data transforms.
 - Re-enabled most `very_good_analysis` lints for `lib/` (generated `*.g.dart`
   files are excluded from analysis). Internal cleanups with no behavior
   changes: `on Object` catch clauses, removed unnecessary awaits, single
