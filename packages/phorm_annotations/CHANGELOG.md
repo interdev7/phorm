@@ -1,5 +1,14 @@
 # Changelog
 
+## [1.5.0]
+
+- **New: `PhormConditionGroup` and `&` / `|` operators on `PhormCondition`** —
+  typed conditions compose into AND/OR groups:
+  `age.gt(18) & (city.eq('Sofia') | city.eq('Plovdiv'))`. Consecutive
+  same-operator combinations flatten into one group; Dart's operator
+  precedence (`&` over `|`) matches SQL. Consumed by `phorm >= 1.5.0`, which
+  compiles the groups into parenthesized SQL.
+
 ## [1.4.3]
 
 - Documented the entire public API (`public_member_api_docs` is now enforced)

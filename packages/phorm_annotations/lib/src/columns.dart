@@ -166,4 +166,55 @@ class PhormCondition {
 
   /// Creates a `column operator value` condition.
   PhormCondition(this.column, this.operator, this.value);
+
+  /// Combines two conditions with SQL `AND`.
+  ///
+  /// Consecutive `&` combinations flatten into a single group, and `&` binds
+  /// tighter than `|` (Dart operator precedence matches SQL here):
+  ///
+  /// ```dart
+  /// Users.where(
+  ///   UserTable.age.gt(18) &
+  ///       (UserTable.city.eq('Sofia') | UserTable.city.eq('Plovdiv')),
+  /// );
+  /// // WHERE age > ? AND (city = ? OR city = ?)
+  /// ```
+  PhormConditionGroup operator &(PhormCondition other) {
+    final self = this;
+    if (self is PhormConditionGroup && !self.isOr) {
+      return PhormConditionGroup([...self.conditions, other], isOr: false);
+    }
+    return PhormConditionGroup([self, other], isOr: false);
+  }
+
+  /// Combines two conditions with SQL `OR`.
+  ///
+  /// ```dart
+  /// Users.where(UserTable.city.eq('Sofia') | UserTable.city.eq('Plovdiv'));
+  /// // WHERE (city = ? OR city = ?)
+  /// ```
+  PhormConditionGroup operator |(PhormCondition other) {
+    final self = this;
+    if (self is PhormConditionGroup && self.isOr) {
+      return PhormConditionGroup([...self.conditions, other], isOr: true);
+    }
+    return PhormConditionGroup([self, other], isOr: true);
+  }
+}
+
+/// A group of [PhormCondition]s joined by `AND` or `OR`.
+///
+/// Built with the `&` / `|` operators on [PhormCondition]; groups nest freely
+/// and compile into parenthesized SQL.
+class PhormConditionGroup extends PhormCondition {
+  /// Creates a group joining [conditions] with `OR` when [isOr] is true,
+  /// `AND` otherwise.
+  PhormConditionGroup(this.conditions, {required this.isOr})
+    : super(const PhormColumn<dynamic>('group'), isOr ? 'OR' : 'AND', null);
+
+  /// The grouped conditions, in the order they were combined.
+  final List<PhormCondition> conditions;
+
+  /// Whether the group joins its conditions with `OR` (`AND` otherwise).
+  final bool isOr;
 }

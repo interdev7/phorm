@@ -27,70 +27,78 @@ class PhormQuery<T extends Model> {
   /// Posts.where(PostTable.title.like('%Flutter%'))
   /// ```
   PhormQuery<T> where(PhormCondition condition) {
+    _applyCondition(_where, condition);
+    return this;
+  }
+
+  /// Applies [condition] to [wb], recursing into `&`/`|` groups.
+  void _applyCondition(WhereBuilder wb, PhormCondition condition) {
+    if (condition is PhormConditionGroup) {
+      void applyAll(WhereBuilder group) {
+        for (final child in condition.conditions) {
+          _applyCondition(group, child);
+        }
+      }
+
+      if (condition.isOr) {
+        wb.orGroup(applyAll);
+      } else {
+        wb.andGroup(applyAll);
+      }
+      return;
+    }
+
     switch (condition.operator) {
       case 'IS NULL':
-        _where.isNull(condition.column);
+        wb.isNull(condition.column);
       case 'IS NOT NULL':
-        _where.isNotNull(condition.column);
+        wb.isNotNull(condition.column);
       case 'IN':
-        _where.inList(condition.column, condition.value as List);
+        wb.inList(condition.column, condition.value as List);
       case 'NOT IN':
-        _where.notInList(condition.column, condition.value as List);
+        wb.notInList(condition.column, condition.value as List);
       case 'LIKE':
-        _where.like(condition.column, condition.value as String);
+        wb.like(condition.column, condition.value as String);
       case 'NOT LIKE':
-        _where.notLike(condition.column, condition.value as String);
+        wb.notLike(condition.column, condition.value as String);
       case 'ILIKE':
-        _where.ilike(condition.column, condition.value as String);
+        wb.ilike(condition.column, condition.value as String);
       case 'NOT ILIKE':
-        _where.notIlike(condition.column, condition.value as String);
+        wb.notIlike(condition.column, condition.value as String);
       case 'REGEXP':
-        _where.regexp(condition.column, condition.value as String);
+        wb.regexp(condition.column, condition.value as String);
       case 'BETWEEN':
         final range = condition.value as List;
-        _where.between(
-          condition.column,
-          range[0] as Object,
-          range[1] as Object,
-        );
+        wb.between(condition.column, range[0] as Object, range[1] as Object);
       case 'NOT BETWEEN':
         final range = condition.value as List;
-        _where.notBetween(
-          condition.column,
-          range[0] as Object,
-          range[1] as Object,
-        );
+        wb.notBetween(condition.column, range[0] as Object, range[1] as Object);
       case 'STARTS WITH':
-        _where.startsWith(condition.column, condition.value as String);
+        wb.startsWith(condition.column, condition.value as String);
       case 'ENDS WITH':
-        _where.endsWith(condition.column, condition.value as String);
+        wb.endsWith(condition.column, condition.value as String);
       case 'TRUE':
-        _where.isTrue(condition.column);
+        wb.isTrue(condition.column);
       case 'FALSE':
-        _where.isFalse(condition.column);
+        wb.isFalse(condition.column);
       case 'LENGTH =':
-        _where.lengthEq(condition.column, condition.value as int);
+        wb.lengthEq(condition.column, condition.value as int);
       case 'LENGTH !=':
-        _where.lengthNe(condition.column, condition.value as int);
+        wb.lengthNe(condition.column, condition.value as int);
       case 'LENGTH >':
-        _where.lengthGt(condition.column, condition.value as int);
+        wb.lengthGt(condition.column, condition.value as int);
       case 'LENGTH >=':
-        _where.lengthGte(condition.column, condition.value as int);
+        wb.lengthGte(condition.column, condition.value as int);
       case 'LENGTH <':
-        _where.lengthLt(condition.column, condition.value as int);
+        wb.lengthLt(condition.column, condition.value as int);
       case 'LENGTH <=':
-        _where.lengthLte(condition.column, condition.value as int);
+        wb.lengthLte(condition.column, condition.value as int);
       case 'SUBSTR =':
         final s = condition.value as List;
-        _where.substrEq(
-          condition.column,
-          s[0] as int,
-          s[1] as int,
-          s[2] as String,
-        );
+        wb.substrEq(condition.column, s[0] as int, s[1] as int, s[2] as String);
       case 'SUBSTR LIKE':
         final s = condition.value as List;
-        _where.substrLike(
+        wb.substrLike(
           condition.column,
           s[0] as int,
           s[1] as int,
@@ -98,32 +106,31 @@ class PhormQuery<T extends Model> {
         );
       case 'SUBSTR ILIKE':
         final s = condition.value as List;
-        _where.substrIlike(
+        wb.substrIlike(
           condition.column,
           s[0] as int,
           s[1] as int,
           s[2] as String,
         );
       case 'DATE =':
-        _where.dateOnlyEq(condition.column, condition.value as DateTime);
+        wb.dateOnlyEq(condition.column, condition.value as DateTime);
       case 'DATE >':
-        _where.dateOnlyGt(condition.column, condition.value as DateTime);
+        wb.dateOnlyGt(condition.column, condition.value as DateTime);
       case 'DATE <':
-        _where.dateOnlyLt(condition.column, condition.value as DateTime);
+        wb.dateOnlyLt(condition.column, condition.value as DateTime);
       case 'DATE BETWEEN':
         final d = condition.value as List;
-        _where.dateOnlyBetween(
+        wb.dateOnlyBetween(
           condition.column,
           d[0] as DateTime,
           d[1] as DateTime,
         );
       case 'TIME =':
-        _where.timeOnlyEq(condition.column, condition.value as DateTime);
+        wb.timeOnlyEq(condition.column, condition.value as DateTime);
       default:
         // Basic operators (=, !=, >, <, >=, <=)
-        _applyOperator(condition);
+        _applyOperator(wb, condition);
     }
-    return this;
   }
 
   /// Adds a condition to the query only if the provided boolean [flag] is true.
@@ -155,24 +162,24 @@ class PhormQuery<T extends Model> {
     return this;
   }
 
-  void _applyOperator(PhormCondition condition) {
+  void _applyOperator(WhereBuilder wb, PhormCondition condition) {
     final Object col = condition.column;
     final Object? val = condition.value;
     if (val == null) return;
 
     switch (condition.operator) {
       case '=':
-        _where.eq(col, val);
+        wb.eq(col, val);
       case '!=':
-        _where.ne(col, val);
+        wb.ne(col, val);
       case '>':
-        _where.gt(col, val);
+        wb.gt(col, val);
       case '>=':
-        _where.gte(col, val);
+        wb.gte(col, val);
       case '<':
-        _where.lt(col, val);
+        wb.lt(col, val);
       case '<=':
-        _where.lte(col, val);
+        wb.lte(col, val);
     }
   }
 

@@ -41,6 +41,22 @@ final result = await Users.query
     .get();
 ```
 
+### Combining conditions with `&` and `|`
+
+Typed conditions compose into AND/OR groups directly — no need to drop down
+to `WhereBuilder` for OR logic:
+
+```dart
+// WHERE age > ? AND (city = ? OR city = ?)
+final result = await Users.query
+    .where(Users.age.gt(18) & (Users.city.eq('Sofia') | Users.city.eq('Plovdiv')))
+    .get();
+```
+
+Groups nest freely and consecutive same-operator combinations flatten into a
+single group. Dart's operator precedence (`&` binds tighter than `|`) matches
+SQL's `AND`/`OR`, but parenthesize mixed expressions for readability.
+
 ### `.whereIf(flag, conditionBuilder)`
 
 Adds a filter condition only if the provided boolean `flag` is true. This helps avoid complex conditional blocks when constructing dynamic filters.
