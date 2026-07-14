@@ -11,11 +11,14 @@ class PhormQuery<T extends Model> {
   final PhormCore<T> service;
   final WhereBuilder _where = WhereBuilder();
   SortBuilder? _sort;
-  int _limit = 20;
+  int? _limit = 20;
   int _offset = 0;
   List<Includable>? _include;
   Attributes? _attributes;
   bool _withDeleted = false;
+  bool _distinct = false;
+  List<String>? _groupBy;
+  WhereBuilder? _having;
 
   /// Creates a query bound to [service].
   PhormQuery(this.service);
@@ -203,6 +206,63 @@ class PhormQuery<T extends Model> {
     return this;
   }
 
+  /// Removes the default limit of 20 rows — the query returns all matches.
+  ///
+  /// **Example:**
+  /// ```dart
+  /// final everyone = await Users.query.noLimit().get();
+  /// ```
+  PhormQuery<T> noLimit() {
+    _limit = null;
+    return this;
+  }
+
+  /// Deduplicates result rows (`SELECT DISTINCT`).
+  PhormQuery<T> distinct() {
+    _distinct = true;
+    return this;
+  }
+
+  /// Selects only the given columns (shorthand for
+  /// `attributes(Attributes.include([...]))`).
+  ///
+  /// **Example:**
+  /// ```dart
+  /// final names = await Users.query.select([Users.firstName, Users.city]).get();
+  /// ```
+  PhormQuery<T> select(List<Object> columns) {
+    _attributes = Attributes.include([
+      for (final c in columns) c is PhormColumn ? c.name : c.toString(),
+    ]);
+    return this;
+  }
+
+  /// Groups rows by the given columns (`GROUP BY`).
+  ///
+  /// Grouped rows are usually not full models — read them with [rows]
+  /// together with aggregate expressions selected via [attributes]/[select].
+  ///
+  /// **Example:**
+  /// ```dart
+  /// final perCity = await Users.query
+  ///     .groupBy([Users.city])
+  ///     .having(Users.age.gt(30))
+  ///     .rows();
+  /// ```
+  PhormQuery<T> groupBy(List<Object> columns) {
+    _groupBy = [
+      for (final c in columns) c is PhormColumn ? c.name : c.toString(),
+    ];
+    return this;
+  }
+
+  /// Adds a HAVING condition for a [groupBy] query.
+  PhormQuery<T> having(PhormCondition condition) {
+    _having ??= WhereBuilder();
+    _applyCondition(_having!, condition);
+    return this;
+  }
+
   /// Sets the number of rows to skip.
   PhormQuery<T> offset(int count) {
     _offset = count;
@@ -244,8 +304,28 @@ class PhormQuery<T extends Model> {
       include: _include,
       attributes: _attributes,
       withDeleted: _withDeleted,
+      distinct: _distinct,
     );
     return result.data;
+  }
+
+  /// Executes the query and returns raw rows without model mapping.
+  ///
+  /// Use for [groupBy]/[having] and aggregate selections, where result rows
+  /// do not correspond to full models.
+  Future<List<Map<String, Object?>>> rows() async {
+    return service.readRows(
+      where: _where.isEmpty ? null : _where,
+      sort: _sort,
+      limit: _limit,
+      offset: _offset,
+      include: _include,
+      attributes: _attributes,
+      withDeleted: _withDeleted,
+      distinct: _distinct,
+      groupBy: _groupBy,
+      having: _having,
+    );
   }
 
   /// Executes the query and returns the first result, or null.
@@ -300,6 +380,7 @@ class PhormQuery<T extends Model> {
       include: _include,
       attributes: _attributes,
       withDeleted: _withDeleted,
+      distinct: _distinct,
     );
   }
 
@@ -312,6 +393,9 @@ class PhormQuery<T extends Model> {
       offset: _offset,
       include: _include,
       attributes: _attributes,
+      distinct: _distinct,
+      groupBy: _groupBy,
+      having: _having,
     );
   }
 }

@@ -477,6 +477,28 @@ void main() {
   });
 
   group('readAll / readAllWithCount', () {
+    test('query.rows() returns raw grouped rows with HAVING args', () async {
+      exec.rawQueryResult = [
+        {'name': 'A', 'cnt': 3},
+      ];
+      final core = makeCore();
+      const name = PhormColumn<String>('name');
+      const id = PhormColumn<int>('id');
+      final rows = await core.query
+          .where(id.gt(0))
+          .groupBy([name])
+          .having(id.gt(5))
+          .noLimit()
+          .rows();
+      expect(rows, [
+        {'name': 'A', 'cnt': 3},
+      ]);
+      expect(exec.lastSql, contains('GROUP BY name HAVING id > ?'));
+      expect(exec.lastSql, isNot(contains('LIMIT')));
+      // WHERE args come first, HAVING args after.
+      expect(exec.lastArgs, [0, 5]);
+    });
+
     test('readAll maps rows into models', () async {
       exec.rawQueryResult = [
         {'id': 1, 'name': 'A'},

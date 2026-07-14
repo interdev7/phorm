@@ -1,5 +1,23 @@
 # Changelog
 
+## [1.6.0]
+
+- Fluent query API extensions on `PhormQuery`:
+  - `distinct()` — `SELECT DISTINCT`;
+  - `select([...])` — column subset shorthand for
+    `attributes(Attributes.include([...]))`, accepts `PhormColumn`s or names;
+  - `groupBy([...])` + `having(condition)` — grouping with a typed HAVING
+    condition (explicit `groupBy` replaces the automatic primary-key grouping
+    used for join deduplication);
+  - `rows()` — executes the query and returns raw rows without model mapping,
+    for grouped/aggregate results;
+  - `noLimit()` — removes the default limit of 20 rows.
+- `PhormCore.readRows(...)` — row-level counterpart of `readAll` (same
+  soft-delete handling, no model mapping); `readAll`/`readAllWithCount` accept
+  `limit: null` (no LIMIT) and `distinct`.
+- `WhereBuilder.build` accepts an optional shared `ParamIndex`, so WHERE and
+  HAVING number their placeholders sequentially in `$n` dialects.
+
 ## [1.5.0]
 
 - **New: condition composition with `&` / `|`** — typed conditions now combine

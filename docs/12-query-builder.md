@@ -98,6 +98,51 @@ final page2 = await Users.query
     .get();
 ```
 
+> [!IMPORTANT]
+> The default limit is **20 rows**. Use `.noLimit()` to fetch everything.
+
+### `.noLimit()`
+
+Removes the default limit of 20 rows — the query returns all matches.
+
+```dart
+final everyone = await Users.query.noLimit().get();
+```
+
+### `.distinct()`
+
+Deduplicates result rows (`SELECT DISTINCT`).
+
+```dart
+final cities = await Users.query.distinct().select([Users.city]).rows();
+```
+
+### `.select(columns)`
+
+Selects only the given columns — a shorthand for
+`.attributes(Attributes.include([...]))`. Accepts `PhormColumn`s or plain
+names.
+
+```dart
+final names = await Users.query.select([Users.firstName, 'city']).get();
+```
+
+### `.groupBy(columns)` and `.having(condition)`
+
+Groups rows (`GROUP BY`) with an optional typed `HAVING` condition. Grouped
+rows are usually not full models — read them with [`.rows()`](#rows) instead
+of `.get()`. An explicit `groupBy` replaces the automatic primary-key grouping
+PHORM uses to deduplicate joined rows.
+
+```dart
+final perCity = await Users.query
+    .where(Users.isActive.isTrue())
+    .groupBy([Users.city])
+    .having(Users.age.gt(30))
+    .noLimit()
+    .rows();
+```
+
 ### `.include(List<Includable> relations)`
 
 Eager-loads relationships.
@@ -147,6 +192,16 @@ Executes the query (automatically adding `LIMIT 1`) and returns the **first resu
 
 ```dart
 User? user = await Users.query.where(Users.email.eq('john@example.com')).first();
+```
+
+### `.rows()`
+
+Executes the query and returns raw rows (`List<Map<String, Object?>>`) without
+mapping them into models. Use it for `groupBy`/`having` and aggregate
+selections, where result rows do not correspond to full models.
+
+```dart
+final perCity = await Users.query.groupBy([Users.city]).rows();
 ```
 
 ### `.count({Object? column})`

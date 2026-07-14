@@ -22,6 +22,9 @@ abstract interface class IPhormCore<T extends Model> {
     int? offset,
     bool includeTotalCount = false,
     bool explainQueryPlan = false,
+    bool distinct = false,
+    List<String>? groupBy,
+    WhereBuilder? having,
   });
 
   /// Runs [action] inside a database transaction.
@@ -497,6 +500,9 @@ class PhormCore<T extends Model> implements IPhormCore<T> {
     int? offset,
     bool includeTotalCount = false,
     bool explainQueryPlan = false,
+    bool distinct = false,
+    List<String>? groupBy,
+    WhereBuilder? having,
   }) {
     return JoinQueryBuilder(dbManager: dbManager, table: table).build(
       columns: columns,
@@ -508,6 +514,9 @@ class PhormCore<T extends Model> implements IPhormCore<T> {
       offset: offset,
       includeTotalCount: includeTotalCount,
       explainQueryPlan: explainQueryPlan,
+      distinct: distinct,
+      groupBy: groupBy,
+      having: having,
     );
   }
 
@@ -695,10 +704,14 @@ class PhormCore<T extends Model> implements IPhormCore<T> {
   // READ ALL 🔍
   // -------------------------------------------------------
 
-  /// Shared query execution for [readAll] and [readAllWithCount].
-  Future<({List<T> data, int count})> _fetchRows({
-    required bool includeTotalCount,
-    int limit = 20,
+  /// Executes the join query and returns the raw (unparsed) rows.
+  ///
+  /// This is the row-level counterpart of [readAll]: the same soft-delete
+  /// handling and SQL building, but no model mapping — useful for grouped or
+  /// aggregate queries (`groupBy`/`having`) whose rows are not full models.
+  Future<List<Map<String, Object?>>> readRows({
+    bool includeTotalCount = false,
+    int? limit = 20,
     int offset = 0,
     WhereBuilder? where,
     SortBuilder? sort,
@@ -708,6 +721,9 @@ class PhormCore<T extends Model> implements IPhormCore<T> {
     bool onlyDeleted = false,
     List<Includable>? include,
     DatabaseExecutor? executor,
+    bool distinct = false,
+    List<String>? groupBy,
+    WhereBuilder? having,
   }) async {
     final db = executor ?? await database;
     final effectiveWhere = where?.copy() ?? WhereBuilder();
@@ -729,12 +745,50 @@ class PhormCore<T extends Model> implements IPhormCore<T> {
       limit: limit,
       offset: offset,
       includeTotalCount: includeTotalCount,
+      distinct: distinct,
+      groupBy: groupBy,
+      having: having,
     );
 
-    final rows = await dbManager.logAction(
-      sql,
-      effectiveWhere.args,
-      () => db.rawQuery(sql, effectiveWhere.args),
+    // HAVING arguments bind after the WHERE arguments, matching the
+    // placeholder order produced by the shared ParamIndex in buildJoinQuery.
+    final args = [...effectiveWhere.args, ...?having?.args];
+
+    return dbManager.logAction(sql, args, () => db.rawQuery(sql, args));
+  }
+
+  /// Shared query execution for [readAll] and [readAllWithCount].
+  Future<({List<T> data, int count})> _fetchRows({
+    required bool includeTotalCount,
+    int? limit = 20,
+    int offset = 0,
+    WhereBuilder? where,
+    SortBuilder? sort,
+    List<String>? columns,
+    Attributes? attributes,
+    bool withDeleted = false,
+    bool onlyDeleted = false,
+    List<Includable>? include,
+    DatabaseExecutor? executor,
+    bool distinct = false,
+    List<String>? groupBy,
+    WhereBuilder? having,
+  }) async {
+    final rows = await readRows(
+      includeTotalCount: includeTotalCount,
+      limit: limit,
+      offset: offset,
+      where: where,
+      sort: sort,
+      columns: columns,
+      attributes: attributes,
+      withDeleted: withDeleted,
+      onlyDeleted: onlyDeleted,
+      include: include,
+      executor: executor,
+      distinct: distinct,
+      groupBy: groupBy,
+      having: having,
     );
 
     List<T> data;
@@ -792,7 +846,7 @@ class PhormCore<T extends Model> implements IPhormCore<T> {
   /// for (final user in result.data) { ... }
   /// ```
   Future<Result<T>> readAll({
-    int limit = 20,
+    int? limit = 20,
     int offset = 0,
     WhereBuilder? where,
     SortBuilder? sort,
@@ -802,9 +856,11 @@ class PhormCore<T extends Model> implements IPhormCore<T> {
     bool onlyDeleted = false,
     List<Includable>? include,
     DatabaseExecutor? executor,
+    bool distinct = false,
   }) async {
     final fetched = await _fetchRows(
       includeTotalCount: false,
+      distinct: distinct,
       limit: limit,
       offset: offset,
       where: where,
@@ -835,7 +891,7 @@ class PhormCore<T extends Model> implements IPhormCore<T> {
   /// print('Showing ${result.data.length} of ${result.count}');
   /// ```
   Future<ResultWithCount<T>> readAllWithCount({
-    int limit = 20,
+    int? limit = 20,
     int offset = 0,
     WhereBuilder? where,
     SortBuilder? sort,
@@ -845,9 +901,11 @@ class PhormCore<T extends Model> implements IPhormCore<T> {
     bool onlyDeleted = false,
     List<Includable>? include,
     DatabaseExecutor? executor,
+    bool distinct = false,
   }) async {
     final fetched = await _fetchRows(
       includeTotalCount: true,
+      distinct: distinct,
       limit: limit,
       offset: offset,
       where: where,
@@ -1009,6 +1067,9 @@ class PhormCore<T extends Model> implements IPhormCore<T> {
     int? offset,
     bool includeTotalCount = false,
     bool explainQueryPlan = false,
+    bool distinct = false,
+    List<String>? groupBy,
+    WhereBuilder? having,
   }) {
     return buildJoinQuery(
       columns: columns,
@@ -1020,6 +1081,9 @@ class PhormCore<T extends Model> implements IPhormCore<T> {
       offset: offset,
       includeTotalCount: includeTotalCount,
       explainQueryPlan: explainQueryPlan,
+      distinct: distinct,
+      groupBy: groupBy,
+      having: having,
     );
   }
 }
