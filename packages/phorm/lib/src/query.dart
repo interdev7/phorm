@@ -206,6 +206,81 @@ class PhormQuery<T extends Model> {
     return this;
   }
 
+  /// Keyset (cursor) pagination: returns rows strictly **after** [last]
+  /// in the current [orderBy] ordering.
+  ///
+  /// Unlike `offset`, a keyset page stays stable when rows are inserted or
+  /// deleted before it, and the database can serve it from the index without
+  /// scanning skipped rows — ideal for infinite lists.
+  ///
+  /// The table's primary key is appended automatically as a tiebreaker (both
+  /// to ORDER BY and the cursor), so the ordering is total even when the sort
+  /// column has duplicates. Works with mixed ASC/DESC sorts.
+  ///
+  /// Requires at least one [orderBy] call before it, and non-null values in
+  /// [last] for every sort column.
+  ///
+  /// **Example:**
+  /// ```dart
+  /// final firstPage = await Users.query
+  ///     .orderBy(Users.createdAt, descending: true)
+  ///     .limit(20)
+  ///     .get();
+  ///
+  /// final nextPage = await Users.query
+  ///     .orderBy(Users.createdAt, descending: true)
+  ///     .after(firstPage.last)
+  ///     .limit(20)
+  ///     .get();
+  /// ```
+  PhormQuery<T> after(T last) {
+    final sort = _sort;
+    if (sort == null || sort.entries.isEmpty) {
+      throw StateError(
+        'after() requires at least one orderBy(...) call before it — '
+        'keyset pagination is defined by the sort order.',
+      );
+    }
+
+    // Append the primary key as a tiebreaker for a total order.
+    final pk = service.table.primaryKey;
+    if (!sort.entries.any((e) => e.column == pk)) {
+      sort.asc(pk);
+    }
+    final keys = sort.entries;
+
+    final json = last.toJson();
+    final values = <Object>[];
+    for (final key in keys) {
+      final value = json[key.column];
+      if (value == null) {
+        throw ArgumentError(
+          'after(): cursor value for sort column "${key.column}" is null or '
+          'missing in the model — keyset pagination needs non-null values '
+          'for every sort column.',
+        );
+      }
+      values.add(value as Object);
+    }
+
+    // (k1 > v1) OR (k1 = v1 AND k2 > v2) OR ... — `>` becomes `<` for DESC.
+    _where.orGroup((og) {
+      for (var i = 0; i < keys.length; i++) {
+        og.andGroup((ag) {
+          for (var j = 0; j < i; j++) {
+            ag.eq(keys[j].column, values[j]);
+          }
+          if (keys[i].descending) {
+            ag.lt(keys[i].column, values[i]);
+          } else {
+            ag.gt(keys[i].column, values[i]);
+          }
+        });
+      }
+    });
+    return this;
+  }
+
   /// Removes the default limit of 20 rows — the query returns all matches.
   ///
   /// **Example:**

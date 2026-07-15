@@ -3,6 +3,9 @@
 // =======================================================
 import 'package:phorm/phorm.dart' show PhormCore;
 
+/// One ORDER BY entry: a column and its direction.
+typedef SortEntry = ({String column, bool descending});
+
 ///
 /// Fluent builder for SQL ORDER BY clauses. Supports ASC/DESC ordering by columns.
 /// Validates column names. Use in [PhormCore.readAll] for sorted results.
@@ -12,7 +15,7 @@ import 'package:phorm/phorm.dart' show PhormCore;
 /// - Joins with comma (e.g., 'name ASC, age DESC').
 /// - Column validation to prevent errors.
 class SortBuilder {
-  final List<String> _orders = [];
+  final List<SortEntry> _orders = [];
   static final RegExp _columnRegExp = RegExp(
     r'^[a-zA-Z_][a-zA-Z0-9_]*(\.[a-zA-Z_][a-zA-Z0-9_]*)*$',
   );
@@ -34,7 +37,7 @@ class SortBuilder {
   /// ```
   SortBuilder asc(String column) {
     _validate(column);
-    _orders.add('$column ASC');
+    _orders.add((column: column, descending: false));
     return this;
   }
 
@@ -46,13 +49,21 @@ class SortBuilder {
   /// ```
   SortBuilder desc(String column) {
     _validate(column);
-    _orders.add('$column DESC');
+    _orders.add((column: column, descending: true));
     return this;
   }
 
   /// Builds the full ORDER BY string (or null if empty).
   /// Use with `db.query(orderBy: build())`.
-  String? build() => _orders.isEmpty ? null : _orders.join(', ');
+  String? build() =>
+      _orders.isEmpty
+          ? null
+          : _orders
+              .map((e) => '${e.column} ${e.descending ? 'DESC' : 'ASC'}')
+              .join(', ');
+
+  /// Read-only view of the configured sort entries, in order.
+  List<SortEntry> get entries => List.unmodifiable(_orders);
 
   /// Creates a copy of this SortBuilder
   SortBuilder copy() {
