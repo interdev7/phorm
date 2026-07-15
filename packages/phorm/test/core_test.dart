@@ -105,6 +105,7 @@ class _RecordingExecutor implements DatabaseExecutor {
   String? lastWhere;
   List<Object?>? lastWhereArgs;
   final List<String> calls = [];
+  final List<(String, Map<String, Object?>)> inserts = [];
   _RecordingBatch? lastBatch;
 
   @override
@@ -150,6 +151,7 @@ class _RecordingExecutor implements DatabaseExecutor {
     ConflictAlgorithm? conflictAlgorithm,
   }) async {
     calls.add('insert');
+    inserts.add((table, Map<String, Object?>.from(values)));
     lastInsertValues = values;
     lastConflict = conflictAlgorithm;
     return insertResult;
@@ -476,6 +478,154 @@ void main() {
     });
   });
 
+  group('insertWith (nested writes)', () {
+    test('HasMany children get the parent foreign key', () async {
+      final core = makeCore(
+        relationships: const [HasMany(model: 'posts', foreignKey: 'user_id')],
+        extraTables: [_postsTable()],
+      );
+      final id = await core.insertWith(_User(id: 1), {
+        'posts': [_Post(10), _Post(11)],
+      });
+      expect(id, 1);
+      expect(exec.inserts, hasLength(3));
+      expect(exec.inserts[0].$1, 'users');
+      expect(exec.inserts[1].$1, 'posts');
+      expect(exec.inserts[1].$2['user_id'], 1);
+      expect(exec.inserts[2].$2['user_id'], 1);
+    });
+
+    test('autoincrement parent falls back to the returned row id', () async {
+      exec.insertResult = 42;
+      final core = makeCore(
+        relationships: const [HasMany(model: 'posts', foreignKey: 'user_id')],
+        extraTables: [_postsTable()],
+      );
+      await core.insertWith(_User(id: 0), {
+        'posts': [_Post(10)],
+      });
+      expect(exec.inserts[1].$2['user_id'], 42);
+    });
+
+    test('ManyToMany children are inserted with pivot rows', () async {
+      final core = makeCore(
+        relationships: const [
+          ManyToMany(
+            model: 'posts',
+            pivotTable: 'user_posts',
+            foreignKey: 'user_id',
+            relatedKey: 'post_id',
+          ),
+        ],
+        extraTables: [_postsTable()],
+      );
+      await core.insertWith(_User(id: 1), {
+        'posts': [_Post(10)],
+      });
+      expect(exec.inserts.map((e) => e.$1), ['users', 'posts', 'user_posts']);
+      expect(exec.inserts[2].$2, {'user_id': 1, 'post_id': 10});
+    });
+
+    test('unknown relationship name throws', () async {
+      final core = makeCore();
+      await expectLater(
+        core.insertWith(_User(id: 1), {
+          'ghosts': [_Post(1)],
+        }),
+        throwsArgumentError,
+      );
+    });
+
+    test('works inside an existing executor (no new transaction)', () async {
+      final core = makeCore(
+        relationships: const [HasMany(model: 'posts', foreignKey: 'user_id')],
+        extraTables: [_postsTable()],
+      );
+      await core.insertWith(_User(id: 1), {
+        'posts': [_Post(10)],
+      }, executor: exec);
+      expect(exec.inserts, hasLength(2));
+    });
+
+    test('matches a relationship declared with a Type model', () async {
+      final core = makeCore(
+        relationships: const [HasMany(model: _Post, foreignKey: 'user_id')],
+        extraTables: [_postsTable()],
+      );
+      await core.insertWith(_User(id: 1), {
+        'posts': [_Post(10)],
+      });
+      expect(exec.inserts[1].$2['user_id'], 1);
+    });
+
+    test('unregistered related table throws', () async {
+      final core = makeCore(
+        relationships: const [HasMany(model: 'ghosts', foreignKey: 'user_id')],
+      );
+      await expectLater(
+        core.insertWith(_User(id: 1), {
+          'ghosts': [_Post(1)],
+        }),
+        throwsArgumentError,
+      );
+    });
+
+    test('null parent link value throws', () async {
+      final core = makeCore(
+        relationships: const [
+          HasMany(model: 'posts', foreignKey: 'user_id', localKey: 'name'),
+        ],
+        extraTables: [_postsTable()],
+      );
+      await expectLater(
+        core.insertWith(_User(id: 1), {
+          'posts': [_Post(1)],
+        }),
+        throwsArgumentError,
+      );
+    });
+
+    test('ManyToMany autoincrement child uses returned row id', () async {
+      exec.insertResult = 77;
+      final autoPosts = Table<_Post>(
+        schema:
+            'CREATE TABLE posts (id INTEGER PRIMARY KEY AUTOINCREMENT, user_id INTEGER)',
+        name: 'posts',
+        type: _Post,
+        fromJson: (m) => _Post(m['id'] as int),
+        columns: const ['id', 'user_id'],
+      );
+      final core = makeCore(
+        relationships: const [
+          ManyToMany(
+            model: 'posts',
+            pivotTable: 'user_posts',
+            foreignKey: 'user_id',
+            relatedKey: 'post_id',
+          ),
+        ],
+        extraTables: [autoPosts],
+      );
+      await core.insertWith(_User(id: 1), {
+        'posts': [_Post(0)],
+      });
+      expect(exec.inserts[2].$2, {'user_id': 1, 'post_id': 77});
+    });
+
+    test('BelongsTo children are rejected', () async {
+      final core = makeCore(
+        relationships: const [BelongsTo(model: 'posts', foreignKey: 'post_id')],
+        extraTables: [_postsTable()],
+      );
+      await expectLater(
+        core.insertWith(_User(id: 1), {
+          'posts': [_Post(1)],
+        }),
+        throwsArgumentError,
+      );
+    });
+  });
+
   group('readAll / readAllWithCount', () {
     test('query.rows() returns raw grouped rows with HAVING args', () async {
       exec.rawQueryResult = [
@@ -484,12 +634,13 @@ void main() {
       final core = makeCore();
       const name = PhormColumn<String>('name');
       const id = PhormColumn<int>('id');
-      final rows = await core.query
-          .where(id.gt(0))
-          .groupBy([name])
-          .having(id.gt(5))
-          .noLimit()
-          .rows();
+      final rows =
+          await core.query
+              .where(id.gt(0))
+              .groupBy([name])
+              .having(id.gt(5))
+              .noLimit()
+              .rows();
       expect(rows, [
         {'name': 'A', 'cnt': 3},
       ]);

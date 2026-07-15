@@ -203,6 +203,136 @@ class PhormCore<T extends Model> implements IPhormCore<T> {
   }
 
   // -------------------------------------------------------
+  // NESTED WRITES 🌳
+  // -------------------------------------------------------
+
+  /// Inserts [item] together with its related child models in a single
+  /// transaction — the write-side counterpart of eager loading.
+  ///
+  /// [children] maps a relationship (by related table name, as in `include`)
+  /// to the child models to insert. For `HasMany`/`HasOne` each child's
+  /// foreign key is set to the parent's local key automatically. For
+  /// `ManyToMany` the related models are inserted and pivot rows are created.
+  /// `BelongsTo` relationships are rejected — insert the parent first instead.
+  ///
+  /// Returns the parent's insert row id. If any insert fails, the whole
+  /// transaction is rolled back.
+  ///
+  /// **Example:**
+  /// ```dart
+  /// await Users.insertWith(user, {
+  ///   'posts': [post1, post2],
+  ///   'tags': [tagA], // ManyToMany: inserts tagA + pivot row
+  /// });
+  /// ```
+  Future<int> insertWith(
+    T item,
+    Map<String, List<Model>> children, {
+    DatabaseExecutor? executor,
+  }) async {
+    if (executor != null) return _insertWith(executor, item, children);
+    return transaction((txn) => _insertWith(txn, item, children));
+  }
+
+  Future<int> _insertWith(
+    DatabaseExecutor txn,
+    T item,
+    Map<String, List<Model>> children,
+  ) async {
+    final parentRowId = await insert(item, executor: txn);
+    final parentJson = item.toJson();
+
+    for (final entry in children.entries) {
+      final relName = entry.key;
+      final rel =
+          table.relationships.where((r) {
+            final model = r.model;
+            if (model is String) return model == relName;
+            if (model is Type) return _findTable(model)?.name == relName;
+            return false;
+          }).firstOrNull;
+      if (rel == null) {
+        throw ArgumentError(
+          'insertWith: table "${table.name}" has no relationship to '
+          '"$relName". Available: '
+          '${table.relationships.map((r) => r.model).join(', ')}.',
+        );
+      }
+      if (rel is BelongsTo) {
+        throw ArgumentError(
+          'insertWith: "$relName" is a BelongsTo relationship — the parent '
+          'row must exist before ${table.name}; insert it first.',
+        );
+      }
+
+      final relatedTable = _findTable(rel.model);
+      if (relatedTable == null) {
+        throw ArgumentError(
+          'insertWith: related table for "$relName" is not registered '
+          'in the database.',
+        );
+      }
+
+      // Parent side of the link; for a fresh autoincrement PK fall back to
+      // the row id returned by the insert.
+      Object? parentKey = parentJson[rel.localKey];
+      if ((parentKey == null || parentKey == 0) &&
+          rel.localKey == table.primaryKey &&
+          table.autoIncrement) {
+        parentKey = parentRowId;
+      }
+      if (parentKey == null) {
+        throw ArgumentError(
+          'insertWith: parent value for "${rel.localKey}" is null — cannot '
+          'link "$relName" children.',
+        );
+      }
+
+      final childCore = PhormCore<Model>(
+        dbManager: dbManager,
+        table: relatedTable,
+      );
+
+      if (rel is ManyToMany) {
+        for (final child in entry.value) {
+          final childRowId = await childCore.insert(child, executor: txn);
+          Object? childKey = child.toJson()[rel.relatedLocalKey];
+          if ((childKey == null || childKey == 0) &&
+              rel.relatedLocalKey == relatedTable.primaryKey &&
+              relatedTable.autoIncrement) {
+            childKey = childRowId;
+          }
+          final pivotRow = {
+            rel.foreignKey: parentKey,
+            rel.relatedKey: childKey,
+          };
+          await dbManager.logAction(
+            'INSERT INTO ${rel.pivotTable}',
+            [pivotRow],
+            () => txn.insert(rel.pivotTable, pivotRow),
+          );
+        }
+      } else {
+        // HasMany / HasOne: stamp the foreign key onto each child.
+        for (final child in entry.value) {
+          final json = childCore._prepareDataForDb(
+            child.toJson(),
+            isInsert: true,
+          );
+          json[rel.foreignKey] = parentKey;
+          await dbManager.logAction(
+            'INSERT INTO ${relatedTable.name}',
+            [json],
+            () => txn.insert(relatedTable.name, json),
+          );
+        }
+      }
+    }
+
+    return parentRowId;
+  }
+
+  // -------------------------------------------------------
   // DELETE / SOFT DELETE 🗑️
   // -------------------------------------------------------
 

@@ -1,5 +1,15 @@
 # Changelog
 
+## [1.7.0]
+
+- **Nested writes** — `PhormCore.insertWith(item, {...})` inserts a model
+  together with related children in one transaction: `HasMany`/`HasOne`
+  children get the parent's key stamped into their foreign key column
+  (falling back to the returned row id for fresh autoincrement parents),
+  `ManyToMany` children are inserted along with their pivot rows.
+  `BelongsTo` entries are rejected with a clear error. Any failure rolls the
+  whole transaction back.
+
 ## [1.6.0]
 
 - **Keyset (cursor) pagination** — `PhormQuery.after(lastModel)` returns rows

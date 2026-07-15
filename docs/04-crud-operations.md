@@ -207,6 +207,28 @@ await Users.restoreBatch(['id1', 'id2']);
 
 ---
 
+## Nested Writes — `insertWith`
+
+Inserts a model together with its related children in **one transaction** —
+the write-side counterpart of eager loading:
+
+```dart
+await Users.insertWith(user, {
+  'posts': [post1, post2], // HasMany: user_id is stamped automatically
+  'tags': [tagA],          // ManyToMany: inserts tagA + a pivot row
+});
+```
+
+- Keys of the map are related **table names**, exactly like in `include`.
+- `HasMany`/`HasOne` children get the parent's local key written into their
+  foreign key column. For a fresh autoincrement parent the returned row id is
+  used.
+- `ManyToMany` children are inserted and linked through the pivot table.
+- `BelongsTo` entries throw an `ArgumentError` — insert the parent row first.
+- If any insert fails, the whole transaction rolls back.
+
+---
+
 ## Transactions
 
 Use when multiple operations must succeed or fail together.
