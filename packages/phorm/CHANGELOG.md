@@ -2,6 +2,12 @@
 
 ## [1.6.0]
 
+- **Keyset (cursor) pagination** — `PhormQuery.after(lastModel)` returns rows
+  strictly after the given model in the current `orderBy` ordering. The
+  primary key is appended automatically as a tiebreaker (to both ORDER BY and
+  the cursor), duplicates and mixed ASC/DESC sorts are handled, and unlike
+  `offset` the page stays stable under concurrent inserts/deletes. `SortBuilder`
+  now exposes its structured `entries`.
 - Fluent query API extensions on `PhormQuery`:
   - `distinct()` — `SELECT DISTINCT`;
   - `select([...])` — column subset shorthand for

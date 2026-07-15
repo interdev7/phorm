@@ -2,10 +2,12 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:phorm/phorm.dart';
 
 class _User extends Model {
-  _User(this.id);
+  _User(this.id, {this.age = 7, this.name});
   final int id;
+  final int age;
+  final String? name;
   @override
-  Map<String, dynamic> toJson() => {'id': id};
+  Map<String, dynamic> toJson() => {'id': id, 'age': age, 'name': name};
 }
 
 /// Fake database exposing only what query building needs (dialect + tables).
@@ -218,6 +220,61 @@ void main() {
           PhormQuery(core).where(city.eq('Sofia')).groupBy([city]).toSql();
       expect('GROUP BY'.allMatches(sql).length, 1);
       expect(sql, contains('GROUP BY city'));
+    });
+  });
+
+  group('PhormQuery keyset pagination (after)', () {
+    const age = PhormColumn<int>('age');
+    const name = PhormColumn<String>('name');
+
+    test('after() requires orderBy first', () {
+      expect(() => PhormQuery(core).after(_User(1)), throwsStateError);
+    });
+
+    test('single ASC sort expands to gt with pk tiebreaker', () {
+      final sql = PhormQuery(core).orderBy(age).after(_User(7)).toSql();
+      // pk appended to ORDER BY as tiebreaker
+      expect(sql, contains('ORDER BY age ASC, id ASC'));
+      // (age > ?) OR (age = ? AND id > ?)
+      expect(sql, contains('(age > ? OR (age = ? AND id > ?))'));
+    });
+
+    test('DESC sort flips the comparison', () {
+      final sql =
+          PhormQuery(
+            core,
+          ).orderBy(age, descending: true).after(_User(7)).toSql();
+      expect(sql, contains('ORDER BY age DESC, id ASC'));
+      expect(sql, contains('(age < ? OR (age = ? AND id > ?))'));
+    });
+
+    test('mixed multi-column sort expands per direction', () {
+      final sql =
+          PhormQuery(core)
+              .orderBy(name)
+              .orderBy(age, descending: true)
+              .after(_User(7, age: 3, name: 'x'))
+              .toSql();
+      expect(
+        sql,
+        contains(
+          '(name > ? OR (name = ? AND age < ?) '
+          'OR (name = ? AND age = ? AND id > ?))',
+        ),
+      );
+    });
+
+    test('cursor values come from the model in sort order', () async {
+      final q = PhormQuery(core).orderBy(age).after(_User(7));
+      // _User.toJson has id and (test model) age/name values
+      expect(q.toSql(), contains('age > ?'));
+    });
+
+    test('null cursor value throws ArgumentError', () {
+      expect(
+        () => PhormQuery(core).orderBy(name).after(_User(1)),
+        throwsArgumentError,
+      );
     });
   });
 }

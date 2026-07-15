@@ -101,6 +101,31 @@ final page2 = await Users.query
 > [!IMPORTANT]
 > The default limit is **20 rows**. Use `.noLimit()` to fetch everything.
 
+### `.after(lastModel)` — keyset (cursor) pagination
+
+Returns rows strictly **after** the given model in the current `orderBy`
+ordering. Unlike `offset`, a keyset page stays stable when rows are inserted
+or deleted before it, and the database serves it from the index without
+scanning skipped rows — ideal for infinite lists in Flutter.
+
+```dart
+final firstPage = await Users.query
+    .orderBy(Users.createdAt, descending: true)
+    .limit(20)
+    .get();
+
+final nextPage = await Users.query
+    .orderBy(Users.createdAt, descending: true)
+    .after(firstPage.last) // cursor = last model of the previous page
+    .limit(20)
+    .get();
+```
+
+The primary key is appended automatically as a tiebreaker (to both `ORDER BY`
+and the cursor), so duplicate sort values and mixed ASC/DESC orderings are
+handled correctly. Requires at least one `orderBy(...)` before it and non-null
+values in the cursor model for every sort column.
+
 ### `.noLimit()`
 
 Removes the default limit of 20 rows — the query returns all matches.
