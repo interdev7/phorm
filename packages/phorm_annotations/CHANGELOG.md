@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.7.0]
+
+- New `@Schema(indexForeignKeys: ...)` option (default `true`): the generator
+  creates indexes on `BelongsTo`/`Join` foreign key columns and on
+  auto-generated pivot tables. Set to `false` to opt out.
+
 ## [1.6.0]
 
 - `PhormColumn.inList` / `notInList` accept `strict: true`, throwing an

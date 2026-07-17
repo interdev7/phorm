@@ -137,6 +137,17 @@ FROM orders
 > [!IMPORTANT]
 > **Performance:** JSON aggregation is efficient for moderate datasets. For very large `HasMany` collections (thousands of related rows), the JSON string can grow large. Consider using `Attributes.include()` on the relationship to limit columns.
 
+> [!IMPORTANT]
+> **Index your foreign keys.** Without an index on the child's FK column, the
+> aggregation subquery scans the child table once **per parent row**. Since
+> `phorm_generator` 1.5.0 the schema of a model declaring `BelongsTo`/`Join`
+> automatically includes `CREATE INDEX IF NOT EXISTS <table>_<fk>_idx`
+> (opt out with `@Schema(indexForeignKeys: false)`); auto-generated pivot
+> tables index their related key too. If only the parent declares `HasMany`
+> and the child model has no `BelongsTo`, add the index yourself via
+> `@Schema(indexes: [...])` on the child. Existing databases pick new indexes
+> up on upgrade, or on any open with `DB(autoMigrate: true)`.
+
 ---
 
 ## Eager Loading (Includable API)

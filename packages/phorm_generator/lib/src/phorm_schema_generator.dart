@@ -196,6 +196,24 @@ class PhormSchemaGenerator extends GeneratorForAnnotation<Schema> {
       }
     }
 
+    // Auto-index foreign key columns of BelongsTo/Join relationships:
+    // without an index, loading a parent with its children scans the child
+    // table once per parent row. Opt out with @Schema(indexForeignKeys: false).
+    final indexForeignKeys =
+        schemaReader.peek('indexForeignKeys')?.boolValue ?? true;
+    if (indexForeignKeys) {
+      final indexedColumns = <String>{};
+      for (final rel in relationships) {
+        if (rel['type'] != 'BelongsTo' && rel['type'] != 'Join') continue;
+        final fkSqlName = rel['foreignKey'] as String;
+        if (!indexedColumns.add(fkSqlName)) continue;
+        final stmt =
+            'CREATE INDEX IF NOT EXISTS ${tableName}_${fkSqlName}_idx '
+            'ON $tableName($fkSqlName);';
+        indexSql = indexSql.isEmpty ? stmt : '$indexSql\n$stmt';
+      }
+    }
+
     // Emit CREATE TABLE statements for pivot tables of ManyToMany relations
     // that opted in via `createPivot: true`. Appended to the schema string so
     // they are created alongside the model table (and re-run through migrations).
@@ -204,6 +222,7 @@ class PhormSchemaGenerator extends GeneratorForAnnotation<Schema> {
       primaryKeySqlType,
       tableName,
       primaryKey,
+      indexForeignKeys: indexForeignKeys,
     );
     if (pivotSql.isNotEmpty) {
       indexSql = indexSql.isEmpty ? pivotSql : '$indexSql\n$pivotSql';
@@ -347,8 +366,9 @@ class PhormSchemaGenerator extends GeneratorForAnnotation<Schema> {
     List<Map<String, dynamic>> relationships,
     String ownerPkSqlType,
     String ownerTable,
-    String ownerPrimaryKey,
-  ) {
+    String ownerPrimaryKey, {
+    required bool indexForeignKeys,
+  }) {
     final buffer = StringBuffer();
     final seen = <String>{};
 
@@ -387,6 +407,15 @@ class PhormSchemaGenerator extends GeneratorForAnnotation<Schema> {
       }
 
       buffer.writeln(');');
+
+      if (indexForeignKeys) {
+        // The composite PRIMARY KEY (foreignKey, relatedKey) already serves
+        // as an index for foreignKey lookups; relatedKey needs its own.
+        buffer.writeln(
+          'CREATE INDEX IF NOT EXISTS ${pivotTable}_${relatedKey}_idx '
+          'ON $pivotTable($relatedKey);',
+        );
+      }
     }
 
     return buffer.toString().trim();
