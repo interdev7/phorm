@@ -66,3 +66,6 @@ pubspec_overrides.yaml
 
 # VS Code extension working files
 .vscode/flutter-translator/
+
+# MkDocs build output
+site/

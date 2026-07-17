@@ -24,6 +24,8 @@
 
 A lightweight, type-safe, driver-agnostic ORM for Dart and Flutter.
 
+📚 **Documentation: [interdev7.github.io/phorm](https://interdev7.github.io/phorm/)**
+
 **PHORM** is designed from the ground up to be database-independent. It separates query building and relationship mapping from database-specific SQL grammar using a pluggable **Dialect system**. This allows using the same declarative models and generated service APIs across multiple SQL backends, starting with SQLite (via `phorm_sqlite`) and expanding to PostgreSQL, MySQL and more in the future.
 
 By leveraging **Single-Query JSON Aggregation**, PHORM aggregates complex parent-child relationship trees into a **single, highly-optimized SQL query** using database-native JSON capabilities (such as SQLite's `json_group_array` or PostgreSQL's `jsonb_agg`), offering stellar performance and zero N+1 query overhead.

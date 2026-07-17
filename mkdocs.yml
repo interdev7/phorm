@@ -1,0 +1,79 @@
+site_name: PHORM
+site_description: A lightweight, type-safe, driver-agnostic ORM for Dart and Flutter.
+site_url: https://interdev7.github.io/phorm/
+repo_url: https://github.com/interdev7/phorm
+repo_name: interdev7/phorm
+edit_uri: edit/main/docs/
+
+theme:
+  name: material
+  logo: assets/logo/phorm.png
+  favicon: assets/logo/phorm.png
+  palette:
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      primary: teal
+      accent: teal
+      toggle:
+        icon: material/weather-night
+        name: Switch to dark mode
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: teal
+      accent: teal
+      toggle:
+        icon: material/weather-sunny
+        name: Switch to light mode
+  features:
+    - navigation.instant
+    - navigation.tracking
+    - navigation.top
+    - navigation.footer
+    - search.suggest
+    - search.highlight
+    - content.code.copy
+    - content.action.edit
+
+markdown_extensions:
+  - admonition
+  - pymdownx.details
+  - pymdownx.superfences
+  - pymdownx.highlight:
+      anchor_linenums: true
+  - pymdownx.inlinehilite
+  - pymdownx.tabbed:
+      alternate_style: true
+  - tables
+  - toc:
+      permalink: true
+  - github-callouts
+
+plugins:
+  - search
+
+nav:
+  - Home: index.md
+  - Overview: 01-overview.md
+  - Schema Definition: 02-schema-definition.md
+  - WhereBuilder: 03-where-builder.md
+  - CRUD Operations: 04-crud-operations.md
+  - Relationships: 05-relationships.md
+  - DB & Migrations: 06-db-and-migrations.md
+  - Code Generation: 07-code-generation.md
+  - Soft Deletes: 08-soft-deletes.md
+  - Pitfalls & Limitations: 09-pitfalls-and-limitations.md
+  - Validators: 10-validators.md
+  - Many to Many: 11-many-to-many.md
+  - Query Builder: 12-query-builder.md
+  - Seeders & Factories: 13-seeders-and-factories.md
+  - Reactivity: 14-reactivity.md
+  - Flutter Web: 15-flutter-web.md
+
+extra:
+  social:
+    - icon: fontawesome/brands/github
+      link: https://github.com/interdev7/phorm
+    - icon: simple/dart
+      link: https://pub.dev/packages/phorm_sqlite
+    - icon: simple/kofi
+      link: https://ko-fi.com/T6T71WI3NN
