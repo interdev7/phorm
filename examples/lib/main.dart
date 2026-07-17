@@ -62,7 +62,7 @@ class PhormShowcaseApp extends StatelessWidget {
         contentPadding:
             const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
       ),
-      cardTheme: CardTheme(
+      cardTheme: CardThemeData(
         color: const Color(0xFF1A1A2E),
         elevation: 0,
         shape: RoundedRectangleBorder(

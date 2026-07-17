@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.10.1]
+
+- **Fix Flutter Web builds.** `database_adapter.dart` imported
+  `package:sqlite3/sqlite3.dart` (the FFI entry point) for `SqliteException`,
+  which pulled `dart:ffi` into web compilations and failed them. It now
+  imports the web-safe `package:sqlite3/common.dart`.
+
 ## [1.10.0]
 
 - `Database` and `Transaction` implement the new `ColumnarQueryExecutor`

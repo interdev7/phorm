@@ -1,6 +1,6 @@
 import 'dart:async';
 import 'package:phorm/phorm.dart';
-import 'package:sqlite3/sqlite3.dart' show SqliteException;
+import 'package:sqlite3/common.dart' show SqliteException;
 import 'database_isolate.dart';
 import 'sql_function.dart';
 
