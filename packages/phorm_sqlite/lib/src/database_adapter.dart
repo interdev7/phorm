@@ -127,16 +127,37 @@ class Database implements DatabaseExecutor {
   @override
   Batch batch() => SqliteBatch._(this);
 
+  /// Current transaction nesting depth: 0 = no active transaction.
+  int _transactionDepth = 0;
+
+  /// Runs [action] inside a transaction.
+  ///
+  /// Nested calls are supported via SQLite savepoints: the outermost call
+  /// issues `BEGIN`/`COMMIT`, inner calls create a `SAVEPOINT` that is
+  /// released on success or rolled back on failure — so a failed inner
+  /// transaction undoes only its own writes, while the outer transaction
+  /// decides independently whether to commit.
   Future<T> transaction<T>(Future<T> Function(Transaction txn) action) async {
     final txn = Transaction._(this);
-    await execute('BEGIN');
+    final depth = _transactionDepth;
+    final savepoint = 'phorm_sp_$depth';
+
+    await execute(depth == 0 ? 'BEGIN' : 'SAVEPOINT $savepoint');
+    _transactionDepth++;
     try {
       final result = await action(txn);
-      await execute('COMMIT');
+      await execute(depth == 0 ? 'COMMIT' : 'RELEASE SAVEPOINT $savepoint');
       return result;
     } catch (e) {
-      await execute('ROLLBACK');
+      if (depth == 0) {
+        await execute('ROLLBACK');
+      } else {
+        await execute('ROLLBACK TO SAVEPOINT $savepoint');
+        await execute('RELEASE SAVEPOINT $savepoint');
+      }
       rethrow;
+    } finally {
+      _transactionDepth--;
     }
   }
 

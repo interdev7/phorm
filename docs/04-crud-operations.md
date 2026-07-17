@@ -244,6 +244,32 @@ await db.transaction((txn) async {
 > [!TIP]
 > Always pass the `txn` object to `executor` parameter of CRUD methods inside the transaction block. If you omit it, the operation will run on a separate connection outside the transaction.
 
+### Nested Transactions (Savepoints)
+
+`transaction()` can be called inside another transaction. The outermost call
+issues `BEGIN`/`COMMIT`; inner calls become SQLite **savepoints**, so a failed
+inner transaction rolls back only its own writes:
+
+```dart
+await db.transaction((txn) async {
+  await userService.insert(user, executor: txn);
+
+  try {
+    await db.transaction((inner) async {
+      await auditService.insert(riskyEntry, executor: inner);
+      // throws → only riskyEntry is rolled back
+    });
+  } catch (_) {
+    // The outer transaction continues and can still commit.
+  }
+
+  await orderService.insert(order, executor: txn);
+});
+```
+
+An outer rollback always reverts everything, including successfully released
+inner savepoints.
+
 ---
 
 ## Attributes — Column Selection
