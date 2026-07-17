@@ -160,10 +160,9 @@ For Flutter's built-in dev server, this is handled automatically by `flutter run
 
 | phorm_sqlite | sqlite3 | sqlite3_web | Dart SDK |
 | ------------ | ------- | ----------- | -------- |
-| 1.0.x        | ^2.9.4  | ^0.3.1      | >=3.5.0  |
+| 1.4.0+       | ^3.3.4  | ^0.9.2      | >=3.10.0 |
+| 1.0.x–1.3.x  | ^2.9.4  | ^0.3.1      | >=3.5.0  |
 
-> **Note on sqlite3 3.x:**  
-> `sqlite3: ^3.x.x` requires Dart SDK `>=3.9.999` (not yet released as of May 2026).  
-> `phorm_sqlite` stays on `^2.9.4` until the stable Dart SDK supports it.  
-> When Dart SDK 3.10+ is released, `sqlite3_flutter_libs` and `sqlite3_native_assets`  
-> will no longer be needed on any platform — the sqlite3 package will bundle everything natively.
+> Download the `sqlite3.wasm` binary that matches the resolved `sqlite3`
+> package version (release tag `sqlite3-<version>` in the
+> [sqlite3.dart releases](https://github.com/simolus3/sqlite3.dart/releases)).

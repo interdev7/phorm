@@ -1,5 +1,14 @@
 # Changelog
 
+## [1.10.2]
+
+- **Fix `Unsupported operation: Platform._operatingSystem` on Flutter Web.**
+  `DB` touched `dart:io` (`Platform` in `getDatabasesPath`, `File` in
+  downgrade/reset/version checks) on every open; on web those are stubs that
+  throw at runtime. All filesystem/platform code is now guarded with
+  `kIsWeb`: the database name is passed straight to the IndexedDB-backed
+  store, and file cleanup steps are skipped on web.
+
 ## [1.10.1]
 
 - **Fix Flutter Web builds.** `database_adapter.dart` imported

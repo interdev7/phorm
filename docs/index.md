@@ -18,7 +18,7 @@ and generated service APIs work across SQL backends, starting with SQLite
   via native JSON aggregation; all SQLite work runs off the UI thread in a
   background isolate
 - **🛡️ Type safety** — generated typed columns and conditions:
-  `UserTable.age.gt(18) & (UserTable.city.eq('Sofia') | UserTable.city.eq('Plovdiv'))`
+  `Users.age.gt(18) & (Users.city.eq('Sofia') | Users.city.eq('Plovdiv'))`
 - **🔄 Automatic migrations** — `DB(autoMigrate: true)` applies safe additive
   schema changes on open, no version bumps needed
 - **🗑️ Soft deletes**, **📦 batches & nested transactions (savepoints)**,
@@ -49,8 +49,8 @@ final appDb = DB.autoVersion(
 await Users.insert(user);
 
 final adults = await Users
-    .where(UserTable.age.gt(18))
-    .orderBy(UserTable.name)
+    .where(Users.age.gt(18))
+    .orderBy(Users.name)
     .get();
 ```
 

@@ -4,6 +4,8 @@
 import 'dart:async';
 import 'dart:io';
 
+import 'package:flutter/foundation.dart' show kIsWeb;
+
 import 'package:path/path.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:phorm/phorm.dart';
@@ -15,6 +17,11 @@ import 'sqlite_dialect.dart';
 
 /// Gets the database directory path
 Future<String> getDatabasesPath() async {
+  if (kIsWeb) {
+    // On web the "path" is only a logical database name (backed by
+    // IndexedDB); dart:io Platform is not available.
+    return '.';
+  }
   if (Platform.isAndroid || Platform.isIOS) {
     // coverage:ignore-start
     final dir = await getApplicationDocumentsDirectory();
@@ -209,8 +216,9 @@ class DB implements PhormDatabase {
   /// Initializes the database connection
   Future<Database> _initDatabase() async {
     final String path;
-    if (databaseName == ':memory:') {
-      path = ':memory:';
+    if (databaseName == ':memory:' || kIsWeb) {
+      // On web the name is used as-is (IndexedDB store), no filesystem path.
+      path = databaseName;
     } else if (databaseName.startsWith('/') || databaseName.contains(r':\')) {
       // Absolute path provided
       path = databaseName;
@@ -356,8 +364,9 @@ class DB implements PhormDatabase {
     // Close current connection
     await db.close();
 
-    // Delete database file
-    if (databaseName != ':memory:') {
+    // Delete database file (not possible on web — IndexedDB store stays;
+    // the recreate below still resets the schema version).
+    if (databaseName != ':memory:' && !kIsWeb) {
       final path = join(await getDatabasesPath(), databaseName);
       final file = File(path);
       if (await file.exists()) {
@@ -679,8 +688,10 @@ class DB implements PhormDatabase {
     }
 
     try {
-      final file = File(path);
-      if (!await file.exists()) return 0;
+      if (!kIsWeb) {
+        final file = File(path);
+        if (!await file.exists()) return 0;
+      }
 
       final db = await Database.open(path);
       final version = await db.getVersion();
@@ -710,6 +721,8 @@ class DB implements PhormDatabase {
     } else {
       path = join(await getDatabasesPath(), databaseName);
     }
+
+    if (kIsWeb) return; // No filesystem to clean up on web.
 
     try {
       final file = File(path);
