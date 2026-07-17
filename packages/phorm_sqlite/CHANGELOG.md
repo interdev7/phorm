@@ -1,5 +1,15 @@
 # Changelog
 
+## [1.7.0]
+
+- **Nested transactions via SQLite savepoints.** `transaction()` can now be
+  called inside another transaction: the outermost call issues
+  `BEGIN`/`COMMIT` as before, inner calls create a `SAVEPOINT` that is
+  released on success or rolled back on failure. A failed inner transaction
+  undoes only its own writes and does not poison the outer one; an outer
+  rollback still reverts everything. Previously a nested call failed with
+  "cannot start a transaction within a transaction".
+
 ## [1.6.1]
 
 - Bumped bundled `phorm` core to `^1.5.0`, bringing typed condition
