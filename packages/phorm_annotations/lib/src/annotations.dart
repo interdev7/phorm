@@ -174,6 +174,14 @@ class Schema {
   /// Defaults to [SqlDialectKind.sqlite].
   final SqlDialectKind dialect;
 
+  /// Whether to automatically create indexes on foreign key columns of
+  /// `BelongsTo`/`Join` relationships (and on auto-generated pivot tables).
+  ///
+  /// Foreign key indexes make relationship loading scale linearly instead of
+  /// quadratically: without one, fetching a parent with its children scans
+  /// the child table once **per parent row**. Defaults to `true`.
+  final bool indexForeignKeys;
+
   /// Creates a `@Schema` table annotation.
   const Schema({
     this.tableName,
@@ -189,6 +197,7 @@ class Schema {
     this.timestamps = true,
     this.useValidator = true,
     this.generateFullService = true,
+    this.indexForeignKeys = true,
   });
 }
 
