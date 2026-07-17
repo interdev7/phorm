@@ -317,6 +317,21 @@ class SqliteBatch implements Batch {
 
   @override
   Future<List<Object?>> commit({bool? noResult, bool? continueOnError}) async {
+    // Fast path: a batch of plain insert/update/delete operations is sent to
+    // the database isolate as a single message and executed there inside one
+    // transaction — instead of one isolate round-trip per operation, which
+    // dominates the cost of large batches. Only taken when per-operation
+    // results are not requested and no outer transaction is active.
+    if ((noResult ?? false) &&
+        !(continueOnError ?? false) &&
+        _db._transactionDepth == 0) {
+      final ops = _toIsolateOperations();
+      if (ops != null) {
+        await _db._isolate.sendBatchCommand(ops);
+        return [];
+      }
+    }
+
     await _db.execute('BEGIN');
     try {
       final results = <Object?>[];
@@ -338,6 +353,34 @@ class SqliteBatch implements Batch {
       await _db.execute('ROLLBACK');
       rethrow;
     }
+  }
+
+  /// Maps the queued operations to isolate [BatchOperation]s, or returns
+  /// `null` when the batch contains something the single-message protocol
+  /// cannot express (raw SQL, or a conflict algorithm other than REPLACE).
+  List<BatchOperation>? _toIsolateOperations() {
+    final ops = <BatchOperation>[];
+    for (final op in _operations) {
+      switch (op.type) {
+        case 'insert'
+            when op.conflictAlgorithm == null ||
+                op.conflictAlgorithm == ConflictAlgorithm.replace:
+          ops.add(
+            BatchInsert(
+              op.table!,
+              op.values!,
+              op.conflictAlgorithm == ConflictAlgorithm.replace,
+            ),
+          );
+        case 'update' when op.conflictAlgorithm == null:
+          ops.add(BatchUpdate(op.table!, op.values!, op.where, op.whereArgs));
+        case 'delete':
+          ops.add(BatchDelete(op.table!, op.where, op.whereArgs));
+        default:
+          return null;
+      }
+    }
+    return ops;
   }
 }
 

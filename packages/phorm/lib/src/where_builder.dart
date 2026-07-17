@@ -432,15 +432,29 @@ class WhereBuilder {
 
   /// Adds IN condition: `column IN (?, ?, ...)`
   ///
+  /// An empty [values] list compiles to an always-false condition (`1 = 0`).
+  /// Pass `strict: true` to throw an [ArgumentError] instead — useful when an
+  /// empty list can only mean a bug upstream.
+  ///
   /// **Example:**
   /// ```dart
   /// where.inList('status', ['active', 'pending']);
   /// // Produces: status IN (?, ?)
   /// // Args: ['active', 'pending']
   /// ```
-  WhereBuilder inList(Object column, List<Object?> values) {
+  WhereBuilder inList(
+    Object column,
+    List<Object?> values, {
+    bool strict = false,
+  }) {
     _validate(column);
     if (values.isEmpty) {
+      if (strict) {
+        throw ArgumentError(
+          'inList("$column", []): empty list with strict: true. '
+          'Without strict it compiles to an always-false condition (1 = 0).',
+        );
+      }
       _addColumnCondition(column, '1 = 0', []); // Always false
       return this;
     }
@@ -456,15 +470,31 @@ class WhereBuilder {
 
   /// Adds NOT IN condition: `column NOT IN (?, ?, ...)`
   ///
+  /// An empty [values] list adds **no condition** (no restriction). Pass
+  /// `strict: true` to throw an [ArgumentError] instead — useful when a
+  /// silently missing filter would be a bug.
+  ///
   /// **Example:**
   /// ```dart
   /// where.notInList('role', ['admin', 'superuser']);
   /// // Produces: role NOT IN (?, ?)
   /// // Args: ['admin', 'superuser']
   /// ```
-  WhereBuilder notInList(Object column, List<Object?> values) {
+  WhereBuilder notInList(
+    Object column,
+    List<Object?> values, {
+    bool strict = false,
+  }) {
     _validate(column);
-    if (values.isEmpty) return this; // No restriction
+    if (values.isEmpty) {
+      if (strict) {
+        throw ArgumentError(
+          'notInList("$column", []): empty list with strict: true. '
+          'Without strict it silently adds no condition.',
+        );
+      }
+      return this; // No restriction
+    }
     final preparedValues = values.map(_prepareValue).toList();
     final placeholders = List.filled(preparedValues.length, '?').join(', ');
     _addColumnCondition(

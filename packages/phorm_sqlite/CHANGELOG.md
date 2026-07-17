@@ -1,5 +1,19 @@
 # Changelog
 
+## [1.8.0]
+
+- **Batch operations are ~11× faster.** `Batch.commit()` now sends plain
+  insert/update/delete batches to the database isolate as a **single
+  message** executed there in one transaction, instead of one isolate
+  round-trip per operation (5000 inserts: ~457ms → ~41ms on an Apple M3).
+  Falls back to the previous per-operation path when results are requested
+  (`noResult: false`), `continueOnError` is set, raw SQL is batched, a
+  non-REPLACE conflict algorithm is used, or an outer transaction is active.
+- **`DB(onQuery: ...)` query observer** — a callback invoked for every
+  database operation, independently of `logQueries`: successful, slow
+  (per `slowQueryThreshold`) and failed ones (with error and stack trace).
+  Feed it to metrics, tracing or crash reporting. Requires `phorm ^1.8.0`.
+
 ## [1.7.0]
 
 - **Nested transactions via SQLite savepoints.** `transaction()` can now be

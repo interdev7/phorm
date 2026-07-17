@@ -158,6 +158,16 @@ void main() {
       expect(col.notBetween(1, 5).operator, 'NOT BETWEEN');
     });
 
+    test('strict: true throws on empty lists, allows non-empty', () {
+      expect(() => col.inList(const [], strict: true), throwsArgumentError);
+      expect(() => col.notInList(const [], strict: true), throwsArgumentError);
+      expect(col.inList([1], strict: true).value, [1]);
+      expect(col.notInList([1], strict: true).operator, 'NOT IN');
+      // Non-strict empty lists keep the documented lenient behavior.
+      expect(col.inList(const []).value, isEmpty);
+      expect(col.notInList(const []).operator, 'NOT IN');
+    });
+
     test('null / boolean operators', () {
       expect(col.isNull().operator, 'IS NULL');
       expect(col.isNotNull().operator, 'IS NOT NULL');

@@ -1,5 +1,16 @@
 # Changelog
 
+## [1.8.0]
+
+- **Query observability** — new `QueryEvent` value type and `QueryObserver`
+  callback typedef. Database drivers report every executed operation
+  (successful, slow or failed) with its SQL/action label, bound arguments,
+  duration, slow flag and error. See `DB(onQuery: ...)` in `phorm_sqlite`.
+- **Strict empty-list semantics** — `WhereBuilder.inList` / `notInList`
+  (and the typed `PhormColumn` counterparts via `phorm_annotations ^1.6.0`)
+  accept `strict: true`, throwing an `ArgumentError` on an empty list instead
+  of the lenient defaults (always-false condition / no condition).
+
 ## [1.7.0]
 
 - **Nested writes** — `PhormCore.insertWith(item, {...})` inserts a model

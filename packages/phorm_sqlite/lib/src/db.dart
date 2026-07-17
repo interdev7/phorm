@@ -64,6 +64,14 @@ class DB implements PhormDatabase {
   /// Whether to log all queries
   final bool logQueries;
 
+  /// Observer invoked for **every** database operation (successful, slow or
+  /// failed), independently of [logQueries]. Receives a [QueryEvent] with the
+  /// SQL/action label, arguments, duration, slow flag and error (if any).
+  ///
+  /// Use it to feed metrics, tracing or crash reporting. Keep the callback
+  /// fast and non-throwing: it runs synchronously on the query path.
+  final QueryObserver? onQuery;
+
   /// Threshold for logging slow queries
   final Duration slowQueryThreshold;
 
@@ -130,6 +138,7 @@ class DB implements PhormDatabase {
     this.singleInstance = true,
     this.isolateThreshold = 2000,
     this.autoMigrate = false,
+    this.onQuery,
   }) {
     _validateMigrations();
   }
@@ -146,6 +155,7 @@ class DB implements PhormDatabase {
     bool singleInstance = true,
     int isolateThreshold = 2000,
     bool autoMigrate = false,
+    QueryObserver? onQuery,
   }) {
     // Determine maximum version from all migrations
     final maxVersion = _calculateMaxVersion(tables);
@@ -162,6 +172,7 @@ class DB implements PhormDatabase {
       singleInstance: singleInstance,
       isolateThreshold: isolateThreshold,
       autoMigrate: autoMigrate,
+      onQuery: onQuery,
     );
   }
 
@@ -739,20 +750,42 @@ class DB implements PhormDatabase {
     List<Object?>? arguments,
     Future<T> Function() action,
   ) async {
-    if (!logQueries) return action();
+    if (!logQueries && onQuery == null) return action();
     final stopwatch = Stopwatch()..start();
     try {
       final result = await action();
       stopwatch.stop();
-      if (stopwatch.elapsed >= slowQueryThreshold) {
-        logger?.slowQuery(sql, arguments, stopwatch.elapsed);
-      } else {
-        logger?.query(sql, arguments, stopwatch.elapsed);
+      final isSlow = stopwatch.elapsed >= slowQueryThreshold;
+      if (logQueries) {
+        if (isSlow) {
+          logger?.slowQuery(sql, arguments, stopwatch.elapsed);
+        } else {
+          logger?.query(sql, arguments, stopwatch.elapsed);
+        }
       }
+      onQuery?.call(
+        QueryEvent(
+          sql: sql,
+          arguments: arguments,
+          duration: stopwatch.elapsed,
+          isSlow: isSlow,
+        ),
+      );
       return result;
     } catch (e, st) {
       stopwatch.stop();
-      logger?.error('Query Failed: $sql', e, st);
+      if (logQueries) {
+        logger?.error('Query Failed: $sql', e, st);
+      }
+      onQuery?.call(
+        QueryEvent(
+          sql: sql,
+          arguments: arguments,
+          duration: stopwatch.elapsed,
+          error: e,
+          stackTrace: st,
+        ),
+      );
       rethrow;
     }
   }
