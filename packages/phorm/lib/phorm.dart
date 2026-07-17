@@ -6,6 +6,7 @@ export 'src/core.dart';
 export 'src/database_interface.dart';
 export 'src/extensions.dart';
 export 'src/query.dart';
+export 'src/query_observer.dart';
 export 'src/seeder.dart';
 export 'src/sort_builder.dart';
 export 'src/sql_function_column.dart';

@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.6.0]
+
+- `PhormColumn.inList` / `notInList` accept `strict: true`, throwing an
+  `ArgumentError` on an empty list instead of the lenient defaults
+  (always-false condition for `inList`, no condition for `notInList`).
+
 ## [1.5.0]
 
 - **New: `PhormConditionGroup` and `&` / `|` operators on `PhormCondition`** —

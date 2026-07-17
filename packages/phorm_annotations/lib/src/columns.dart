@@ -54,11 +54,32 @@ extension PhormColumnExtension<T> on PhormColumn<T> {
       PhormCondition(this, 'REGEXP', pattern);
 
   /// Creates an IN condition: `column IN (value1, value2, ...)`
-  PhormCondition inList(List<T> values) => PhormCondition(this, 'IN', values);
+  ///
+  /// An empty [values] list compiles to an always-false condition. Pass
+  /// `strict: true` to throw an [ArgumentError] instead.
+  PhormCondition inList(List<T> values, {bool strict = false}) {
+    if (strict && values.isEmpty) {
+      throw ArgumentError(
+        'inList on "$name": empty list with strict: true. '
+        'Without strict it compiles to an always-false condition.',
+      );
+    }
+    return PhormCondition(this, 'IN', values);
+  }
 
   /// Creates a NOT IN condition: `column NOT IN (value1, value2, ...)`
-  PhormCondition notInList(List<T> values) =>
-      PhormCondition(this, 'NOT IN', values);
+  ///
+  /// An empty [values] list adds no condition (no restriction). Pass
+  /// `strict: true` to throw an [ArgumentError] instead.
+  PhormCondition notInList(List<T> values, {bool strict = false}) {
+    if (strict && values.isEmpty) {
+      throw ArgumentError(
+        'notInList on "$name": empty list with strict: true. '
+        'Without strict it silently adds no condition.',
+      );
+    }
+    return PhormCondition(this, 'NOT IN', values);
+  }
 
   /// Creates a BETWEEN condition: `column BETWEEN from AND to`
   PhormCondition between(T from, T to) =>

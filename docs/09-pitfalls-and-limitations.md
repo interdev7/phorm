@@ -28,6 +28,10 @@ This is a safe default — an empty `IN ()` is invalid SQL. But it means **zero 
 ```dart
 // Use the extension method instead
 WhereBuilder().inListIfNotEmpty('status', statusList);
+
+// Or make an empty list a hard error (also on typed columns):
+WhereBuilder().inList('status', statusList, strict: true);
+UserTable.status.inList(statusList, strict: true);
 ```
 
 ---
@@ -38,7 +42,7 @@ WhereBuilder().inListIfNotEmpty('status', statusList);
 WhereBuilder().notInList('id', []); // No condition added — all records match
 ```
 
-This is asymmetric behavior compared to `inList`. Intentional for safety (excluding nothing = no restriction).
+This is asymmetric behavior compared to `inList`. Intentional for safety (excluding nothing = no restriction). If a silently missing filter would be a bug, use `strict: true` — it throws an `ArgumentError` on an empty list (works on `WhereBuilder` and typed columns alike).
 
 ---
 

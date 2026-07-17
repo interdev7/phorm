@@ -272,6 +272,33 @@ inner savepoints.
 
 ---
 
+## Query Observability (`onQuery`)
+
+Pass an observer to `DB` to receive a `QueryEvent` for **every** database
+operation — successful, slow or failed — independently of `logQueries`:
+
+```dart
+final db = DB.autoVersion(
+  databaseName: 'app.db',
+  tables: [usersTable],
+  onQuery: (event) {
+    metrics.timing('db.query', event.duration);
+    if (event.isSlow) tracer.report('slow query', event.sql);
+    if (event.failed) crashlytics.recordError(event.error, event.stackTrace);
+  },
+);
+```
+
+`QueryEvent` carries the SQL (or a short action label like `SOFT DELETE users`),
+bound arguments, duration, an `isSlow` flag (per `slowQueryThreshold`) and the
+error with stack trace for failed operations.
+
+> [!IMPORTANT]
+> The callback runs synchronously on the query path — keep it fast and
+> non-throwing. Offload heavy work (network, disk) asynchronously.
+
+---
+
 ## Attributes — Column Selection
 
 Use `Attributes` to fetch only the columns you need, reducing memory and transfer overhead.

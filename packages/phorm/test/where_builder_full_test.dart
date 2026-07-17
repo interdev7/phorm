@@ -106,6 +106,26 @@ void main() {
       expect(WhereBuilder().notInList('a', [1, 2]).build(), 'a NOT IN (?, ?)');
       expect(WhereBuilder().notInList('a', const []).isEmpty, isTrue);
     });
+
+    test('strict: true throws on empty lists', () {
+      expect(
+        () => WhereBuilder().inList('a', const [], strict: true),
+        throwsArgumentError,
+      );
+      expect(
+        () => WhereBuilder().notInList('a', const [], strict: true),
+        throwsArgumentError,
+      );
+      // Non-empty lists are unaffected by strict.
+      expect(
+        WhereBuilder().inList('a', [1], strict: true).build(),
+        'a IN (?)',
+      );
+      expect(
+        WhereBuilder().notInList('a', [1], strict: true).build(),
+        'a NOT IN (?)',
+      );
+    });
   });
 
   group('Null and boolean checks', () {
