@@ -5,7 +5,7 @@ import 'database_isolate.dart';
 import 'sql_function.dart';
 
 /// SQLite database implementation of the DatabaseExecutor interface.
-class Database implements DatabaseExecutor {
+class Database implements DatabaseExecutor, ColumnarQueryExecutor {
   final DatabaseIsolate _isolate;
   final String path;
 
@@ -42,6 +42,19 @@ class Database implements DatabaseExecutor {
     List<Object?>? arguments,
   ]) => _wrapException(
     () => _isolate.query(sql, arguments),
+    table: _parseTableFromSql(sql),
+    sql: sql,
+  );
+
+  @override
+  Future<ColumnarRows> rawQueryColumnar(
+    String sql, [
+    List<Object?>? arguments,
+  ]) => _wrapException(
+    () async {
+      final (columns, rows) = await _isolate.queryColumnar(sql, arguments);
+      return ColumnarRows(columns, rows);
+    },
     table: _parseTableFromSql(sql),
     sql: sql,
   );
@@ -184,7 +197,7 @@ class Database implements DatabaseExecutor {
 }
 
 /// SQLite Transaction wrapper implementing DatabaseExecutor from `phorm`.
-class Transaction implements DatabaseExecutor {
+class Transaction implements DatabaseExecutor, ColumnarQueryExecutor {
   final Database _db;
 
   Transaction._(this._db);
@@ -198,6 +211,12 @@ class Transaction implements DatabaseExecutor {
     String sql, [
     List<Object?>? arguments,
   ]) => _db.rawQuery(sql, arguments);
+
+  @override
+  Future<ColumnarRows> rawQueryColumnar(
+    String sql, [
+    List<Object?>? arguments,
+  ]) => _db.rawQueryColumnar(sql, arguments);
 
   @override
   Future<List<Map<String, Object?>>> query(

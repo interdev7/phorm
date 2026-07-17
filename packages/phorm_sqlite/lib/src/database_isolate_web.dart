@@ -136,6 +136,22 @@ class WebDatabaseIsolate implements DatabaseIsolate {
   }
 
   @override
+  Future<(List<String>, List<List<Object?>>)> queryColumnar(
+    String sql, [
+    List<Object?>? args,
+  ]) async {
+    final rows = await query(sql, args);
+    if (rows.isEmpty) return (const <String>[], const <List<Object?>>[]);
+    final columns = rows.first.keys.toList();
+    return (
+      columns,
+      [
+        for (final row in rows) [for (final c in columns) row[c]],
+      ],
+    );
+  }
+
+  @override
   Future<int> insert(String table, Map<String, Object?> values) async {
     final db = _openDb;
     final nv = normalizeMap(values);

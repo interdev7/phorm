@@ -1,5 +1,14 @@
 # Changelog
 
+## [1.10.0]
+
+- `Database` and `Transaction` implement the new `ColumnarQueryExecutor`
+  capability from `phorm ^1.9.0`: SELECT results cross the isolate boundary
+  in columnar form end-to-end, enabling the core's faster model-read path.
+  The `DatabaseIsolate` backend interface gains `queryColumnar` (native
+  returns the isolate's packed result directly; web adapts its map-based
+  results).
+
 ## [1.9.0]
 
 - **Bulk operation performance** (5k-row insert: ~41ms → ~7ms on an Apple M3):

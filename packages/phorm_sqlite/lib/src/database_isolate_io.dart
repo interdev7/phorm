@@ -134,15 +134,24 @@ class NativeDatabaseIsolate implements DatabaseIsolate {
     String sql, [
     List<Object?>? args,
   ]) async {
-    final packed = await _sendCommand<List<Object?>>(QueryCommand(sql, args));
-    final columns = (packed[0]! as List).cast<String>();
-    final rows = packed[1]! as List;
+    final (columns, rows) = await queryColumnar(sql, args);
     return List.generate(rows.length, (i) {
-      final row = rows[i] as List;
+      final row = rows[i];
       return <String, Object?>{
         for (var c = 0; c < columns.length; c++) columns[c]: row[c],
       };
     }, growable: false);
+  }
+
+  @override
+  Future<(List<String>, List<List<Object?>>)> queryColumnar(
+    String sql, [
+    List<Object?>? args,
+  ]) async {
+    final packed = await _sendCommand<List<Object?>>(QueryCommand(sql, args));
+    final columns = (packed[0]! as List).cast<String>();
+    final rows = (packed[1]! as List).cast<List<Object?>>();
+    return (columns, rows);
   }
 
   @override

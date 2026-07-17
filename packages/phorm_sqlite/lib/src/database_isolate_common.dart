@@ -159,6 +159,13 @@ abstract interface class DatabaseIsolate {
   /// Executes a SELECT query and returns rows as maps
   Future<List<Map<String, Object?>>> query(String sql, [List<Object?>? args]);
 
+  /// Executes a SELECT query and returns the result set in columnar form:
+  /// `(columns, rows)` — cheaper to transfer than per-row maps.
+  Future<(List<String>, List<List<Object?>>)> queryColumnar(
+    String sql, [
+    List<Object?>? args,
+  ]);
+
   /// Inserts a row and returns the new row-id
   Future<int> insert(String table, Map<String, Object?> values);
 

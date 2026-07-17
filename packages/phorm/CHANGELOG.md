@@ -1,5 +1,17 @@
 # Changelog
 
+## [1.9.0]
+
+- **Columnar read fast path.** New `ColumnarQueryExecutor` capability
+  interface and `ColumnarRows` value type: executors that implement it
+  return SELECT results as column names plus positional value rows.
+  `PhormCore` model reads without `include` now use this path, mapping rows
+  straight from positional values instead of copying and re-scanning one map
+  per row (5k-row read + map: ~5.5ms → ~3.3ms on an Apple M3). Large result
+  sets are parsed in a background isolate as before — columnar data is much
+  cheaper to transfer. Drivers without the capability keep working through
+  `DatabaseExecutor.rawQuery`.
+
 ## [1.8.0]
 
 - **Query observability** — new `QueryEvent` value type and `QueryObserver`
