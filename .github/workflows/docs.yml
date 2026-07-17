@@ -1,0 +1,70 @@
+name: Docs
+
+# Builds the MkDocs Material documentation site from docs/ and deploys it to
+# GitHub Pages (https://interdev7.github.io/phorm/) on every push to main
+# that touches the docs, their assets, or the site config.
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "docs/**"
+      - "assets/**"
+      - "mkdocs.yml"
+      - ".github/workflows/docs.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # Creates/enables the GitHub Pages site with the "GitHub Actions"
+      # source on first run — no manual repository-settings step needed.
+      - name: Configure GitHub Pages
+        uses: actions/configure-pages@v5
+        with:
+          enablement: true
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install MkDocs Material
+        run: pip install "mkdocs-material==9.*" markdown-callouts
+
+      - name: Build site
+        run: mkdocs build --strict
+
+      # Docs pages reference images as ../assets/... (repo-root assets);
+      # with directory URLs that resolves to /assets/... on the site.
+      - name: Copy shared assets into the site root
+        run: cp -R assets/. site/assets/
+
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: site
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
