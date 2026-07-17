@@ -122,3 +122,11 @@ Users.where(Users.age.gt(30) & (Users.role.eq('admin') | Users.role.eq('editor')
 ## 📄 License
 
 MIT License
+
+---
+
+## Support
+
+If PHORM saves you time, you can support its development:
+
+[![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/T6T71WI3NN)
