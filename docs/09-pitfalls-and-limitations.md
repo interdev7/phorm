@@ -31,7 +31,7 @@ WhereBuilder().inListIfNotEmpty('status', statusList);
 
 // Or make an empty list a hard error (also on typed columns):
 WhereBuilder().inList('status', statusList, strict: true);
-UserTable.status.inList(statusList, strict: true);
+Users.status.inList(statusList, strict: true);
 ```
 
 ---
@@ -124,9 +124,9 @@ Use `update` for partial updates.
 
 ---
 
-### `insertBatch` uses `ConflictAlgorithm.replace`
+### `insertBatch` vs `upsertBatch` on conflicts
 
-The batch insert silently replaces existing rows with the same primary key. This may be surprising if you expect duplicate key errors.
+`insertBatch` performs plain `INSERT`s — a duplicate primary key aborts the batch transaction with a constraint error. Use `upsertBatch` when you want existing rows silently replaced (`ConflictAlgorithm.replace`); note the replace caveats from the `upsert` section above.
 
 ---
 
@@ -148,21 +148,15 @@ await db.transaction((txn) async {
 
 ### Timestamps are always UTC
 
-`DateTime.now().toIso8601String()` produces a local time string without timezone info. If your app uses multiple timezones, consider using `DateTime.now().toUtc().toIso8601String()` in your models manually, since PHORM injects `DateTime.now()` directly.
+Since `phorm` 1.4.0, automatic timestamps (`created_at`, `updated_at`, `deleted_at`) are written as `DateTime.now().toUtc().toIso8601String()` — sortable and consistent across devices and timezones. Convert to local time for display with `.toLocal()`. Rows written by versions before 1.4.0 keep their local-time values.
 
 ---
 
 ## Relationships
 
-### Soft-deleted related records are included in `include`
+### Soft deletes in `include` require `paranoid: true` on the related table
 
-When using eager loading (`include`), the generated subquery does NOT filter by `deleted_at`. If your related records use soft deletes, deleted ones will appear in the `HasMany` list.
-
-**Workaround:** Filter them out in Dart after fetching:
-
-```dart
-user.orders.where((o) => o.deletedAt == null).toList()
-```
+Eager loading filters soft-deleted children automatically — but only when the **related** table is declared paranoid: the subquery then adds `related.deleted_at IS NULL`. If the related table merely has a `deleted_at` column without `paranoid: true`, deleted rows will appear in the loaded relationship.
 
 ---
 

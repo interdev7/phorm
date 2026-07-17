@@ -118,6 +118,6 @@ final result = await userService.readAll(
 
 ### 3. Relationship queries and soft-deleted related records
 
-When using `include` (eager loading), the JSON subquery does **not** automatically filter out soft-deleted related records. If you load `HasMany(orders)`, orders with `deleted_at IS NOT NULL` will be included.
+When using `include` (eager loading), related tables that are themselves paranoid are filtered automatically: the JSON subquery adds `related.deleted_at IS NULL`, so soft-deleted children do **not** appear in the loaded relationship. Related tables without `paranoid: true` are returned as-is.
 
 To exclude soft-deleted related records, you would need a custom query approach.

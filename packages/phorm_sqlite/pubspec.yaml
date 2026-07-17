@@ -1,6 +1,6 @@
 name: phorm_sqlite
 description: The SQLite driver and connection manager implementation for the PHORM.
-version: 1.10.1
+version: 1.10.2
 repository: https://github.com/interdev7/phorm
 homepage: https://github.com/interdev7/phorm/tree/main/packages/phorm_sqlite
 issue_tracker: https://github.com/interdev7/phorm/issues

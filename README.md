@@ -113,9 +113,9 @@ final user = await Users.readOne('id123');
 
 // 4. Fluent queries
 final adults = await Users
-    .where(UserTable.age.gt(18))
-    .orderBy(UserTable.name)                        // ASC
-    .orderBy(UserTable.createdAt, descending: true) // DESC
+    .where(Users.age.gt(18))
+    .orderBy(Users.name)                        // ASC
+    .orderBy(Users.createdAt, descending: true) // DESC
     .get();
 
 // 5. Direct PhormCore access (for advanced use / transactions)
