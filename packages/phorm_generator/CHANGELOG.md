@@ -1,5 +1,18 @@
 # Changelog
 
+## [1.5.0]
+
+- **Automatic foreign-key indexes.** The generated schema now includes
+  `CREATE INDEX IF NOT EXISTS <table>_<fk>_idx` for every `BelongsTo`/`Join`
+  foreign key column, and an index on the related-key column of
+  auto-generated `@ManyToMany(createPivot: true)` pivot tables (the composite
+  primary key already covers the owner key). Without these indexes,
+  relationship loading scans the child table once per parent row. Opt out
+  per model with `@Schema(indexForeignKeys: false)`; requires
+  `phorm_annotations ^1.7.0`. Existing databases pick the indexes up on
+  upgrade via the `IF NOT EXISTS` re-run, or on any open with
+  `DB(autoMigrate: true)`.
+
 ## [1.4.1]
 
 - Re-enabled most `very_good_analysis` lints (the ignore list shrank from 27
