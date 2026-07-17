@@ -130,8 +130,20 @@ class NativeDatabaseIsolate implements DatabaseIsolate {
       _sendCommand(ExecuteCommand(sql, args));
 
   @override
-  Future<List<Map<String, Object?>>> query(String sql, [List<Object?>? args]) =>
-      _sendCommand(QueryCommand(sql, args));
+  Future<List<Map<String, Object?>>> query(
+    String sql, [
+    List<Object?>? args,
+  ]) async {
+    final packed = await _sendCommand<List<Object?>>(QueryCommand(sql, args));
+    final columns = (packed[0]! as List).cast<String>();
+    final rows = packed[1]! as List;
+    return List.generate(rows.length, (i) {
+      final row = rows[i] as List;
+      return <String, Object?>{
+        for (var c = 0; c < columns.length; c++) columns[c]: row[c],
+      };
+    }, growable: false);
+  }
 
   @override
   Future<int> insert(String table, Map<String, Object?> values) =>
@@ -204,6 +216,7 @@ void _isolateEntryPoint(Map<String, dynamic> args) {
 
   Database? db;
   StreamSubscription<SqliteUpdate>? updatesSub;
+  final notifier = _ChangeNotifier(changePort);
 
   receivePort.listen((message) {
     if (message is! _IsolateMessage) return;
@@ -213,7 +226,7 @@ void _isolateEntryPoint(Map<String, dynamic> args) {
         message.command,
         db,
         (d) => db = d,
-        changePort,
+        notifier,
         updatesSub,
         (s) => updatesSub = s,
       );
@@ -225,6 +238,41 @@ void _isolateEntryPoint(Map<String, dynamic> args) {
 }
 
 // ---------------------------------------------------------------------------
+// Change notifier (runs inside the isolate)
+// ---------------------------------------------------------------------------
+
+/// Forwards table-change notifications to the main isolate.
+///
+/// During a batch or transaction the SQLite update hook fires **per row**;
+/// sending one cross-isolate message per row dominates the cost of large
+/// batches. While buffering is active, changed table names are collected in
+/// a set and flushed as one message per distinct table after COMMIT.
+class _ChangeNotifier {
+  _ChangeNotifier(this._port);
+
+  final SendPort _port;
+  Set<String>? _buffer;
+
+  void notify(String table) {
+    final buffer = _buffer;
+    if (buffer != null) {
+      buffer.add(table);
+    } else {
+      _port.send(table);
+    }
+  }
+
+  void startBuffering() => _buffer ??= <String>{};
+
+  void flush() {
+    final buffer = _buffer;
+    _buffer = null;
+    if (buffer == null) return;
+    buffer.forEach(_port.send);
+  }
+}
+
+// ---------------------------------------------------------------------------
 // Command dispatcher (runs inside the isolate)
 // ---------------------------------------------------------------------------
 
@@ -232,7 +280,7 @@ Object? _handle(
   DatabaseCommand command,
   Database? db,
   void Function(Database?) setDb,
-  SendPort changePort,
+  _ChangeNotifier notifier,
   StreamSubscription<SqliteUpdate>? updatesSub,
   void Function(StreamSubscription<SqliteUpdate>?) setSub,
 ) {
@@ -248,7 +296,7 @@ Object? _handle(
         newDb.execute("PRAGMA key = '${password.replaceAll("'", "''")}'");
       }
       _FunctionRegistry.applyToDatabase(newDb);
-      setSub(newDb.updatesSync.listen((u) => changePort.send(u.tableName)));
+      setSub(newDb.updatesSync.listen((u) => notifier.notify(u.tableName)));
       setDb(newDb);
       return null;
 
@@ -288,14 +336,11 @@ Object? _handle(
           stmt.close();
         }
       }
-      // Convert sqlite3 Row objects to plain maps before sending across isolate boundary
-      return rs.map((row) {
-        final map = <String, Object?>{};
-        for (final key in row.keys) {
-          map[key] = row[key];
-        }
-        return map;
-      }).toList();
+      // Columnar transfer: column names cross the isolate boundary once and
+      // rows as plain value lists — far cheaper to copy than per-row maps
+      // (which would duplicate every key string for every row). The caller
+      // side rebuilds maps sharing the same key instances.
+      return [rs.columnNames, rs.rows];
 
     case InsertCommand(:final table, :final values):
       if (db == null) throw StateError('Database not opened');
@@ -349,6 +394,7 @@ Object? _handle(
 
     case BatchCommand(:final operations):
       if (db == null) throw StateError('Database not opened');
+      notifier.startBuffering();
       db.execute('BEGIN');
       try {
         for (final op in operations) {
@@ -358,22 +404,27 @@ Object? _handle(
       } catch (e) {
         db.execute('ROLLBACK');
         rethrow;
+      } finally {
+        notifier.flush();
       }
       return operations.length;
 
     case TransactionCommand(:final commands):
       if (db == null) throw StateError('Database not opened');
+      notifier.startBuffering();
       db.execute('BEGIN');
       try {
         Object? last;
         for (final cmd in commands) {
-          last = _handle(cmd, db, (_) {}, changePort, updatesSub, (_) {});
+          last = _handle(cmd, db, (_) {}, notifier, updatesSub, (_) {});
         }
         db.execute('COMMIT');
         return last;
       } catch (e) {
         db.execute('ROLLBACK');
         rethrow;
+      } finally {
+        notifier.flush();
       }
 
     case GetVersionCommand():
@@ -399,6 +450,25 @@ void _handleBatch(Database db, BatchOperation op) {
       );
       try {
         stmt.execute(cols.map((c) => nv[c]).toList());
+      } finally {
+        stmt.close();
+      }
+
+    case BatchInsertMany(
+      :final table,
+      :final columns,
+      :final rows,
+      :final replace,
+    ):
+      final ph = List.filled(columns.length, '?').join(', ');
+      final verb = replace ? 'INSERT OR REPLACE' : 'INSERT';
+      final stmt = db.prepare(
+        '$verb INTO $table (${columns.join(', ')}) VALUES ($ph)',
+      );
+      try {
+        for (final row in rows) {
+          stmt.execute(normalizeArgs(row)!);
+        }
       } finally {
         stmt.close();
       }

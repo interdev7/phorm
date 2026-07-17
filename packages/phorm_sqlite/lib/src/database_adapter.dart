@@ -358,28 +358,76 @@ class SqliteBatch implements Batch {
   /// Maps the queued operations to isolate [BatchOperation]s, or returns
   /// `null` when the batch contains something the single-message protocol
   /// cannot express (raw SQL, or a conflict algorithm other than REPLACE).
+  ///
+  /// Consecutive inserts into the same table with the same column set are
+  /// coalesced into a columnar [BatchInsertMany]: the column names cross the
+  /// isolate boundary once and the isolate reuses a single prepared
+  /// statement for all rows.
   List<BatchOperation>? _toIsolateOperations() {
     final ops = <BatchOperation>[];
+
+    String? runTable;
+    List<String>? runColumns;
+    var runReplace = false;
+    List<List<Object?>> runRows = [];
+
+    void flushRun() {
+      if (runColumns == null) return;
+      if (runRows.length == 1) {
+        ops.add(
+          BatchInsert(
+            runTable!,
+            Map<String, Object?>.fromIterables(runColumns!, runRows.first),
+            runReplace,
+          ),
+        );
+      } else {
+        ops.add(BatchInsertMany(runTable!, runColumns!, runRows, runReplace));
+      }
+      runTable = null;
+      runColumns = null;
+      runRows = [];
+    }
+
+    bool sameColumns(List<String> a, Iterable<String> b) {
+      var i = 0;
+      for (final key in b) {
+        if (i >= a.length || a[i] != key) return false;
+        i++;
+      }
+      return i == a.length;
+    }
+
     for (final op in _operations) {
       switch (op.type) {
         case 'insert'
             when op.conflictAlgorithm == null ||
                 op.conflictAlgorithm == ConflictAlgorithm.replace:
-          ops.add(
-            BatchInsert(
-              op.table!,
-              op.values!,
-              op.conflictAlgorithm == ConflictAlgorithm.replace,
-            ),
-          );
+          final replace = op.conflictAlgorithm == ConflictAlgorithm.replace;
+          final values = op.values!;
+          if (runColumns != null &&
+              runTable == op.table &&
+              runReplace == replace &&
+              sameColumns(runColumns!, values.keys)) {
+            runRows.add(values.values.toList());
+          } else {
+            flushRun();
+            runTable = op.table;
+            runColumns = values.keys.toList();
+            runReplace = replace;
+            runRows = [values.values.toList()];
+          }
         case 'update' when op.conflictAlgorithm == null:
+          flushRun();
           ops.add(BatchUpdate(op.table!, op.values!, op.where, op.whereArgs));
         case 'delete':
+          flushRun();
           ops.add(BatchDelete(op.table!, op.where, op.whereArgs));
         default:
           return null;
       }
     }
+    flushRun();
     return ops;
   }
 }

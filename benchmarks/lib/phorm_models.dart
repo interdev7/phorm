@@ -85,6 +85,8 @@ CREATE TABLE posts (
   user_id INTEGER NOT NULL,
   title TEXT NOT NULL
 );
+
+CREATE INDEX posts_user_id_idx ON posts(user_id);
 ''',
   fromJson: PPost.fromJson,
   type: PPost,

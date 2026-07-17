@@ -1,5 +1,23 @@
 # Changelog
 
+## [1.9.0]
+
+- **Bulk performance: PHORM now leads the cross-ORM benchmark on inserts and
+  relationship trees** (see `benchmarks/` in the repository; 5k-row insert
+  6.6ms vs ~12ms for drift on an Apple M3, relationship tree 4.2ms vs ~12ms):
+  - batches of same-shape inserts are coalesced into a **columnar**
+    `BatchInsertMany` — column names cross the isolate boundary once and the
+    isolate reuses a single prepared statement for all rows;
+  - table-change notifications from the SQLite update hook are **buffered
+    during batches/transactions** and flushed once per distinct table after
+    COMMIT, instead of one cross-isolate message per affected row (this was
+    the dominant cost of large batches);
+  - SELECT results use a **columnar transfer** (column names once + value
+    lists) instead of one map per row, with maps rebuilt caller-side sharing
+    key instances.
+- Reactive `watch*`/`changeStream` semantics are unchanged: listeners still
+  receive one event per modified table after commit.
+
 ## [1.8.0]
 
 - **Batch operations are ~11× faster.** `Batch.commit()` now sends plain

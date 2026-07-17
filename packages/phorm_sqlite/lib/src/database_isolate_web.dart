@@ -296,6 +296,25 @@ void _handleBatch(CommonDatabase db, BatchOperation op) {
         stmt.close();
       }
 
+    case BatchInsertMany(
+      :final table,
+      :final columns,
+      :final rows,
+      :final replace,
+    ):
+      final ph = List.filled(columns.length, '?').join(', ');
+      final verb = replace ? 'INSERT OR REPLACE' : 'INSERT';
+      final stmt = db.prepare(
+        '$verb INTO $table (${columns.join(', ')}) VALUES ($ph)',
+      );
+      try {
+        for (final row in rows) {
+          stmt.execute(normalizeArgs(row)!);
+        }
+      } finally {
+        stmt.close();
+      }
+
     case BatchUpdate(
       :final table,
       :final values,
