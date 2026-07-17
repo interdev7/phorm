@@ -58,7 +58,7 @@ The WASM binary must be served alongside your web app. Run this once in your pro
 
 ```bash
 curl -L \
-  "https://github.com/simolus3/sqlite3.dart/releases/download/sqlite3-2.9.4/sqlite3.wasm" \
+  "https://github.com/simolus3/sqlite3.dart/releases/download/sqlite3-3.3.4/sqlite3.wasm" \
   -o web/sqlite3.wasm
 ```
 

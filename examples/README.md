@@ -36,6 +36,23 @@ To run this example project, ensure you have the `phorm` and `phorm_generator` p
    flutter run
    ```
 
+## Running on Flutter Web
+
+The example supports web out of the box (PHORM switches to its WASM backend
+automatically). One extra step: the `sqlite3.wasm` binary must be served next
+to the app — download it once into `web/` (it is gitignored):
+
+```bash
+curl -L \
+  "https://github.com/simolus3/sqlite3.dart/releases/download/sqlite3-3.3.4/sqlite3.wasm" \
+  -o web/sqlite3.wasm
+
+flutter run -d chrome
+```
+
+Data persists across page reloads via IndexedDB. See
+[docs/15-flutter-web.md](../docs/15-flutter-web.md) for details.
+
 ## Testing
 
 The project includes widget tests that use an in-memory `sqlite3` database to verify that the app's navigation and basic UI structure work properly without requiring a physical device or emulator.
