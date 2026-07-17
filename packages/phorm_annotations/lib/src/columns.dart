@@ -195,8 +195,8 @@ class PhormCondition {
   ///
   /// ```dart
   /// Users.where(
-  ///   UserTable.age.gt(18) &
-  ///       (UserTable.city.eq('Sofia') | UserTable.city.eq('Plovdiv')),
+  ///   Users.age.gt(18) &
+  ///       (Users.city.eq('Sofia') | Users.city.eq('Plovdiv')),
   /// );
   /// // WHERE age > ? AND (city = ? OR city = ?)
   /// ```
@@ -211,7 +211,7 @@ class PhormCondition {
   /// Combines two conditions with SQL `OR`.
   ///
   /// ```dart
-  /// Users.where(UserTable.city.eq('Sofia') | UserTable.city.eq('Plovdiv'));
+  /// Users.where(Users.city.eq('Sofia') | Users.city.eq('Plovdiv'));
   /// // WHERE (city = ? OR city = ?)
   /// ```
   PhormConditionGroup operator |(PhormCondition other) {

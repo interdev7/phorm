@@ -61,7 +61,7 @@
 
 - **New: condition composition with `&` / `|`** — typed conditions now combine
   into AND/OR groups without dropping down to `WhereBuilder`:
-  `Users.where(UserTable.age.gt(18) & (UserTable.city.eq('Sofia') | UserTable.city.eq('Plovdiv')))`
+  `Users.where(Users.age.gt(18) & (Users.city.eq('Sofia') | Users.city.eq('Plovdiv')))`
   compiles to `age > ? AND (city = ? OR city = ?)`. Groups nest freely; Dart's
   operator precedence (`&` over `|`) matches SQL. Requires
   `phorm_annotations ^1.5.0` (which introduces `PhormConditionGroup`).
