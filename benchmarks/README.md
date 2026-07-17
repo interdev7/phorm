@@ -22,22 +22,28 @@ Apple M3, Flutter 3.44.4, median of 5 runs after warmup (ms, lower is
 better). `drift-bg` = drift over `NativeDatabase.createInBackground`
 (the apples-to-apples config vs PHORM's always-on background isolate):
 
-| Scenario                        | PHORM | drift | drift-bg | raw sqlite3 |
-| :------------------------------ | ----: | ----: | -------: | ----------: |
-| insert 5k users (single txn)    |  44.3 |  11.8 |     10.8 |         2.6 |
-| read + map 5k users             |   6.7 |   3.3 |      3.9 |         1.7 |
-| filtered read (~1/6 of 5k)      |   1.1 |   0.6 |      0.8 |         0.3 |
-| load 500 users × 10 posts each  |  50.5 |  12.2 |     12.1 |         3.2 |
+| Scenario                        | PHORM   | drift | drift-bg | raw sqlite3 |
+| :------------------------------ | ------: | ----: | -------: | ----------: |
+| insert 5k users (single txn)    | **6.6** |  13.2 |     11.8 |         2.7 |
+| read + map 5k users             |     5.5 |   3.7 |      4.8 |         2.0 |
+| filtered read (~1/6 of 5k)      |     1.0 |   0.7 |      1.1 |         0.3 |
+| load 500 users × 10 posts each  | **4.2** |  12.2 |     12.0 |         3.6 |
 
-Known optimization targets (in rough order of impact):
+History of optimizations this harness has driven (phorm_sqlite 1.8.0–1.9.0):
 
-1. **Bulk insert path** (~4× gap): per-row `_prepareDataForDb` map copies and
-   per-row map serialization across the isolate boundary.
-2. **Relationship tree** (~4× gap): `json_group_array` string parsing via
-   `jsonDecode` per parent row; a row-shape protocol would avoid the
-   stringify/parse round trip.
-3. **Row mapping** (~2× gap): `fromJson` on `Map<String, dynamic>` vs drift's
-   positional column reads.
+1. `Batch.commit()` per-operation isolate round-trips → single message
+   (457ms → 41ms for 5k inserts).
+2. Update-hook notifications sent per affected row across the isolate →
+   buffered per batch/transaction, flushed once per distinct table
+   (41ms → ~7ms; this was the dominant remaining cost).
+3. Columnar `BatchInsertMany` + single prepared statement per batch;
+   columnar SELECT transfer (column names cross the boundary once).
+4. Relationship tree: the benchmark initially missed an index on the child
+   foreign key — with it, Single-Query JSON Aggregation beats join+group
+   (51ms → 4.2ms). **Index your FK columns.**
+
+Remaining gap: read+map trails drift-bg by ~15% (`fromJson` map lookups vs
+positional reads) — a generator-emitted positional `fromRow` could close it.
 
 ## Methodology & fairness notes
 

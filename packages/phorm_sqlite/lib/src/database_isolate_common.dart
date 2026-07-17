@@ -83,6 +83,17 @@ class BatchInsert extends BatchOperation {
   const BatchInsert(this.table, this.values, this.replace);
 }
 
+/// Columnar multi-row insert: the column list is transferred **once** and the
+/// rows as plain value lists, so large batches avoid per-row map copies
+/// across the isolate boundary and can reuse a single prepared statement.
+class BatchInsertMany extends BatchOperation {
+  final String table;
+  final List<String> columns;
+  final List<List<Object?>> rows;
+  final bool replace;
+  const BatchInsertMany(this.table, this.columns, this.rows, this.replace);
+}
+
 class BatchUpdate extends BatchOperation {
   final String table;
   final Map<String, Object?> values;

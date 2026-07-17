@@ -156,7 +156,9 @@ void main() {
 
     Future<void> open() async {
       db = DriftDb(drift_native.NativeDatabase.memory());
-      await db.customSelect('SELECT 1').get(); // force open
+      await db.customStatement(
+        'CREATE INDEX IF NOT EXISTS d_posts_user_id ON d_posts(user_id)',
+      );
     }
 
     Future<void> close() => db.close();
@@ -264,7 +266,9 @@ void main() {
           File('${tmp.path}/bench.db'),
         ),
       );
-      await db.customSelect('SELECT 1').get(); // force open
+      await db.customStatement(
+        'CREATE INDEX IF NOT EXISTS d_posts_user_id ON d_posts(user_id)',
+      );
     }
 
     Future<void> close() async {
