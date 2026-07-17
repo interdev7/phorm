@@ -30,12 +30,10 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      # Creates/enables the GitHub Pages site with the "GitHub Actions"
-      # source on first run — no manual repository-settings step needed.
+      # Requires GitHub Pages to be enabled once in the repository settings:
+      # Settings → Pages → Build and deployment → Source: "GitHub Actions".
       - name: Configure GitHub Pages
         uses: actions/configure-pages@v5
-        with:
-          enablement: true
 
       - name: Setup Python
         uses: actions/setup-python@v5
