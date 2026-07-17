@@ -24,10 +24,10 @@ better). `drift-bg` = drift over `NativeDatabase.createInBackground`
 
 | Scenario                        | PHORM   | drift | drift-bg | raw sqlite3 |
 | :------------------------------ | ------: | ----: | -------: | ----------: |
-| insert 5k users (single txn)    | **6.6** |  13.2 |     11.8 |         2.7 |
-| read + map 5k users             |     5.5 |   3.7 |      4.8 |         2.0 |
-| filtered read (~1/6 of 5k)      |     1.0 |   0.7 |      1.1 |         0.3 |
-| load 500 users × 10 posts each  | **4.2** |  12.2 |     12.0 |         3.6 |
+| insert 5k users (single txn)    | **6.4** |  11.5 |     10.7 |         2.7 |
+| read + map 5k users             | **3.3** |   3.2 |      3.9 |         1.7 |
+| filtered read (~1/6 of 5k)      | **0.7** |   0.6 |      0.8 |         0.3 |
+| load 500 users × 10 posts each  | **3.6** |  11.5 |     11.0 |         3.2 |
 
 History of optimizations this harness has driven (phorm_sqlite 1.8.0–1.9.0):
 
@@ -42,8 +42,9 @@ History of optimizations this harness has driven (phorm_sqlite 1.8.0–1.9.0):
    foreign key — with it, Single-Query JSON Aggregation beats join+group
    (51ms → 4.2ms). **Index your FK columns.**
 
-Remaining gap: read+map trails drift-bg by ~15% (`fromJson` map lookups vs
-positional reads) — a generator-emitted positional `fromRow` could close it.
+5. Reads without `include` go through the core's `ColumnarQueryExecutor`
+   fast path (phorm 1.9.0): positional rows are mapped directly, without the
+   per-row map copy/rescan of the executor boundary (5.5 → 3.3ms).
 
 ## Methodology & fairness notes
 

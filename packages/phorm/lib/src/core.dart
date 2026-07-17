@@ -887,6 +887,58 @@ class PhormCore<T extends Model> implements IPhormCore<T> {
     return dbManager.logAction(sql, args, () => db.rawQuery(sql, args));
   }
 
+  /// Columnar variant of [readRows]: returns the result set as column names
+  /// plus positional value rows when the executor supports it, or `null`
+  /// when it doesn't. Same soft-delete and argument semantics as [readRows].
+  Future<ColumnarRows?> _readRowsColumnar({
+    bool includeTotalCount = false,
+    int? limit = 20,
+    int offset = 0,
+    WhereBuilder? where,
+    SortBuilder? sort,
+    List<String>? columns,
+    Attributes? attributes,
+    bool withDeleted = false,
+    bool onlyDeleted = false,
+    DatabaseExecutor? executor,
+    bool distinct = false,
+    List<String>? groupBy,
+    WhereBuilder? having,
+  }) async {
+    final db = executor ?? await database;
+    if (db is! ColumnarQueryExecutor) return null;
+    final columnarDb = db as ColumnarQueryExecutor;
+
+    final effectiveWhere = where?.copy() ?? WhereBuilder();
+    if (table.paranoid) {
+      if (onlyDeleted) {
+        effectiveWhere.isNotNull('${table.name}.deleted_at');
+      } else if (!withDeleted && !effectiveWhere.hasConditionOn('deleted_at')) {
+        effectiveWhere.isNull('${table.name}.deleted_at');
+      }
+    }
+
+    final sql = buildJoinQuery(
+      columns: columns,
+      attributes: attributes,
+      where: effectiveWhere,
+      sort: sort,
+      limit: limit,
+      offset: offset,
+      includeTotalCount: includeTotalCount,
+      distinct: distinct,
+      groupBy: groupBy,
+      having: having,
+    );
+    final args = [...effectiveWhere.args, ...?having?.args];
+
+    return dbManager.logAction(
+      sql,
+      args,
+      () => columnarDb.rawQueryColumnar(sql, args),
+    );
+  }
+
   /// Shared query execution for [readAll] and [readAllWithCount].
   Future<({List<T> data, int count})> _fetchRows({
     required bool includeTotalCount,
@@ -904,6 +956,30 @@ class PhormCore<T extends Model> implements IPhormCore<T> {
     List<String>? groupBy,
     WhereBuilder? having,
   }) async {
+    // Columnar fast path: without includes there are no aliased join columns
+    // to unflatten, so rows can be mapped straight from positional values —
+    // skipping the intermediate per-row map of the executor boundary.
+    if (include == null || include.isEmpty) {
+      final columnar = await _readRowsColumnar(
+        includeTotalCount: includeTotalCount,
+        limit: limit,
+        offset: offset,
+        where: where,
+        sort: sort,
+        columns: columns,
+        attributes: attributes,
+        withDeleted: withDeleted,
+        onlyDeleted: onlyDeleted,
+        executor: executor,
+        distinct: distinct,
+        groupBy: groupBy,
+        having: having,
+      );
+      if (columnar != null) {
+        return _parseColumnar(columnar, includeTotalCount: includeTotalCount);
+      }
+    }
+
     final rows = await readRows(
       includeTotalCount: includeTotalCount,
       limit: limit,
@@ -944,6 +1020,68 @@ class PhormCore<T extends Model> implements IPhormCore<T> {
         rows.isNotEmpty ? (rows.first['total_count'] as int? ?? 0) : 0;
 
     return (data: data, count: count);
+  }
+
+  /// Maps a columnar result set into models, using a background isolate for
+  /// large sets (columnar data is much cheaper to copy across than maps).
+  Future<({List<T> data, int count})> _parseColumnar(
+    ColumnarRows columnar, {
+    required bool includeTotalCount,
+  }) async {
+    final rows = columnar.rows;
+    List<T> data;
+    try {
+      if (rows.length > dbManager.isolateThreshold) {
+        data = await _parseColumnarInIsolate<T>(
+          columnar.columns,
+          rows,
+          table.fromJson,
+        );
+      } else {
+        data = _parseColumnarRows<T>(columnar.columns, rows, table.fromJson);
+      }
+    } catch (e, stack) {
+      dbManager.logger?.error('Error parsing results', e, stack);
+      rethrow;
+    }
+
+    var count = 0;
+    if (includeTotalCount && rows.isNotEmpty) {
+      final countIndex = columnar.columns.indexOf('total_count');
+      if (countIndex != -1) {
+        count = rows.first[countIndex] as int? ?? 0;
+      }
+    }
+    return (data: data, count: count);
+  }
+
+  /// Static bridge so the [Isolate.run] closure captures only sendable
+  /// arguments (a closure referencing the class type parameter would
+  /// implicitly capture `this`, including the database manager).
+  static Future<List<T>> _parseColumnarInIsolate<T extends Model>(
+    List<String> columns,
+    List<List<Object?>> rows,
+    T Function(Map<String, dynamic>) fromJson,
+  ) {
+    return Isolate.run(() => _parseColumnarRows<T>(columns, rows, fromJson));
+  }
+
+  /// Builds one model per positional row; JSON-looking strings are decoded
+  /// the same way as in the map-based path (nested object columns).
+  static List<T> _parseColumnarRows<T extends Model>(
+    List<String> columns,
+    List<List<Object?>> rows,
+    T Function(Map<String, dynamic>) fromJson,
+  ) {
+    final width = columns.length;
+    return List.generate(rows.length, (r) {
+      final row = rows[r];
+      final map = <String, dynamic>{};
+      for (var c = 0; c < width; c++) {
+        map[columns[c]] = _tryParseJson(row[c]);
+      }
+      return fromJson(map);
+    }, growable: false);
   }
 
   /// Internal helper for parsing rows in a background isolate.

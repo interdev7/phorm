@@ -140,3 +140,29 @@ abstract interface class PhormDatabase {
   /// Closes the database connection and releases resources.
   Future<void> close();
 }
+
+/// SELECT results in columnar form: column names once, rows as value lists.
+///
+/// Far cheaper to produce and copy than one map per row; used by the
+/// [ColumnarQueryExecutor] fast path in `PhormCore` model reads.
+class ColumnarRows {
+  /// Creates a columnar result set.
+  const ColumnarRows(this.columns, this.rows);
+
+  /// Column names, in SELECT order.
+  final List<String> columns;
+
+  /// Row values, positionally matching [columns].
+  final List<List<Object?>> rows;
+}
+
+/// Optional capability for [DatabaseExecutor] implementations that can
+/// return SELECT results in columnar form.
+///
+/// `PhormCore` uses it (when available) to map rows into models without
+/// building an intermediate per-row map for the executor boundary. Drivers
+/// that don't implement it keep working through [DatabaseExecutor.rawQuery].
+abstract interface class ColumnarQueryExecutor {
+  /// Executes a SELECT and returns its result set in columnar form.
+  Future<ColumnarRows> rawQueryColumnar(String sql, [List<Object?>? arguments]);
+}
