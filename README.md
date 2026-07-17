@@ -15,6 +15,8 @@
 [![Dart SDK](https://img.shields.io/badge/Dart-%3E%3D3.5.0-blue?logo=dart)](https://dart.dev)
 [![Flutter](https://img.shields.io/badge/Flutter-compatible-54C5F8?logo=flutter)](https://flutter.dev)
 
+[![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/T6T71WI3NN)
+
 </div>
 
 # PHORM (***P***redictable ***H***armonious **_ORM_**)

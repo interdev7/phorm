@@ -7,6 +7,8 @@ description: >
 repository: https://github.com/interdev7/phorm
 homepage: https://github.com/interdev7/phorm/tree/main/packages/phorm_generator
 issue_tracker: https://github.com/interdev7/phorm/issues
+funding:
+  - https://ko-fi.com/T6T71WI3NN
 license: MIT
 topics:
   - orm
