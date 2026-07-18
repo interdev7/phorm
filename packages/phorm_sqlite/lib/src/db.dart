@@ -770,7 +770,11 @@ class DB implements PhormDatabase {
     List<Object?>? arguments,
     Future<T> Function() action,
   ) async {
-    if (!logQueries && onQuery == null) return action();
+    if (!logQueries &&
+        onQuery == null &&
+        PhormInstrumentation.instance == null) {
+      return action();
+    }
     final stopwatch = Stopwatch()..start();
     try {
       final result = await action();
@@ -783,29 +787,29 @@ class DB implements PhormDatabase {
           logger?.query(sql, arguments, stopwatch.elapsed);
         }
       }
-      onQuery?.call(
-        QueryEvent(
-          sql: sql,
-          arguments: arguments,
-          duration: stopwatch.elapsed,
-          isSlow: isSlow,
-        ),
+      final event = QueryEvent(
+        sql: sql,
+        arguments: arguments,
+        duration: stopwatch.elapsed,
+        isSlow: isSlow,
       );
+      onQuery?.call(event);
+      PhormInstrumentation.instance?.queryExecuted(this, event);
       return result;
     } catch (e, st) {
       stopwatch.stop();
       if (logQueries) {
         logger?.error('Query Failed: $sql', e, st);
       }
-      onQuery?.call(
-        QueryEvent(
-          sql: sql,
-          arguments: arguments,
-          duration: stopwatch.elapsed,
-          error: e,
-          stackTrace: st,
-        ),
+      final event = QueryEvent(
+        sql: sql,
+        arguments: arguments,
+        duration: stopwatch.elapsed,
+        error: e,
+        stackTrace: st,
       );
+      onQuery?.call(event);
+      PhormInstrumentation.instance?.queryExecuted(this, event);
       rethrow;
     }
   }
