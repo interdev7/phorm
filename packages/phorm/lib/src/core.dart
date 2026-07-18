@@ -1278,24 +1278,31 @@ class PhormCore<T extends Model> implements IPhormCore<T> {
       ..._extractIncludedTables(include),
       ...?dependencies,
     };
-    // Initial load
-    yield await readOne(
-      id,
-      include: include,
-      attributes: attributes,
-      withDeleted: withDeleted,
-    );
+    final watchId = _reportStreamCreated('watchOne', tablesToWatch, id);
+    try {
+      // Initial load
+      yield await readOne(
+        id,
+        include: include,
+        attributes: attributes,
+        withDeleted: withDeleted,
+      );
+      _reportStreamEmitted(watchId);
 
-    // Listen for changes
-    await for (final changedTable in dbManager.changeStream) {
-      if (tablesToWatch.contains(changedTable)) {
-        yield await readOne(
-          id,
-          include: include,
-          attributes: attributes,
-          withDeleted: withDeleted,
-        );
+      // Listen for changes
+      await for (final changedTable in dbManager.changeStream) {
+        if (tablesToWatch.contains(changedTable)) {
+          yield await readOne(
+            id,
+            include: include,
+            attributes: attributes,
+            withDeleted: withDeleted,
+          );
+          _reportStreamEmitted(watchId);
+        }
       }
+    } finally {
+      _reportStreamDestroyed(watchId);
     }
   }
 
@@ -1329,34 +1336,73 @@ class PhormCore<T extends Model> implements IPhormCore<T> {
       ...?dependencies,
     };
 
-    // Initial load
-    final initial = await readAll(
-      where: where,
-      sort: sort,
-      limit: limit ?? 20,
-      offset: offset ?? 0,
-      include: include,
-      attributes: attributes,
-      withDeleted: withDeleted,
-      onlyDeleted: onlyDeleted,
-    );
-    yield initial.data;
+    final watchId = _reportStreamCreated('watchAll', tablesToWatch, null);
+    try {
+      // Initial load
+      final initial = await readAll(
+        where: where,
+        sort: sort,
+        limit: limit ?? 20,
+        offset: offset ?? 0,
+        include: include,
+        attributes: attributes,
+        withDeleted: withDeleted,
+        onlyDeleted: onlyDeleted,
+      );
+      yield initial.data;
+      _reportStreamEmitted(watchId);
 
-    // Listen for changes
-    await for (final changedTable in dbManager.changeStream) {
-      if (tablesToWatch.contains(changedTable)) {
-        final result = await readAll(
-          where: where,
-          sort: sort,
-          limit: limit ?? 20,
-          offset: offset ?? 0,
-          include: include,
-          attributes: attributes,
-          withDeleted: withDeleted,
-          onlyDeleted: onlyDeleted,
-        );
-        yield result.data;
+      // Listen for changes
+      await for (final changedTable in dbManager.changeStream) {
+        if (tablesToWatch.contains(changedTable)) {
+          final result = await readAll(
+            where: where,
+            sort: sort,
+            limit: limit ?? 20,
+            offset: offset ?? 0,
+            include: include,
+            attributes: attributes,
+            withDeleted: withDeleted,
+            onlyDeleted: onlyDeleted,
+          );
+          yield result.data;
+          _reportStreamEmitted(watchId);
+        }
       }
+    } finally {
+      _reportStreamDestroyed(watchId);
+    }
+  }
+
+  /// Reports watch stream creation to [PhormInstrumentation], if attached.
+  /// Returns the claimed watch id, or `null` when no tooling listens.
+  int? _reportStreamCreated(
+    String kind,
+    Set<String> tablesToWatch,
+    Object? primaryKey,
+  ) {
+    final instrumentation = PhormInstrumentation.instance;
+    if (instrumentation == null) return null;
+    final watchId = PhormInstrumentation.nextWatchId();
+    instrumentation.streamCreated(
+      StreamWatchEvent(
+        id: watchId,
+        kind: kind,
+        table: table.name,
+        dependencies: tablesToWatch.toList(growable: false),
+        primaryKey: primaryKey,
+      ),
+    );
+    return watchId;
+  }
+
+  void _reportStreamEmitted(int? watchId) {
+    if (watchId != null) PhormInstrumentation.instance?.streamEmitted(watchId);
+  }
+
+  void _reportStreamDestroyed(int? watchId) {
+    if (watchId != null) {
+      PhormInstrumentation.instance?.streamDestroyed(watchId);
     }
   }
 

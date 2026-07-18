@@ -1,0 +1,24 @@
+name: phorm_devtools
+description: Phorm Studio DevTools bridge — exposes PHORM databases to the Phorm Studio DevTools extension in debug builds.
+version: 0.1.0
+repository: https://github.com/interdev7/phorm
+homepage: https://github.com/interdev7/phorm/tree/main/packages/phorm_devtools
+issue_tracker: https://github.com/interdev7/phorm/issues
+funding:
+  - https://ko-fi.com/T6T71WI3NN
+license: MIT
+topics:
+  - orm
+  - database
+  - devtools
+  - debugging
+
+environment:
+  sdk: ">=3.10.0 <4.0.0"
+
+dependencies:
+  phorm: ^1.10.0
+
+dev_dependencies:
+  lints: ^5.0.0
+  test: ^1.25.0
