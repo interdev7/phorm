@@ -144,26 +144,6 @@ await appDb.transaction((txn) async {
 
 ---
 
-## Benchmarks 🏁
-
-Measured against [drift](https://pub.dev/packages/drift) and raw `sqlite3`
-(Apple M3, median of 5 runs; `drift-bg` = drift over its background isolate —
-the apples-to-apples config, since PHORM **always** keeps SQLite off the UI
-thread):
-
-| Scenario                       | PHORM      | drift | drift-bg | raw sqlite3 |
-| :----------------------------- | ---------: | ----: | -------: | ----------: |
-| insert 5k rows (single txn)    | **7.1ms**  |  12ms |     12ms |         3ms |
-| load 500 parents × 10 children | **4.1ms**  |  12ms |     12ms |         3ms |
-| read + map 5k rows             | **2.7ms**  | 3.6ms |    4.0ms |         2ms |
-| filtered read (~1/6 of 5k)     | **0.7ms**  | 0.7ms |    0.8ms |       0.3ms |
-
-Relationship trees load at **near-raw speed** thanks to Single-Query JSON
-Aggregation (one indexed query — no N+1, no join-row duplication crossing the
-isolate). Full methodology and a runnable harness: [`benchmarks/`](./benchmarks).
-
----
-
 ## CRUD Methods
 
 | Method                  | Returns                      | Description               |
