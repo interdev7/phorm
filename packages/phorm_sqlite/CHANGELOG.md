@@ -8,6 +8,11 @@
   throw at runtime. All filesystem/platform code is now guarded with
   `kIsWeb`: the database name is passed straight to the IndexedDB-backed
   store, and file cleanup steps are skipped on web.
+- **Fix `SqliteException(14)` on desktop first launch.** The default
+  database location (`.../Application Support/<app>/databases/`) was never
+  created; SQLite does not create intermediate directories, so opening the
+  database failed on a fresh install (macOS/Windows/Linux). The parent
+  directory is now created before opening.
 
 ## [1.10.1]
 

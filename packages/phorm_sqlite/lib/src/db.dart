@@ -227,6 +227,13 @@ class DB implements PhormDatabase {
       path = join(await getDatabasesPath(), databaseName);
     }
 
+    // SQLite does not create intermediate directories; on desktop the
+    // default location (.../Application Support/<app>/databases/) may not
+    // exist yet and opening would fail with SqliteException(14).
+    if (!kIsWeb && path != ':memory:') {
+      await Directory(dirname(path)).create(recursive: true);
+    }
+
     logger?.info('Initializing database: $databaseName (v$version)');
 
     final db = await Database.open(
