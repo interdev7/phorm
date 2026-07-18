@@ -1,4 +1,0 @@
-# Benchmarks are an internal, unpublished harness — keep analysis light.
-analyzer:
-  errors:
-    public_member_api_docs: ignore
