@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:phorm_devtools/phorm_devtools.dart';
+import 'package:phorm_example/db.dart';
 import 'package:phorm_example/pages/reactive_todo_page.dart';
 import 'package:phorm_example/pages/social_feed_page.dart';
 import 'package:phorm_example/pages/validation_demo_page.dart';
@@ -7,6 +9,7 @@ import 'package:phorm_example/pages/reactivity_showcase_page.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  enablePhormDevtools(appDb, label: 'phorm_showcase.db');
   runApp(const PhormShowcaseApp());
 }
 
@@ -43,11 +46,11 @@ class PhormShowcaseApp extends StatelessWidget {
         fillColor: const Color(0xFF1A1A2E),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(color: Colors.white.withOpacity(0.1)),
+          borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.1)),
         ),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(color: Colors.white.withOpacity(0.1)),
+          borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.1)),
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
@@ -57,8 +60,8 @@ class PhormShowcaseApp extends StatelessWidget {
           borderRadius: BorderRadius.circular(12),
           borderSide: const BorderSide(color: Color(0xFFFF6B6B), width: 2),
         ),
-        labelStyle: TextStyle(color: Colors.white.withOpacity(0.6)),
-        hintStyle: TextStyle(color: Colors.white.withOpacity(0.3)),
+        labelStyle: TextStyle(color: Colors.white.withValues(alpha: 0.6)),
+        hintStyle: TextStyle(color: Colors.white.withValues(alpha: 0.3)),
         contentPadding:
             const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
       ),
@@ -67,7 +70,7 @@ class PhormShowcaseApp extends StatelessWidget {
         elevation: 0,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(16),
-          side: BorderSide(color: Colors.white.withOpacity(0.07)),
+          side: BorderSide(color: Colors.white.withValues(alpha: 0.07)),
         ),
       ),
       elevatedButtonTheme: ElevatedButtonThemeData(
@@ -114,11 +117,12 @@ class _ShowcaseHomeState extends State<ShowcaseHome> {
     return Container(
       decoration: BoxDecoration(
         color: const Color(0xFF1A1A2E),
-        border: Border(top: BorderSide(color: Colors.white.withOpacity(0.07))),
+        border: Border(
+            top: BorderSide(color: Colors.white.withValues(alpha: 0.07))),
       ),
       child: NavigationBar(
         backgroundColor: Colors.transparent,
-        indicatorColor: const Color(0xFF6C63FF).withOpacity(0.2),
+        indicatorColor: const Color(0xFF6C63FF).withValues(alpha: 0.2),
         selectedIndex: _selectedIndex,
         onDestinationSelected: (i) => setState(() => _selectedIndex = i),
         destinations: const [

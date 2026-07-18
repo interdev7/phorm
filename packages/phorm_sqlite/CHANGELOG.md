@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.10.3]
+
+- `DB.logAction` forwards every `QueryEvent` to `PhormInstrumentation`
+  (Phorm Studio DevTools) alongside the user-provided `onQuery` observer.
+  No overhead when no tooling is attached.
+
 ## [1.10.2]
 
 - **Fix `Unsupported operation: Platform._operatingSystem` on Flutter Web.**

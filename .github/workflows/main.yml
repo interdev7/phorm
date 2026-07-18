@@ -52,6 +52,18 @@ jobs:
             run-tests: true
             build-runner: true
 
+          # Dart-only DevTools bridge with tests
+          - package-name: phorm_devtools
+            package-path: packages/phorm_devtools
+            sdk: dart
+            run-tests: true
+
+          # Flutter web DevTools panel (analyze only)
+          - package-name: phorm_devtools_extension
+            package-path: packages/phorm_devtools_extension
+            sdk: flutter
+            run-tests: false
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -135,6 +147,7 @@ jobs:
             phorm_mysql
             phorm_postgres
             phorm_sqlite
+            phorm_devtools
           )
 
           for pkg in "${PACKAGES[@]}"; do

@@ -1,5 +1,14 @@
 # Changelog
 
+## [1.11.0]
+
+- New `PhormInstrumentation` sink for developer tooling (Phorm Studio
+  DevTools): `queryExecuted`, `streamCreated`, `streamEmitted`,
+  `streamDestroyed`. `instance` is `null` by default — the hot path pays a
+  single null check, nothing else.
+- `watchOne`/`watchAll` report their lifecycle (dependency tables, emit
+  count, cancellation) to the attached instrumentation.
+
 ## [1.10.0]
 
 - The columnar read fast path uses `Table.rowBinder` when available:

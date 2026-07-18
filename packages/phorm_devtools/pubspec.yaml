@@ -17,8 +17,12 @@ environment:
   sdk: ">=3.10.0 <4.0.0"
 
 dependencies:
-  devtools_extensions: ^0.5.1
-  phorm: ^1.10.0
+  phorm: ^1.11.0
+
+dependency_overrides:
+  # Local path until phorm 1.11.0 is published (CI resolves per-package).
+  phorm:
+    path: ../phorm
 
 dev_dependencies:
   lints: ^5.0.0
