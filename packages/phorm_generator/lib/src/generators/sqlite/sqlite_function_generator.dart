@@ -19,11 +19,10 @@ class SqliteFunctionGenerator extends FunctionGenerator {
   String generate(List<SqlFuncData> functions) {
     if (functions.isEmpty) return '';
 
-    final buffer =
-        StringBuffer()
-          // 1. Generate Custom SQL functions list registration
-          ..writeln('// Custom SQL function registrations')
-          ..writeln('final customSqlFunctions = [');
+    final buffer = StringBuffer()
+      // 1. Generate Custom SQL functions list registration
+      ..writeln('// Custom SQL function registrations')
+      ..writeln('final customSqlFunctions = [');
     for (final fn in functions) {
       final name = fn.sqlName;
       final dartName = fn.element.name ?? '';
@@ -85,10 +84,9 @@ class SqliteFunctionGenerator extends FunctionGenerator {
 
   String _getTypeNameWithNullability(DartType type) {
     final baseName = type.getDisplayString();
-    final cleanBase =
-        baseName.endsWith('?')
-            ? baseName.substring(0, baseName.length - 1)
-            : baseName;
+    final cleanBase = baseName.endsWith('?')
+        ? baseName.substring(0, baseName.length - 1)
+        : baseName;
     if (type.nullabilitySuffix == NullabilitySuffix.question) {
       return '$cleanBase?';
     }
@@ -97,10 +95,9 @@ class SqliteFunctionGenerator extends FunctionGenerator {
 
   String _getNonNullableTypeName(DartType type) {
     final baseName = type.getDisplayString();
-    final cleanBase =
-        baseName.endsWith('?')
-            ? baseName.substring(0, baseName.length - 1)
-            : baseName;
+    final cleanBase = baseName.endsWith('?')
+        ? baseName.substring(0, baseName.length - 1)
+        : baseName;
     if (cleanBase == 'void') return 'dynamic';
     return cleanBase;
   }

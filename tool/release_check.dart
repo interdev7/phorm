@@ -59,6 +59,9 @@ Future<String?> _pubDevLatest(String package) async {
     final body = await response.transform(utf8.decoder).join();
     final json = jsonDecode(body) as Map<String, dynamic>;
     return (json['latest'] as Map<String, dynamic>)['version'] as String;
+  } on Object {
+    // Network hiccup — reported as a warning by the caller.
+    return null;
   } finally {
     client.close();
   }

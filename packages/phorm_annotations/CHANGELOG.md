@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.8.0]
+
+- New `PhormRowBinder<T>` typedef and optional `Table.rowBinder`: a
+  positional row factory that resolves column indices once per result set
+  and builds models by direct list reads. Added the `phormDecodeJson`
+  helper used by generated binders to keep JSON-column semantics identical
+  to the map-based path.
+
 ## [1.7.0]
 
 - New `@Schema(indexForeignKeys: ...)` option (default `true`): the generator
