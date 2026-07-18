@@ -41,10 +41,9 @@ class MetadataExtractor {
       final type = modelReader.typeValue;
       final element = type.element;
       if (element is ClassElement) {
-        final schemaMeta =
-            element.metadata.annotations
-                .where((m) => m.element?.enclosingElement?.name == 'Schema')
-                .firstOrNull;
+        final schemaMeta = element.metadata.annotations
+            .where((m) => m.element?.enclosingElement?.name == 'Schema')
+            .firstOrNull;
 
         if (schemaMeta != null) {
           final schemaReader = ConstantReader(
@@ -225,21 +224,20 @@ class MetadataExtractor {
     if (converterType is! InterfaceType) return null;
 
     // Find ValueConverter in the hierarchy to get type arguments
-    final valueConverterType = [
-      converterType,
-      ...converterType.allSupertypes,
-    ].firstWhere(
-      (t) => valueConverterChecker.isExactly(t.element),
-      // Defensive: the `converter` argument is statically typed as
-      // ValueConverter, so a match always exists.
-      // coverage:ignore-start
-      orElse:
-          () =>
-              throw Exception(
-                'Converter ${converterType.element.name} must inherit from ValueConverter',
-              ),
-      // coverage:ignore-end
-    );
+    final valueConverterType =
+        [
+          converterType,
+          ...converterType.allSupertypes,
+        ].firstWhere(
+          (t) => valueConverterChecker.isExactly(t.element),
+          // Defensive: the `converter` argument is statically typed as
+          // ValueConverter, so a match always exists.
+          // coverage:ignore-start
+          orElse: () => throw Exception(
+            'Converter ${converterType.element.name} must inherit from ValueConverter',
+          ),
+          // coverage:ignore-end
+        );
 
     final typeArguments = valueConverterType.typeArguments;
     if (typeArguments.length < 2) return null;
