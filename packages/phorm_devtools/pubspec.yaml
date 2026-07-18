@@ -17,6 +17,7 @@ environment:
   sdk: ">=3.10.0 <4.0.0"
 
 dependencies:
+  devtools_extensions: ^0.5.1
   phorm: ^1.10.0
 
 dev_dependencies:
