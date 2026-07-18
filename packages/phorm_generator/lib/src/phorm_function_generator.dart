@@ -49,10 +49,9 @@ class PhormFunctionGenerator extends Generator {
 
     // Write the part-of header to bind the generated file with the source file
     final fileName = p.basename(buildStep.inputId.path);
-    final buffer =
-        StringBuffer()
-          ..writeln("part of '$fileName';\n")
-          ..write(body);
+    final buffer = StringBuffer()
+      ..writeln("part of '$fileName';\n")
+      ..write(body);
 
     return buffer.toString();
   }
