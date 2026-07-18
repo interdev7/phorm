@@ -1,7 +1,35 @@
+import 'dart:convert';
+
 import 'annotations.dart';
 import 'migration_builder.dart';
 import 'models.dart';
 import 'table_migration.dart';
+
+/// Positional row factory: given the result set's `column name → index` map
+/// (resolved **once** per query), returns a per-row function that builds the
+/// model by reading values directly from the positional [List] — no per-row
+/// map construction or string-keyed lookups.
+///
+/// Produced by `phorm_generator`; hand-written [Table]s may provide one for
+/// maximum read throughput, or leave it `null` to use [Table.fromJson].
+typedef PhormRowBinder<T> =
+    T Function(List<Object?> row) Function(Map<String, int> columnIndex);
+
+/// Decodes a raw column value that may carry serialized JSON (nested object
+/// columns, aggregated relationship columns): JSON-looking strings are parsed,
+/// everything else is returned as-is. Mirrors the map-based read path.
+Object? phormDecodeJson(Object? value) {
+  if (value is String &&
+      value.isNotEmpty &&
+      (value.codeUnitAt(0) == 0x5b || value.codeUnitAt(0) == 0x7b)) {
+    try {
+      return jsonDecode(value);
+    } on FormatException {
+      return value;
+    }
+  }
+  return value;
+}
 
 /// Represents a fully generated table schema.
 ///
@@ -69,6 +97,13 @@ class Table<T extends Model> {
   /// If not provided explicitly, auto-detected from the schema SQL.
   final bool autoIncrement;
 
+  /// Optional positional row factory used by the columnar read fast path.
+  ///
+  /// When set, model reads without `include` skip per-row map construction
+  /// entirely: column indices are resolved once per result set and values
+  /// are read positionally. Falls back to [fromJson] when `null`.
+  final PhormRowBinder<T>? rowBinder;
+
   /// Creates a table configuration.
   Table({
     required this.schema,
@@ -81,6 +116,7 @@ class Table<T extends Model> {
     this.timestamps = true,
     this.relationships = const [],
     this.columns = const [],
+    this.rowBinder,
     bool? autoIncrement,
   }) : autoIncrement = autoIncrement ?? detectAutoIncrement(schema);
 

@@ -35,31 +35,27 @@ class PhormSchemaGenerator extends GeneratorForAnnotation<Schema> {
     final useFromJson = schemaReader.peek('useFromJson')?.boolValue ?? true;
 
     final strategyReader = schemaReader.peek('columnNaming');
-    final strategy =
-        strategyReader == null || strategyReader.isNull
-            ? ColumnNamingStrategy.snakeCase
-            : ColumnNamingStrategy.values.firstWhere(
-              (e) => e.name == strategyReader.revive().accessor.split('.').last,
-              // coverage:ignore-start
-              orElse:
-                  () =>
-                      throw InvalidGenerationSourceError(
-                        'Unknown ColumnNamingStrategy value',
-                        element: element,
-                      ),
-              // coverage:ignore-end
-            );
+    final strategy = strategyReader == null || strategyReader.isNull
+        ? ColumnNamingStrategy.snakeCase
+        : ColumnNamingStrategy.values.firstWhere(
+            (e) => e.name == strategyReader.revive().accessor.split('.').last,
+            // coverage:ignore-start
+            orElse: () => throw InvalidGenerationSourceError(
+              'Unknown ColumnNamingStrategy value',
+              element: element,
+            ),
+            // coverage:ignore-end
+          );
 
     final dialectReader = schemaReader.peek('dialect');
-    final dialectKind =
-        dialectReader == null || dialectReader.isNull
-            ? SqlDialectKind.sqlite
-            : SqlDialectKind.values.firstWhere(
-              (e) => e.name == dialectReader.revive().accessor.split('.').last,
-              // coverage:ignore-start
-              orElse: () => SqlDialectKind.sqlite,
-              // coverage:ignore-end
-            );
+    final dialectKind = dialectReader == null || dialectReader.isNull
+        ? SqlDialectKind.sqlite
+        : SqlDialectKind.values.firstWhere(
+            (e) => e.name == dialectReader.revive().accessor.split('.').last,
+            // coverage:ignore-start
+            orElse: () => SqlDialectKind.sqlite,
+            // coverage:ignore-end
+          );
     final dialect = SchemaGenerator.fromKind(dialectKind);
 
     final timestamps = schemaReader.peek('timestamps')?.boolValue ?? true;
@@ -87,11 +83,10 @@ class PhormSchemaGenerator extends GeneratorForAnnotation<Schema> {
       if (sqlName == 'updated_at') hasUpdatedAt = true;
       if (sqlName == 'deleted_at') hasDeletedAt = true;
 
-      final annotationMeta =
-          field.metadata.annotations.where((m) {
-            final name = m.element?.enclosingElement?.name;
-            return name == 'Column' || name == 'ID';
-          }).firstOrNull;
+      final annotationMeta = field.metadata.annotations.where((m) {
+        final name = m.element?.enclosingElement?.name;
+        return name == 'Column' || name == 'ID';
+      }).firstOrNull;
 
       if (annotationMeta != null &&
           annotationMeta.element?.enclosingElement?.name == 'ID') {
@@ -148,14 +143,13 @@ class PhormSchemaGenerator extends GeneratorForAnnotation<Schema> {
 
     // Also scan fields for @BelongsTo, @HasMany, @HasOne, @Join
     for (final field in fields) {
-      final fieldMeta =
-          field.metadata.annotations.where((m) {
-            final name = m.element?.enclosingElement?.name;
-            return name == 'BelongsTo' ||
-                name == 'HasMany' ||
-                name == 'HasOne' ||
-                name == 'Join';
-          }).firstOrNull;
+      final fieldMeta = field.metadata.annotations.where((m) {
+        final name = m.element?.enclosingElement?.name;
+        return name == 'BelongsTo' ||
+            name == 'HasMany' ||
+            name == 'HasOne' ||
+            name == 'Join';
+      }).firstOrNull;
 
       if (fieldMeta != null) {
         relationships.add(_parseRelationship(fieldMeta, dialect));
@@ -185,10 +179,10 @@ class PhormSchemaGenerator extends GeneratorForAnnotation<Schema> {
         final onDelete = rel['onDelete'] as String?;
         final onUpdate = rel['onUpdate'] as String?;
 
-        final fk =
-            StringBuffer()..write(
-              '  FOREIGN KEY($fkSqlName) REFERENCES $refTable($refColumn)',
-            );
+        final fk = StringBuffer()
+          ..write(
+            '  FOREIGN KEY($fkSqlName) REFERENCES $refTable($refColumn)',
+          );
         if (onDelete != null) fk.write(' ON DELETE $onDelete');
         if (onUpdate != null) fk.write(' ON UPDATE $onUpdate');
 
@@ -240,6 +234,9 @@ class PhormSchemaGenerator extends GeneratorForAnnotation<Schema> {
       relationships: relationships,
       timestamps: timestamps,
       useFromJson: useFromJson,
+      rowBinderName: useFromJson && element.typeParameters.isEmpty
+          ? '_\$Phorm${className}RowBinder'
+          : null,
       isGeneric: element.typeParameters.isNotEmpty,
     );
   }
@@ -320,10 +317,9 @@ class PhormSchemaGenerator extends GeneratorForAnnotation<Schema> {
       final element = type.element;
       if (element is ClassElement) {
         // Try to find @Schema annotation on the class
-        final schemaMeta =
-            element.metadata.annotations
-                .where((m) => m.element?.enclosingElement?.name == 'Schema')
-                .firstOrNull;
+        final schemaMeta = element.metadata.annotations
+            .where((m) => m.element?.enclosingElement?.name == 'Schema')
+            .firstOrNull;
 
         if (schemaMeta != null) {
           final schemaReader = ConstantReader(
@@ -549,10 +545,9 @@ class PhormSchemaGenerator extends GeneratorForAnnotation<Schema> {
 
       // Combine remaining anonymous checks into one CHECK(expr AND expr ...)
       if (anonymousSqls.isNotEmpty) {
-        final combined =
-            anonymousSqls.length > 1
-                ? anonymousSqls.map((c) => '($c)').join(' AND ')
-                : anonymousSqls.first;
+        final combined = anonymousSqls.length > 1
+            ? anonymousSqls.map((c) => '($c)').join(' AND ')
+            : anonymousSqls.first;
         buffer.write(' CHECK($combined)');
       }
     }

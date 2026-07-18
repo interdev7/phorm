@@ -1,5 +1,15 @@
 # Changelog
 
+## [1.6.0]
+
+- **Positional row binders.** For every non-generic model with a generated
+  `fromJson`, the generator now also emits `_$Phorm<Class>RowBinder` and
+  wires it into the generated `Table` (`rowBinder:`). The binder mirrors all
+  `fromJson` conversions (enums, `DateTime`, bool 0/1, converters, nested
+  objects, relationship columns, timestamp/FK cascades) but reads row values
+  positionally — powering the core's fastest read path. Requires
+  `phorm_annotations ^1.8.0`.
+
 ## [1.5.0]
 
 - **Automatic foreign-key indexes.** The generated schema now includes

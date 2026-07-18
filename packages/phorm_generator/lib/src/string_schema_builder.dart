@@ -7,6 +7,7 @@ String stringSchemaBuilder({
   required String fileName,
   required List<String> columnNames,
   String? indexSql,
+  String? rowBinderName,
   List<Map<String, dynamic>> relationships = const [],
   bool timestamps = true,
   bool useFromJson = true,
@@ -25,12 +26,9 @@ String stringSchemaBuilder({
   final tableClassName = '_\$Phorm${className}Table';
   final tableVarName = '${tableName}Table';
 
-  final fromJsonValue =
-      isGeneric
-          ? '(json) => _\$Phorm${className}FromJson(json, (x) => x)'
-          : (useFromJson
-              ? '_\$Phorm${className}FromJson'
-              : '$className.fromJson');
+  final fromJsonValue = isGeneric
+      ? '(json) => _\$Phorm${className}FromJson(json, (x) => x)'
+      : (useFromJson ? '_\$Phorm${className}FromJson' : '$className.fromJson');
 
   return '''
 const $schemaVarName = """
@@ -49,6 +47,7 @@ class $tableClassName extends Table<$className${isGeneric ? '<dynamic>' : ''}> {
     super.columns = const [],
     super.primaryKey = '$primaryKey',
     super.timestamps = true,
+    super.rowBinder,
   }) : super(type: $className, paranoid: Table.detectSoftDelete(schema));
 }
 
@@ -57,7 +56,7 @@ final $tableVarName = $tableClassName(
   schema: $schemaVarName,
   name: '$tableName',
   fromJson: $fromJsonValue,
-  relationships: ${relationshipsCode.isNotEmpty ? "const " : ""} [$relationshipsCode],
+${rowBinderName != null ? '  rowBinder: $rowBinderName,\n' : ''}  relationships: ${relationshipsCode.isNotEmpty ? "const " : ""} [$relationshipsCode],
   columns: const [${columnNames.map((c) => "'$c'").join(', ')}],
   primaryKey: '$primaryKey',
   timestamps: $timestamps,

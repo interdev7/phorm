@@ -22,12 +22,102 @@ Apple M3, Flutter 3.44.4, median of 5 runs after warmup (ms, lower is
 better). `drift-bg` = drift over `NativeDatabase.createInBackground`
 (the apples-to-apples config vs PHORM's always-on background isolate):
 
-| Scenario                        | PHORM   | drift | drift-bg | raw sqlite3 |
-| :------------------------------ | ------: | ----: | -------: | ----------: |
-| insert 5k users (single txn)    | **6.4** |  11.5 |     10.7 |         2.7 |
-| read + map 5k users             | **3.3** |   3.2 |      3.9 |         1.7 |
-| filtered read (~1/6 of 5k)      | **0.7** |   0.6 |      0.8 |         0.3 |
-| load 500 users × 10 posts each  | **3.6** |  11.5 |     11.0 |         3.2 |
+<style>
+table.benchmark {
+    border-collapse: collapse;
+    width: 100%;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    font-size: 14px;
+}
+
+.benchmark th,
+.benchmark td {
+    border: 1px solid #d0d7de;
+    padding: 10px 14px;
+}
+
+.benchmark th {
+    background: #f6f8fa;
+    font-weight: 600;
+    text-align: left;
+}
+
+.benchmark td:not(:first-child),
+.benchmark th:not(:first-child) {
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+}
+
+.best {
+    background: #dcfce7;
+    color: #166534;
+    font-weight: 700;
+}
+
+.good {
+    background: #fef9c3;
+    color: #854d0e;
+    font-weight: 600;
+}
+
+.ok {
+    background: #ffedd5;
+    color: #9a3412;
+}
+
+.raw {
+    background: #f8fafc;
+    color: #475569;
+}
+</style>
+
+<table class="benchmark">
+<thead>
+<tr>
+    <th>Scenario</th>
+    <th>PHORM</th>
+    <th>drift</th>
+    <th>drift-bg</th>
+    <th>raw sqlite3</th>
+</tr>
+</thead>
+
+<tbody>
+
+<tr>
+    <td>insert 5k users (single txn)</td>
+    <td class="good">6.4 ms</td>
+    <td class="ok">11.5 ms</td>
+    <td class="ok">10.7 ms</td>
+    <td class="best">2.7 ms</td>
+</tr>
+
+<tr>
+    <td>read + map 5k users</td>
+    <td class="good">3.3 ms</td>
+    <td class="good">3.2 ms</td>
+    <td class="ok">3.9 ms</td>
+    <td class="best">1.7 ms</td>
+</tr>
+
+<tr>
+    <td>filtered read (~1/6 of 5k)</td>
+    <td class="good">0.7 ms</td>
+    <td class="good">0.6 ms</td>
+    <td class="ok">0.8 ms</td>
+    <td class="best">0.3 ms</td>
+</tr>
+
+<tr>
+    <td>load 500 users × 10 posts each</td>
+    <td class="good">3.6 ms</td>
+    <td class="ok">11.5 ms</td>
+    <td class="ok">11.0 ms</td>
+    <td class="best">3.2 ms</td>
+</tr>
+
+</tbody>
+</table>
 
 History of optimizations this harness has driven (phorm_sqlite 1.8.0–1.9.0):
 
@@ -45,6 +135,11 @@ History of optimizations this harness has driven (phorm_sqlite 1.8.0–1.9.0):
 5. Reads without `include` go through the core's `ColumnarQueryExecutor`
    fast path (phorm 1.9.0): positional rows are mapped directly, without the
    per-row map copy/rescan of the executor boundary (5.5 → 3.3ms).
+6. Generated positional row binders (`Table.rowBinder`, phorm 1.10.0 +
+   generator 1.6.0) drop the per-row map entirely — column indices resolve
+   once, fields read by position (3.3 → 2.9ms, ahead of same-thread drift).
+   The remaining filtered-read delta (~0.1ms vs same-thread drift) is the
+   fixed isolate round-trip that keeps SQLite off the UI thread.
 
 ## Methodology & fairness notes
 

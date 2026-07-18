@@ -57,6 +57,20 @@ class PPost extends Model {
   };
 }
 
+/// Positional binder for [PUser] — mirrors what phorm_generator emits.
+PUser Function(List<Object?> row) pUserRowBinder(Map<String, int> ci) {
+  final iId = ci['id']!;
+  final iName = ci['name']!;
+  final iAge = ci['age']!;
+  final iActive = ci['active']!;
+  return (row) => PUser(
+    id: row[iId] as int,
+    name: row[iName] as String,
+    age: row[iAge] as int,
+    active: row[iActive] == 1,
+  );
+}
+
 /// phorm users table with a HasMany(posts) relationship.
 final pUsersTable = Table<PUser>(
   name: 'users',
@@ -69,6 +83,7 @@ CREATE TABLE users (
 );
 ''',
   fromJson: PUser.fromJson,
+  rowBinder: pUserRowBinder,
   type: PUser,
   columns: const ['id', 'name', 'age', 'active'],
   timestamps: false,

@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.10.0]
+
+- The columnar read fast path uses `Table.rowBinder` when available:
+  models are built by positional reads with column indices resolved once
+  per result set — no per-row map construction or string-keyed lookups
+  (5k-row read + map: ~3.3ms → ~2.9ms on an Apple M3). Falls back to
+  `fromJson` when no binder is set. Requires `phorm_annotations ^1.8.0`.
+
 ## [1.9.0]
 
 - **Columnar read fast path.** New `ColumnarQueryExecutor` capability

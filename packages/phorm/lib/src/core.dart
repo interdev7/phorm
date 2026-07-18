@@ -1031,14 +1031,25 @@ class PhormCore<T extends Model> implements IPhormCore<T> {
     final rows = columnar.rows;
     List<T> data;
     try {
+      final binder = table.rowBinder;
       if (rows.length > dbManager.isolateThreshold) {
-        data = await _parseColumnarInIsolate<T>(
-          columnar.columns,
-          rows,
-          table.fromJson,
-        );
+        data =
+            binder != null
+                ? await _bindColumnarInIsolate<T>(
+                  columnar.columns,
+                  rows,
+                  binder,
+                )
+                : await _parseColumnarInIsolate<T>(
+                  columnar.columns,
+                  rows,
+                  table.fromJson,
+                );
       } else {
-        data = _parseColumnarRows<T>(columnar.columns, rows, table.fromJson);
+        data =
+            binder != null
+                ? _bindColumnarRows<T>(columnar.columns, rows, binder)
+                : _parseColumnarRows<T>(columnar.columns, rows, table.fromJson);
       }
     } catch (e, stack) {
       dbManager.logger?.error('Error parsing results', e, stack);
@@ -1053,6 +1064,31 @@ class PhormCore<T extends Model> implements IPhormCore<T> {
       }
     }
     return (data: data, count: count);
+  }
+
+  /// Positional mapping via a generated [PhormRowBinder]: column indices are
+  /// resolved once, then each row is built by direct list reads — no per-row
+  /// map, no string-keyed lookups.
+  static List<T> _bindColumnarRows<T extends Model>(
+    List<String> columns,
+    List<List<Object?>> rows,
+    PhormRowBinder<T> binder,
+  ) {
+    final columnIndex = <String, int>{
+      for (var c = 0; c < columns.length; c++) columns[c]: c,
+    };
+    final fromRow = binder(columnIndex);
+    return List.generate(rows.length, (r) => fromRow(rows[r]), growable: false);
+  }
+
+  /// Isolate bridge for [_bindColumnarRows] (see [_parseColumnarInIsolate]
+  /// for why this must be a static generic method).
+  static Future<List<T>> _bindColumnarInIsolate<T extends Model>(
+    List<String> columns,
+    List<List<Object?>> rows,
+    PhormRowBinder<T> binder,
+  ) {
+    return Isolate.run(() => _bindColumnarRows<T>(columns, rows, binder));
   }
 
   /// Static bridge so the [Isolate.run] closure captures only sendable
