@@ -69,3 +69,8 @@ pubspec_overrides.yaml
 
 # MkDocs build output
 site/
+
+# Phorm Studio DevTools panel: the compiled web build MUST ship inside the
+# phorm_devtools pub package (the panel sources live in a private repo).
+!packages/phorm_devtools/extension/devtools/build/
+!packages/phorm_devtools/extension/devtools/build/**

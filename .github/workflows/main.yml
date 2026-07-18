@@ -58,12 +58,6 @@ jobs:
             sdk: dart
             run-tests: true
 
-          # Flutter web DevTools panel (analyze only)
-          - package-name: phorm_devtools_extension
-            package-path: packages/phorm_devtools_extension
-            sdk: flutter
-            run-tests: false
-
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
