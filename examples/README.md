@@ -53,6 +53,15 @@ flutter run -d chrome
 Data persists across page reloads via IndexedDB. See
 [docs/15-flutter-web.md](../docs/15-flutter-web.md) for details.
 
+## Running on macOS Desktop
+
+```bash
+flutter run -d macos
+```
+
+The database is stored in the app sandbox container under
+`~/Library/Containers/<bundle-id>/Data/Library/Application Support/<bundle-id>/databases/`.
+
 ## Testing
 
 The project includes widget tests that use an in-memory `sqlite3` database to verify that the app's navigation and basic UI structure work properly without requiring a physical device or emulator.

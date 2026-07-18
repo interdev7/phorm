@@ -18,9 +18,10 @@ flutter test test/orm_benchmark_test.dart
 
 ## Current numbers
 
-Apple M3, Flutter 3.44.4, median of 5 runs after warmup (ms, lower is
-better). `drift-bg` = drift over `NativeDatabase.createInBackground`
-(the apples-to-apples config vs PHORM's always-on background isolate):
+Apple M3, Flutter 3.44.4, median of 5 runs after warmup, averaged over two
+harness runs (ms, lower is better). `drift-bg` = drift over
+`NativeDatabase.createInBackground` (the apples-to-apples config vs PHORM's
+always-on background isolate):
 
 <style>
 table.benchmark {
@@ -86,40 +87,40 @@ table.benchmark {
 
 <tr>
     <td>insert 5k users (single txn)</td>
-    <td class="good">6.4 ms</td>
-    <td class="ok">11.5 ms</td>
-    <td class="ok">10.7 ms</td>
+    <td class="good">7.1 ms</td>
+    <td class="ok">12.3 ms</td>
+    <td class="ok">12.0 ms</td>
     <td class="best">2.7 ms</td>
 </tr>
 
 <tr>
     <td>read + map 5k users</td>
-    <td class="good">3.3 ms</td>
-    <td class="good">3.2 ms</td>
-    <td class="ok">3.9 ms</td>
+    <td class="good">2.7 ms</td>
+    <td class="ok">3.6 ms</td>
+    <td class="ok">4.0 ms</td>
     <td class="best">1.7 ms</td>
 </tr>
 
 <tr>
     <td>filtered read (~1/6 of 5k)</td>
     <td class="good">0.7 ms</td>
-    <td class="good">0.6 ms</td>
+    <td class="good">0.7 ms</td>
     <td class="ok">0.8 ms</td>
     <td class="best">0.3 ms</td>
 </tr>
 
 <tr>
     <td>load 500 users × 10 posts each</td>
-    <td class="good">3.6 ms</td>
+    <td class="good">4.1 ms</td>
     <td class="ok">11.5 ms</td>
-    <td class="ok">11.0 ms</td>
+    <td class="ok">11.9 ms</td>
     <td class="best">3.2 ms</td>
 </tr>
 
 </tbody>
 </table>
 
-History of optimizations this harness has driven (phorm_sqlite 1.8.0–1.9.0):
+History of optimizations this harness has driven (phorm_sqlite 1.8.0+, phorm 1.9.0–1.10.0):
 
 1. `Batch.commit()` per-operation isolate round-trips → single message
    (457ms → 41ms for 5k inserts).
@@ -137,9 +138,9 @@ History of optimizations this harness has driven (phorm_sqlite 1.8.0–1.9.0):
    per-row map copy/rescan of the executor boundary (5.5 → 3.3ms).
 6. Generated positional row binders (`Table.rowBinder`, phorm 1.10.0 +
    generator 1.6.0) drop the per-row map entirely — column indices resolve
-   once, fields read by position (3.3 → 2.9ms, ahead of same-thread drift).
-   The remaining filtered-read delta (~0.1ms vs same-thread drift) is the
-   fixed isolate round-trip that keeps SQLite off the UI thread.
+   once, fields read by position (read+map 3.3 → 2.7ms, ahead of
+   same-thread drift; filtered read at parity, with the fixed isolate
+   round-trip that keeps SQLite off the UI thread included).
 
 ## Methodology & fairness notes
 
