@@ -560,9 +560,21 @@ class PhormDevtoolsBridge implements PhormInstrumentation {
     final executor = await db.executor;
     try {
       final rows = await executor.rawQuery(
-        'SELECT * FROM __phorm_migrations ORDER BY version',
+        'SELECT * FROM __phorm_migrations '
+        'ORDER BY migration_version, applied_at',
       );
-      return {'applied': rows};
+      return {
+        'applied': [
+          for (final row in rows)
+            {
+              'table': row['table_name'],
+              'version': row['migration_version'],
+              'hash': row['migration_hash'],
+              'description': row['description'],
+              'appliedAt': row['applied_at'],
+            },
+        ],
+      };
     } on Object catch (e) {
       return _error('NO_MIGRATIONS_TABLE', e.toString());
     }
