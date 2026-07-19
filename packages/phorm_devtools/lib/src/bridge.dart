@@ -164,11 +164,31 @@ class PhormDevtoolsBridge implements PhormInstrumentation {
 
   final Map<int, StreamRecord> _streams = {};
 
+  final Map<String, Set<String>> _pendingTableChanges = {};
+  Timer? _tableChangeTimer;
+
   void _addDatabase(PhormDatabase db, {String? id, String? label}) {
     final dbId = id ?? (_databases.isEmpty ? 'main' : 'db${_databases.length}');
     _databases[dbId] = db;
     _labels[dbId] = label ?? dbId;
     _dbIds[db] = dbId;
+    // Forward table-change notifications to the panel (Live mode).
+    db.changeStream.listen((table) {
+      if (!developer.extensionStreamHasListener) return;
+      _pendingTableChanges.putIfAbsent(dbId, () => <String>{}).add(table);
+      _tableChangeTimer ??= Timer(batchInterval, _flushTableChanges);
+    });
+  }
+
+  void _flushTableChanges() {
+    _tableChangeTimer = null;
+    if (_pendingTableChanges.isEmpty) return;
+    final changes = {
+      for (final entry in _pendingTableChanges.entries)
+        entry.key: entry.value.toList(growable: false),
+    };
+    _pendingTableChanges.clear();
+    developer.postEvent('phorm.tablesChanged', {'changes': changes});
   }
 
   // ---------------------------------------------------------------
@@ -314,7 +334,7 @@ class PhormDevtoolsBridge implements PhormInstrumentation {
         final rows = await executor
             .rawQuery('SELECT COUNT(*) AS c FROM "${table.name}"');
         rowCount = (rows.first['c'] as num?)?.toInt() ?? -1;
-      } catch (_) {
+      } on Object catch (_) {
         // Table may not exist yet (pre-migration); keep -1.
       }
       tables.add({
