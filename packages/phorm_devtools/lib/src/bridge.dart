@@ -287,6 +287,17 @@ class PhormDevtoolsBridge implements PhormInstrumentation {
   PhormDatabase? _db(Map<String, String> params) =>
       _databases[params['dbId'] ?? 'main'];
 
+  /// Resolves a relationship target (table-name string or Model type)
+  /// to a registered table name, or `null` when it cannot be matched.
+  String? _resolveTargetTable(PhormDatabase db, Object? model) {
+    if (model is String) return model;
+    final typeName = model.toString();
+    for (final table in db.tables) {
+      if (table.type.toString() == typeName) return table.name;
+    }
+    return null;
+  }
+
   Table? _table(PhormDatabase db, String? name) {
     if (name == null) return null;
     for (final table in db.tables) {
@@ -337,6 +348,26 @@ class PhormDevtoolsBridge implements PhormInstrumentation {
       } on Object catch (_) {
         // Table may not exist yet (pre-migration); keep -1.
       }
+      // Column metadata straight from the engine: types and NOT NULL
+      // constraints are not part of the Table config.
+      var columnsMeta = const <Map<String, Object?>>[];
+      try {
+        final info = await executor
+            .rawQuery('PRAGMA table_info("${table.name}")');
+        columnsMeta = [
+          for (final c in info)
+            {
+              'name': c['name'],
+              'type': c['type'],
+              'notNull': c['notnull'] == 1,
+              'hasDefault': c['dflt_value'] != null,
+              'isPrimaryKey': (c['pk'] as num? ?? 0) > 0,
+            },
+        ];
+      } on Object catch (_) {
+        // Non-SQLite backend or missing table: names-only fallback below.
+      }
+
       tables.add({
         'name': table.name,
         'primaryKey': table.primaryKey,
@@ -345,11 +376,13 @@ class PhormDevtoolsBridge implements PhormInstrumentation {
         'autoIncrement': table.autoIncrement,
         'rowCount': rowCount,
         'columns': table.columns,
+        'columnsMeta': columnsMeta,
         'relations': [
           for (final rel in table.relationships)
             {
               'type': rel.runtimeType.toString(),
               'target': rel.model.toString(),
+              'targetTable': _resolveTargetTable(db, rel.model),
               'foreignKey': rel.foreignKey,
               'localKey': rel.localKey,
             },
