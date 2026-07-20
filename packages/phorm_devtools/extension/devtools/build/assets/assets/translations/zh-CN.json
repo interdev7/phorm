@@ -1,0 +1,158 @@
+{
+  "common": {
+    "cancel": "取消",
+    "close": "关闭",
+    "retry": "重试",
+    "reload": "重新加载",
+    "search": "搜索…",
+    "copied": "已复制",
+    "later": "稍后",
+    "details": "详情",
+    "copy": "复制"
+  },
+  "tabs": {
+    "inspector": "检查器",
+    "queries": "查询监视器",
+    "migrations": "迁移",
+    "reactivity": "响应式",
+    "license": "许可证"
+  },
+  "header": {
+    "reloadDbs": "重新加载数据库",
+    "switchDb": "切换数据库"
+  },
+  "conn": {
+    "title": "未连接到应用",
+    "subtitle": "Phorm Studio 无法连接 phorm_devtools 桥。请确认应用调用了 enablePhormDevtools(db) 并以调试模式运行。"
+  },
+  "inspector": {
+    "tables": "数据表",
+    "deleted": "已删除",
+    "live": "实时",
+    "liveDesc": "应用中数据发生任何变化时，行和计数器都会实时更新——无需手动刷新。",
+    "addRow": "添加行",
+    "exportJson": "表 → JSON",
+    "exportCsv": "表 → CSV",
+    "exportDump": "整个数据库 → JSON 转储",
+    "exportTooltip": "导出（Pro）",
+    "importTooltip": "导入 JSON（Pro）",
+    "reloadRows": "重新加载",
+    "selectTable": "选择一个表",
+    "selectTableSub": "数据库表列表在左侧。",
+    "emptyTable": "表为空",
+    "emptyTableSub": "点击“添加行”以创建第一条记录。",
+    "loadError": "加载数据失败",
+    "importTitle": "导入 JSON → {}",
+    "importHint": "粘贴一个行的 JSON 数组",
+    "imported": "已导入行数：{}",
+    "importFailed": "导入失败：{}",
+    "exportFailed": "导出失败：{}",
+    "import": "导入",
+    "fkOpen": "在 {} 中打开（右键复制）",
+    "prevPage": "上一页",
+    "nextPage": "下一页",
+    "delete": "删除",
+    "deleteSoftSel": "软删除所选",
+    "deleteHardSel": "硬删除所选",
+    "selected": "已选 {}",
+    "deleteConfirm": "删除 {} 行？",
+    "importJson": "导入 JSON",
+    "importCsv": "导入 CSV",
+    "importCsvHint": "粘贴 CSV（第一行为表头）"
+  },
+  "editor": {
+    "addTitle": "添加行 — {}",
+    "copyJson": "以 JSON 复制该行",
+    "null": "NULL",
+    "insert": "插入",
+    "save": "保存",
+    "duplicate": "复制",
+    "softDelete": "软删除",
+    "hardDelete": "硬删除",
+    "restore": "恢复",
+    "genUuid": "生成 UUID v4",
+    "now": "现在（ISO 8601, UTC）",
+    "pickDate": "选择日期和时间",
+    "pickExisting": "从现有值中选择",
+    "pickExistingTitle": "现有值 — {}",
+    "jsonInvalid": "无效的 JSON：{}",
+    "notNull": "NOT NULL 且无默认值——请填写",
+    "notNullNull": "该列为 NOT NULL——不允许 NULL",
+    "fkPickTitle": "{} — 选择一条记录",
+    "fkPick": "从 {} 中选择",
+    "formatJson": "格式化 JSON",
+    "faker": "随机值",
+    "reset": "重置",
+    "showValue": "显示",
+    "hideValue": "隐藏",
+    "pickColor": "选择颜色",
+    "increment": "增加",
+    "decrement": "减少"
+  },
+  "queries": {
+    "feed": "信息流",
+    "profiler": "分析器",
+    "pause": "暂停",
+    "resume": "继续",
+    "clear": "清空",
+    "paused": "已暂停",
+    "count": "{} 条查询",
+    "emptyTitle": "一切安静",
+    "emptySub": "在应用中运行查询——它们会实时显示在这里，包含耗时和状态。",
+    "explainTooltip": "EXPLAIN QUERY PLAN（Pro）",
+    "explainFeature": "EXPLAIN QUERY PLAN",
+    "explainDesc": "显示 SQLite 如何执行查询：走索引还是全表扫描。全表扫描会被高亮——精确提示哪里需要索引。"
+  },
+  "profiler": {
+    "total": "总计",
+    "errors": "错误",
+    "p50hint": "中位数：一半的查询比该值更快。",
+    "p95hint": "95% 的查询比该值更快——反映最坏情况。",
+    "nplusone": "疑似 N+1",
+    "slowest": "最慢",
+    "frequent": "最频繁",
+    "nplusoneDesc": "看起来像 N+1：考虑用 include / JOIN 在一次查询中获取关联数据。",
+    "nplusoneBadge": "{}ms 内 {} 次",
+    "emptyTitle": "暂无分析数据",
+    "emptySub": "在应用中运行查询——这里将显示会话统计、N+1 检测和查询计划。"
+  },
+  "explain": {
+    "title": "查询计划"
+  },
+  "migrations": {
+    "emptyTitle": "暂无迁移",
+    "emptySub": "首次迁移后，__phorm_migrations 表的历史将显示在此处。",
+    "errorTitle": "迁移历史不可用"
+  },
+  "streams": {
+    "emptyTitle": "没有活动的流",
+    "emptySub": "活动的 watchOne / watchAll 订阅及其依赖和发射次数将显示在此处。",
+    "errorTitle": "无法获取流",
+    "emits": "{} 次发射"
+  },
+  "license": {
+    "free": "免费",
+    "proActive": "Pro 已激活",
+    "account": "账户",
+    "until": "有效期至",
+    "deactivate": "在本机停用",
+    "hint": "激活密钥以解锁 Pro：带 EXPLAIN 的分析器、导出与导入、数据库转储、实时模式和响应式监控。",
+    "activate": "激活",
+    "buy": "购买许可证",
+    "activated": "许可证已激活。谢谢！💜",
+    "expired": "密钥已过期。",
+    "invalid": "密钥无效。",
+    "malformed": "这看起来不像 Phorm Studio 密钥。",
+    "proFeature": "{} — Phorm Studio Pro 功能"
+  },
+  "pro": {
+    "title": "Phorm Studio Pro",
+    "buy": "购买 Pro",
+    "haveKey": "已有密钥？在“许可证”标签页激活。",
+    "proDesc": "用于数据库工作的完整工具集：分析器、导出/导入、实时模式、响应式监控。",
+    "reactivityDesc": "活动 watchOne/watchAll 流的监视器：依赖、发射次数、泄漏检测。"
+  },
+  "lang": {
+    "title": "语言"
+  }
+}

@@ -377,6 +377,7 @@ class PhormDevtoolsBridge implements PhormInstrumentation {
         'rowCount': rowCount,
         'columns': table.columns,
         'columnsMeta': columnsMeta,
+        'schema': table.schema,
         'relations': [
           for (final rel in table.relationships)
             {

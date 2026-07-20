@@ -1,0 +1,158 @@
+{
+  "common": {
+    "cancel": "İptal",
+    "close": "Kapat",
+    "retry": "Tekrar dene",
+    "reload": "Yeniden yükle",
+    "search": "Ara…",
+    "copied": "Kopyalandı",
+    "later": "Sonra",
+    "details": "Ayrıntılar",
+    "copy": "Kopyala"
+  },
+  "tabs": {
+    "inspector": "İnceleyici",
+    "queries": "Sorgu İzleyici",
+    "migrations": "Migrasyonlar",
+    "reactivity": "Reaktiflik",
+    "license": "Lisans"
+  },
+  "header": {
+    "reloadDbs": "Veritabanlarını yenile",
+    "switchDb": "Veritabanı değiştir"
+  },
+  "conn": {
+    "title": "Uygulamayla bağlantı yok",
+    "subtitle": "Phorm Studio, phorm_devtools köprüsüne ulaşamıyor. Uygulamanın enablePhormDevtools(db) çağırdığından ve debug modunda çalıştığından emin olun."
+  },
+  "inspector": {
+    "tables": "TABLOLAR",
+    "deleted": "Silinenler",
+    "live": "Canlı",
+    "liveDesc": "Satırlar ve sayaçlar, uygulamadaki her veri değişikliğinde gerçek zamanlı güncellenir — elle yenileme gerekmez.",
+    "addRow": "Satır ekle",
+    "exportJson": "Tablo → JSON",
+    "exportCsv": "Tablo → CSV",
+    "exportDump": "Tüm veritabanı → JSON dökümü",
+    "exportTooltip": "Dışa aktar (Pro)",
+    "importTooltip": "JSON içe aktar (Pro)",
+    "reloadRows": "Yeniden yükle",
+    "selectTable": "Bir tablo seçin",
+    "selectTableSub": "Veritabanı tablolarınızın listesi solda.",
+    "emptyTable": "Tablo boş",
+    "emptyTableSub": "İlk kaydı oluşturmak için “Satır ekle”ye tıklayın.",
+    "loadError": "Veriler yüklenemedi",
+    "importTitle": "JSON içe aktar → {}",
+    "importHint": "Satırlardan oluşan bir JSON dizisi yapıştırın",
+    "imported": "İçe aktarılan satır: {}",
+    "importFailed": "İçe aktarma başarısız: {}",
+    "exportFailed": "Dışa aktarma başarısız: {}",
+    "import": "İçe aktar",
+    "fkOpen": "{} içinde aç (kopyalamak için sağ tık)",
+    "prevPage": "Önceki sayfa",
+    "nextPage": "Sonraki sayfa",
+    "delete": "Sil",
+    "deleteSoftSel": "Seçilenleri yumuşak sil",
+    "deleteHardSel": "Seçilenleri kalıcı sil",
+    "selected": "{} seçildi",
+    "deleteConfirm": "{} satır silinsin mi?",
+    "importJson": "JSON içe aktar",
+    "importCsv": "CSV içe aktar",
+    "importCsvHint": "CSV yapıştırın (ilk satır = başlıklar)"
+  },
+  "editor": {
+    "addTitle": "Satır ekle — {}",
+    "copyJson": "Satırı JSON olarak kopyala",
+    "null": "NULL",
+    "insert": "Ekle",
+    "save": "Kaydet",
+    "duplicate": "Çoğalt",
+    "softDelete": "Yumuşak silme",
+    "hardDelete": "Kalıcı silme",
+    "restore": "Geri yükle",
+    "genUuid": "UUID v4 üret",
+    "now": "Şimdi (ISO 8601, UTC)",
+    "pickDate": "Tarih ve saat seç",
+    "pickExisting": "Mevcut değerlerden seç",
+    "pickExistingTitle": "Mevcut değerler — {}",
+    "jsonInvalid": "Geçersiz JSON: {}",
+    "notNull": "Varsayılansız NOT NULL — bu alanı doldurun",
+    "notNullNull": "Sütun NOT NULL — NULL kabul edilmez",
+    "fkPickTitle": "{} — bir kayıt seçin",
+    "fkPick": "{} içinden seç",
+    "formatJson": "JSON'u biçimlendir",
+    "faker": "Rastgele değer",
+    "reset": "Sıfırla",
+    "showValue": "Göster",
+    "hideValue": "Gizle",
+    "pickColor": "Renk seç",
+    "increment": "Artır",
+    "decrement": "Azalt"
+  },
+  "queries": {
+    "feed": "Akış",
+    "profiler": "Profiler",
+    "pause": "Duraklat",
+    "resume": "Devam et",
+    "clear": "Temizle",
+    "paused": "duraklatıldı",
+    "count": "{} sorgu",
+    "emptyTitle": "Ortalık sakin",
+    "emptySub": "Uygulamada sorgu çalıştırın — süre ve durumla birlikte burada gerçek zamanlı görünürler.",
+    "explainTooltip": "EXPLAIN QUERY PLAN (Pro)",
+    "explainFeature": "EXPLAIN QUERY PLAN",
+    "explainDesc": "SQLite'ın sorguyu nasıl çalıştırdığını gösterir: indeks üzerinden mi yoksa tam tablo taramasıyla mı. Tam taramalar vurgulanır — indeksin nerede gerektiğine dair kesin ipucu."
+  },
+  "profiler": {
+    "total": "Toplam",
+    "errors": "Hatalar",
+    "p50hint": "Medyan: sorguların yarısı bundan daha hızlı.",
+    "p95hint": "Sorguların %95'i daha hızlı — en kötü durumu gösterir.",
+    "nplusone": "Olası N+1",
+    "slowest": "En yavaş",
+    "frequent": "En sık",
+    "nplusoneDesc": "N+1 gibi görünüyor: ilişkili veriyi tek sorguda almak için include / JOIN düşünün.",
+    "nplusoneBadge": "{}ms içinde {}×",
+    "emptyTitle": "Profil verisi yok",
+    "emptySub": "Uygulamada sorgu çalıştırın — oturum istatistikleri, N+1 tespiti ve sorgu planları burada görünür."
+  },
+  "explain": {
+    "title": "Sorgu Planı"
+  },
+  "migrations": {
+    "emptyTitle": "Henüz migrasyon yok",
+    "emptySub": "__phorm_migrations tablosundaki geçmiş, ilk migrasyondan sonra burada görünür.",
+    "errorTitle": "Migrasyon geçmişi kullanılamıyor"
+  },
+  "streams": {
+    "emptyTitle": "Aktif stream yok",
+    "emptySub": "Bağımlılıkları ve emit sayaçlarıyla birlikte aktif watchOne / watchAll abonelikleri burada görünür.",
+    "errorTitle": "Stream'ler alınamadı",
+    "emits": "{} emit"
+  },
+  "license": {
+    "free": "Free",
+    "proActive": "Pro etkin",
+    "account": "Hesap",
+    "until": "Geçerlilik",
+    "deactivate": "Bu makinede devre dışı bırak",
+    "hint": "Pro'yu açmak için bir anahtar etkinleştirin: EXPLAIN ile profiler, dışa/içe aktarma, veritabanı dökümü, Canlı mod ve reaktiflik izleme.",
+    "activate": "Etkinleştir",
+    "buy": "Lisans satın al",
+    "activated": "Lisans etkinleştirildi. Teşekkürler! 💜",
+    "expired": "Anahtarın süresi doldu.",
+    "invalid": "Anahtar geçersiz.",
+    "malformed": "Bu bir Phorm Studio anahtarına benzemiyor.",
+    "proFeature": "{} — bir Phorm Studio Pro özelliği"
+  },
+  "pro": {
+    "title": "Phorm Studio Pro",
+    "buy": "Pro satın al",
+    "haveKey": "Zaten anahtarınız var mı? Lisans sekmesinde etkinleştirin.",
+    "proDesc": "Veritabanınızla çalışmak için eksiksiz araç seti: profiler, dışa/içe aktarma, Canlı mod, reaktiflik izleme.",
+    "reactivityDesc": "Aktif watchOne/watchAll stream'lerinin monitörü: bağımlılıklar, emit sayaçları, sızıntı tespiti."
+  },
+  "lang": {
+    "title": "Dil"
+  }
+}

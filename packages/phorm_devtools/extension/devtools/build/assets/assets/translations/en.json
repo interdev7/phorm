@@ -1,0 +1,158 @@
+{
+  "common": {
+    "cancel": "Cancel",
+    "close": "Close",
+    "retry": "Retry",
+    "reload": "Reload",
+    "search": "Search…",
+    "copied": "Copied",
+    "later": "Later",
+    "details": "Details",
+    "copy": "Copy"
+  },
+  "tabs": {
+    "inspector": "Inspector",
+    "queries": "Query Monitor",
+    "migrations": "Migrations",
+    "reactivity": "Reactivity",
+    "license": "License"
+  },
+  "header": {
+    "reloadDbs": "Reload databases",
+    "switchDb": "Switch database"
+  },
+  "conn": {
+    "title": "No connection to the app",
+    "subtitle": "Phorm Studio can't reach the phorm_devtools bridge. Make sure the app calls enablePhormDevtools(db) and runs in debug mode."
+  },
+  "inspector": {
+    "tables": "TABLES",
+    "deleted": "Deleted",
+    "live": "Live",
+    "liveDesc": "Rows and counters update in real time on any data change in the app — no manual reload.",
+    "addRow": "Add row",
+    "exportJson": "Table → JSON",
+    "exportCsv": "Table → CSV",
+    "exportDump": "Whole DB → JSON dump",
+    "exportTooltip": "Export (Pro)",
+    "importTooltip": "Import JSON (Pro)",
+    "reloadRows": "Reload",
+    "selectTable": "Select a table",
+    "selectTableSub": "The list of your database tables is on the left.",
+    "emptyTable": "Table is empty",
+    "emptyTableSub": "Click “Add row” to create the first record.",
+    "loadError": "Failed to load data",
+    "importTitle": "Import JSON → {}",
+    "importHint": "Paste a JSON array of rows",
+    "imported": "Rows imported: {}",
+    "importFailed": "Import failed: {}",
+    "exportFailed": "Export failed: {}",
+    "import": "Import",
+    "fkOpen": "Open in {} (right-click to copy)",
+    "prevPage": "Previous page",
+    "nextPage": "Next page",
+    "delete": "Delete",
+    "deleteSoftSel": "Soft delete selected",
+    "deleteHardSel": "Hard delete selected",
+    "selected": "{} selected",
+    "deleteConfirm": "Delete {} row(s)?",
+    "importJson": "Import JSON",
+    "importCsv": "Import CSV",
+    "importCsvHint": "Paste CSV (first row = headers)"
+  },
+  "editor": {
+    "addTitle": "Add row — {}",
+    "copyJson": "Copy row as JSON",
+    "null": "NULL",
+    "insert": "Insert",
+    "save": "Save",
+    "duplicate": "Duplicate",
+    "softDelete": "Soft delete",
+    "hardDelete": "Hard delete",
+    "restore": "Restore",
+    "genUuid": "Generate UUID v4",
+    "now": "Now (ISO 8601, UTC)",
+    "pickDate": "Pick date & time",
+    "pickExisting": "Pick from existing values",
+    "pickExistingTitle": "Existing values — {}",
+    "jsonInvalid": "Invalid JSON: {}",
+    "notNull": "NOT NULL without default — fill this in",
+    "notNullNull": "Column is NOT NULL — NULL not allowed",
+    "fkPickTitle": "{} — select a record",
+    "fkPick": "Pick from {}",
+    "formatJson": "Format JSON",
+    "faker": "Random value",
+    "reset": "Reset to original",
+    "showValue": "Show",
+    "hideValue": "Hide",
+    "pickColor": "Pick color",
+    "increment": "Increment",
+    "decrement": "Decrement"
+  },
+  "queries": {
+    "feed": "Feed",
+    "profiler": "Profiler",
+    "pause": "Pause",
+    "resume": "Resume",
+    "clear": "Clear",
+    "paused": "paused",
+    "count": "{} queries",
+    "emptyTitle": "All quiet",
+    "emptySub": "Run queries in the app — they'll show up here in real time, with duration and status.",
+    "explainTooltip": "EXPLAIN QUERY PLAN (Pro)",
+    "explainFeature": "EXPLAIN QUERY PLAN",
+    "explainDesc": "Shows how SQLite runs the query: via an index or a full table scan. Full scans are highlighted — a precise hint of where an index is needed."
+  },
+  "profiler": {
+    "total": "Total",
+    "errors": "Errors",
+    "p50hint": "Median: half of the queries are faster than this.",
+    "p95hint": "95% of queries are faster than this — shows worst-case behavior.",
+    "nplusone": "Possible N+1",
+    "slowest": "Slowest",
+    "frequent": "Most frequent",
+    "nplusoneDesc": "Looks like N+1: consider include / JOIN to fetch related data in one query.",
+    "nplusoneBadge": "{}× in {}ms",
+    "emptyTitle": "No profiling data",
+    "emptySub": "Run queries in the app — session stats, N+1 detection and query plans will appear here."
+  },
+  "explain": {
+    "title": "Query Plan"
+  },
+  "migrations": {
+    "emptyTitle": "No migrations yet",
+    "emptySub": "History from the __phorm_migrations table will appear here after the first migration runs.",
+    "errorTitle": "Migration history unavailable"
+  },
+  "streams": {
+    "emptyTitle": "No active streams",
+    "emptySub": "Active watchOne / watchAll subscriptions with their dependencies and emit counts will appear here.",
+    "errorTitle": "Couldn't fetch streams",
+    "emits": "{} emits"
+  },
+  "license": {
+    "free": "Free",
+    "proActive": "Pro active",
+    "account": "Account",
+    "until": "Valid until",
+    "deactivate": "Deactivate on this machine",
+    "hint": "Activate a key to unlock Pro: profiler with EXPLAIN, export and import, DB dump, Live mode and reactivity monitoring.",
+    "activate": "Activate",
+    "buy": "Buy a license",
+    "activated": "License activated. Thank you! 💜",
+    "expired": "The key has expired.",
+    "invalid": "The key is invalid.",
+    "malformed": "This doesn't look like a Phorm Studio key.",
+    "proFeature": "{} — a Phorm Studio Pro feature"
+  },
+  "pro": {
+    "title": "Phorm Studio Pro",
+    "buy": "Buy Pro",
+    "haveKey": "Already have a key? Activate it on the License tab.",
+    "proDesc": "The full toolkit for working with your database: profiler, export/import, Live mode, reactivity monitoring.",
+    "reactivityDesc": "Monitor of active watchOne/watchAll streams: dependencies, emit counts, leak detection."
+  },
+  "lang": {
+    "title": "Language"
+  }
+}

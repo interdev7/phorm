@@ -1,0 +1,158 @@
+{
+  "common": {
+    "cancel": "إلغاء",
+    "close": "إغلاق",
+    "retry": "إعادة المحاولة",
+    "reload": "إعادة تحميل",
+    "search": "بحث…",
+    "copied": "تم النسخ",
+    "later": "لاحقًا",
+    "details": "التفاصيل",
+    "copy": "نسخ"
+  },
+  "tabs": {
+    "inspector": "المتصفّح",
+    "queries": "مراقب الاستعلامات",
+    "migrations": "الترحيلات",
+    "reactivity": "التفاعلية",
+    "license": "الترخيص"
+  },
+  "header": {
+    "reloadDbs": "إعادة تحميل قواعد البيانات",
+    "switchDb": "تبديل قاعدة البيانات"
+  },
+  "conn": {
+    "title": "لا يوجد اتصال بالتطبيق",
+    "subtitle": "لا يستطيع Phorm Studio الوصول إلى جسر phorm_devtools. تأكد من أن التطبيق يستدعي enablePhormDevtools(db) ويعمل في وضع التصحيح."
+  },
+  "inspector": {
+    "tables": "الجداول",
+    "deleted": "المحذوفة",
+    "live": "مباشر",
+    "liveDesc": "تتحدّث الصفوف والعدّادات في الوقت الفعلي عند أي تغيير في البيانات داخل التطبيق — دون إعادة تحميل يدوية.",
+    "addRow": "إضافة صف",
+    "exportJson": "الجدول ← JSON",
+    "exportCsv": "الجدول ← CSV",
+    "exportDump": "كامل قاعدة البيانات ← تفريغ JSON",
+    "exportTooltip": "تصدير (Pro)",
+    "importTooltip": "استيراد JSON (Pro)",
+    "reloadRows": "إعادة تحميل",
+    "selectTable": "اختر جدولاً",
+    "selectTableSub": "قائمة جداول قاعدة بياناتك على اليسار.",
+    "emptyTable": "الجدول فارغ",
+    "emptyTableSub": "انقر «إضافة صف» لإنشاء أول سجل.",
+    "loadError": "فشل تحميل البيانات",
+    "importTitle": "استيراد JSON ← {}",
+    "importHint": "الصق مصفوفة JSON من الصفوف",
+    "imported": "الصفوف المستوردة: {}",
+    "importFailed": "فشل الاستيراد: {}",
+    "exportFailed": "فشل التصدير: {}",
+    "import": "استيراد",
+    "fkOpen": "فتح في {} (نقر يمين للنسخ)",
+    "prevPage": "الصفحة السابقة",
+    "nextPage": "الصفحة التالية",
+    "delete": "حذف",
+    "deleteSoftSel": "حذف ناعم للمحدد",
+    "deleteHardSel": "حذف نهائي للمحدد",
+    "selected": "تم تحديد {}",
+    "deleteConfirm": "حذف {} صف؟",
+    "importJson": "استيراد JSON",
+    "importCsv": "استيراد CSV",
+    "importCsvHint": "الصق CSV (الصف الأول = العناوين)"
+  },
+  "editor": {
+    "addTitle": "إضافة صف — {}",
+    "copyJson": "نسخ الصف كـ JSON",
+    "null": "NULL",
+    "insert": "إدراج",
+    "save": "حفظ",
+    "duplicate": "تكرار",
+    "softDelete": "حذف ناعم",
+    "hardDelete": "حذف نهائي",
+    "restore": "استعادة",
+    "genUuid": "توليد UUID v4",
+    "now": "الآن (ISO 8601، UTC)",
+    "pickDate": "اختر التاريخ والوقت",
+    "pickExisting": "اختر من القيم الموجودة",
+    "pickExistingTitle": "القيم الموجودة — {}",
+    "jsonInvalid": "JSON غير صالح: {}",
+    "notNull": "NOT NULL بدون قيمة افتراضية — املأ هذا الحقل",
+    "notNullNull": "العمود NOT NULL — لا يُسمح بـ NULL",
+    "fkPickTitle": "{} — اختر سجلاً",
+    "fkPick": "اختر من {}",
+    "formatJson": "تنسيق JSON",
+    "faker": "قيمة عشوائية",
+    "reset": "إعادة تعيين",
+    "showValue": "إظهار",
+    "hideValue": "إخفاء",
+    "pickColor": "اختر لونًا",
+    "increment": "زيادة",
+    "decrement": "إنقاص"
+  },
+  "queries": {
+    "feed": "التدفّق",
+    "profiler": "المحلّل",
+    "pause": "إيقاف مؤقت",
+    "resume": "استئناف",
+    "clear": "مسح",
+    "paused": "متوقف",
+    "count": "{} استعلام",
+    "emptyTitle": "كل شيء هادئ",
+    "emptySub": "نفّذ استعلامات في التطبيق — ستظهر هنا في الوقت الفعلي مع المدة والحالة.",
+    "explainTooltip": "EXPLAIN QUERY PLAN (Pro)",
+    "explainFeature": "EXPLAIN QUERY PLAN",
+    "explainDesc": "يوضّح كيف ينفّذ SQLite الاستعلام: عبر فهرس أم بمسح كامل للجدول. تُبرَز عمليات المسح الكامل — تلميح دقيق لمكان الحاجة إلى فهرس."
+  },
+  "profiler": {
+    "total": "الإجمالي",
+    "errors": "الأخطاء",
+    "p50hint": "الوسيط: نصف الاستعلامات أسرع من هذا.",
+    "p95hint": "95% من الاستعلامات أسرع — يوضّح السلوك في أسوأ الحالات.",
+    "nplusone": "احتمال N+1",
+    "slowest": "الأبطأ",
+    "frequent": "الأكثر تكرارًا",
+    "nplusoneDesc": "يبدو كـ N+1: فكّر في include / JOIN لجلب البيانات المرتبطة في استعلام واحد.",
+    "nplusoneBadge": "{}× خلال {}ms",
+    "emptyTitle": "لا توجد بيانات تحليل",
+    "emptySub": "نفّذ استعلامات في التطبيق — ستظهر هنا إحصاءات الجلسة وكشف N+1 وخطط التنفيذ."
+  },
+  "explain": {
+    "title": "خطة الاستعلام"
+  },
+  "migrations": {
+    "emptyTitle": "لا توجد ترحيلات بعد",
+    "emptySub": "سيظهر هنا سجلّ جدول __phorm_migrations بعد تنفيذ أول ترحيل.",
+    "errorTitle": "سجلّ الترحيلات غير متاح"
+  },
+  "streams": {
+    "emptyTitle": "لا توجد تدفّقات نشطة",
+    "emptySub": "ستظهر هنا اشتراكات watchOne / watchAll النشطة مع تبعياتها وعدّادات الإصدار.",
+    "errorTitle": "تعذّر جلب التدفّقات",
+    "emits": "{} إصدار"
+  },
+  "license": {
+    "free": "مجاني",
+    "proActive": "Pro مُفعّل",
+    "account": "الحساب",
+    "until": "صالح حتى",
+    "deactivate": "إلغاء التفعيل على هذا الجهاز",
+    "hint": "فعّل مفتاحًا لفتح Pro: المحلّل مع EXPLAIN، التصدير والاستيراد، تفريغ قاعدة البيانات، الوضع المباشر ومراقبة التفاعلية.",
+    "activate": "تفعيل",
+    "buy": "شراء ترخيص",
+    "activated": "تم تفعيل الترخيص. شكرًا! 💜",
+    "expired": "انتهت صلاحية المفتاح.",
+    "invalid": "المفتاح غير صالح.",
+    "malformed": "لا يبدو هذا مفتاح Phorm Studio.",
+    "proFeature": "{} — ميزة في Phorm Studio Pro"
+  },
+  "pro": {
+    "title": "Phorm Studio Pro",
+    "buy": "شراء Pro",
+    "haveKey": "لديك مفتاح بالفعل؟ فعّله من تبويب الترخيص.",
+    "proDesc": "مجموعة أدوات كاملة للعمل مع قاعدة بياناتك: المحلّل، التصدير/الاستيراد، الوضع المباشر، ومراقبة التفاعلية.",
+    "reactivityDesc": "مراقب لتدفّقات watchOne/watchAll النشطة: التبعيات، عدّادات الإصدار، كشف التسريبات."
+  },
+  "lang": {
+    "title": "اللغة"
+  }
+}

@@ -1,0 +1,158 @@
+{
+  "common": {
+    "cancel": "Abbrechen",
+    "close": "Schließen",
+    "retry": "Wiederholen",
+    "reload": "Neu laden",
+    "search": "Suchen…",
+    "copied": "Kopiert",
+    "later": "Später",
+    "details": "Details",
+    "copy": "Kopieren"
+  },
+  "tabs": {
+    "inspector": "Inspektor",
+    "queries": "Query-Monitor",
+    "migrations": "Migrationen",
+    "reactivity": "Reaktivität",
+    "license": "Lizenz"
+  },
+  "header": {
+    "reloadDbs": "Datenbanken neu laden",
+    "switchDb": "Datenbank wechseln"
+  },
+  "conn": {
+    "title": "Keine Verbindung zur App",
+    "subtitle": "Phorm Studio erreicht die phorm_devtools-Bridge nicht. Stelle sicher, dass die App enablePhormDevtools(db) aufruft und im Debug-Modus läuft."
+  },
+  "inspector": {
+    "tables": "TABELLEN",
+    "deleted": "Gelöschte",
+    "live": "Live",
+    "liveDesc": "Zeilen und Zähler aktualisieren sich in Echtzeit bei jeder Datenänderung in der App — ohne manuelles Neuladen.",
+    "addRow": "Zeile hinzufügen",
+    "exportJson": "Tabelle → JSON",
+    "exportCsv": "Tabelle → CSV",
+    "exportDump": "Ganze DB → JSON-Dump",
+    "exportTooltip": "Exportieren (Pro)",
+    "importTooltip": "JSON importieren (Pro)",
+    "reloadRows": "Neu laden",
+    "selectTable": "Tabelle auswählen",
+    "selectTableSub": "Die Liste deiner Datenbanktabellen ist links.",
+    "emptyTable": "Tabelle ist leer",
+    "emptyTableSub": "Klicke auf „Zeile hinzufügen“, um den ersten Datensatz zu erstellen.",
+    "loadError": "Daten konnten nicht geladen werden",
+    "importTitle": "JSON importieren → {}",
+    "importHint": "Füge ein JSON-Array von Zeilen ein",
+    "imported": "Importierte Zeilen: {}",
+    "importFailed": "Import fehlgeschlagen: {}",
+    "exportFailed": "Export fehlgeschlagen: {}",
+    "import": "Importieren",
+    "fkOpen": "In {} öffnen (Rechtsklick zum Kopieren)",
+    "prevPage": "Vorherige Seite",
+    "nextPage": "Nächste Seite",
+    "delete": "Löschen",
+    "deleteSoftSel": "Ausgewählte weich löschen",
+    "deleteHardSel": "Ausgewählte endgültig löschen",
+    "selected": "{} ausgewählt",
+    "deleteConfirm": "{} Zeile(n) löschen?",
+    "importJson": "JSON importieren",
+    "importCsv": "CSV importieren",
+    "importCsvHint": "CSV einfügen (erste Zeile = Kopf)"
+  },
+  "editor": {
+    "addTitle": "Zeile hinzufügen — {}",
+    "copyJson": "Zeile als JSON kopieren",
+    "null": "NULL",
+    "insert": "Einfügen",
+    "save": "Speichern",
+    "duplicate": "Duplizieren",
+    "softDelete": "Weich löschen",
+    "hardDelete": "Endgültig löschen",
+    "restore": "Wiederherstellen",
+    "genUuid": "UUID v4 generieren",
+    "now": "Jetzt (ISO 8601, UTC)",
+    "pickDate": "Datum & Uhrzeit wählen",
+    "pickExisting": "Aus vorhandenen Werten wählen",
+    "pickExistingTitle": "Vorhandene Werte — {}",
+    "jsonInvalid": "Ungültiges JSON: {}",
+    "notNull": "NOT NULL ohne Default — bitte ausfüllen",
+    "notNullNull": "Spalte ist NOT NULL — NULL nicht erlaubt",
+    "fkPickTitle": "{} — Datensatz auswählen",
+    "fkPick": "Aus {} wählen",
+    "formatJson": "JSON formatieren",
+    "faker": "Zufallswert",
+    "reset": "Zurücksetzen",
+    "showValue": "Anzeigen",
+    "hideValue": "Verbergen",
+    "pickColor": "Farbe wählen",
+    "increment": "Erhöhen",
+    "decrement": "Verringern"
+  },
+  "queries": {
+    "feed": "Feed",
+    "profiler": "Profiler",
+    "pause": "Pause",
+    "resume": "Fortsetzen",
+    "clear": "Leeren",
+    "paused": "pausiert",
+    "count": "{} Abfragen",
+    "emptyTitle": "Alles ruhig",
+    "emptySub": "Führe Abfragen in der App aus — sie erscheinen hier in Echtzeit, mit Dauer und Status.",
+    "explainTooltip": "EXPLAIN QUERY PLAN (Pro)",
+    "explainFeature": "EXPLAIN QUERY PLAN",
+    "explainDesc": "Zeigt, wie SQLite die Abfrage ausführt: über einen Index oder einen vollständigen Table-Scan. Full-Scans werden hervorgehoben — ein präziser Hinweis, wo ein Index nötig ist."
+  },
+  "profiler": {
+    "total": "Gesamt",
+    "errors": "Fehler",
+    "p50hint": "Median: die Hälfte der Abfragen ist schneller als dieser Wert.",
+    "p95hint": "95% der Abfragen sind schneller — zeigt das Verhalten im schlechtesten Fall.",
+    "nplusone": "Mögliches N+1",
+    "slowest": "Langsamste",
+    "frequent": "Häufigste",
+    "nplusoneDesc": "Sieht nach N+1 aus: erwäge include / JOIN, um verwandte Daten in einer Abfrage zu laden.",
+    "nplusoneBadge": "{}× in {}ms",
+    "emptyTitle": "Keine Profiling-Daten",
+    "emptySub": "Führe Abfragen in der App aus — Sitzungsstatistik, N+1-Erkennung und Query-Pläne erscheinen hier."
+  },
+  "explain": {
+    "title": "Query-Plan"
+  },
+  "migrations": {
+    "emptyTitle": "Noch keine Migrationen",
+    "emptySub": "Der Verlauf aus der Tabelle __phorm_migrations erscheint hier nach der ersten Migration.",
+    "errorTitle": "Migrationsverlauf nicht verfügbar"
+  },
+  "streams": {
+    "emptyTitle": "Keine aktiven Streams",
+    "emptySub": "Aktive watchOne / watchAll-Abonnements mit ihren Abhängigkeiten und Emit-Zählern erscheinen hier.",
+    "errorTitle": "Streams konnten nicht geladen werden",
+    "emits": "{} Emits"
+  },
+  "license": {
+    "free": "Free",
+    "proActive": "Pro aktiv",
+    "account": "Konto",
+    "until": "Gültig bis",
+    "deactivate": "Auf diesem Gerät deaktivieren",
+    "hint": "Aktiviere einen Schlüssel, um Pro freizuschalten: Profiler mit EXPLAIN, Export und Import, DB-Dump, Live-Modus und Reaktivitäts-Monitoring.",
+    "activate": "Aktivieren",
+    "buy": "Lizenz kaufen",
+    "activated": "Lizenz aktiviert. Danke! 💜",
+    "expired": "Der Schlüssel ist abgelaufen.",
+    "invalid": "Der Schlüssel ist ungültig.",
+    "malformed": "Das sieht nicht nach einem Phorm-Studio-Schlüssel aus.",
+    "proFeature": "{} — eine Phorm Studio Pro-Funktion"
+  },
+  "pro": {
+    "title": "Phorm Studio Pro",
+    "buy": "Pro kaufen",
+    "haveKey": "Schon einen Schlüssel? Aktiviere ihn im Tab „Lizenz“.",
+    "proDesc": "Das komplette Toolkit für die Arbeit mit deiner Datenbank: Profiler, Export/Import, Live-Modus, Reaktivitäts-Monitoring.",
+    "reactivityDesc": "Monitor aktiver watchOne/watchAll-Streams: Abhängigkeiten, Emit-Zähler, Leak-Erkennung."
+  },
+  "lang": {
+    "title": "Sprache"
+  }
+}

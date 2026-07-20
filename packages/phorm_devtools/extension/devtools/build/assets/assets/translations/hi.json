@@ -1,0 +1,158 @@
+{
+  "common": {
+    "cancel": "रद्द करें",
+    "close": "बंद करें",
+    "retry": "पुनः प्रयास",
+    "reload": "पुनः लोड",
+    "search": "खोजें…",
+    "copied": "कॉपी हो गया",
+    "later": "बाद में",
+    "details": "विवरण",
+    "copy": "कॉपी"
+  },
+  "tabs": {
+    "inspector": "इंस्पेक्टर",
+    "queries": "क्वेरी मॉनिटर",
+    "migrations": "माइग्रेशन",
+    "reactivity": "रिएक्टिविटी",
+    "license": "लाइसेंस"
+  },
+  "header": {
+    "reloadDbs": "डेटाबेस पुनः लोड करें",
+    "switchDb": "डेटाबेस बदलें"
+  },
+  "conn": {
+    "title": "ऐप से कनेक्शन नहीं",
+    "subtitle": "Phorm Studio, phorm_devtools ब्रिज तक नहीं पहुँच पा रहा। सुनिश्चित करें कि ऐप enablePhormDevtools(db) कॉल करता है और डीबग मोड में चल रहा है।"
+  },
+  "inspector": {
+    "tables": "टेबल",
+    "deleted": "हटाए गए",
+    "live": "लाइव",
+    "liveDesc": "ऐप में किसी भी डेटा बदलाव पर पंक्तियाँ और काउंटर रीयल-टाइम में अपडेट होते हैं — मैन्युअल रीलोड के बिना।",
+    "addRow": "पंक्ति जोड़ें",
+    "exportJson": "टेबल → JSON",
+    "exportCsv": "टेबल → CSV",
+    "exportDump": "पूरा DB → JSON डंप",
+    "exportTooltip": "एक्सपोर्ट (Pro)",
+    "importTooltip": "JSON इम्पोर्ट (Pro)",
+    "reloadRows": "पुनः लोड",
+    "selectTable": "एक टेबल चुनें",
+    "selectTableSub": "आपके डेटाबेस की टेबल की सूची बाईं ओर है।",
+    "emptyTable": "टेबल खाली है",
+    "emptyTableSub": "पहला रिकॉर्ड बनाने के लिए “पंक्ति जोड़ें” पर क्लिक करें।",
+    "loadError": "डेटा लोड करने में विफल",
+    "importTitle": "JSON इम्पोर्ट → {}",
+    "importHint": "पंक्तियों का JSON ऐरे पेस्ट करें",
+    "imported": "इम्पोर्ट की गई पंक्तियाँ: {}",
+    "importFailed": "इम्पोर्ट विफल: {}",
+    "exportFailed": "एक्सपोर्ट विफल: {}",
+    "import": "इम्पोर्ट",
+    "fkOpen": "{} में खोलें (कॉपी के लिए राइट-क्लिक)",
+    "prevPage": "पिछला पृष्ठ",
+    "nextPage": "अगला पृष्ठ",
+    "delete": "हटाएं",
+    "deleteSoftSel": "चयनित को सॉफ्ट डिलीट",
+    "deleteHardSel": "चयनित को हार्ड डिलीट",
+    "selected": "{} चयनित",
+    "deleteConfirm": "{} पंक्ति हटाएं?",
+    "importJson": "JSON इम्पोर्ट",
+    "importCsv": "CSV इम्पोर्ट",
+    "importCsvHint": "CSV पेस्ट करें (पहली पंक्ति = हेडर)"
+  },
+  "editor": {
+    "addTitle": "पंक्ति जोड़ें — {}",
+    "copyJson": "पंक्ति को JSON के रूप में कॉपी करें",
+    "null": "NULL",
+    "insert": "इन्सर्ट",
+    "save": "सहेजें",
+    "duplicate": "डुप्लिकेट",
+    "softDelete": "सॉफ्ट डिलीट",
+    "hardDelete": "हार्ड डिलीट",
+    "restore": "पुनर्स्थापित करें",
+    "genUuid": "UUID v4 जेनरेट करें",
+    "now": "अभी (ISO 8601, UTC)",
+    "pickDate": "तारीख और समय चुनें",
+    "pickExisting": "मौजूदा मानों में से चुनें",
+    "pickExistingTitle": "मौजूदा मान — {}",
+    "jsonInvalid": "अमान्य JSON: {}",
+    "notNull": "डिफ़ॉल्ट के बिना NOT NULL — इसे भरें",
+    "notNullNull": "कॉलम NOT NULL है — NULL अनुमत नहीं",
+    "fkPickTitle": "{} — एक रिकॉर्ड चुनें",
+    "fkPick": "{} में से चुनें",
+    "formatJson": "JSON फ़ॉर्मैट करें",
+    "faker": "यादृच्छिक मान",
+    "reset": "रीसेट करें",
+    "showValue": "दिखाएं",
+    "hideValue": "छिपाएं",
+    "pickColor": "रंग चुनें",
+    "increment": "बढ़ाएं",
+    "decrement": "घटाएं"
+  },
+  "queries": {
+    "feed": "फ़ीड",
+    "profiler": "प्रोफ़ाइलर",
+    "pause": "रोकें",
+    "resume": "जारी रखें",
+    "clear": "साफ़ करें",
+    "paused": "रुका हुआ",
+    "count": "{} क्वेरी",
+    "emptyTitle": "सब शांत है",
+    "emptySub": "ऐप में क्वेरी चलाएँ — वे यहाँ रीयल-टाइम में अवधि और स्थिति के साथ दिखेंगी।",
+    "explainTooltip": "EXPLAIN QUERY PLAN (Pro)",
+    "explainFeature": "EXPLAIN QUERY PLAN",
+    "explainDesc": "दिखाता है कि SQLite क्वेरी को कैसे चलाता है: इंडेक्स से या पूरे टेबल स्कैन से। पूर्ण स्कैन हाइलाइट होते हैं — कहाँ इंडेक्स चाहिए इसका सटीक संकेत।"
+  },
+  "profiler": {
+    "total": "कुल",
+    "errors": "त्रुटियाँ",
+    "p50hint": "मध्यिका: आधी क्वेरी इससे तेज़ हैं।",
+    "p95hint": "95% क्वेरी इससे तेज़ हैं — सबसे खराब स्थिति का व्यवहार दिखाता है।",
+    "nplusone": "संभावित N+1",
+    "slowest": "सबसे धीमी",
+    "frequent": "सबसे बार-बार",
+    "nplusoneDesc": "N+1 जैसा लगता है: संबंधित डेटा एक ही क्वेरी में लाने के लिए include / JOIN पर विचार करें।",
+    "nplusoneBadge": "{}ms में {}×",
+    "emptyTitle": "कोई प्रोफ़ाइलिंग डेटा नहीं",
+    "emptySub": "ऐप में क्वेरी चलाएँ — यहाँ सत्र आँकड़े, N+1 पहचान और क्वेरी योजनाएँ दिखेंगी।"
+  },
+  "explain": {
+    "title": "क्वेरी योजना"
+  },
+  "migrations": {
+    "emptyTitle": "अभी कोई माइग्रेशन नहीं",
+    "emptySub": "पहले माइग्रेशन के बाद __phorm_migrations टेबल का इतिहास यहाँ दिखेगा।",
+    "errorTitle": "माइग्रेशन इतिहास उपलब्ध नहीं"
+  },
+  "streams": {
+    "emptyTitle": "कोई सक्रिय स्ट्रीम नहीं",
+    "emptySub": "सक्रिय watchOne / watchAll सब्सक्रिप्शन उनकी निर्भरताओं और एमिट काउंट के साथ यहाँ दिखेंगे।",
+    "errorTitle": "स्ट्रीम प्राप्त नहीं हो सके",
+    "emits": "{} एमिट"
+  },
+  "license": {
+    "free": "निःशुल्क",
+    "proActive": "Pro सक्रिय",
+    "account": "खाता",
+    "until": "वैध तक",
+    "deactivate": "इस मशीन पर निष्क्रिय करें",
+    "hint": "Pro अनलॉक करने के लिए कुंजी सक्रिय करें: EXPLAIN के साथ प्रोफ़ाइलर, एक्सपोर्ट और इम्पोर्ट, DB डंप, लाइव मोड और रिएक्टिविटी मॉनिटरिंग।",
+    "activate": "सक्रिय करें",
+    "buy": "लाइसेंस खरीदें",
+    "activated": "लाइसेंस सक्रिय हो गया। धन्यवाद! 💜",
+    "expired": "कुंजी की समय-सीमा समाप्त।",
+    "invalid": "कुंजी अमान्य है।",
+    "malformed": "यह Phorm Studio कुंजी जैसी नहीं लगती।",
+    "proFeature": "{} — एक Phorm Studio Pro सुविधा"
+  },
+  "pro": {
+    "title": "Phorm Studio Pro",
+    "buy": "Pro खरीदें",
+    "haveKey": "पहले से कुंजी है? इसे लाइसेंस टैब में सक्रिय करें।",
+    "proDesc": "आपके डेटाबेस के साथ काम करने के लिए पूर्ण टूलकिट: प्रोफ़ाइलर, एक्सपोर्ट/इम्पोर्ट, लाइव मोड, रिएक्टिविटी मॉनिटरिंग।",
+    "reactivityDesc": "सक्रिय watchOne/watchAll स्ट्रीम का मॉनिटर: निर्भरताएँ, एमिट काउंट, लीक पहचान।"
+  },
+  "lang": {
+    "title": "भाषा"
+  }
+}

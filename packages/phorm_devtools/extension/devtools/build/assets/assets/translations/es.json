@@ -1,0 +1,158 @@
+{
+  "common": {
+    "cancel": "Cancelar",
+    "close": "Cerrar",
+    "retry": "Reintentar",
+    "reload": "Recargar",
+    "search": "Buscar…",
+    "copied": "Copiado",
+    "later": "Después",
+    "details": "Detalles",
+    "copy": "Copiar"
+  },
+  "tabs": {
+    "inspector": "Inspector",
+    "queries": "Monitor de consultas",
+    "migrations": "Migraciones",
+    "reactivity": "Reactividad",
+    "license": "Licencia"
+  },
+  "header": {
+    "reloadDbs": "Recargar bases de datos",
+    "switchDb": "Cambiar base de datos"
+  },
+  "conn": {
+    "title": "Sin conexión con la app",
+    "subtitle": "Phorm Studio no puede alcanzar el puente phorm_devtools. Asegúrate de que la app llame a enablePhormDevtools(db) y se ejecute en modo debug."
+  },
+  "inspector": {
+    "tables": "TABLAS",
+    "deleted": "Eliminados",
+    "live": "Live",
+    "liveDesc": "Las filas y los contadores se actualizan en tiempo real ante cualquier cambio de datos en la app — sin recargar manualmente.",
+    "addRow": "Añadir fila",
+    "exportJson": "Tabla → JSON",
+    "exportCsv": "Tabla → CSV",
+    "exportDump": "Toda la BD → volcado JSON",
+    "exportTooltip": "Exportar (Pro)",
+    "importTooltip": "Importar JSON (Pro)",
+    "reloadRows": "Recargar",
+    "selectTable": "Selecciona una tabla",
+    "selectTableSub": "La lista de tus tablas está a la izquierda.",
+    "emptyTable": "La tabla está vacía",
+    "emptyTableSub": "Pulsa «Añadir fila» para crear el primer registro.",
+    "loadError": "No se pudieron cargar los datos",
+    "importTitle": "Importar JSON → {}",
+    "importHint": "Pega un array JSON de filas",
+    "imported": "Filas importadas: {}",
+    "importFailed": "Error al importar: {}",
+    "exportFailed": "Error al exportar: {}",
+    "import": "Importar",
+    "fkOpen": "Abrir en {} (clic derecho para copiar)",
+    "prevPage": "Página anterior",
+    "nextPage": "Página siguiente",
+    "delete": "Eliminar",
+    "deleteSoftSel": "Borrado lógico de la selección",
+    "deleteHardSel": "Borrado físico de la selección",
+    "selected": "{} seleccionados",
+    "deleteConfirm": "¿Eliminar {} fila(s)?",
+    "importJson": "Importar JSON",
+    "importCsv": "Importar CSV",
+    "importCsvHint": "Pega CSV (primera fila = encabezados)"
+  },
+  "editor": {
+    "addTitle": "Añadir fila — {}",
+    "copyJson": "Copiar fila como JSON",
+    "null": "NULL",
+    "insert": "Insertar",
+    "save": "Guardar",
+    "duplicate": "Duplicar",
+    "softDelete": "Borrado lógico",
+    "hardDelete": "Borrado físico",
+    "restore": "Restaurar",
+    "genUuid": "Generar UUID v4",
+    "now": "Ahora (ISO 8601, UTC)",
+    "pickDate": "Elegir fecha y hora",
+    "pickExisting": "Elegir de valores existentes",
+    "pickExistingTitle": "Valores existentes — {}",
+    "jsonInvalid": "JSON no válido: {}",
+    "notNull": "NOT NULL sin valor por defecto — complétalo",
+    "notNullNull": "La columna es NOT NULL — NULL no permitido",
+    "fkPickTitle": "{} — selecciona un registro",
+    "fkPick": "Elegir de {}",
+    "formatJson": "Formatear JSON",
+    "faker": "Valor aleatorio",
+    "reset": "Restablecer",
+    "showValue": "Mostrar",
+    "hideValue": "Ocultar",
+    "pickColor": "Elegir color",
+    "increment": "Incrementar",
+    "decrement": "Decrementar"
+  },
+  "queries": {
+    "feed": "Feed",
+    "profiler": "Profiler",
+    "pause": "Pausar",
+    "resume": "Reanudar",
+    "clear": "Limpiar",
+    "paused": "en pausa",
+    "count": "{} consultas",
+    "emptyTitle": "Todo tranquilo",
+    "emptySub": "Ejecuta consultas en la app — aparecerán aquí en tiempo real, con duración y estado.",
+    "explainTooltip": "EXPLAIN QUERY PLAN (Pro)",
+    "explainFeature": "EXPLAIN QUERY PLAN",
+    "explainDesc": "Muestra cómo SQLite ejecuta la consulta: por índice o con un escaneo completo de la tabla. Los escaneos completos se resaltan — una pista precisa de dónde falta un índice."
+  },
+  "profiler": {
+    "total": "Total",
+    "errors": "Errores",
+    "p50hint": "Mediana: la mitad de las consultas son más rápidas que esto.",
+    "p95hint": "El 95% de las consultas son más rápidas — muestra el peor caso.",
+    "nplusone": "Posible N+1",
+    "slowest": "Más lentas",
+    "frequent": "Más frecuentes",
+    "nplusoneDesc": "Parece N+1: considera include / JOIN para traer los datos relacionados en una sola consulta.",
+    "nplusoneBadge": "{}× en {}ms",
+    "emptyTitle": "Sin datos de profiling",
+    "emptySub": "Ejecuta consultas en la app — aquí aparecerán estadísticas de sesión, detección de N+1 y planes de consulta."
+  },
+  "explain": {
+    "title": "Plan de consulta"
+  },
+  "migrations": {
+    "emptyTitle": "Aún no hay migraciones",
+    "emptySub": "El historial de la tabla __phorm_migrations aparecerá aquí tras la primera migración.",
+    "errorTitle": "Historial de migraciones no disponible"
+  },
+  "streams": {
+    "emptyTitle": "No hay streams activos",
+    "emptySub": "Las suscripciones watchOne / watchAll activas con sus dependencias y contadores de emisiones aparecerán aquí.",
+    "errorTitle": "No se pudieron obtener los streams",
+    "emits": "{} emisiones"
+  },
+  "license": {
+    "free": "Free",
+    "proActive": "Pro activo",
+    "account": "Cuenta",
+    "until": "Válido hasta",
+    "deactivate": "Desactivar en esta máquina",
+    "hint": "Activa una clave para desbloquear Pro: profiler con EXPLAIN, exportar e importar, volcado de BD, modo Live y monitorización de reactividad.",
+    "activate": "Activar",
+    "buy": "Comprar licencia",
+    "activated": "Licencia activada. ¡Gracias! 💜",
+    "expired": "La clave ha caducado.",
+    "invalid": "La clave no es válida.",
+    "malformed": "Esto no parece una clave de Phorm Studio.",
+    "proFeature": "{} — una función de Phorm Studio Pro"
+  },
+  "pro": {
+    "title": "Phorm Studio Pro",
+    "buy": "Comprar Pro",
+    "haveKey": "¿Ya tienes una clave? Actívala en la pestaña Licencia.",
+    "proDesc": "El conjunto completo de herramientas para trabajar con tu base de datos: profiler, exportar/importar, modo Live, monitorización de reactividad.",
+    "reactivityDesc": "Monitor de streams watchOne/watchAll activos: dependencias, contadores de emisiones, detección de fugas."
+  },
+  "lang": {
+    "title": "Idioma"
+  }
+}

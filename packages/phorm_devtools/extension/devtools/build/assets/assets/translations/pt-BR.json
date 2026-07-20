@@ -1,0 +1,158 @@
+{
+  "common": {
+    "cancel": "Cancelar",
+    "close": "Fechar",
+    "retry": "Tentar novamente",
+    "reload": "Recarregar",
+    "search": "Buscar…",
+    "copied": "Copiado",
+    "later": "Depois",
+    "details": "Detalhes",
+    "copy": "Copiar"
+  },
+  "tabs": {
+    "inspector": "Inspetor",
+    "queries": "Monitor de consultas",
+    "migrations": "Migrações",
+    "reactivity": "Reatividade",
+    "license": "Licença"
+  },
+  "header": {
+    "reloadDbs": "Recarregar bancos",
+    "switchDb": "Trocar de banco"
+  },
+  "conn": {
+    "title": "Sem conexão com o app",
+    "subtitle": "O Phorm Studio não consegue acessar a ponte phorm_devtools. Verifique se o app chama enablePhormDevtools(db) e roda em modo debug."
+  },
+  "inspector": {
+    "tables": "TABELAS",
+    "deleted": "Excluídos",
+    "live": "Live",
+    "liveDesc": "Linhas e contadores atualizam em tempo real a cada mudança de dados no app — sem recarregar manualmente.",
+    "addRow": "Adicionar linha",
+    "exportJson": "Tabela → JSON",
+    "exportCsv": "Tabela → CSV",
+    "exportDump": "Todo o banco → dump JSON",
+    "exportTooltip": "Exportar (Pro)",
+    "importTooltip": "Importar JSON (Pro)",
+    "reloadRows": "Recarregar",
+    "selectTable": "Selecione uma tabela",
+    "selectTableSub": "A lista das suas tabelas está à esquerda.",
+    "emptyTable": "A tabela está vazia",
+    "emptyTableSub": "Clique em “Adicionar linha” para criar o primeiro registro.",
+    "loadError": "Falha ao carregar os dados",
+    "importTitle": "Importar JSON → {}",
+    "importHint": "Cole um array JSON de linhas",
+    "imported": "Linhas importadas: {}",
+    "importFailed": "Falha na importação: {}",
+    "exportFailed": "Falha na exportação: {}",
+    "import": "Importar",
+    "fkOpen": "Abrir em {} (clique direito para copiar)",
+    "prevPage": "Página anterior",
+    "nextPage": "Próxima página",
+    "delete": "Excluir",
+    "deleteSoftSel": "Exclusão lógica dos selecionados",
+    "deleteHardSel": "Exclusão física dos selecionados",
+    "selected": "{} selecionados",
+    "deleteConfirm": "Excluir {} linha(s)?",
+    "importJson": "Importar JSON",
+    "importCsv": "Importar CSV",
+    "importCsvHint": "Cole o CSV (primeira linha = cabeçalhos)"
+  },
+  "editor": {
+    "addTitle": "Adicionar linha — {}",
+    "copyJson": "Copiar linha como JSON",
+    "null": "NULL",
+    "insert": "Inserir",
+    "save": "Salvar",
+    "duplicate": "Duplicar",
+    "softDelete": "Exclusão lógica",
+    "hardDelete": "Exclusão física",
+    "restore": "Restaurar",
+    "genUuid": "Gerar UUID v4",
+    "now": "Agora (ISO 8601, UTC)",
+    "pickDate": "Escolher data e hora",
+    "pickExisting": "Escolher de valores existentes",
+    "pickExistingTitle": "Valores existentes — {}",
+    "jsonInvalid": "JSON inválido: {}",
+    "notNull": "NOT NULL sem default — preencha este campo",
+    "notNullNull": "Coluna é NOT NULL — NULL não permitido",
+    "fkPickTitle": "{} — selecione um registro",
+    "fkPick": "Escolher de {}",
+    "formatJson": "Formatar JSON",
+    "faker": "Valor aleatório",
+    "reset": "Redefinir",
+    "showValue": "Mostrar",
+    "hideValue": "Ocultar",
+    "pickColor": "Escolher cor",
+    "increment": "Incrementar",
+    "decrement": "Decrementar"
+  },
+  "queries": {
+    "feed": "Feed",
+    "profiler": "Profiler",
+    "pause": "Pausar",
+    "resume": "Retomar",
+    "clear": "Limpar",
+    "paused": "pausado",
+    "count": "{} consultas",
+    "emptyTitle": "Tudo calmo",
+    "emptySub": "Execute consultas no app — elas aparecerão aqui em tempo real, com duração e status.",
+    "explainTooltip": "EXPLAIN QUERY PLAN (Pro)",
+    "explainFeature": "EXPLAIN QUERY PLAN",
+    "explainDesc": "Mostra como o SQLite executa a consulta: por índice ou por varredura completa da tabela. Varreduras completas são destacadas — uma dica precisa de onde falta um índice."
+  },
+  "profiler": {
+    "total": "Total",
+    "errors": "Erros",
+    "p50hint": "Mediana: metade das consultas é mais rápida que isto.",
+    "p95hint": "95% das consultas são mais rápidas — mostra o comportamento no pior caso.",
+    "nplusone": "Possível N+1",
+    "slowest": "Mais lentas",
+    "frequent": "Mais frequentes",
+    "nplusoneDesc": "Parece N+1: considere include / JOIN para buscar dados relacionados em uma única consulta.",
+    "nplusoneBadge": "{}× em {}ms",
+    "emptyTitle": "Sem dados de profiling",
+    "emptySub": "Execute consultas no app — estatísticas da sessão, detecção de N+1 e planos de consulta aparecerão aqui."
+  },
+  "explain": {
+    "title": "Plano de consulta"
+  },
+  "migrations": {
+    "emptyTitle": "Ainda não há migrações",
+    "emptySub": "O histórico da tabela __phorm_migrations aparecerá aqui após a primeira migração.",
+    "errorTitle": "Histórico de migrações indisponível"
+  },
+  "streams": {
+    "emptyTitle": "Nenhum stream ativo",
+    "emptySub": "Assinaturas watchOne / watchAll ativas com suas dependências e contadores de emissões aparecerão aqui.",
+    "errorTitle": "Não foi possível obter os streams",
+    "emits": "{} emissões"
+  },
+  "license": {
+    "free": "Free",
+    "proActive": "Pro ativo",
+    "account": "Conta",
+    "until": "Válido até",
+    "deactivate": "Desativar nesta máquina",
+    "hint": "Ative uma chave para desbloquear o Pro: profiler com EXPLAIN, exportar e importar, dump do banco, modo Live e monitoramento de reatividade.",
+    "activate": "Ativar",
+    "buy": "Comprar licença",
+    "activated": "Licença ativada. Obrigado! 💜",
+    "expired": "A chave expirou.",
+    "invalid": "A chave é inválida.",
+    "malformed": "Isto não parece uma chave do Phorm Studio.",
+    "proFeature": "{} — um recurso do Phorm Studio Pro"
+  },
+  "pro": {
+    "title": "Phorm Studio Pro",
+    "buy": "Comprar Pro",
+    "haveKey": "Já tem uma chave? Ative-a na aba Licença.",
+    "proDesc": "O conjunto completo de ferramentas para trabalhar com seu banco de dados: profiler, exportar/importar, modo Live, monitoramento de reatividade.",
+    "reactivityDesc": "Monitor de streams watchOne/watchAll ativos: dependências, contadores de emissões, detecção de vazamentos."
+  },
+  "lang": {
+    "title": "Idioma"
+  }
+}

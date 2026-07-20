@@ -1,0 +1,158 @@
+{
+  "common": {
+    "cancel": "Annuler",
+    "close": "Fermer",
+    "retry": "Réessayer",
+    "reload": "Recharger",
+    "search": "Rechercher…",
+    "copied": "Copié",
+    "later": "Plus tard",
+    "details": "Détails",
+    "copy": "Copier"
+  },
+  "tabs": {
+    "inspector": "Inspecteur",
+    "queries": "Moniteur de requêtes",
+    "migrations": "Migrations",
+    "reactivity": "Réactivité",
+    "license": "Licence"
+  },
+  "header": {
+    "reloadDbs": "Recharger les bases",
+    "switchDb": "Changer de base"
+  },
+  "conn": {
+    "title": "Pas de connexion à l'app",
+    "subtitle": "Phorm Studio ne peut pas atteindre le pont phorm_devtools. Assurez-vous que l'app appelle enablePhormDevtools(db) et s'exécute en mode debug."
+  },
+  "inspector": {
+    "tables": "TABLES",
+    "deleted": "Supprimés",
+    "live": "Live",
+    "liveDesc": "Les lignes et les compteurs se mettent à jour en temps réel à chaque changement de données dans l'app — sans rechargement manuel.",
+    "addRow": "Ajouter une ligne",
+    "exportJson": "Table → JSON",
+    "exportCsv": "Table → CSV",
+    "exportDump": "Toute la BD → dump JSON",
+    "exportTooltip": "Exporter (Pro)",
+    "importTooltip": "Importer JSON (Pro)",
+    "reloadRows": "Recharger",
+    "selectTable": "Sélectionnez une table",
+    "selectTableSub": "La liste de vos tables est à gauche.",
+    "emptyTable": "La table est vide",
+    "emptyTableSub": "Cliquez sur « Ajouter une ligne » pour créer le premier enregistrement.",
+    "loadError": "Échec du chargement des données",
+    "importTitle": "Importer JSON → {}",
+    "importHint": "Collez un tableau JSON de lignes",
+    "imported": "Lignes importées : {}",
+    "importFailed": "Échec de l'import : {}",
+    "exportFailed": "Échec de l'export : {}",
+    "import": "Importer",
+    "fkOpen": "Ouvrir dans {} (clic droit pour copier)",
+    "prevPage": "Page précédente",
+    "nextPage": "Page suivante",
+    "delete": "Supprimer",
+    "deleteSoftSel": "Suppression douce de la sélection",
+    "deleteHardSel": "Suppression définitive de la sélection",
+    "selected": "{} sélectionné(s)",
+    "deleteConfirm": "Supprimer {} ligne(s) ?",
+    "importJson": "Importer JSON",
+    "importCsv": "Importer CSV",
+    "importCsvHint": "Collez le CSV (1re ligne = en-têtes)"
+  },
+  "editor": {
+    "addTitle": "Ajouter une ligne — {}",
+    "copyJson": "Copier la ligne en JSON",
+    "null": "NULL",
+    "insert": "Insérer",
+    "save": "Enregistrer",
+    "duplicate": "Dupliquer",
+    "softDelete": "Suppression douce",
+    "hardDelete": "Suppression définitive",
+    "restore": "Restaurer",
+    "genUuid": "Générer un UUID v4",
+    "now": "Maintenant (ISO 8601, UTC)",
+    "pickDate": "Choisir date et heure",
+    "pickExisting": "Choisir parmi les valeurs existantes",
+    "pickExistingTitle": "Valeurs existantes — {}",
+    "jsonInvalid": "JSON invalide : {}",
+    "notNull": "NOT NULL sans valeur par défaut — remplissez ce champ",
+    "notNullNull": "Colonne NOT NULL — NULL non autorisé",
+    "fkPickTitle": "{} — sélectionnez un enregistrement",
+    "fkPick": "Choisir dans {}",
+    "formatJson": "Formater le JSON",
+    "faker": "Valeur aléatoire",
+    "reset": "Réinitialiser",
+    "showValue": "Afficher",
+    "hideValue": "Masquer",
+    "pickColor": "Choisir la couleur",
+    "increment": "Incrémenter",
+    "decrement": "Décrémenter"
+  },
+  "queries": {
+    "feed": "Flux",
+    "profiler": "Profiler",
+    "pause": "Pause",
+    "resume": "Reprendre",
+    "clear": "Effacer",
+    "paused": "en pause",
+    "count": "{} requêtes",
+    "emptyTitle": "Tout est calme",
+    "emptySub": "Exécutez des requêtes dans l'app — elles apparaîtront ici en temps réel, avec durée et statut.",
+    "explainTooltip": "EXPLAIN QUERY PLAN (Pro)",
+    "explainFeature": "EXPLAIN QUERY PLAN",
+    "explainDesc": "Montre comment SQLite exécute la requête : via un index ou un balayage complet de la table. Les balayages complets sont surlignés — une indication précise de l'endroit où un index est nécessaire."
+  },
+  "profiler": {
+    "total": "Total",
+    "errors": "Erreurs",
+    "p50hint": "Médiane : la moitié des requêtes sont plus rapides que cela.",
+    "p95hint": "95 % des requêtes sont plus rapides — montre le comportement dans le pire des cas.",
+    "nplusone": "N+1 possible",
+    "slowest": "Les plus lentes",
+    "frequent": "Les plus fréquentes",
+    "nplusoneDesc": "Ressemble à du N+1 : envisagez include / JOIN pour récupérer les données liées en une seule requête.",
+    "nplusoneBadge": "{}× en {}ms",
+    "emptyTitle": "Aucune donnée de profiling",
+    "emptySub": "Exécutez des requêtes dans l'app — statistiques de session, détection de N+1 et plans de requête apparaîtront ici."
+  },
+  "explain": {
+    "title": "Plan de requête"
+  },
+  "migrations": {
+    "emptyTitle": "Pas encore de migrations",
+    "emptySub": "L'historique de la table __phorm_migrations apparaîtra ici après la première migration.",
+    "errorTitle": "Historique des migrations indisponible"
+  },
+  "streams": {
+    "emptyTitle": "Aucun stream actif",
+    "emptySub": "Les abonnements watchOne / watchAll actifs avec leurs dépendances et compteurs d'émissions apparaîtront ici.",
+    "errorTitle": "Impossible de récupérer les streams",
+    "emits": "{} émissions"
+  },
+  "license": {
+    "free": "Free",
+    "proActive": "Pro actif",
+    "account": "Compte",
+    "until": "Valide jusqu'au",
+    "deactivate": "Désactiver sur cette machine",
+    "hint": "Activez une clé pour débloquer Pro : profiler avec EXPLAIN, export et import, dump de BD, mode Live et monitoring de la réactivité.",
+    "activate": "Activer",
+    "buy": "Acheter une licence",
+    "activated": "Licence activée. Merci ! 💜",
+    "expired": "La clé a expiré.",
+    "invalid": "La clé n'est pas valide.",
+    "malformed": "Cela ne ressemble pas à une clé Phorm Studio.",
+    "proFeature": "{} — une fonctionnalité Phorm Studio Pro"
+  },
+  "pro": {
+    "title": "Phorm Studio Pro",
+    "buy": "Acheter Pro",
+    "haveKey": "Vous avez déjà une clé ? Activez-la dans l'onglet Licence.",
+    "proDesc": "La boîte à outils complète pour travailler avec votre base de données : profiler, export/import, mode Live, monitoring de la réactivité.",
+    "reactivityDesc": "Moniteur des streams watchOne/watchAll actifs : dépendances, compteurs d'émissions, détection des fuites."
+  },
+  "lang": {
+    "title": "Langue"
+  }
+}
