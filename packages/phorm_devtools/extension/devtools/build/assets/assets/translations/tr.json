@@ -10,7 +10,8 @@
     "details": "Ayrıntılar",
     "copy": "Kopyala",
     "clear": "Temizle",
-    "apply": "Uygula"
+    "apply": "Uygula",
+    "save": "Kaydet"
   },
   "tabs": {
     "inspector": "İnceleyici",

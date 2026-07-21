@@ -64,25 +64,25 @@ class QueryRecord {
 
   /// Compact form sent inside `phorm.queryBatch` events (SQL truncated).
   Map<String, Object?> toBatchJson() => {
-        'id': id,
-        'dbId': dbId,
-        'sql': sql.length > PhormDevtoolsBridge.maxEventSqlLength
-            ? sql.substring(0, PhormDevtoolsBridge.maxEventSqlLength)
-            : sql,
-        'truncated': sql.length > PhormDevtoolsBridge.maxEventSqlLength,
-        'parameters': arguments,
-        'executionTimeMs': durationMicros / 1000,
-        'isSlow': isSlow,
-        'error': error,
-        'timestamp': timestamp.toIso8601String(),
-      };
+    'id': id,
+    'dbId': dbId,
+    'sql': sql.length > PhormDevtoolsBridge.maxEventSqlLength
+        ? sql.substring(0, PhormDevtoolsBridge.maxEventSqlLength)
+        : sql,
+    'truncated': sql.length > PhormDevtoolsBridge.maxEventSqlLength,
+    'parameters': arguments,
+    'executionTimeMs': durationMicros / 1000,
+    'isSlow': isSlow,
+    'error': error,
+    'timestamp': timestamp.toIso8601String(),
+  };
 
   /// Full form returned by `ext.phorm.getQueryDetails`.
   Map<String, Object?> toDetailsJson() => {
-        ...toBatchJson(),
-        'sql': sql,
-        'truncated': false,
-      };
+    ...toBatchJson(),
+    'sql': sql,
+    'truncated': false,
+  };
 }
 
 /// One live watch stream tracked via [PhormInstrumentation].
@@ -101,14 +101,14 @@ class StreamRecord {
 
   /// Serializes the record for `ext.phorm.getActiveStreams`.
   Map<String, Object?> toJson() => {
-        'id': 's_${event.id}',
-        'kind': event.kind,
-        'table': event.table,
-        'primaryKey': event.primaryKey?.toString(),
-        'dependencies': event.dependencies,
-        'createdAt': createdAt.toIso8601String(),
-        'emitCount': emitCount,
-      };
+    'id': 's_${event.id}',
+    'kind': event.kind,
+    'table': event.table,
+    'primaryKey': event.primaryKey?.toString(),
+    'dependencies': event.dependencies,
+    'createdAt': createdAt.toIso8601String(),
+    'emitCount': emitCount,
+  };
 }
 
 /// Debug-only bridge between running PHORM databases and the Phorm Studio
@@ -140,8 +140,9 @@ class PhormDevtoolsBridge implements PhormInstrumentation {
 
   /// Attaches [db], registering service extensions on first use.
   static void attach(PhormDatabase db, {String? id, String? label}) {
-    final bridge = _instance ??= PhormDevtoolsBridge._().._registerExtensions();
-    bridge._addDatabase(db, id: id, label: label);
+    final bridge = _instance ??= PhormDevtoolsBridge._()
+      .._registerExtensions()
+      .._addDatabase(db, id: id, label: label);
     PhormInstrumentation.instance = bridge;
   }
 
@@ -156,8 +157,10 @@ class PhormDevtoolsBridge implements PhormInstrumentation {
   final Map<String, String> _labels = {};
   final Map<PhormDatabase, String> _dbIds = Map.identity();
 
-  final List<QueryRecord?> _queryBuffer =
-      List<QueryRecord?>.filled(queryBufferSize, null);
+  final List<QueryRecord?> _queryBuffer = List<QueryRecord?>.filled(
+    queryBufferSize,
+    null,
+  );
   int _nextQueryId = 0;
   final List<QueryRecord> _pendingBatch = [];
   Timer? _batchTimer;
@@ -218,8 +221,9 @@ class PhormDevtoolsBridge implements PhormInstrumentation {
   void _flushBatch() {
     _batchTimer = null;
     if (_pendingBatch.isEmpty) return;
-    final events =
-        _pendingBatch.map((r) => r.toBatchJson()).toList(growable: false);
+    final events = _pendingBatch
+        .map((r) => r.toBatchJson())
+        .toList(growable: false);
     _pendingBatch.clear();
     developer.postEvent('phorm.queryBatch', {'events': events});
   }
@@ -281,8 +285,8 @@ class PhormDevtoolsBridge implements PhormInstrumentation {
   }
 
   Map<String, Object?> _error(String code, String message) => {
-        'error': {'code': code, 'message': message},
-      };
+    'error': {'code': code, 'message': message},
+  };
 
   PhormDatabase? _db(Map<String, String> params) =>
       _databases[params['dbId'] ?? 'main'];
@@ -342,8 +346,9 @@ class PhormDevtoolsBridge implements PhormInstrumentation {
     for (final table in db.tables) {
       var rowCount = -1;
       try {
-        final rows = await executor
-            .rawQuery('SELECT COUNT(*) AS c FROM "${table.name}"');
+        final rows = await executor.rawQuery(
+          'SELECT COUNT(*) AS c FROM "${table.name}"',
+        );
         rowCount = (rows.first['c'] as num?)?.toInt() ?? -1;
       } on Object catch (_) {
         // Table may not exist yet (pre-migration); keep -1.
@@ -352,8 +357,9 @@ class PhormDevtoolsBridge implements PhormInstrumentation {
       // constraints are not part of the Table config.
       var columnsMeta = const <Map<String, Object?>>[];
       try {
-        final info = await executor
-            .rawQuery('PRAGMA table_info("${table.name}")');
+        final info = await executor.rawQuery(
+          'PRAGMA table_info("${table.name}")',
+        );
         columnsMeta = [
           for (final c in info)
             {
@@ -407,8 +413,9 @@ class PhormDevtoolsBridge implements PhormInstrumentation {
     final includeDeleted = params['includeDeleted'] == 'true';
     final search = params['searchQuery'];
     final orderBy = params['orderBy'];
-    final orderDir =
-        (params['orderDir'] ?? 'asc').toLowerCase() == 'desc' ? 'DESC' : 'ASC';
+    final orderDir = (params['orderDir'] ?? 'asc').toLowerCase() == 'desc'
+        ? 'DESC'
+        : 'ASC';
 
     if (orderBy != null && !table.columns.contains(orderBy)) {
       return _error('BAD_REQUEST', 'Unknown orderBy column: $orderBy');
@@ -612,8 +619,7 @@ class PhormDevtoolsBridge implements PhormInstrumentation {
     Map<String, String> params,
   ) async {
     return {
-      'streams':
-          _streams.values.map((s) => s.toJson()).toList(growable: false),
+      'streams': _streams.values.map((s) => s.toJson()).toList(growable: false),
     };
   }
 }

@@ -10,7 +10,8 @@
     "details": "Details",
     "copy": "Kopieren",
     "clear": "Leeren",
-    "apply": "Anwenden"
+    "apply": "Anwenden",
+    "save": "Speichern"
   },
   "tabs": {
     "inspector": "Inspektor",

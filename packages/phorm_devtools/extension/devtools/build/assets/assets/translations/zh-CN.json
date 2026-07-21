@@ -10,7 +10,8 @@
     "details": "详情",
     "copy": "复制",
     "clear": "清除",
-    "apply": "应用"
+    "apply": "应用",
+    "save": "保存"
   },
   "tabs": {
     "inspector": "检查器",
