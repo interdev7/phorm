@@ -8,7 +8,9 @@
     "copied": "Copied",
     "later": "Later",
     "details": "Details",
-    "copy": "Copy"
+    "copy": "Copy",
+    "clear": "Clear",
+    "apply": "Apply"
   },
   "tabs": {
     "inspector": "Inspector",
@@ -58,7 +60,11 @@
     "deleteConfirm": "Delete {} row(s)?",
     "importJson": "Import JSON",
     "importCsv": "Import CSV",
-    "importCsvHint": "Paste CSV (first row = headers)"
+    "importCsvHint": "Paste CSV (first row = headers)",
+    "export": "Export",
+    "perPage": "Per page",
+    "filterTitle": "Filter — {}",
+    "filterEmpty": "No values"
   },
   "editor": {
     "addTitle": "Add row — {}",
@@ -128,7 +134,13 @@
     "emptyTitle": "No active streams",
     "emptySub": "Active watchOne / watchAll subscriptions with their dependencies and emit counts will appear here.",
     "errorTitle": "Couldn't fetch streams",
-    "emits": "{} emits"
+    "emits": "{} emits",
+    "header": "Reactive streams",
+    "headerDesc": "Every watchOne/watchAll subscription in your app, live — which tables it depends on, how many times it re-emitted, and how long it has been alive. Spot leaks and needless rebuilds.",
+    "watches": "watches",
+    "created": "alive",
+    "active": "{} active",
+    "leak": "possible leak"
   },
   "license": {
     "free": "Free",

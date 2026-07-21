@@ -8,7 +8,9 @@
     "copied": "Copiado",
     "later": "Depois",
     "details": "Detalhes",
-    "copy": "Copiar"
+    "copy": "Copiar",
+    "clear": "Limpar",
+    "apply": "Aplicar"
   },
   "tabs": {
     "inspector": "Inspetor",
@@ -58,7 +60,11 @@
     "deleteConfirm": "Excluir {} linha(s)?",
     "importJson": "Importar JSON",
     "importCsv": "Importar CSV",
-    "importCsvHint": "Cole o CSV (primeira linha = cabeçalhos)"
+    "importCsvHint": "Cole o CSV (primeira linha = cabeçalhos)",
+    "export": "Exportar",
+    "perPage": "Por página",
+    "filterTitle": "Filtro — {}",
+    "filterEmpty": "Sem valores"
   },
   "editor": {
     "addTitle": "Adicionar linha — {}",
@@ -128,7 +134,13 @@
     "emptyTitle": "Nenhum stream ativo",
     "emptySub": "Assinaturas watchOne / watchAll ativas com suas dependências e contadores de emissões aparecerão aqui.",
     "errorTitle": "Não foi possível obter os streams",
-    "emits": "{} emissões"
+    "emits": "{} emissões",
+    "header": "Streams reativos",
+    "headerDesc": "Todas as assinaturas watchOne/watchAll do seu app ao vivo — de quais tabelas dependem, quantas vezes reemitiram e há quanto tempo vivem. Encontre vazamentos e rebuilds desnecessários.",
+    "watches": "observa",
+    "created": "ativo",
+    "active": "{} ativos",
+    "leak": "possível vazamento"
   },
   "license": {
     "free": "Free",

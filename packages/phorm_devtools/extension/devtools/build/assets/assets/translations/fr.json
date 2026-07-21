@@ -8,7 +8,9 @@
     "copied": "Copié",
     "later": "Plus tard",
     "details": "Détails",
-    "copy": "Copier"
+    "copy": "Copier",
+    "clear": "Effacer",
+    "apply": "Appliquer"
   },
   "tabs": {
     "inspector": "Inspecteur",
@@ -58,7 +60,11 @@
     "deleteConfirm": "Supprimer {} ligne(s) ?",
     "importJson": "Importer JSON",
     "importCsv": "Importer CSV",
-    "importCsvHint": "Collez le CSV (1re ligne = en-têtes)"
+    "importCsvHint": "Collez le CSV (1re ligne = en-têtes)",
+    "export": "Exporter",
+    "perPage": "Par page",
+    "filterTitle": "Filtre — {}",
+    "filterEmpty": "Aucune valeur"
   },
   "editor": {
     "addTitle": "Ajouter une ligne — {}",
@@ -128,7 +134,13 @@
     "emptyTitle": "Aucun stream actif",
     "emptySub": "Les abonnements watchOne / watchAll actifs avec leurs dépendances et compteurs d'émissions apparaîtront ici.",
     "errorTitle": "Impossible de récupérer les streams",
-    "emits": "{} émissions"
+    "emits": "{} émissions",
+    "header": "Streams réactifs",
+    "headerDesc": "Tous les abonnements watchOne/watchAll de votre app en direct — de quelles tables ils dépendent, combien de fois ils ont ré-émis et depuis combien de temps ils vivent. Repérez fuites et rebuilds inutiles.",
+    "watches": "observe",
+    "created": "actif",
+    "active": "{} actifs",
+    "leak": "fuite possible"
   },
   "license": {
     "free": "Free",

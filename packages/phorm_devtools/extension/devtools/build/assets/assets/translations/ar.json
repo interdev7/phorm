@@ -8,7 +8,9 @@
     "copied": "تم النسخ",
     "later": "لاحقًا",
     "details": "التفاصيل",
-    "copy": "نسخ"
+    "copy": "نسخ",
+    "clear": "مسح",
+    "apply": "تطبيق"
   },
   "tabs": {
     "inspector": "المتصفّح",
@@ -58,7 +60,11 @@
     "deleteConfirm": "حذف {} صف؟",
     "importJson": "استيراد JSON",
     "importCsv": "استيراد CSV",
-    "importCsvHint": "الصق CSV (الصف الأول = العناوين)"
+    "importCsvHint": "الصق CSV (الصف الأول = العناوين)",
+    "export": "تصدير",
+    "perPage": "لكل صفحة",
+    "filterTitle": "تصفية — {}",
+    "filterEmpty": "لا قيم"
   },
   "editor": {
     "addTitle": "إضافة صف — {}",
@@ -128,7 +134,13 @@
     "emptyTitle": "لا توجد تدفّقات نشطة",
     "emptySub": "ستظهر هنا اشتراكات watchOne / watchAll النشطة مع تبعياتها وعدّادات الإصدار.",
     "errorTitle": "تعذّر جلب التدفّقات",
-    "emits": "{} إصدار"
+    "emits": "{} إصدار",
+    "header": "التدفّقات التفاعلية",
+    "headerDesc": "كل اشتراكات watchOne/watchAll في تطبيقك مباشرةً — على أي جداول تعتمد، وكم مرة أعادت الإصدار، ومنذ متى وهي حيّة. اكتشف التسريبات وإعادة البناء غير الضرورية.",
+    "watches": "يراقب",
+    "created": "نشط",
+    "active": "{} نشط",
+    "leak": "تسرّب محتمل"
   },
   "license": {
     "free": "مجاني",

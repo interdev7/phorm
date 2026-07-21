@@ -8,7 +8,9 @@
     "copied": "Kopiert",
     "later": "Später",
     "details": "Details",
-    "copy": "Kopieren"
+    "copy": "Kopieren",
+    "clear": "Leeren",
+    "apply": "Anwenden"
   },
   "tabs": {
     "inspector": "Inspektor",
@@ -58,7 +60,11 @@
     "deleteConfirm": "{} Zeile(n) löschen?",
     "importJson": "JSON importieren",
     "importCsv": "CSV importieren",
-    "importCsvHint": "CSV einfügen (erste Zeile = Kopf)"
+    "importCsvHint": "CSV einfügen (erste Zeile = Kopf)",
+    "export": "Exportieren",
+    "perPage": "Pro Seite",
+    "filterTitle": "Filter — {}",
+    "filterEmpty": "Keine Werte"
   },
   "editor": {
     "addTitle": "Zeile hinzufügen — {}",
@@ -128,7 +134,13 @@
     "emptyTitle": "Keine aktiven Streams",
     "emptySub": "Aktive watchOne / watchAll-Abonnements mit ihren Abhängigkeiten und Emit-Zählern erscheinen hier.",
     "errorTitle": "Streams konnten nicht geladen werden",
-    "emits": "{} Emits"
+    "emits": "{} Emits",
+    "header": "Reaktive Streams",
+    "headerDesc": "Alle watchOne/watchAll-Abos deiner App live — von welchen Tabellen sie abhängen, wie oft sie neu emittiert haben und wie lange sie leben. Erkenne Leaks und unnötige Rebuilds.",
+    "watches": "beobachtet",
+    "created": "aktiv",
+    "active": "{} aktiv",
+    "leak": "möglicher Leak"
   },
   "license": {
     "free": "Free",

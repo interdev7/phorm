@@ -426,6 +426,19 @@ class PhormDevtoolsBridge implements PhormInstrumentation {
       where.add('($likes)');
       args.addAll(List.filled(table.columns.length, '%$search%'));
     }
+    // Фильтры по колонкам: {"col": ["v1","v2"]} → "col" IN (?,?).
+    final rawFilters = params['filters'];
+    if (rawFilters != null && rawFilters.isNotEmpty) {
+      final decoded = jsonDecode(rawFilters) as Map<String, dynamic>;
+      for (final entry in decoded.entries) {
+        if (!table.columns.contains(entry.key)) continue; // защита от инъекций
+        final values = (entry.value as List).cast<Object?>();
+        if (values.isEmpty) continue;
+        final placeholders = List.filled(values.length, '?').join(', ');
+        where.add('"${entry.key}" IN ($placeholders)');
+        args.addAll(values);
+      }
+    }
     final whereSql = where.isEmpty ? '' : ' WHERE ${where.join(' AND ')}';
     final orderSql = orderBy == null ? '' : ' ORDER BY "$orderBy" $orderDir';
 

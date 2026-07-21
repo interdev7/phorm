@@ -8,7 +8,9 @@
     "copied": "Kopyalandı",
     "later": "Sonra",
     "details": "Ayrıntılar",
-    "copy": "Kopyala"
+    "copy": "Kopyala",
+    "clear": "Temizle",
+    "apply": "Uygula"
   },
   "tabs": {
     "inspector": "İnceleyici",
@@ -58,7 +60,11 @@
     "deleteConfirm": "{} satır silinsin mi?",
     "importJson": "JSON içe aktar",
     "importCsv": "CSV içe aktar",
-    "importCsvHint": "CSV yapıştırın (ilk satır = başlıklar)"
+    "importCsvHint": "CSV yapıştırın (ilk satır = başlıklar)",
+    "export": "Dışa aktar",
+    "perPage": "Sayfa başına",
+    "filterTitle": "Filtre — {}",
+    "filterEmpty": "Değer yok"
   },
   "editor": {
     "addTitle": "Satır ekle — {}",
@@ -128,7 +134,13 @@
     "emptyTitle": "Aktif stream yok",
     "emptySub": "Bağımlılıkları ve emit sayaçlarıyla birlikte aktif watchOne / watchAll abonelikleri burada görünür.",
     "errorTitle": "Stream'ler alınamadı",
-    "emits": "{} emit"
+    "emits": "{} emit",
+    "header": "Reaktif akışlar",
+    "headerDesc": "Uygulamandaki tüm watchOne/watchAll abonelikleri canlı — hangi tablolara bağlı, kaç kez yeniden yayınladı ve ne kadar süredir yaşıyor. Sızıntıları ve gereksiz yeniden çizimleri yakala.",
+    "watches": "izliyor",
+    "created": "aktif",
+    "active": "{} aktif",
+    "leak": "olası sızıntı"
   },
   "license": {
     "free": "Free",

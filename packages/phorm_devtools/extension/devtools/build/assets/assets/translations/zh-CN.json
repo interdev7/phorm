@@ -8,7 +8,9 @@
     "copied": "已复制",
     "later": "稍后",
     "details": "详情",
-    "copy": "复制"
+    "copy": "复制",
+    "clear": "清除",
+    "apply": "应用"
   },
   "tabs": {
     "inspector": "检查器",
@@ -58,7 +60,11 @@
     "deleteConfirm": "删除 {} 行？",
     "importJson": "导入 JSON",
     "importCsv": "导入 CSV",
-    "importCsvHint": "粘贴 CSV（第一行为表头）"
+    "importCsvHint": "粘贴 CSV（第一行为表头）",
+    "export": "导出",
+    "perPage": "每页",
+    "filterTitle": "筛选 — {}",
+    "filterEmpty": "无值"
   },
   "editor": {
     "addTitle": "添加行 — {}",
@@ -128,7 +134,13 @@
     "emptyTitle": "没有活动的流",
     "emptySub": "活动的 watchOne / watchAll 订阅及其依赖和发射次数将显示在此处。",
     "errorTitle": "无法获取流",
-    "emits": "{} 次发射"
+    "emits": "{} 次发射",
+    "header": "响应式流",
+    "headerDesc": "实时显示应用中的所有 watchOne/watchAll 订阅——依赖哪些表、重新发射了多少次、存活了多久。发现泄漏和无谓的重建。",
+    "watches": "监听",
+    "created": "存活",
+    "active": "{} 个活动",
+    "leak": "疑似泄漏"
   },
   "license": {
     "free": "免费",
